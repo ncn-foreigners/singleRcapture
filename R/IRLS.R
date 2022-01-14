@@ -1,50 +1,79 @@
-#' Itterativly Reweighted Least Squares
+#' Iteratively Reweighted Least Squares
 #'
-#' A method for fitting regression parameters in generalised linear model
+#' A method for fitting regression parameters in generalized linear model
 #'
 #' @param Dependent A vector of Dependent variables
 #' @param Covariates An array of Covariates
 #' @param start A place to start the numerical estimation
-#' @param Maxiter Maximum number of itterations
+#' @param Maxiter Maximum number of iterations
+#' @param disp dispersion parameter if family needs it
 #' @param eps Precision level
-#' @param Family Family of distributions used in regression
+#' @param family Family of distributions used in regression
+#' @param weights Optional object of weights used in fitting the model
 #'
-#' @return Returns a list of fitted Coefficients and number of itterations
+#' @return Returns a list of fitted Coefficients and number of iterations and final weights
 #' @export
-IRLS <- function(Dependent,Family,Covariates,start,Maxiter = 100,eps = 1e-10){
+IRLS <- function(Dependent,
+                 family,
+                 Covariates,
+                 start,
+                 disp = NULL,
+                 weights = NULL,
+                 Maxiter = 10000,
+                 eps = 1e-10) {
   converged <- FALSE
   Iter <- 1
   Beta <- start
-  Loglike <- Family()$make_minusloglike(y = Dependent,X = Covariates)
 
-  Eta <- Covariates %*% Beta
-  Parameter <- Family()$Invlink(Eta)
-  mu <- Family()$mu(Parameter)
-  L <- -Loglike(Beta)
+  if (!is.null(weights)) {
+    Prior <- as.numeric(weights)
+  } else {
+    Prior <- 1
+  }
 
-  while(!converged && (Iter < Maxiter)){
+  Loglike <- family$make_minusloglike(y = Dependent,
+                                      X = Covariates,
+                                      weight = Prior)
+  if (family$family == "ZTNB") {
+    Temp <- c(disp, Beta)
+  } else {
+    Temp <- Beta
+  }
+  L <- -Loglike(Temp)
+
+
+  while (!converged && (Iter < Maxiter)) {
     PrevBeta <- Beta
     PrevL <- L
 
     Eta <- Covariates %*% Beta
-    Parameter <- Family()$Invlink(Eta)
-    mu <- Family()$mu(Parameter)
+    Parameter <- family$linkinv(Eta)
+    mu <- family$mu.eta(eta = Eta, disp)
+    VarY <- family$variance(mu = mu, disp)
+    Z <- Eta + (Dependent - mu) * family$Dlink(mu)
+    W <- as.numeric(Prior / ((family$Dlink(mu) ** 2) * VarY))
 
-    Z <- Covariates %*% Beta + (Dependent-mu) / mu
-    W <- diag(as.numeric(mu))
+    # This is equivalent to
+    # A <- t(Covariates) %*% W %*% Covariates
+    # B <- t(Covariates) %*% W %*% Z
+    # But much much faster and less memory heavy
+    A <- t(Covariates) %*% (Covariates * W)
+    B <- t(Covariates) %*% (Z * W)
+    Beta <- solve(A, B)
 
-    A <- (t(Covariates) %*% W) %*% Covariates
-    B <- (t(Covariates) %*% W) %*% Z
-    Beta <- solve(A,B)
-
-    L <- -Loglike(Beta)
+    if (family$family == "ZTNB") {
+      Temp <- c(disp, Beta)
+    } else {
+      Temp <- Beta
+    }
+    L <- -Loglike(Temp)
 
     converged <- ((L-PrevL) < eps) || (max(abs(Beta - PrevBeta)) < eps)
 
-    if(!converged){
+    if (!converged) {
       Iter <- Iter + 1
     }
 
   }
-  return(list('Coefficients' = Beta,'Number_of_itterations' = Iter))
+  list("Coefficients" = Beta, "iter" = Iter, Weights = W)
 }

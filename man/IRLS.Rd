@@ -2,26 +2,39 @@
 % Please edit documentation in R/IRLS.R
 \name{IRLS}
 \alias{IRLS}
-\title{Itterativly Reweighted Least Squares}
+\title{Iteratively Reweighted Least Squares}
 \usage{
-IRLS(Dependent, Family, Covariates, start, Maxiter = 100, eps = 1e-10)
+IRLS(
+  Dependent,
+  family,
+  Covariates,
+  start,
+  disp = NULL,
+  weights = NULL,
+  Maxiter = 10000,
+  eps = 1e-10
+)
 }
 \arguments{
 \item{Dependent}{A vector of Dependent variables}
 
-\item{Family}{Family of distributions used in regression}
+\item{family}{Family of distributions used in regression}
 
 \item{Covariates}{An array of Covariates}
 
 \item{start}{A place to start the numerical estimation}
 
-\item{Maxiter}{Maximum number of itterations}
+\item{disp}{dispersion parameter if family needs it}
+
+\item{weights}{Optional object of weights used in fitting the model}
+
+\item{Maxiter}{Maximum number of iterations}
 
 \item{eps}{Precision level}
 }
 \value{
-A list of fitted Coefficients and number of itterations
+Returns a list of fitted Coefficients and number of iterations and final weights
 }
 \description{
-A method for fitting regression parameters in generalised linear model
+A method for fitting regression parameters in generalized linear model
 }

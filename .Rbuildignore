@@ -1,3 +1,9 @@
 ^singleRcapture\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^analysis$
+^docs$
+^data$
+^code$
+^output$
+^_workflowr.yml$
