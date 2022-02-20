@@ -1,24 +1,30 @@
 #' Total Population Point and Interval estimate
 #'
-#' Creates a Horwitz-Thompson point and interval estimate for total and missing population from zero truncated poisson model.
+#' Creates a Horvitz-Thompson/Chao/Zelterman
+#' point and interval estimate for total
+#' and missing population from zero truncated poisson model.
 #'
 #' @param y Observed values
-#' @param X A covariate matrix
+#' @param X A matrix of covariates
 #' @param Grad A gradient of a model with respect to regression parameters
 #' @param Parameter An estimated Parameter for the model
 #' @param beta Fitted regression values
 #' @param family Model Family
 #' @param weights If model is weighted weights of particular observations
 #' @param Hess Hessian of a model
-#' @param Overdispersion For truncated Negative binomial distributions
-#' @param Method A method of constructing confidence interval either analytic or bootstrap where bootstraped confidence interval may
-#' either be based on 2.5%-97.5% percientiles ("bootstrapPerc") or by estimating SD ("bootstrapSD") to use formula for analytic CI
+#' @param dispersion Estimated dispersion parameter
+#' for truncated Negative binomial distributions
+#' @param Method A method of constructing confidence interval either analytic
+#' to use formula for analytic CI or bootstrap where bootstraped confidence
+#' interval may either be based on 2.5%-97.5% percientiles ("bootstrapPerc")
+#' or by estimating SD ("bootstrapSD")
+#' @param trcount Optional parameter for Zero-one truncated models, if population estimate
+#' is for one inflated model then it specifies one counts and includes them in
+#' final population estimate both point and interval, and for zeltermann/chao
+#' estimator where it specifies counts of not used in estimate
 #'
-#' @return Returns a list of size 3 with: \cr
-#' (1) Point estimate \cr
-#' (2) Variance \cr
-#' (3) Confidence interval constructed using Point estimate plus minus 1.96
-#' (approximate of 97.5% percentile of standardaised normal distribution) times standard deviation
+#' @return Returns a list of size 3 with:
+#' Point estimate, Interval estimate, and Variance
 #' @export
 #'
 PopulationEstimate <- function(y,
@@ -29,123 +35,131 @@ PopulationEstimate <- function(y,
                                weights = 1,
                                Hess,
                                family,
-                               Overdispersion = NULL,
+                               trcount,
+                               dispersion,
                                Method = "analytic") {
-  if (family$family == "ZTP"){
-    Lambda <- Parameter
-    N <- sum(1 / (1 - exp(-Lambda)))
+  if (Method == "analytic") {
+    N <- family$Point.est(disp = dispersion,
+                          pw = weights,
+                          Lambda = Parameter) + trcount
 
-    if (Method == "analytic") {
-      X <- as.data.frame(X)
-      Inform <- -Hess(beta)
+    Variation <- family$Pop.var(beta = beta, pw = weights,
+                                Lambda = Parameter,
+                                disp = dispersion,
+                                Hess = Hess, X = X)
 
-      f1 <- colSums(-X * (exp(log(Lambda)-Lambda)/((1 - exp(-Lambda)) ** 2)))
-      f1 <- t(f1) %*% solve(as.matrix(Inform)) %*% f1
-
-      f2 <- sum(exp(-Lambda)/((1-exp(-Lambda)) ** 2))
-
-      Variation <- f1 + f2
-
-      Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation), length(y)),
-                               Upper_Bound = N + 1.96 * sqrt(Variation))
-    } else if (grepl("bootstrap", Method, fixed = TRUE)) {
-
-      f0 <- sum(exp(-Lambda) / (1 - exp(-Lambda)))
+    Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation),
+                                              (length(y) + trcount)),
+                             Upper_Bound = N + 1.96 * sqrt(Variation))
+  } else if (grepl("bootstrap", Method, fixed = TRUE)) {
+    if (family$family %in% c("chao", "zelterman")) {
+      N <- family$Point.est(disp = dispersion,
+                            pw = weights,
+                            Lambda = Parameter) + trcount
+      f0 <- N - sum(weights) - trcount
+    } else {
+      N <- family$Point.est(disp = dispersion,
+                            pw = weights,
+                            Lambda = Parameter) + trcount
+      f0 <- N - length(y) - trcount
+    }
+    if (trcount == 0 || is.null(trcount)) {
       Prob <- c(f0, as.numeric(table(y))) / N
       Prob <- cumsum(Prob)
-      names(Prob) <- c(0,as.numeric(names(table(y))))
-      StrappedStatistic <- NULL
-
-      if (length(y) < 50) {
-        Bootnumber <- 10000
-      } else if (length(y) < 100) {
-        Bootnumber <- 7500
-      } else if (length(y) < 500) {
-        Bootnumber <- 5000
-      } else if (length(y) < 1000) {
-        Bootnumber <- 2500
-      } else if (length(y) < 2000) {
-        Bootnumber <- 2000
-      } else if (length(y) < 10000) {
-        Bootnumber <- 500
+      names(Prob) <- c(0, as.numeric(names(table(y))))
+    } else {
+      if (family$family %in% c("chao",
+                               "zelterman")) {
+        Prob <- c(f0, weights, trcount) / N
+        Prob <- cumsum(Prob)
+        names(Prob) <- c(0, as.numeric(names(table(y))), 3)
       } else {
-        Bootnumber <- 100
+        Prob <- c(f0, trcount, as.numeric(table(y))) / N
+        Prob <- cumsum(Prob)
+        names(Prob) <- c(0, 1, as.numeric(names(table(y))))
       }
-
-      for (z in 1:Bootnumber) {
-        U <- stats::runif(N)
-        Strap <- NULL
-
-        for (k in names(Prob)) {
-          Strap <- c(Strap, length(which(U <= as.numeric(Prob[k]))))
-        }
-        names(Strap) <- names(Prob)
-
-        m <- length(Strap)
-
-        while (m != 1) {
-          Strap[m] <- Strap[m]-Strap[m - 1]
-          m <- m - 1
-        }
-
-        full <- NULL
-
-        for (k in names(Strap)) {
-          full <- c(full, rep(k, Strap[k]))
-        }
-
-        full <- full[full != 0]
-        Theta <- IRLS(Dependent = as.numeric(full),
-                      Covariates = matrix(rep(1, length(full), ncol = 1)),
-                      family = Zero_Truncated_Poisson(),
-                      start = .1)$Coefficients
-        Theta <- exp(matrix(rep(1, length(full), ncol = 1)) %*% Theta)
-
-        StrappedStatistic <- c(StrappedStatistic, sum(1 / (1 - exp(-Theta))))
-
-      }
-      N <- mean(StrappedStatistic)
-      if (Method == "bootstrapSD") {
-        Variation <- stats::var(StrappedStatistic)
-        Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation), length(y)),
-                                 Upper_Bound = N + 1.96 * sqrt(Variation))
-      } else if (Method == "bootstrapPerc") {
-        Variation <- stats::var(StrappedStatistic)
-        Confidence_Interval <- stats::quantile(StrappedStatistic, c(0.025, 0.975))
-        names(Confidence_Interval) <- c("Lower_Bound", "Upper_Bound")
-      }
-      rm(StrappedStatistic);
-      rm(Theta);
-      rm(full);
-      rm(Strap);
-      rm(U);
-      rm(m);
     }
-  } else if (family$family == "ZTNB") {
-    alpha <- Overdispersion
-    z <- 1 / alpha
-    Lambda <- Parameter
-    Pr <- 1 - (1 + z * Lambda) ** (- 1 / z)
-    N <- sum(1 / Pr)
+    StrappedStatistic <- NULL
 
-    if (Method == "analytic") {
-    S <- 1 / (1 + z * Lambda)
+    Bootnumber <- 1000
 
-    Inform <- as.matrix(-Hess(beta))
+    for (z in 1:Bootnumber) {
+      U <- stats::runif(N)
+      Strap <- NULL
 
-    BigTheta1 <- sum(((1 + z * Lambda) ** (z - 1) *
-    ((1 + z * Lambda) * log(1 + z * Lambda) - z * Lambda)) / (z ** 2))
-    BigTheta2 <- -(as.numeric(Lambda * (S ** (1 - 1 / z)) /
-    ((1 - (1 / S) ** z) ** 2))) %*% as.matrix(X)
-    BigTheta <- matrix(c(BigTheta1, BigTheta2), ncol = 1)
+      for (k in names(Prob)) {
+        Strap <- c(Strap, length(which(U <= as.numeric(Prob[k]))))
+      }
+      names(Strap) <- names(Prob)
 
-    f1 <-  t(BigTheta) %*% solve(Inform) %*% BigTheta
-    f2 <- sum((1 - Pr) / (Pr ** 2))
-    Variation <- f1 + f2
+      m <- length(Strap)
 
-    Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation), length(y)),
-                             Upper_Bound = N + 1.96 * sqrt(Variation))
-    names(Confidence_Interval) <- c("Lower_Bound", "Upper_Bound")
+      while (m != 1) {
+        Strap[m] <- Strap[m] - Strap[m - 1]
+        m <- m - 1
+      }
+      full <- NULL
+
+      for (k in names(Strap)) {
+        full <- c(full, rep(as.numeric(k), Strap[k]))
+      }
+
+      full <- full[full != 0]
+      trcountboot <- 0
+      if (family$family %in% c("zotpoisson", "zotnegbin")) {
+        trcountboot <- length(full[full == 1])
+        full <- full[full != 1]
+      } else if (family$family %in% c("chao", "zelterman")) {
+        trcountboot <- length(full[full == 3])
+        full <- full[full < 3]
+      }
+
+      start <- beta
+      if (!is.null(dispersion)) {
+        start <- beta[-1]
+      }
+
+      start <- mean(start)
+
+      if (family$family %in% c("chao", "zelterman")) {
+        ll <- family$make_minusloglike(y = c(1, 2),
+                                       X = matrix(c(1, 1), ncol = 1),
+                                       weight = as.numeric(table(full)))
+        Theta <- stats::optimize(f = ll,
+                                 interval = c(-start,2 * start))$minimum
+        Theta <- family$linkinv(matrix(c(1, 1), ncol = 1) %*% Theta)
+      } else{
+        Theta <- IRLS(Dependent = as.numeric(full),
+                      Covariates = matrix(rep(1, length(full)), ncol = 1),
+                      family = family,
+                      start = start,
+                      disp = dispersion,
+                      disp.given = TRUE)$Coefficients
+        Theta <- family$linkinv(matrix(rep(1, length(full)), ncol = 1) %*% Theta)
+      }
+
+      if (family$family %in% c("chao", "zelterman")) {
+        StrappedStatistic <- c(StrappedStatistic,
+                               family$Point.est(disp = dispersion,
+                                                pw = as.numeric(table(full)),
+                                                Lambda = Theta) + trcountboot)
+      } else {
+        StrappedStatistic <- c(StrappedStatistic,
+                               family$Point.est(disp = dispersion,
+                                                pw = 1,
+                                                Lambda = Theta) + trcountboot)
+      }
+    }
+    N <- mean(StrappedStatistic)
+    if (Method == "bootstrapSD") {
+      Variation <- stats::var(StrappedStatistic)
+      Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation),
+                                                 (length(y) + trcount)),
+                               Upper_Bound = N + 1.96 * sqrt(Variation))
+    } else if (Method == "bootstrapPerc") {
+      Variation <- stats::var(StrappedStatistic)
+      Confidence_Interval <- stats::quantile(StrappedStatistic, c(0.025, 0.975))
+      names(Confidence_Interval) <- c("Lower_Bound", "Upper_Bound")
     }
   }
 

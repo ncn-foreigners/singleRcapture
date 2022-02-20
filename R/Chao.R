@@ -1,4 +1,4 @@
-#' Zero Truncated Poisson Model
+#' Chao model for population estimate
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr
@@ -15,66 +15,76 @@
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
 #' @export
-ztpoisson <- function() {
-  link <- log
-  Invlink <- exp
+chao <- function() {
+  link <- function(x) log(x / 2)
+  Invlink <- function (x) 2 * exp(x)
   Dlink <- function(Lambda) {
     1 / Lambda
   }
 
   mu.eta <- function(disp = NULL, eta) {
     Lambda <- Invlink(eta)
-    Lambda / (1 - exp(-Lambda))
+    (Lambda / 2) / (1 + Lambda / 2)
   }
 
   Variance <- function(disp = NULL, mu) {
-    m1 <- mu / (1 - exp(-mu))
-    m1 * (1 + mu - m1)
+    ((mu / 2) / (1 + mu / 2)) * (1 / (1 + mu / 2))
   }
 
   MinusLogLike <- function(y, X, weight = 1) {
     y <- as.numeric(y)
+    z <- y
+    z[z == 1] <- 0
+    z[z == 2] <- 1
     if (is.null(weight)) {
       weight <- 1
     }
+
     function(beta) {
       Eta <- as.matrix(X) %*% beta
-      Lambda <- exp(Eta)
-      -sum(weight * (y * Eta - log(exp(Lambda) - 1) - log(factorial(y))))
+      Lambda <- Invlink(Eta)
+      L1 <- Lambda / 2
+      -sum(weight * (z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))))
     }
   }
 
   Gradient <- function(y, X, weight = 1) {
     y <- as.numeric(y)
+    z <- y
+    z[z == 1] <- 0
+    z[z == 2] <- 1
     if (is.null(weight)) {
       weight <- 1
     }
 
     function(beta) {
-      Lambda <- exp(as.matrix(X) %*% beta)
-      mu <- Lambda / (1 - exp(-Lambda))
-      t(as.matrix(X)) %*% (weight * (y - mu))
+      Eta <- as.matrix(X) %*% beta
+      Lambda <- Invlink(Eta)
+      L1 <- Lambda / 2
+      t(X) %*% ((z - L1 / (1 + L1)) * weight)
     }
   }
 
   Hessian <- function(y, X, weight = 1) {
+    y <- as.numeric(y)
+    z <- y
+    z[z == 1] <- 0
+    z[z == 2] <- 1
     if (is.null(weight)) {
       weight <- 1
     }
 
     function(beta) {
-      Lambda <- exp(as.matrix(X) %*% beta)
-      coefficient <- (1 / (1 - exp(-Lambda)) -
-                      Lambda * exp(-Lambda) / ((1 - exp(-Lambda)) ** 2))
-      Dmu <- diag(weight * as.numeric(coefficient))
-      Dlam <- as.matrix(X * as.numeric(Lambda))
-
-      -((t(as.matrix(X)) %*% Dmu) %*% Dlam)
+      Eta <- as.matrix(X) %*% beta
+      Lambda <- Invlink(Eta)
+      L1 <- Lambda / 2
+      term <- -(L1 / ((1 + L1) ** 2))
+      t(as.data.frame(X) * weight * term) %*% as.matrix(X)
     }
   }
 
   validmu <- function(mu) {
-    is.finite(mu) && all(mu > 0)
+    is.finite(mu) && all(1 > mu)
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
@@ -82,22 +92,28 @@ ztpoisson <- function() {
   }
 
   aic <- function(y, mu, wt, dev) {
-    -2 * sum((y * log(mu) - log(exp(mu) - 1) - log(factorial(y))) * wt)
+    z <- y
+    z[z == 1] <- 0
+    z[z == 2] <- 1
+    L1 <- mu / 2
+    -2 * -sum((z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))) * wt)
   }
 
   Point.est <- function (disp = NULL, pw, Lambda) {
-    N <- sum(pw / (1 - exp(-Lambda)))
+    N <- sum((1 + 1 / (Lambda + (Lambda ** 2) / 2)) * pw)
     N
   }
 
   Pop.var <- function (beta, pw, Lambda, disp = NULL, Hess, X) {
     X <- as.data.frame(X)
     Inform <- -Hess(beta)
+    Prob <- exp(-Lambda) + Lambda * exp(-Lambda)
 
-    f1 <- colSums(-X * pw * (exp(log(Lambda)-Lambda) / ((1 - exp(-Lambda)) ** 2)))
+    f1 <- colSums(-X * pw * ((Lambda + Lambda ** 2) /
+                       ((Lambda + (Lambda ** 2) / 2) ** 2)))
     f1 <- t(f1) %*% solve(as.matrix(Inform)) %*% f1
 
-    f2 <- sum(pw * exp(-Lambda) / ((1 - exp(-Lambda)) ** 2))
+    f2 <- sum(pw * (1 - Prob) * ((1 + exp(-Lambda) / Prob) ** 2))
 
     Variation <- f1 + f2
     Variation
@@ -118,7 +134,7 @@ ztpoisson <- function() {
             validmu = validmu,
             Point.est = Point.est,
             Pop.var= Pop.var,
-            family = "ztpoisson")
+            family = "chao")
   class(R) <- "family"
   R
 }

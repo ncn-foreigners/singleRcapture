@@ -1,4 +1,4 @@
-#' ZeroTruncatedNegativeBinomial
+#' Zero Truncated Negative Binomial model
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr
@@ -15,7 +15,7 @@
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
 #' @export
-Zero_Truncated_Negative_Binomial <- function() {
+ztnegbin <- function() {
   link <- log
   Invlink <- exp
   Dlink <- function(Lambda) {
@@ -26,13 +26,17 @@ Zero_Truncated_Negative_Binomial <- function() {
     A <- disp
     Lambda <- Invlink(eta)
     Pr <- (1 + A * Lambda) ** (-1 / A)
-    Lambda / (1 - Pr)
+    G <- Lambda / (1 - Pr)
+    G
   }
 
   Variance <- function(mu, disp) {
     A <- disp
     Lambda <- mu
-    Lambda + A * (Lambda ** 2)
+    Pr <- (1 + A * Lambda) ** (-1 / A)
+    G <- ((Lambda + Lambda * (A ** 2)) / (1 - Pr) -
+    Pr * ((Lambda / (1 - Pr)) ** 2))
+    G
   }
 
   # These three functions are used only for the purposes of computation
@@ -63,7 +67,7 @@ Zero_Truncated_Negative_Binomial <- function() {
       beta <- ARG[-1]
       Eta <- as.matrix(X) %*% beta
       Lambda <- exp(Eta)
-      -sum(weight * (sapply(y, FUN = {function (y) Compgamma(y, alpha = 1 / z)})
+      -sum(weight * (sapply(y, FUN = {function (y) Compgamma(y, alpha = alpha)})
         - log(factorial(y)) - (y + z) * log(1 + Lambda / z) +
         y * log(Lambda / z) - log(1 - ((1 + Lambda / z) ** (-z)))))
     }
@@ -88,15 +92,17 @@ Zero_Truncated_Negative_Binomial <- function() {
       G <- 1 / (1 - (1 + Lambda / z) ** (-z))
 
       # alpha derivative
-      G0 <- sum(weight * ((z ** (2)) * log(1 / S) +
-            sapply(y, FUN = {function (y) Compdigamma(y, alpha = 1 / z)}) -
-            (Lambda * z - (z ** 2) * (1 / S) * log(1 / S)) /
-            ((1 / S) * ((1 + Lambda / z) ** z - 1)) +
-            S * (y - Lambda) * z))
+
+      G0 <- sum(weight * ((z ** 2) * log(1 / S) +
+                sapply(y, FUN = {function (y) Compdigamma(y, alpha = alpha)}) +
+                y * z - (y + z) * Lambda * S) +
+                G * (S ** z) *
+                (log(1 / S) * (z ** 2) - Lambda * z * S))
 
 
       # Beta derivative
-      G1 <- t(((S * (y - Lambda)) - (G * Lambda * (S ** (1 + z)))) * weight) %*% X
+      G1 <- t(((y + (Lambda - y) * (S ** (-z))) * S /
+               (1 - (1 / S) ** z))  * weight) %*% X
 
       c(G0, G1)
     }
@@ -124,18 +130,20 @@ Zero_Truncated_Negative_Binomial <- function() {
       M <- ((1 + Lambda / z) ** z) - 1
 
       G00 <- sum(2 * S * Lambda * (z ** 2) + 2 * log(S) * (z ** 3) +
-      sapply(y, FUN = {function (y) Comptrigamma(y, alpha = 1 / z)}) +
+      sapply(y, FUN = {function (y) Comptrigamma(y, alpha = alpha)}) +
       (y + z) * (Lambda ** 2) * (S ** 2) +
-      (z ** 3) * 2 * (Lambda / z + log(S) / S) / (M / S) +
-      (z ** 2) * (S ** (1 - z)) * (Lambda * z * S + log(S) * (z ** 2)) * (Lambda / z + log(S) / S) / (M ** 2) +
-      (z ** 2) * Lambda * log(1 / S) / (M / S) +
+      (z ** 3) * 2 * (Lambda / z + log(S) / S) * (S / M) +
+      (z ** 2) * (S ** (1 - z)) * (Lambda * z * S + log(S) * (z ** 2)) *
+      (Lambda / z + log(S) / S) / (M ** 2) +
+      (z ** 2) * Lambda * log(1 / S) * (S / M) +
       (z ** 2) * Lambda * (S ** 2) * (Lambda / z + log(S) / S) / M)
+
       # mixed derivative
       T1 <- Lambda * (y - Lambda) * (S ** 2)
 
-      T2 <- ((1 / S) ** (1 + z))
+      T2 <- ((1 / S) ** (-1 - z))
       T2 <- T2 * (Lambda * (1 + z) * S + log(S) * (z ** 2))
-      T2 <- G * T2 / ((1 / S) ** (2 + 2 * z))
+      T2 <- G * T2
 
       T3 <- (1 / S) ** (-z)
       T3 <- T3 * (-log(S) * (z ** 2) - z * Lambda * S)
@@ -143,9 +151,7 @@ Zero_Truncated_Negative_Binomial <- function() {
 
       G01 <- t(X) %*% as.numeric(-T1 + Lambda * (T2 + T3))
 
-      ## TODO
       # second beta derivative
-      M <- ((1 + Lambda / z) ** 1/z) - 1
       C1 <- as.numeric((((1 / S) ** z) * (Lambda - 1) + 1) * (S ** 2) /
                          (((1 / S) ** z - 1) ** 2))
       C2 <- (1 + y / z) * (S ** 2)
@@ -175,6 +181,35 @@ Zero_Truncated_Negative_Binomial <- function() {
     y * log(dev * mu) - log(1 - (1 + dev * mu) ** (-1 / dev))) * wt)
   }
 
+  Point.est <- function (disp, pw, Lambda) {
+    Pr <- 1 - (1 + disp * Lambda) ** (- 1 / disp)
+    N <- sum(pw / Pr)
+    N
+  }
+
+  Pop.var <- function (beta, pw, Lambda, disp, Hess, X) {
+    z <- disp
+    Pr <- 1 - (1 + z * Lambda) ** (- 1 / z)
+    N <- sum(1 / Pr)
+    S <- 1 / (1 + z * Lambda)
+    Inform <- as.matrix(-Hess(beta))
+
+    BigTheta1 <- sum(pw * ((S ** (1 - 1 / z)) *
+                     ((1 / S) * log(1 / S) - z * Lambda) /
+                     ((z ** 2) * ((1 - (1 / S) ** (1 / z)) ** 2))))
+
+    BigTheta2 <- -(pw * as.numeric(Lambda * (S ** (1 - 1 / z)) /
+                  ((1 - (1 / S) ** (1 / z)) ** 2))) %*% as.matrix(X)
+
+    BigTheta <- matrix(c(BigTheta1, BigTheta2), ncol = 1)
+
+    f1 <-  t(BigTheta) %*% solve(Inform) %*% BigTheta
+    f2 <-  sum(pw * (1 - Pr) / (Pr ** 2))
+
+    Variation <- f1 + f2
+    Variation
+  }
+
   R <- list(make_minusloglike = MinusLogLike,
             make_gradient = Gradient,
             make_hessian = Hessian,
@@ -188,7 +223,9 @@ Zero_Truncated_Negative_Binomial <- function() {
             variance = Variance,
             dev.resids = dev.resids,
             validmu = validmu,
-            family = "ZTNB")
+            Point.est = Point.est,
+            Pop.var= Pop.var,
+            family = "ztnegbin")
   class(R) <- "family"
   R
 }

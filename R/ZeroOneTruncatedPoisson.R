@@ -1,4 +1,4 @@
-#' Zero Truncated Poisson Model
+#' ZeroOneTruncatedPoisson model
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr
@@ -15,7 +15,7 @@
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
 #' @export
-ztpoisson <- function() {
+zotpoisson <- function() {
   link <- log
   Invlink <- exp
   Dlink <- function(Lambda) {
@@ -24,12 +24,16 @@ ztpoisson <- function() {
 
   mu.eta <- function(disp = NULL, eta) {
     Lambda <- Invlink(eta)
-    Lambda / (1 - exp(-Lambda))
+    (Lambda - Lambda * exp(-Lambda)) / (1 - exp(-Lambda) - Lambda * exp(-Lambda))
   }
 
   Variance <- function(disp = NULL, mu) {
-    m1 <- mu / (1 - exp(-mu))
-    m1 * (1 + mu - m1)
+    EX2 <- ((mu + (mu ** 2) - mu * exp(-mu)) /
+    (1 - exp(-mu) - mu * exp(-mu)))
+    EX <- ((mu - mu * exp(-mu)) /
+    (1 - exp(-mu) - mu * exp(-mu)))
+    G <- EX2 - (EX ** 2)
+    G
   }
 
   MinusLogLike <- function(y, X, weight = 1) {
@@ -37,10 +41,12 @@ ztpoisson <- function() {
     if (is.null(weight)) {
       weight <- 1
     }
+
     function(beta) {
       Eta <- as.matrix(X) %*% beta
       Lambda <- exp(Eta)
-      -sum(weight * (y * Eta - log(exp(Lambda) - 1) - log(factorial(y))))
+      -sum(weight * (y * Eta - Lambda - log(factorial(y)) -
+           log(1 - exp(-Lambda) - Lambda * exp(-Lambda))))
     }
   }
 
@@ -49,27 +55,30 @@ ztpoisson <- function() {
     if (is.null(weight)) {
       weight <- 1
     }
-
     function(beta) {
       Lambda <- exp(as.matrix(X) %*% beta)
-      mu <- Lambda / (1 - exp(-Lambda))
-      t(as.matrix(X)) %*% (weight * (y - mu))
+      term <- Lambda / (exp(Lambda) - Lambda - 1)
+
+      t(as.matrix(X)) %*% (weight * (y - Lambda - Lambda * term))
     }
   }
 
   Hessian <- function(y, X, weight = 1) {
+    X <- as.matrix(X)
+    y <- as.numeric(y)
+
     if (is.null(weight)) {
       weight <- 1
     }
 
     function(beta) {
       Lambda <- exp(as.matrix(X) %*% beta)
-      coefficient <- (1 / (1 - exp(-Lambda)) -
-                      Lambda * exp(-Lambda) / ((1 - exp(-Lambda)) ** 2))
-      Dmu <- diag(weight * as.numeric(coefficient))
-      Dlam <- as.matrix(X * as.numeric(Lambda))
 
-      -((t(as.matrix(X)) %*% Dmu) %*% Dlam)
+      term <- (((2 + Lambda ** 2) * exp(Lambda) - exp(2 * Lambda) - 1) /
+                ((exp(Lambda) - Lambda - 1) ** 2))
+
+      hes <- t(X) %*% as.matrix(t(t(as.data.frame(X) * Lambda * term)))
+      hes
     }
   }
 
@@ -82,22 +91,28 @@ ztpoisson <- function() {
   }
 
   aic <- function(y, mu, wt, dev) {
-    -2 * sum((y * log(mu) - log(exp(mu) - 1) - log(factorial(y))) * wt)
+    -2 * sum((y * log(mu) - mu - log(1 - exp(-mu) - mu * exp(-mu)) -
+                log(factorial(y))) * wt)
   }
 
   Point.est <- function (disp = NULL, pw, Lambda) {
-    N <- sum(pw / (1 - exp(-Lambda)))
+    N <- sum(pw *(1 - Lambda * exp(-Lambda)) /
+            (1 - exp(-Lambda) - Lambda * exp(-Lambda)))
     N
   }
 
   Pop.var <- function (beta, pw, Lambda, disp = NULL, Hess, X) {
     X <- as.data.frame(X)
     Inform <- -Hess(beta)
+    Prob <- (1 - exp(-Lambda) - Lambda * exp(-Lambda))
+    term <- (1 - Lambda * exp(-Lambda)) ** 2
 
-    f1 <- colSums(-X * pw * (exp(log(Lambda)-Lambda) / ((1 - exp(-Lambda)) ** 2)))
+    f1 <- t(X) %*% (as.numeric(pw * Lambda * (1 - exp(Lambda)) /
+          ((1 + Lambda - exp(Lambda)) ** 2)))
+
     f1 <- t(f1) %*% solve(as.matrix(Inform)) %*% f1
 
-    f2 <- sum(pw * exp(-Lambda) / ((1 - exp(-Lambda)) ** 2))
+    f2 <- sum(pw * term * (1 - Prob) / (Prob ** 2))
 
     Variation <- f1 + f2
     Variation
@@ -118,7 +133,7 @@ ztpoisson <- function() {
             validmu = validmu,
             Point.est = Point.est,
             Pop.var= Pop.var,
-            family = "ztpoisson")
+            family = "zotpoisson")
   class(R) <- "family"
   R
 }

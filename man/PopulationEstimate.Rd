@@ -13,14 +13,15 @@ PopulationEstimate(
   weights = 1,
   Hess,
   family,
-  Overdispersion = NULL,
+  trcount,
+  dispersion,
   Method = "analytic"
 )
 }
 \arguments{
 \item{y}{Observed values}
 
-\item{X}{A covariate matrix}
+\item{X}{A matrix of covariates}
 
 \item{Grad}{A gradient of a model with respect to regression parameters}
 
@@ -34,18 +35,25 @@ PopulationEstimate(
 
 \item{family}{Model Family}
 
-\item{Overdispersion}{For truncated Negative binomial distributions}
+\item{trcount}{Optional parameter for Zero-one truncated models, if population estimate
+is for one inflated model then it specifies one counts and includes them in
+final population estimate both point and interval, and for zeltermann/chao
+estimator where it specifies counts of not used in estimate}
 
-\item{Method}{A method of constructing confidence interval either analytic or bootstrap where bootstraped confidence interval may
-either be based on 2.5\%-97.5\% percientiles ("bootstrapPerc") or by estimating SD ("bootstrapSD") to use formula for analytic CI}
+\item{dispersion}{Estimated dispersion parameter
+for truncated Negative binomial distributions}
+
+\item{Method}{A method of constructing confidence interval either analytic
+to use formula for analytic CI or bootstrap where bootstraped confidence
+interval may either be based on 2.5\%-97.5\% percientiles ("bootstrapPerc")
+or by estimating SD ("bootstrapSD")}
 }
 \value{
-Returns a list of size 3 with: \cr
-(1) Point estimate \cr
-(2) Variance \cr
-(3) Confidence interval constructed using Point estimate plus minus 1.96
-(approximate of 97.5\% percentile of standardaised normal distribution) times standard deviation
+Returns a list of size 3 with:
+Point estimate, Interval estimate, and Variance
 }
 \description{
-Creates a Horwitz-Thompson point and interval estimate for total and missing population from zero truncated poisson model.
+Creates a Horvitz-Thompson/Chao/Zelterman
+point and interval estimate for total
+and missing population from zero truncated poisson model.
 }

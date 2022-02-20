@@ -14,7 +14,7 @@ Weighted_Sd(x, w, ...)
 \item{...}{arguments to be passed from/to other methods}
 }
 \value{
-length one numeric vector of weighted standard deviation
+numeric vector of weighted standard deviation
 }
 \description{
 Weighted_sd

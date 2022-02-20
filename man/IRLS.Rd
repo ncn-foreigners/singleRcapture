@@ -12,7 +12,8 @@ IRLS(
   disp = NULL,
   weights = NULL,
   Maxiter = 10000,
-  eps = 1e-10
+  eps = 1e-10,
+  disp.given = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ IRLS(
 \item{Maxiter}{Maximum number of iterations}
 
 \item{eps}{Precision level}
+
+\item{disp.given}{FALSE is default, set true if dispersion has already been
+estimated and there is no need for further estimation}
 }
 \value{
 Returns a list of fitted Coefficients and number of iterations and final weights
