@@ -6,15 +6,15 @@
 #'
 #' @param y Observed values
 #' @param X A matrix of covariates
-#' @param Grad A gradient of a model with respect to regression parameters
-#' @param Parameter An estimated Parameter for the model
+#' @param grad A gradient of a model with respect to regression parameters
+#' @param parameter An estimated Parameter for the model
 #' @param beta Fitted regression values
 #' @param family Model Family
 #' @param weights If model is weighted weights of particular observations
-#' @param Hess Hessian of a model
+#' @param hessian Hessian of a model
 #' @param dispersion Estimated dispersion parameter
 #' for truncated Negative binomial distributions
-#' @param Method A method of constructing confidence interval either analytic
+#' @param method A method of constructing confidence interval either analytic
 #' to use formula for analytic CI or bootstrap where bootstraped confidence
 #' interval may either be based on 2.5%-97.5% percientiles ("bootstrapPerc")
 #' or by estimating SD ("bootstrapSD")
@@ -25,83 +25,86 @@
 #'
 #' @return Returns a list of size 3 with:
 #' Point estimate, Interval estimate, and Variance
+#' @importFrom stats runif
+#' @importFrom stats var
+#' @importFrom stats quantile
 #' @export
 #'
-PopulationEstimate <- function(y,
+populationEstimate <- function(y,
                                X,
-                               Grad,
-                               Parameter,
+                               grad,
+                               parameter,
                                beta,
                                weights = 1,
-                               Hess,
+                               hessian,
                                family,
                                trcount,
                                dispersion,
-                               Method = "analytic") {
-  if (Method == "analytic") {
-    N <- family$Point.est(disp = dispersion,
+                               method = "analytic") {
+  if (method == "analytic") {
+    N <- family$pointEst(disp = dispersion,
                           pw = weights,
-                          Lambda = Parameter) + trcount
+                          lambda = parameter) + trcount
 
-    Variation <- family$Pop.var(beta = beta, pw = weights,
-                                Lambda = Parameter,
+    variation <- family$popVar(beta = beta, pw = weights,
+                                lambda = parameter,
                                 disp = dispersion,
-                                Hess = Hess, X = X)
+                                hess = hessian, X = X)
 
-    Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation),
-                                              (length(y) + trcount)),
-                             Upper_Bound = N + 1.96 * sqrt(Variation))
-  } else if (grepl("bootstrap", Method, fixed = TRUE)) {
+    confidenceInterval <- c(lowerBound = max(N - 1.96 * sqrt(variation),
+                                            (length(y) + trcount)),
+                             upperBound = N + 1.96 * sqrt(variation))
+  } else if (grepl("bootstrap", method, fixed = TRUE)) {
     if (family$family %in% c("chao", "zelterman")) {
       N <- family$Point.est(disp = dispersion,
                             pw = weights,
-                            Lambda = Parameter) + trcount
+                            lambda = parameter) + trcount
       f0 <- N - sum(weights) - trcount
     } else {
       N <- family$Point.est(disp = dispersion,
                             pw = weights,
-                            Lambda = Parameter) + trcount
+                            lambda = parameter) + trcount
       f0 <- N - length(y) - trcount
     }
     if (trcount == 0 || is.null(trcount)) {
-      Prob <- c(f0, as.numeric(table(y))) / N
-      Prob <- cumsum(Prob)
-      names(Prob) <- c(0, as.numeric(names(table(y))))
+      prob <- c(f0, as.numeric(table(y))) / N
+      prob <- cumsum(prob)
+      names(prob) <- c(0, as.numeric(names(table(y))))
     } else {
       if (family$family %in% c("chao",
                                "zelterman")) {
-        Prob <- c(f0, weights, trcount) / N
-        Prob <- cumsum(Prob)
-        names(Prob) <- c(0, as.numeric(names(table(y))), 3)
+        prob <- c(f0, weights, trcount) / N
+        prob <- cumsum(prob)
+        names(prob) <- c(0, as.numeric(names(table(y))), 3)
       } else {
-        Prob <- c(f0, trcount, as.numeric(table(y))) / N
-        Prob <- cumsum(Prob)
-        names(Prob) <- c(0, 1, as.numeric(names(table(y))))
+        prob <- c(f0, trcount, as.numeric(table(y))) / N
+        prob <- cumsum(prob)
+        names(prob) <- c(0, 1, as.numeric(names(table(y))))
       }
     }
-    StrappedStatistic <- NULL
+    strappedStatistic <- NULL
 
-    Bootnumber <- 1000
+    bootnumber <- 1000
 
-    for (z in 1:Bootnumber) {
+    for (z in 1:bootnumber) {
       U <- stats::runif(N)
-      Strap <- NULL
+      strap <- NULL
 
-      for (k in names(Prob)) {
-        Strap <- c(Strap, length(which(U <= as.numeric(Prob[k]))))
+      for (k in names(prob)) {
+        strap <- c(strap, length(which(U <= as.numeric(prob[k]))))
       }
-      names(Strap) <- names(Prob)
+      names(strap) <- names(prob)
 
-      m <- length(Strap)
+      m <- length(strap)
 
       while (m != 1) {
-        Strap[m] <- Strap[m] - Strap[m - 1]
+        strap[m] <- strap[m] - strap[m - 1]
         m <- m - 1
       }
       full <- NULL
 
-      for (k in names(Strap)) {
-        full <- c(full, rep(as.numeric(k), Strap[k]))
+      for (k in names(strap)) {
+        full <- c(full, rep(as.numeric(k), strap[k]))
       }
 
       full <- full[full != 0]
@@ -125,45 +128,53 @@ PopulationEstimate <- function(y,
         ll <- family$make_minusloglike(y = c(1, 2),
                                        X = matrix(c(1, 1), ncol = 1),
                                        weight = as.numeric(table(full)))
-        Theta <- stats::optimize(f = ll,
-                                 interval = c(-start,2 * start))$minimum
+        gr <- family$make_gradient(y = c(1, 2),
+                                   X = matrix(c(1, 1), ncol = 1),
+                                   weight = as.numeric(table(full)))
+        Theta <- stats::optim(par = start,
+                              lower = -start,
+                              upper = 2 * start,
+                              fn = ll,
+                              gr = function (x) -gr(x),
+                              method = "Brent",
+                              control = list(reltol = .Machine$double.eps))$par
         Theta <- family$linkinv(matrix(c(1, 1), ncol = 1) %*% Theta)
       } else{
-        Theta <- IRLS(Dependent = as.numeric(full),
-                      Covariates = matrix(rep(1, length(full)), ncol = 1),
+        theta <- IRLS(dependent = as.numeric(full),
+                      covariates = matrix(rep(1, length(full)), ncol = 1),
                       family = family,
                       start = start,
                       disp = dispersion,
-                      disp.given = TRUE)$Coefficients
-        Theta <- family$linkinv(matrix(rep(1, length(full)), ncol = 1) %*% Theta)
+                      disp.given = TRUE)$coefficients
+        theta <- family$linkinv(matrix(rep(1, length(full)), ncol = 1) %*% theta)
       }
 
       if (family$family %in% c("chao", "zelterman")) {
-        StrappedStatistic <- c(StrappedStatistic,
-                               family$Point.est(disp = dispersion,
+        strappedStatistic <- c(strappedStatistic,
+                               family$pointEst(disp = dispersion,
                                                 pw = as.numeric(table(full)),
-                                                Lambda = Theta) + trcountboot)
+                                                lambda = theta) + trcountboot)
       } else {
-        StrappedStatistic <- c(StrappedStatistic,
+        strappedStatistic <- c(strappedStatistic,
                                family$Point.est(disp = dispersion,
                                                 pw = 1,
-                                                Lambda = Theta) + trcountboot)
+                                                lambda = theta) + trcountboot)
       }
     }
-    N <- mean(StrappedStatistic)
-    if (Method == "bootstrapSD") {
-      Variation <- stats::var(StrappedStatistic)
-      Confidence_Interval <- c(Lower_Bound = max(N - 1.96 * sqrt(Variation),
-                                                 (length(y) + trcount)),
-                               Upper_Bound = N + 1.96 * sqrt(Variation))
-    } else if (Method == "bootstrapPerc") {
-      Variation <- stats::var(StrappedStatistic)
-      Confidence_Interval <- stats::quantile(StrappedStatistic, c(0.025, 0.975))
-      names(Confidence_Interval) <- c("Lower_Bound", "Upper_Bound")
+    N <- mean(strappedStatistic)
+    if (method == "bootstrapSD") {
+      variation <- stats::var(strappedStatistic)
+      confidenceInterval <- c(lowerBound = max(N - 1.96 * sqrt(variation),
+                                              (length(y) + trcount)),
+                              upperBound = N + 1.96 * sqrt(variation))
+    } else if (method == "bootstrapPerc") {
+      variation <- stats::var(strappedStatistic)
+      confidenceInterval <- stats::quantile(strappedStatistic, c(0.025, 0.975))
+      names(confidenceInterval) <- c("lowerBound", "upperBound")
     }
   }
 
-  list(Point_estimate = N,
-       Variance = Variation,
-       Confidence_Interval = Confidence_Interval)
+  list(pointEstimate = N,
+       variance = variation,
+       confidenceInterval = confidenceInterval)
 }

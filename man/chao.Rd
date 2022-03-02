@@ -13,8 +13,8 @@ make_gradient(y,X) - for creating gradient function \cr
 make_hessian(X) - for creating hessian \cr
 linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 linkinv - an inverse function of link \cr
-Dlink - a 1st derivative of link function \cr
-mu.eta,Variance - Expected Value and Variance \cr
+dlink - a 1st derivative of link function \cr
+mu.eta,variance - Expected Value and variance \cr
 aic - for aic computation\cr
 valedmu, valideta - for checking if regression arguments and valid\cr
 family - family name\cr

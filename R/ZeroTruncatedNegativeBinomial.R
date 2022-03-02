@@ -17,146 +17,150 @@
 #' @export
 ztnegbin <- function() {
   link <- log
-  Invlink <- exp
-  Dlink <- function(Lambda) {
-    1 / Lambda
+  invlink <- exp
+  dlink <- function(lambda) {
+    1 / lambda
   }
 
   mu.eta <- function(eta, disp) {
-    A <- disp
-    Lambda <- Invlink(eta)
-    Pr <- (1 + A * Lambda) ** (-1 / A)
-    G <- Lambda / (1 - Pr)
+    A <- exp(disp)
+    lambda <- invlink(eta)
+    pr <- (1 + A * lambda) ** (-1 / A)
+    G <- lambda / (1 - pr)
     G
   }
 
-  Variance <- function(mu, disp) {
-    A <- disp
-    Lambda <- mu
-    Pr <- (1 + A * Lambda) ** (-1 / A)
-    G <- ((Lambda + Lambda * (A ** 2)) / (1 - Pr) -
-    Pr * ((Lambda / (1 - Pr)) ** 2))
-    G
+  variance <- function(mu, disp) {
+    A <- exp(disp)
+    mu * (mu * A + 1)
   }
 
   # These three functions are used only for the purposes of computation
-  Compgamma <- function(y, alpha) {
-    Temp <- 0:(y-1)
-    sum(log(Temp + 1 / alpha))
+  compgamma <- function(y, alpha) {
+    temp <- 0:(y-1)
+    sum(log(temp + 1 / alpha))
   }
-  Compdigamma <- function(y, alpha) {
-    Temp <- 0:(y-1)
-    sum(-(alpha ** (-2)) / (Temp + 1 / alpha))
-  }
-
-  Comptrigamma <- function(y, alpha) {
-    Temp <- 0:(y-1)
-    sum(- (Temp ** 2) / (((1 + Temp * alpha)) ** 2))
+  compdigamma <- function(y, alpha) {
+    temp <- 0:(y-1)
+    sum(-(alpha ** (-2)) / (temp + 1 / alpha))
   }
 
-  MinusLogLike <- function(y, X, weight = 1) {
+  comptrigamma <- function(y, alpha) {
+    temp <- 0:(y-1)
+    sum(- (temp ** 2) / (((1 + temp * alpha)) ** 2))
+  }
+
+  minusLogLike <- function(y, X, weight = 1) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(ARG) {
-      alpha <- ARG[1]
+    function(arg) {
+      alpha <- exp(arg[1])
       z <- 1 / alpha
-      beta <- ARG[-1]
-      Eta <- as.matrix(X) %*% beta
-      Lambda <- exp(Eta)
-      -sum(weight * (sapply(y, FUN = {function (y) Compgamma(y, alpha = alpha)})
-        - log(factorial(y)) - (y + z) * log(1 + Lambda / z) +
-        y * log(Lambda / z) - log(1 - ((1 + Lambda / z) ** (-z)))))
+      beta <- arg[-1]
+      eta <- as.matrix(X) %*% beta
+      lambda <- exp(eta)
+      -sum(weight * (sapply(y, FUN = {function (y) compgamma(y, alpha = alpha)})
+                    - log(factorial(y)) - (y + z) * log(1 + lambda / z) +
+                    y * log(lambda / z) - log(1 - ((1 + lambda / z) ** (-z)))))
     }
   }
 
 
-  Gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(ARG) {
-      alpha <- ARG[1]
+    function(arg) {
+      alpha <- exp(arg[1])
       # z is inverse of alpha in documentation
       z <- 1 / alpha
-      beta <- ARG[-1]
-      Eta <- X %*% beta
-      Lambda <- exp(Eta)
-      S <- 1 / (1 + Lambda / z)
-      G <- 1 / (1 - (1 + Lambda / z) ** (-z))
+      beta <- arg[-1]
+      eta <- X %*% beta
+      lambda <- exp(eta)
+      S <- 1 / (1 + lambda / z)
+      G <- 1 / (1 - (1 + lambda / z) ** (-z))
 
       # alpha derivative
 
       G0 <- sum(weight * ((z ** 2) * log(1 / S) +
-                sapply(y, FUN = {function (y) Compdigamma(y, alpha = alpha)}) +
-                y * z - (y + z) * Lambda * S) +
+                sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
+                y * z - (y + z) * lambda * S) +
                 G * (S ** z) *
-                (log(1 / S) * (z ** 2) - Lambda * z * S))
-
+                (log(1 / S) * (z ** 2) - lambda * z * S))
+      G0 <- G0 * alpha
 
       # Beta derivative
-      G1 <- t(((y + (Lambda - y) * (S ** (-z))) * S /
-               (1 - (1 / S) ** z))  * weight) %*% X
+      G1 <- t(((y + (lambda - y) * (S ** (-z))) * S /
+                 (1 - (1 / S) ** z))  * weight) %*% X
 
       c(G0, G1)
     }
   }
 
-  Hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(ARG) {
-      alpha <- ARG[1]
+    function(arg) {
+      alpha <- exp(arg[1])
       # z is inverse of alpha in documentation
       z <- 1 / alpha
-      beta <- ARG[-1]
-      Eta <- X %*% beta
-      Lambda <- exp(Eta)
-      S <- 1 / (1 + Lambda / z)
-      G <- 1 / (1 - (1 + Lambda / z) ** (-z))
-      res <- matrix(1, nrow = length(ARG), ncol = length(ARG))
+      beta <- arg[-1]
+      eta <- X %*% beta
+      lambda <- exp(eta)
+      S <- 1 / (1 + lambda / z)
+      G <- 1 / (1 - (1 + lambda / z) ** (-z))
+      res <- matrix(1, nrow = length(arg), ncol = length(arg))
 
+      # alpha derivative
+      G0 <- sum(weight * ((z ** 2) * log(1 / S) +
+                            sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
+                            y * z - (y + z) * lambda * S) +
+                  G * (S ** z) *
+                  (log(1 / S) * (z ** 2) - lambda * z * S))
       # 2nd alpha derivative
-      M <- ((1 + Lambda / z) ** z) - 1
+      M <- ((1 + lambda / z) ** z) - 1
 
-      G00 <- sum(2 * S * Lambda * (z ** 2) + 2 * log(S) * (z ** 3) +
-      sapply(y, FUN = {function (y) Comptrigamma(y, alpha = alpha)}) +
-      (y + z) * (Lambda ** 2) * (S ** 2) +
-      (z ** 3) * 2 * (Lambda / z + log(S) / S) * (S / M) +
-      (z ** 2) * (S ** (1 - z)) * (Lambda * z * S + log(S) * (z ** 2)) *
-      (Lambda / z + log(S) / S) / (M ** 2) +
-      (z ** 2) * Lambda * log(1 / S) * (S / M) +
-      (z ** 2) * Lambda * (S ** 2) * (Lambda / z + log(S) / S) / M)
+      G00 <- sum(2 * S * lambda * (z ** 2) + 2 * log(S) * (z ** 3) +
+                   sapply(y, FUN = {function (y) comptrigamma(y, alpha = alpha)}) +
+                   (y + z) * (lambda ** 2) * (S ** 2) +
+                   (z ** 3) * 2 * (lambda / z + log(S) / S) * (S / M) +
+                   (z ** 2) * (S ** (1 - z)) * (lambda * z * S + log(S) * (z ** 2)) *
+                   (lambda / z + log(S) / S) / (M ** 2) +
+                   (z ** 2) * lambda * log(1 / S) * (S / M) +
+                   (z ** 2) * lambda * (S ** 2) * (lambda / z + log(S) / S) / M)
 
+      G00 <- G00 * (alpha ** 2) + G0 * alpha
       # mixed derivative
-      T1 <- Lambda * (y - Lambda) * (S ** 2)
+      T1 <- lambda * (y - lambda) * (S ** 2)
 
       T2 <- ((1 / S) ** (-1 - z))
-      T2 <- T2 * (Lambda * (1 + z) * S + log(S) * (z ** 2))
+      T2 <- T2 * (lambda * (1 + z) * S + log(S) * (z ** 2))
       T2 <- G * T2
 
       T3 <- (1 / S) ** (-z)
-      T3 <- T3 * (-log(S) * (z ** 2) - z * Lambda * S)
+      T3 <- T3 * (-log(S) * (z ** 2) - z * lambda * S)
       T3 <- (G ** 2) * (-T3) / ((1 / S) ** (1 + z))
 
-      G01 <- t(X) %*% as.numeric(-T1 + Lambda * (T2 + T3))
+      G01 <- t(X) %*% as.numeric(-T1 + lambda * (T2 + T3))
 
+      G01 <- G01 * alpha
       # second beta derivative
-      C1 <- as.numeric((((1 / S) ** z) * (Lambda - 1) + 1) * (S ** 2) /
+      C1 <- as.numeric((((1 / S) ** z) * (lambda - 1) + 1) * (S ** 2) /
                          (((1 / S) ** z - 1) ** 2))
       C2 <- (1 + y / z) * (S ** 2)
 
-      G11 <- t(as.data.frame(X) * Lambda * (C1 - C2)) %*% X
+      G11 <- t(as.data.frame(X) * lambda * (C1 - C2)) %*% X
 
       res[1, 1] <- G00
       res[-1, -1] <- G11
@@ -168,7 +172,7 @@ ztnegbin <- function() {
   }
 
   validmu <- function(mu) {
-    is.finite(mu) && all(mu > 0)
+    (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
   dev.resids <- function (y, mu, wt, disp = NULL) {
@@ -177,54 +181,55 @@ ztnegbin <- function() {
 
   aic <- function(y, mu, wt, dev) {
     -2 * sum((log(gamma(y + 1 / dev)) - log(gamma(1 / dev)) -
-    log(factorial(y)) - (y + 1 / dev) * log(1 + dev * mu) +
-    y * log(dev * mu) - log(1 - (1 + dev * mu) ** (-1 / dev))) * wt)
+            log(factorial(y)) - (y + 1 / dev) * log(1 + dev * mu) +
+            y * log(dev * mu) - log(1 - (1 + dev * mu) ** (-1 / dev))) * wt)
   }
 
-  Point.est <- function (disp, pw, Lambda) {
-    Pr <- 1 - (1 + disp * Lambda) ** (- 1 / disp)
-    N <- sum(pw / Pr)
+  pointEst <- function (disp, pw, lambda) {
+    disp <- exp(disp)
+    pr <- 1 - (1 + disp * lambda) ** (- 1 / disp)
+    N <- sum(pw / pr)
     N
   }
 
-  Pop.var <- function (beta, pw, Lambda, disp, Hess, X) {
-    z <- disp
-    Pr <- 1 - (1 + z * Lambda) ** (- 1 / z)
-    N <- sum(1 / Pr)
-    S <- 1 / (1 + z * Lambda)
-    Inform <- as.matrix(-Hess(beta))
+  popVar <- function (beta, pw, lambda, disp, hess, X) {
+    z <- exp(disp)
+    pr <- 1 - (1 + z * lambda) ** (- 1 / z)
+    N <- sum(1 / pr)
+    S <- 1 / (1 + z * lambda)
+    I <- as.matrix(-hess(beta))
 
-    BigTheta1 <- sum(pw * ((S ** (1 - 1 / z)) *
-                     ((1 / S) * log(1 / S) - z * Lambda) /
-                     ((z ** 2) * ((1 - (1 / S) ** (1 / z)) ** 2))))
+    bigTheta1 <- sum(pw * ((S ** (1 - 1 / z)) *
+                    ((1 / S) * log(1 / S) - z * lambda) /
+                    ((z ** 2) * ((1 - (1 / S) ** (1 / z)) ** 2))))
 
-    BigTheta2 <- -(pw * as.numeric(Lambda * (S ** (1 - 1 / z)) /
+    bigTheta2 <- -(pw * as.numeric(lambda * (S ** (1 - 1 / z)) /
                   ((1 - (1 / S) ** (1 / z)) ** 2))) %*% as.matrix(X)
 
-    BigTheta <- matrix(c(BigTheta1, BigTheta2), ncol = 1)
+    bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
 
-    f1 <-  t(BigTheta) %*% solve(Inform) %*% BigTheta
-    f2 <-  sum(pw * (1 - Pr) / (Pr ** 2))
+    f1 <-  t(bigTheta) %*% solve(I) %*% bigTheta
+    f2 <-  sum(pw * (1 - pr) / (pr ** 2))
 
-    Variation <- f1 + f2
-    Variation
+    variation <- f1 + f2
+    variation
   }
 
-  R <- list(make_minusloglike = MinusLogLike,
-            make_gradient = Gradient,
-            make_hessian = Hessian,
+  R <- list(make_minusloglike = minusLogLike,
+            make_gradient = gradient,
+            make_hessian = hessian,
             linkfun = link,
-            linkinv = Invlink,
-            Dlink = Dlink,
+            linkinv = invlink,
+            dlink = dlink,
             mu.eta = mu.eta,
             aic = aic,
             link = "log",
             valideta = function (eta) {TRUE},
-            variance = Variance,
+            variance = variance,
             dev.resids = dev.resids,
             validmu = validmu,
-            Point.est = Point.est,
-            Pop.var= Pop.var,
+            pointEst = pointEst,
+            popVar= popVar,
             family = "ztnegbin")
   class(R) <- "family"
   R

@@ -2,10 +2,10 @@
 #'
 #' A method for fitting regression parameters in generalized linear model
 #'
-#' @param Dependent A vector of Dependent variables
-#' @param Covariates An array of Covariates
+#' @param dependent A vector of Dependent variables
+#' @param covariates An array of Covariates
 #' @param start A place to start the numerical estimation
-#' @param Maxiter Maximum number of iterations
+#' @param maxiter Maximum number of iterations
 #' @param disp dispersion parameter if family needs it
 #' @param eps Precision level
 #' @param family Family of distributions used in regression
@@ -13,96 +13,91 @@
 #' @param disp.given FALSE is default, set true if dispersion has already been
 #' estimated and there is no need for further estimation
 #' @return Returns a list of fitted Coefficients and number of iterations and final weights
+#' @importFrom stats optim
 #' @export
-IRLS <- function(Dependent,
+IRLS <- function(dependent,
                  family,
-                 Covariates,
+                 covariates,
                  start,
                  disp = NULL,
                  weights = NULL,
-                 Maxiter = 10000,
-                 eps = 1e-10,
+                 maxiter = 1000,
+                 eps = .Machine$double.eps ** .25,
                  disp.given = FALSE) {
   converged <- FALSE
-  Iter <- 1
-  Beta <- start
-  W <- NULL
+  iter <- 1
+  beta <- start
 
   if (!is.null(weights)) {
-    Prior <- as.numeric(weights)
+    prior <- as.numeric(weights)
   } else {
-    Prior <- 1 / length(Dependent)
+    prior <- 1 / length(dependent)
   }
+  W <- prior
 
-  Loglike <- family$make_minusloglike(y = Dependent,
-                                      X = Covariates,
-                                      weight = Prior)
-  Grad <- family$make_gradient(y = Dependent,
-                               X = Covariates,
-                               weight = Prior)
-
-  if (family$family %in% c("ztnegbin", "zotnegbin")) {
-    Temp <- c(disp, Beta)
-  } else {
-    Temp <- Beta
-  }
-  L <- -Loglike(Temp)
+  loglike <- family$make_minusloglike(y = dependent,
+                                      X = covariates,
+                                      weight = prior)
+  grad <- family$make_gradient(y = dependent,
+                               X = covariates,
+                               weight = prior)
+  temp <- c(disp, beta)
+  L <- -loglike(temp)
   dispPrev <- Inf
 
-  while (!converged && (Iter < Maxiter)) {
-    # Think about making your own optim method
+  while (!converged && (iter < maxiter)) {
     if (family$family %in% c("ztnegbin", "zotnegbin") &&
-        isFALSE(disp.given) &&
-        (abs(disp - dispPrev) > eps)) {
+        isFALSE(disp.given) && (abs(disp - dispPrev) > eps)) {
       dispPrev <- disp
-      ll <- function(alpha) Loglike(c(alpha, Beta))
-      gr <- function(alpha) Grad(c(alpha, Beta))[1]
-      disp <- stats::optimize(f = ll,
-                              interval = c(disp - disp / 2,
-                                           disp + disp / 2))$minimum
+      ll <- function(alpha) loglike(c(alpha, beta))
+      gr <- function(alpha) -grad(c(alpha, beta))[1]
+      disp <- stats::optim(par = disp,
+                           lower = disp - 2 * abs(disp),
+                           upper = disp + 2 * abs(disp),
+                           fn = ll,
+                           gr = gr,
+                           method = "Brent")$par
     }
 
-    PrevWeight <- W
-    PrevBeta <- Beta
-    PrevL <- L
+    WPrev <- W
+    tempPrev <- temp
+    betaPrev <- beta
+    LPrev <- L
 
-    Eta <- Covariates %*% Beta
-    Parameter <- family$linkinv(Eta)
-    mu <- family$mu.eta(eta = Eta, disp)
+    eta <- covariates %*% beta
+    parameter <- family$linkinv(eta)
+    mu <- family$mu.eta(eta = eta, disp)
     if (!family$validmu(mu)) {
       stop("Fit error infinite values reached consider another model,
             mu is too close to zero/infinity")
     }
 
-    VarY <- family$variance(mu = Parameter, disp)
-    Z <- Eta + (Dependent - mu) * family$Dlink(mu)
-    W <- as.numeric(Prior / ((family$Dlink(mu) ** 2) * VarY))
+    varY <- family$variance(mu = mu, disp)
+    Z <- eta + (dependent - mu) / mu
+    W <- as.numeric(prior * (mu ** 2) / varY)
     # This is equivalent to
-    # A <- t(Covariates) %*% W %*% Covariates
-    # B <- t(Covariates) %*% W %*% Z
+    # A <- t(covariates) %*% W %*% covariates
+    # B <- t(covariates) %*% W %*% Z
     # But much much faster and less memory heavy
-    A <- t(Covariates) %*% (Covariates * W)
-    B <- t(Covariates) %*% (Z * W)
-    Beta <- solve(A, B)
+    A <- t(covariates) %*% (covariates * W)
+    B <- t(covariates) %*% (Z * W)
+    beta <- solve(A, B, tol = .Machine$double.eps)
 
-    if (family$family %in% c("ztnegbin", "zotnegbin")) {
-      Temp <- c(disp, Beta)
-    } else {
-      Temp <- Beta
-    }
-    L <- -Loglike(Temp)
+    temp <- c(disp, beta)
+    L <- -loglike(temp)
 
-    converged <- (((L - PrevL) < eps) || (max(abs(Beta - PrevBeta)) < eps))
+    converged <- (((L - LPrev) < eps) || (max(abs(beta - betaPrev)) < eps))
 
     if (!converged) {
-      Iter <- Iter + 1
-    } else if ((L - PrevL) < 0) {
-      Beta <- PrevBeta
-      L <- PrevL
-      W <- PrevWeight
+      iter <- iter + 1
+    } else if ((L - LPrev) < 0) {
+      beta <- betaPrev
+      L <- LPrev
+      W <- WPrev
+      disp <- dispPrev
     }
 
   }
 
-  list(Coefficients = Beta, iter = Iter, Weights = W, disp = disp)
+  list(coefficients = beta, iter = iter, weights = W, disp = disp)
 }

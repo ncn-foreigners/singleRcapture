@@ -70,7 +70,7 @@ Returns an object of classes inherited from glm containing:\cr
 y argument used in regression\cr
 formula provided on call\cr
 Call on which model is based\cr
-vector of fitted coefficients of regression\cr
+vector of fitt coefficients of regression\cr
 vector of Standard errors of coeffcients\cr
 vectors of test and p-values \cr
 model used in regression\cr
@@ -81,7 +81,7 @@ vector of working residuals\cr
 Log-likelihood for the model\cr
 number of itteration performed in fitting\cr
 total and reduced degrees of freedom\cr
-vector of fitted values\cr
+vector of fitt values\cr
 a list containing population size estimate form PopulationEstimate function\cr
 model, linear predictors, and qr decomposition of model matrix
 }

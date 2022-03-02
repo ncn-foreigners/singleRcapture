@@ -5,23 +5,23 @@
 \title{Iteratively Reweighted Least Squares}
 \usage{
 IRLS(
-  Dependent,
+  dependent,
   family,
-  Covariates,
+  covariates,
   start,
   disp = NULL,
   weights = NULL,
-  Maxiter = 10000,
-  eps = 1e-10,
+  maxiter = 1000,
+  eps = .Machine$double.eps^0.25,
   disp.given = FALSE
 )
 }
 \arguments{
-\item{Dependent}{A vector of Dependent variables}
+\item{dependent}{A vector of Dependent variables}
 
 \item{family}{Family of distributions used in regression}
 
-\item{Covariates}{An array of Covariates}
+\item{covariates}{An array of Covariates}
 
 \item{start}{A place to start the numerical estimation}
 
@@ -29,7 +29,7 @@ IRLS(
 
 \item{weights}{Optional object of weights used in fitting the model}
 
-\item{Maxiter}{Maximum number of iterations}
+\item{maxiter}{Maximum number of iterations}
 
 \item{eps}{Precision level}
 

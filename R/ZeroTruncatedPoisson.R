@@ -17,64 +17,63 @@
 #' @export
 ztpoisson <- function() {
   link <- log
-  Invlink <- exp
-  Dlink <- function(Lambda) {
-    1 / Lambda
+  invlink <- exp
+  dlink <- function(lambda) {
+    1 / lambda
   }
 
   mu.eta <- function(disp = NULL, eta) {
-    Lambda <- Invlink(eta)
-    Lambda / (1 - exp(-Lambda))
+    lambda <- invlink(eta)
+    lambda / (1 - exp(-lambda))
   }
 
-  Variance <- function(disp = NULL, mu) {
-    m1 <- mu / (1 - exp(-mu))
-    m1 * (1 + mu - m1)
+  variance <- function(disp = NULL, mu) {
+    mu
   }
 
-  MinusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
     function(beta) {
-      Eta <- as.matrix(X) %*% beta
-      Lambda <- exp(Eta)
-      -sum(weight * (y * Eta - log(exp(Lambda) - 1) - log(factorial(y))))
+      eta <- as.matrix(X) %*% beta
+      lambda <- exp(eta)
+      -sum(weight * (y * eta - log(exp(lambda) - 1) - log(factorial(y))))
     }
   }
 
-  Gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
 
     function(beta) {
-      Lambda <- exp(as.matrix(X) %*% beta)
-      mu <- Lambda / (1 - exp(-Lambda))
+      lambda <- exp(as.matrix(X) %*% beta)
+      mu <- lambda / (1 - exp(-lambda))
       t(as.matrix(X)) %*% (weight * (y - mu))
     }
   }
 
-  Hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1) {
     if (is.null(weight)) {
       weight <- 1
     }
 
     function(beta) {
-      Lambda <- exp(as.matrix(X) %*% beta)
-      coefficient <- (1 / (1 - exp(-Lambda)) -
-                      Lambda * exp(-Lambda) / ((1 - exp(-Lambda)) ** 2))
-      Dmu <- diag(weight * as.numeric(coefficient))
-      Dlam <- as.matrix(X * as.numeric(Lambda))
+      lambda <- exp(as.matrix(X) %*% beta)
+      coefficient <- (1 / (1 - exp(-lambda)) -
+                      lambda * exp(-lambda) / ((1 - exp(-lambda)) ** 2))
+      dmu <- diag(weight * as.numeric(coefficient))
+      dlam <- as.matrix(X * as.numeric(lambda))
 
-      -((t(as.matrix(X)) %*% Dmu) %*% Dlam)
+      -((t(as.matrix(X)) %*% dmu) %*% dlam)
     }
   }
 
   validmu <- function(mu) {
-    is.finite(mu) && all(mu > 0)
+    (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
@@ -85,39 +84,39 @@ ztpoisson <- function() {
     -2 * sum((y * log(mu) - log(exp(mu) - 1) - log(factorial(y))) * wt)
   }
 
-  Point.est <- function (disp = NULL, pw, Lambda) {
-    N <- sum(pw / (1 - exp(-Lambda)))
+  pointEst <- function (disp = NULL, pw, lambda) {
+    N <- sum(pw / (1 - exp(-lambda)))
     N
   }
 
-  Pop.var <- function (beta, pw, Lambda, disp = NULL, Hess, X) {
+  popVar <- function (beta, pw, lambda, disp = NULL, hess, X) {
     X <- as.data.frame(X)
-    Inform <- -Hess(beta)
+    I <- -hess(beta)
 
-    f1 <- colSums(-X * pw * (exp(log(Lambda)-Lambda) / ((1 - exp(-Lambda)) ** 2)))
-    f1 <- t(f1) %*% solve(as.matrix(Inform)) %*% f1
+    f1 <- colSums(-X * pw * (exp(log(lambda) - lambda) / ((1 - exp(-lambda)) ** 2)))
+    f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
 
-    f2 <- sum(pw * exp(-Lambda) / ((1 - exp(-Lambda)) ** 2))
+    f2 <- sum(pw * exp(-lambda) / ((1 - exp(-lambda)) ** 2))
 
-    Variation <- f1 + f2
-    Variation
+    variation <- f1 + f2
+    variation
   }
 
-  R <- list(make_minusloglike = MinusLogLike,
-            make_gradient = Gradient,
-            make_hessian = Hessian,
+  R <- list(make_minusloglike = minusLogLike,
+            make_gradient = gradient,
+            make_hessian = hessian,
             linkfun = link,
-            linkinv = Invlink,
-            Dlink = Dlink,
+            linkinv = invlink,
+            dlink = dlink,
             mu.eta = mu.eta,
             aic = aic,
             link = "log",
             valideta = function (eta) {TRUE},
-            variance = Variance,
+            variance = variance,
             dev.resids = dev.resids,
             validmu = validmu,
-            Point.est = Point.est,
-            Pop.var= Pop.var,
+            pointEst = pointEst,
+            popVar= popVar,
             family = "ztpoisson")
   class(R) <- "family"
   R

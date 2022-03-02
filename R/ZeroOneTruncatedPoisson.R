@@ -17,53 +17,48 @@
 #' @export
 zotpoisson <- function() {
   link <- log
-  Invlink <- exp
-  Dlink <- function(Lambda) {
-    1 / Lambda
+  invlink <- exp
+  dlink <- function(lambda) {
+    1 / lambda
   }
 
   mu.eta <- function(disp = NULL, eta) {
-    Lambda <- Invlink(eta)
-    (Lambda - Lambda * exp(-Lambda)) / (1 - exp(-Lambda) - Lambda * exp(-Lambda))
+    lambda <- invlink(eta)
+    (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
   }
 
-  Variance <- function(disp = NULL, mu) {
-    EX2 <- ((mu + (mu ** 2) - mu * exp(-mu)) /
-    (1 - exp(-mu) - mu * exp(-mu)))
-    EX <- ((mu - mu * exp(-mu)) /
-    (1 - exp(-mu) - mu * exp(-mu)))
-    G <- EX2 - (EX ** 2)
-    G
+  variance <- function(disp = NULL, mu) {
+    mu
   }
 
-  MinusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
 
     function(beta) {
-      Eta <- as.matrix(X) %*% beta
-      Lambda <- exp(Eta)
-      -sum(weight * (y * Eta - Lambda - log(factorial(y)) -
-           log(1 - exp(-Lambda) - Lambda * exp(-Lambda))))
+      eta <- as.matrix(X) %*% beta
+      lambda <- exp(eta)
+      -sum(weight * (y * eta - lambda - log(factorial(y)) -
+           log(1 - exp(-lambda) - lambda * exp(-lambda))))
     }
   }
 
-  Gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
     function(beta) {
-      Lambda <- exp(as.matrix(X) %*% beta)
-      term <- Lambda / (exp(Lambda) - Lambda - 1)
+      lambda <- exp(as.matrix(X) %*% beta)
+      term <- lambda / (exp(lambda) - lambda - 1)
 
-      t(as.matrix(X)) %*% (weight * (y - Lambda - Lambda * term))
+      t(as.matrix(X)) %*% (weight * (y - lambda - lambda * term))
     }
   }
 
-  Hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1) {
     X <- as.matrix(X)
     y <- as.numeric(y)
 
@@ -72,18 +67,18 @@ zotpoisson <- function() {
     }
 
     function(beta) {
-      Lambda <- exp(as.matrix(X) %*% beta)
+      lambda <- exp(as.matrix(X) %*% beta)
 
-      term <- (((2 + Lambda ** 2) * exp(Lambda) - exp(2 * Lambda) - 1) /
-                ((exp(Lambda) - Lambda - 1) ** 2))
+      term <- (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
+                ((exp(lambda) - lambda - 1) ** 2))
 
-      hes <- t(X) %*% as.matrix(t(t(as.data.frame(X) * Lambda * term)))
+      hes <- t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term)))
       hes
     }
   }
 
   validmu <- function(mu) {
-    is.finite(mu) && all(mu > 0)
+    (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
@@ -95,44 +90,44 @@ zotpoisson <- function() {
                 log(factorial(y))) * wt)
   }
 
-  Point.est <- function (disp = NULL, pw, Lambda) {
-    N <- sum(pw *(1 - Lambda * exp(-Lambda)) /
-            (1 - exp(-Lambda) - Lambda * exp(-Lambda)))
+  pointEst <- function (disp = NULL, pw, lambda) {
+    N <- sum(pw *(1 - lambda * exp(-lambda)) /
+            (1 - exp(-lambda) - lambda * exp(-lambda)))
     N
   }
 
-  Pop.var <- function (beta, pw, Lambda, disp = NULL, Hess, X) {
+  popVar <- function (beta, pw, lambda, disp = NULL, hess, X) {
     X <- as.data.frame(X)
-    Inform <- -Hess(beta)
-    Prob <- (1 - exp(-Lambda) - Lambda * exp(-Lambda))
-    term <- (1 - Lambda * exp(-Lambda)) ** 2
+    I <- -hess(beta)
+    prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
+    term <- (1 - lambda * exp(-lambda)) ** 2
 
-    f1 <- t(X) %*% (as.numeric(pw * Lambda * (1 - exp(Lambda)) /
-          ((1 + Lambda - exp(Lambda)) ** 2)))
+    f1 <- t(X) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
+          ((1 + lambda - exp(lambda)) ** 2)))
 
-    f1 <- t(f1) %*% solve(as.matrix(Inform)) %*% f1
+    f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
 
-    f2 <- sum(pw * term * (1 - Prob) / (Prob ** 2))
+    f2 <- sum(pw * term * (1 - prob) / (prob ** 2))
 
-    Variation <- f1 + f2
-    Variation
+    variation <- f1 + f2
+    variation
   }
 
-  R <- list(make_minusloglike = MinusLogLike,
-            make_gradient = Gradient,
-            make_hessian = Hessian,
+  R <- list(make_minusloglike = minusLogLike,
+            make_gradient = gradient,
+            make_hessian = hessian,
             linkfun = link,
-            linkinv = Invlink,
-            Dlink = Dlink,
+            linkinv = invlink,
+            dlink = dlink,
             mu.eta = mu.eta,
             aic = aic,
             link = "log",
             valideta = function (eta) {TRUE},
-            variance = Variance,
+            variance = variance,
             dev.resids = dev.resids,
             validmu = validmu,
-            Point.est = Point.est,
-            Pop.var= Pop.var,
+            pointEst = pointEst,
+            popVar= popVar,
             family = "zotpoisson")
   class(R) <- "family"
   R
