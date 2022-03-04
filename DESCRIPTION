@@ -1,11 +1,10 @@
 Package: singleRcapture
 Type: Package
-Title: A package for single source Capture-Recapture models
+Title: A package for single-source capture-recapture models
 Version: 0.0.0.9000
 Author: Piotr Chlebicki
 Maintainer: Piotr Chlebkcki <piochl@st.amu.edu.pl>
-Description: A package for population size estimation from incomplete data
-    utilising regression analysis.
+Description: A package for population size estimation based on single source capture-recapture methods such as zero-truncated Poisson and Negative Binomial, zero-one truncated Poisson and Negative Binomial, Zelterman's and Chao's regression
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
