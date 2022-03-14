@@ -13,7 +13,7 @@ estimate_popsize(
   na.action = NULL,
   trcount = 0,
   method = c("mle", "robust"),
-  pop.ci = c("analytic", "bootstrapPerc", "bootstrapSD"),
+  pop.var = c("analytic", "bootstrap"),
   control.method = NULL,
   control.model = NULL,
   control.pop.var = NULL,
@@ -44,7 +44,7 @@ estimator where it specifies counts of not used in estimate}
 
 \item{method}{Method for fitting values currently supported IRLS and MaxLikelihood}
 
-\item{pop.ci}{A method of constructing confidence interval either analytic or bootstrap
+\item{pop.var}{A method of constructing confidence interval either analytic or bootstrap
 where bootstraped confidence interval may either be based on 2.5\%-97.5\%
 percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 

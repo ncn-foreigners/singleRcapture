@@ -55,15 +55,16 @@ populationEstimate <- function(y,
                                             (length(y) + trcount)),
                              upperBound = N + 1.96 * sqrt(variation))
   } else if (grepl("bootstrap", method, fixed = TRUE)) {
+
     if (family$family %in% c("chao", "zelterman")) {
-      N <- family$Point.est(disp = dispersion,
-                            pw = weights,
-                            lambda = parameter) + trcount
+      N <- family$pointEst(disp = dispersion,
+                           pw = weights,
+                           lambda = parameter) + trcount
       f0 <- N - sum(weights) - trcount
     } else {
-      N <- family$Point.est(disp = dispersion,
-                            pw = weights,
-                            lambda = parameter) + trcount
+      N <- family$pointEst(disp = dispersion,
+                           pw = weights,
+                           lambda = parameter) + trcount
       f0 <- N - length(y) - trcount
     }
     if (trcount == 0 || is.null(trcount)) {
@@ -84,7 +85,7 @@ populationEstimate <- function(y,
     }
     strappedStatistic <- NULL
 
-    bootnumber <- 1000
+    bootnumber <- 10000
 
     for (z in 1:bootnumber) {
       U <- stats::runif(N)
@@ -152,25 +153,27 @@ populationEstimate <- function(y,
       if (family$family %in% c("chao", "zelterman")) {
         strappedStatistic <- c(strappedStatistic,
                                family$pointEst(disp = dispersion,
-                                                pw = as.numeric(table(full)),
-                                                lambda = theta) + trcountboot)
+                                               pw = as.numeric(table(full)),
+                                               lambda = theta) + trcountboot)
       } else {
         strappedStatistic <- c(strappedStatistic,
-                               family$Point.est(disp = dispersion,
-                                                pw = 1,
-                                                lambda = theta) + trcountboot)
+                               family$pointEst(disp = dispersion,
+                                               pw = 1,
+                                               lambda = theta) + trcountboot)
       }
     }
-    N <- mean(strappedStatistic)
-    if (method == "bootstrapSD") {
+
+    if (method == "bootstrapPerc") {
+      variation <- stats::var(strappedStatistic)
+      confidenceInterval <- stats::quantile(strappedStatistic,
+                                            c(0.025, 0.975))
+      names(confidenceInterval) <- c("lowerBound", "upperBound")
+
+    } else {
       variation <- stats::var(strappedStatistic)
       confidenceInterval <- c(lowerBound = max(N - 1.96 * sqrt(variation),
-                                              (length(y) + trcount)),
+                                               (length(y) + trcount)),
                               upperBound = N + 1.96 * sqrt(variation))
-    } else if (method == "bootstrapPerc") {
-      variation <- stats::var(strappedStatistic)
-      confidenceInterval <- stats::quantile(strappedStatistic, c(0.025, 0.975))
-      names(confidenceInterval) <- c("lowerBound", "upperBound")
     }
   }
 

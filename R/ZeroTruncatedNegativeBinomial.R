@@ -94,6 +94,7 @@ ztnegbin <- function() {
                 y * z - (y + z) * lambda * S) +
                 G * (S ** z) *
                 (log(1 / S) * (z ** 2) - lambda * z * S))
+      # Correction for taking the derivative with respect to log(alpha)
       G0 <- G0 * alpha
 
       # Beta derivative
@@ -140,6 +141,7 @@ ztnegbin <- function() {
                    (z ** 2) * lambda * log(1 / S) * (S / M) +
                    (z ** 2) * lambda * (S ** 2) * (lambda / z + log(S) / S) / M)
 
+      # Correction for taking the derivative with respect to log(alpha)
       G00 <- G00 * (alpha ** 2) + G0 * alpha
       # mixed derivative
       T1 <- lambda * (y - lambda) * (S ** 2)
@@ -205,6 +207,10 @@ ztnegbin <- function() {
 
     bigTheta2 <- -(pw * as.numeric(lambda * (S ** (1 - 1 / z)) /
                   ((1 - (1 / S) ** (1 / z)) ** 2))) %*% as.matrix(X)
+    # Correction for taking the derivative with respect to log(alpha)
+    # control = list(
+    # reltol = .Machine$double.eps)
+    bigTheta2 <- bigTheta2 * z
 
     bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
 

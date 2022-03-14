@@ -31,7 +31,7 @@ IRLS <- function(dependent,
   if (!is.null(weights)) {
     prior <- as.numeric(weights)
   } else {
-    prior <- 1 / length(dependent)
+    prior <- 1
   }
   W <- prior
 
@@ -47,16 +47,17 @@ IRLS <- function(dependent,
 
   while (!converged && (iter < maxiter)) {
     if (family$family %in% c("ztnegbin", "zotnegbin") &&
-        isFALSE(disp.given) && (abs(disp - dispPrev) > eps)) {
+        isFALSE(disp.given) && (abs(disp - dispPrev) > 1e-5)) {
       dispPrev <- disp
       ll <- function(alpha) loglike(c(alpha, beta))
       gr <- function(alpha) -grad(c(alpha, beta))[1]
       disp <- stats::optim(par = disp,
-                           lower = disp - 2 * abs(disp),
-                           upper = disp + 2 * abs(disp),
+                           lower = disp - 5 * abs(disp),
+                           upper = disp + 5 * abs(disp),
                            fn = ll,
                            gr = gr,
-                           method = "Brent")$par
+                           method = "Brent",
+                           control = list(reltol = .Machine$double.eps))$par
     }
 
     WPrev <- W
@@ -65,7 +66,6 @@ IRLS <- function(dependent,
     LPrev <- L
 
     eta <- covariates %*% beta
-    parameter <- family$linkinv(eta)
     mu <- family$mu.eta(eta = eta, disp)
     if (!family$validmu(mu)) {
       stop("Fit error infinite values reached consider another model,
@@ -94,7 +94,6 @@ IRLS <- function(dependent,
       beta <- betaPrev
       L <- LPrev
       W <- WPrev
-      disp <- dispPrev
     }
 
   }

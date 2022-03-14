@@ -25,7 +25,7 @@ zelterman <- function() {
   mu.eta <- function(disp = NULL, eta) {
     lambda <- invlink(eta) / 2
     1 - (lambda / 2) / (1 + lambda / 2)
-    #lambda
+    exp(eta) / (1 + exp(eta))
   }
 
   variance <- function(disp = NULL, mu) {

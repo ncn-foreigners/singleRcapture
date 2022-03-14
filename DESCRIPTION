@@ -2,11 +2,22 @@ Package: singleRcapture
 Type: Package
 Title: A package for single-source capture-recapture models
 Version: 0.0.0.9000
-Author: Piotr Chlebicki
-Maintainer: Piotr Chlebkcki <piochl@st.amu.edu.pl>
-Description: A package for population size estimation based on single source capture-recapture methods such as zero-truncated Poisson and Negative Binomial, zero-one truncated Poisson and Negative Binomial, Zelterman's and Chao's regression
+Authors@R:
+    c(person(given = "Piotr",
+             family = "Chlebicki",
+             role = c("aut", "cre"),
+             email = "piochl@st.amu.edu.pl"),
+      person(given = "Maciej",
+             family = "Beręsiewicz",
+             role = c("aut", "ctb"),
+             email = "maciej.beresewicz@ue.poznan.pl",
+             comment = c(ORCID = "0000-0002-8281-4301")))
+Description: A package for population size estimation based on single source capture-recapture methods such as zero-truncated Poisson and Negative Binomial, zero-one truncated Poisson and Negative Binomial, Zelterman's and Chao's regression.
 License: MIT + file LICENSE
 Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 3.5.0)
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 URL: https://github.com/ncn-foreigners/singleRcapture
@@ -16,5 +27,3 @@ Imports:
     MASS
 Suggests: 
     tinytest,
-    readxl,
-    utils

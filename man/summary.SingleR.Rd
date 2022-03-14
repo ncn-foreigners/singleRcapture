@@ -15,5 +15,8 @@
 Easy to read summary of regression and most important data from a 'SingleR' class
 }
 \description{
+summary.Model
+}
+\details{
 Describes an object of model class representing generalized linear regression
 }

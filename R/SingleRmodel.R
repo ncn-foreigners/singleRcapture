@@ -7,7 +7,7 @@
 #' @param subset As in lm/glm
 #' @param na.action ||
 #' @param method Method for fitting values currently supported IRLS and MaxLikelihood
-#' @param pop.ci A method of constructing confidence interval either analytic or bootstrap
+#' @param pop.var A method of constructing confidence interval either analytic or bootstrap
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
 #' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
 #' @param trcount Optional parameter for Zero-one truncated models, if population estimate
@@ -60,9 +60,8 @@ estimate_popsize <- function(formula,
                              na.action = NULL,
                              trcount = 0,
                              method = c("mle", "robust"),
-                             pop.ci = c("analytic",
-                                        "bootstrapPerc",
-                                        "bootstrapSD"),
+                             pop.var = c("analytic",
+                                         "bootstrap"),
                              control.method = NULL,
                              control.model = NULL,
                              control.pop.var = NULL,
@@ -79,10 +78,17 @@ estimate_popsize <- function(formula,
   if (is.function(family)) {
     family <- family()
   }
+  if (is.null(trcount)) {
+    trcount <- 0
+  }
 
   model_frame <- stats::model.frame(formula, data,  ...)
   observed <- model_frame[, 1]
   variables <- stats::model.matrix(formula, model_frame, ...)
+
+  if(length(observed[observed == 0]) > 0) {
+    stop("Error in function estimate.popsize, data contains zero-counts")
+  }
 
   if (!family$valideta(start) && !is.null(start)) {
     stop("Invalid start parameter")
@@ -91,9 +97,50 @@ estimate_popsize <- function(formula,
   if (!is.null(weights)) {
     prior.weights <- as.numeric(weights)
   } else {
-    prior.weights <- 1 / length(observed)
+    prior.weights <- 1
   }
   weights <- 1
+
+  if (family$family %in% c("zotpoisson", "zotnegbin") &&
+      1 %in% as.numeric(names(table(observed)))) {
+    cat("One counts detected in two truncated model. In this model of estimation only counts >2 are used.",
+        "Enter 1 to truncate those counts and add them to trcount or 0 to stop executing function: ", sep = "\n")
+    bool <- readline()
+    bool <- as.numeric(bool)
+    if (bool) {
+      tempdata <- data.frame(observed, prior.weights, variables)
+      trcount <- trcount + length(observed[observed == 1])
+      tempdata <- tempdata[tempdata["observed"] > 1, ]
+
+      observed <- tempdata[, 1]
+      prior.weights <- tempdata[, 2]
+      variables <- as.matrix(tempdata[, -c(1, 2)])
+    } else {
+      stop("Execution terminated by user")
+    }
+  } else if (family$family == "chao" &&
+             (as.numeric(names(table(observed))) == c(1, 2) ||
+              as.numeric(names(table(observed))) == c(2, 1))) {
+    cat("Counts =>3 detected in two chao model. In this model of estimation only counts 1 and 2 are used.",
+        "Enter 1 to truncate those counts and add them to trcount or 0 to stop executing function: ", sep = "\n")
+    bool <- readline()
+    bool <- as.numeric(bool)
+    if (bool) {
+      tempdata <- data.frame(observed, prior.weights, variables)
+      trcount <- trcount + length(observed[observed > 2])
+      tempdata <- tempdata[tempdata["observed"] == 1 | tempdata["observed"] == 2, ]
+
+      observed <- tempdata[, 1]
+      prior.weights <- tempdata[, 2]
+      variables <- as.matrix(tempdata[, -c(1, 2)])
+    } else {
+      stop("Execution terminated by user")
+    }
+  } else if (0 %in% as.numeric(names(table(observed)))) {
+    stop("Error in function singleRcaptire::estimate_popsize, zero counts
+          present in data")
+  }
+
 
   log_like <- family$make_minusloglike(y = observed,
                                        X = as.matrix(variables),
@@ -102,8 +149,8 @@ estimate_popsize <- function(formula,
                                X = as.matrix(variables),
                                weight = prior.weights)
   hessian <- family$make_hessian(y= observed,
-                              X = as.matrix(variables),
-                              weight = prior.weights)
+                                 X = as.matrix(variables),
+                                 weight = prior.weights)
 
   if (family$family %in% c("ztpoisson", "zotpoisson",
                            "chao", "zelterman")) {
@@ -163,7 +210,7 @@ estimate_popsize <- function(formula,
     fitt <- family$linkinv(eta)
     hess <- hessian(beta = coefficients)
   } else if (family$family %in% c("ztnegbin", "zotnegbin")) {
-    df.reduced <- length(observed) - dim(variables)[2]
+    df.reduced <- 2 * (length(observed) - dim(variables)[2])
     if (method == "robust") {
       FITT <- IRLS(dependent = observed,
                    covariates = as.matrix(variables),
@@ -186,12 +233,22 @@ estimate_popsize <- function(formula,
       eta <- as.matrix(variables) %*% beta
       fitt <- family$linkinv(eta)
     } else if (method == "mle") {
-      start <- c(dispersion, start)
+      if (family$family == "ztnegbin") {
+        methodopt <- "L-BFGS-B"
+        ctrl <- list(factr = .Machine$double.eps,
+                     maxit = 100000)
+      } else {
+        methodopt <- "Nelder-Mead"
+        dispersion <- abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2)
+        ctrl <- list(factr = .Machine$double.eps,
+                     maxit = 100000)
+      }
+      start <- c("(Dispersion)" = dispersion, start)
       FITT <- stats::optim(fn = log_like,
                            par = start,
                            gr = function(x) -grad(x),
-                           method = "L-BFGS-B",
-                           control = list(factr = .Machine$double.eps))
+                           method = methodopt,
+                           control = ctrl)
       beta <- FITT$par[-1]
       iter <- FITT$counts
       eta <- as.matrix(variables) %*% beta
@@ -207,26 +264,29 @@ estimate_popsize <- function(formula,
   } else if (family$family == "zelterman") {
     # In zelterman model regression is indeed based only on 1 and 2 counts
     # but estimation is based on ALL counts
-    name1 <- colnames(model_frame)[1]
-    tempdata <- model_frame[model_frame[name1] == 1 | model_frame[name1] == 2, ]
+    name1 <- "observed"
+    tempdata <- data.frame(observed, prior.weights, variables)
+    tempdata <- tempdata[tempdata[name1] == 1 | tempdata[name1] == 2, ]
     if (is.vector(tempdata)) {
       tempobserved <- tempdata
       tempvariables <- data.frame("(Intercept)" = rep(1, length(tempdata)))
+      prior.weightstemp <- tempdata[, 2]
     } else {
       tempobserved <- tempdata[, 1]
-      tempvariables <- stats::model.matrix(formula, tempdata, ...)
+      prior.weightstemp <- tempdata[, 2]
+      tempvariables <- as.matrix(tempdata[, -c(1, 2)])
     }
 
     log_like <- family$make_minusloglike(y = tempobserved,
                                          X = as.matrix(tempvariables),
-                                         weight = prior.weights)
+                                         weight = prior.weightstemp)
 
     grad <- family$make_gradient(y = tempobserved,
                                  X = as.matrix(tempvariables),
-                                 weight = prior.weights)
+                                 weight = prior.weightstemp)
     hessian <- family$make_hessian(y= tempobserved,
                                    X = as.matrix(tempvariables),
-                                   weight = prior.weights)
+                                   weight = prior.weightstemp)
 
     df.reduced <- length(tempobserved) - dim(tempvariables)[2]
     if (method == "robust") {
@@ -234,7 +294,7 @@ estimate_popsize <- function(formula,
                    covariates = as.matrix(tempvariables),
                    eps = .Machine$double.eps,
                    family = family,
-                   weights = prior.weights,
+                   weights = prior.weightstemp,
                    start = start)
       iter <- FITT$iter
       weights <- FITT$weights
@@ -283,7 +343,7 @@ estimate_popsize <- function(formula,
 
   null.deviance <- as.numeric(NULL)
   LOG <- -log_like(coefficients)
-  resRes <- weights * (observed - fitt)
+  resRes <- prior.weights * (observed - fitt)
   aic <- 2 * length(coefficients) - 2 * LOG
   deviance <- as.numeric(NULL)
   # VGAM::vglm używa przybliżenia rozkładem normalnym standaryzowanym można ewentualnie zamienić
@@ -295,7 +355,7 @@ estimate_popsize <- function(formula,
                             X = as.data.frame(variables),
                             grad = grad,
                             hessian = hessian,
-                            method = pop.ci,
+                            method = pop.var,
                             weights = prior.weights,
                             parameter = fitt,
                             family = family,
