@@ -27,7 +27,7 @@ summary.singleR <- function(object, ...) {
                    round(object$wValues, digits = 2),
                    signif(object$pValues, digits = 2),
                    signif)
-  colnames(ob) <- c("Coefficients", "StandardErrors", "W-values", "P(>|t|)", "")
+  colnames(ob) <- c("Estimate", "Std. Error", "W-values", "P(>|t|)", "")
 
   print(object$call)
   cat("\nResponse Residuals:\n")
@@ -35,15 +35,14 @@ summary.singleR <- function(object, ...) {
   cat("\nCoefficients:\n")
   print(ob)
   cat("\nSignif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'")
-  cat("\nAkane information criterion", object$aic,
+  cat("\nAIC:", object$aic,
       "\n\nLog-likelihood:", object$logL, "on", object$df.residual,
-      "degrees of freedom",
-      "\nNumber of itterations:", object$iter[1],
-      "\n\nPop size estimate:",
+      "Degrees of freedom",
+      "\nNumber of iteration:", object$iter[1],
+      "\n\nPopulation size estimation",
       "\nPoint estimate", object$populationSize$pointEstimate,
       "\nVariance", object$populationSize$variance,
-      "\nConficence interval", object$populationSize$confidenceInterval,
-      "on 95% confidence")
+      "\n95\% CI", object$populationSize$confidenceInterval)
 }
 
 #' Residuals of regresion
