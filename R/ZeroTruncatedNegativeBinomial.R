@@ -63,9 +63,11 @@ ztnegbin <- function() {
       beta <- arg[-1]
       eta <- as.matrix(X) %*% beta
       lambda <- exp(eta)
+      M <- 1 + lambda / z
+
       -sum(weight * (sapply(y, FUN = {function (y) compgamma(y, alpha = alpha)})
-                    - log(factorial(y)) - (y + z) * log(1 + lambda / z) +
-                    y * log(lambda / z) - log(1 - ((1 + lambda / z) ** (-z)))))
+           -log(factorial(y)) - (y + z) * log(M) +
+           y * log(lambda / z) - log(1 - (M ** (-z)))))
     }
   }
 
@@ -86,20 +88,18 @@ ztnegbin <- function() {
       lambda <- exp(eta)
       S <- 1 / (1 + lambda / z)
       G <- 1 / (1 - (1 + lambda / z) ** (-z))
+      cp1 <- log(1 / S) * (z ** 2)
+      cp2 <- lambda * S
+      cp3 <- S ** (-z)
 
-      # alpha derivative
-
-      G0 <- sum(weight * ((z ** 2) * log(1 / S) +
+      # log(alpha) derivative
+      G0 <- sum(weight * (cp1 +
                 sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
-                y * z - (y + z) * lambda * S) +
-                G * (S ** z) *
-                (log(1 / S) * (z ** 2) - lambda * z * S))
-      # Correction for taking the derivative with respect to log(alpha)
-      G0 <- G0 * alpha
+                y * z - (y + z) * cp2 +
+                G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
 
       # Beta derivative
-      G1 <- t(((y + (lambda - y) * (S ** (-z))) * S /
-                 (1 - (1 / S) ** z))  * weight) %*% X
+      G1 <- t(((y + (lambda - y) * cp3) * S / (1 - cp3))  * weight) %*% X
 
       c(G0, G1)
     }
@@ -119,50 +119,58 @@ ztnegbin <- function() {
       beta <- arg[-1]
       eta <- X %*% beta
       lambda <- exp(eta)
+      M <- ((1 + lambda / z) ** z) - 1
       S <- 1 / (1 + lambda / z)
       G <- 1 / (1 - (1 + lambda / z) ** (-z))
       res <- matrix(1, nrow = length(arg), ncol = length(arg))
+      cp4 <- z ** 2
+      cp9 <- (1 / S)
+      cp1 <- log(cp9) * cp4
+      cp2 <- lambda * S
+      cp3 <- S ** (-z)
+      cp5 <- log(S) / S
+      cp6 <- (S ** 2)
+      cp7 <- log(S)
+      cp8 <- (lambda / z + cp5)
+      cp10 <- cp9 ** (-1 - z)
+      cp11 <- (S / M)
 
-      # alpha derivative
-      G0 <- sum(weight * ((z ** 2) * log(1 / S) +
-                            sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
-                            y * z - (y + z) * lambda * S) +
-                  G * (S ** z) *
-                  (log(1 / S) * (z ** 2) - lambda * z * S))
-      # 2nd alpha derivative
-      M <- ((1 + lambda / z) ** z) - 1
+      # log(alpha) derivative
+      G0 <- sum(weight * (cp1 + y * z - (y + z) * cp2 +
+                sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
+                G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
 
-      G00 <- sum(2 * S * lambda * (z ** 2) + 2 * log(S) * (z ** 3) +
-                   sapply(y, FUN = {function (y) comptrigamma(y, alpha = alpha)}) +
-                   (y + z) * (lambda ** 2) * (S ** 2) +
-                   (z ** 3) * 2 * (lambda / z + log(S) / S) * (S / M) +
-                   (z ** 2) * (S ** (1 - z)) * (lambda * z * S + log(S) * (z ** 2)) *
-                   (lambda / z + log(S) / S) / (M ** 2) +
-                   (z ** 2) * lambda * log(1 / S) * (S / M) +
-                   (z ** 2) * lambda * (S ** 2) * (lambda / z + log(S) / S) / M)
+      # 2nd log(alpha) derivative
+      G00 <- sum((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) +
+                  sapply(y, FUN = {function (y) comptrigamma(y, alpha = alpha)}) +
+                  (y + z) * (lambda ** 2) * cp6 +
+                  (z ** 3) * 2 * cp8 * cp11 +
+                  cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
+                  cp8 / (M ** 2) +
+                  cp4 * lambda * log(cp9) * cp11 +
+                  cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2) * weight)
 
       # Correction for taking the derivative with respect to log(alpha)
-      G00 <- G00 * (alpha ** 2) + G0 * alpha
-      # mixed derivative
-      T1 <- lambda * (y - lambda) * (S ** 2)
+      G00 <- G00 + G0
 
-      T2 <- ((1 / S) ** (-1 - z))
-      T2 <- T2 * (lambda * (1 + z) * S + log(S) * (z ** 2))
+      # mixed derivative
+      T1 <- lambda * (y - lambda) * cp6
+
+      T2 <- cp10 * (lambda * (1 + z) * S + cp7 * cp4)
       T2 <- G * T2
 
-      T3 <- (1 / S) ** (-z)
-      T3 <- T3 * (-log(S) * (z ** 2) - z * lambda * S)
-      T3 <- (G ** 2) * (-T3) / ((1 / S) ** (1 + z))
+      T3 <- cp9 ** (-z)
+      T3 <- T3 * (-cp7 * cp4 - z * cp2)
+      T3 <- (G ** 2) * (-T3) * cp10
 
-      G01 <- t(X) %*% as.numeric(-T1 + lambda * (T2 + T3))
+      G01 <- t(X) %*% as.numeric(-T1 + lambda * (T2 + T3)) * alpha * weight
 
-      G01 <- G01 * alpha
       # second beta derivative
-      C1 <- as.numeric((((1 / S) ** z) * (lambda - 1) + 1) * (S ** 2) /
-                         (((1 / S) ** z - 1) ** 2))
-      C2 <- (1 + y / z) * (S ** 2)
+      C1 <- as.numeric(((cp9 ** z) * (lambda - 1) + 1) *
+                       cp6 / ((cp9 ** z - 1) ** 2))
+      C2 <- (1 + y / z) * cp6
 
-      G11 <- t(as.data.frame(X) * lambda * (C1 - C2)) %*% X
+      G11 <- t(as.data.frame(X) * lambda * (C1 - C2) * weight) %*% X
 
       res[1, 1] <- G00
       res[-1, -1] <- G11
@@ -201,16 +209,17 @@ ztnegbin <- function() {
     S <- 1 / (1 + z * lambda)
     I <- as.matrix(-hess(beta))
 
-    bigTheta1 <- sum(pw * ((S ** (1 - 1 / z)) *
-                    ((1 / S) * log(1 / S) - z * lambda) /
-                    ((z ** 2) * ((1 - (1 / S) ** (1 / z)) ** 2))))
+    cp1 <- (1 / S)
+    cp2 <- (S ** (1 - 1 / z))
+    cp3 <- ((1 - cp1 ** (1 / z)) ** 2)
 
-    bigTheta2 <- -(pw * as.numeric(lambda * (S ** (1 - 1 / z)) /
-                  ((1 - (1 / S) ** (1 / z)) ** 2))) %*% as.matrix(X)
+    bigTheta1 <- sum(pw * (cp2 * (cp1 * log(cp1) - z * lambda) /
+                          ((z ** 2) * cp3)))
+
+    bigTheta2 <- -(pw * as.numeric(lambda * cp2 / cp3)) %*% as.matrix(X)
     # Correction for taking the derivative with respect to log(alpha)
-    # control = list(
-    # reltol = .Machine$double.eps)
-    bigTheta2 <- bigTheta2 * z
+    bigTheta1 <- bigTheta1 * z
+
 
     bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
 

@@ -34,18 +34,21 @@ summary.singleR <- function(object, ...) {
   print(summary(c(object$residuals)))
   cat("\nCoefficients:\n")
   print(ob)
-  cat("\nSignif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'")
+  cat("-----------------------",
+      "Signif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'",
+      sep = "\n")
   cat("\nAIC:", object$aic,
+      "\nBIC:", object$bic,
       "\n\nLog-likelihood:", object$logL, "on", object$df.residual,
       "Degrees of freedom",
       "\nNumber of iteration:", object$iter[1],
-      "\n\nPopulation size estimation",
+      "\n\nPopulation size estimation results:",
       "\nPoint estimate", object$populationSize$pointEstimate,
       "\nVariance", object$populationSize$variance,
-      "\n95\% CI", object$populationSize$confidenceInterval)
+      "\n95% CI", object$populationSize$confidenceInterval)
 }
 
-#' Residuals of regresion
+#' residuals.singleR
 #'
 #' @details S3 method for singleR class
 #'
@@ -55,6 +58,7 @@ summary.singleR <- function(object, ...) {
 #'
 #' @return returns a vector of residuals of
 #' selected type
+#' @importFrom stats residuals
 #' @export
 residuals.singleR <- function(object,
                               type = c("pearson",
@@ -62,6 +66,19 @@ residuals.singleR <- function(object,
                                        "working",
                                        "partial"),
                               ...) {
-  # This is currently a placeholder to be written later
-  return(object)
+  res <- object$residuals
+  disp <- object$dispersion
+  wts <- object$prior.weights
+  mu <- object$fitt.values
+  y <- object$y
+  if (type == "pearson") {
+    rs <- res * sqrt(wts) / object$model$variance(mu, disp)
+  } else if (type == "working") {
+    rs <-  res / mu
+  } else if (type == "response") {
+    rs <- res
+  } else {
+    # partial residuals??
+  }
+  rs
 }

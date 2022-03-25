@@ -11,7 +11,7 @@ IRLS(
   start,
   disp = NULL,
   weights = NULL,
-  maxiter = 1000,
+  maxiter = 10000,
   eps = .Machine$double.eps^0.25,
   disp.given = FALSE
 )

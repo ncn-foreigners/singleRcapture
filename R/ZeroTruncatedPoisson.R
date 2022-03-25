@@ -63,8 +63,11 @@ ztpoisson <- function() {
 
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
-      coefficient <- (1 / (1 - exp(-lambda)) -
-                      lambda * exp(-lambda) / ((1 - exp(-lambda)) ** 2))
+      eml <- exp(-lambda)
+      coefficient <- (1 / (1 - eml) -
+                      lambda * eml /
+                      ((1 - eml) ** 2))
+
       dmu <- diag(weight * as.numeric(coefficient))
       dlam <- as.matrix(X * as.numeric(lambda))
 
@@ -91,12 +94,14 @@ ztpoisson <- function() {
 
   popVar <- function (beta, pw, lambda, disp = NULL, hess, X) {
     X <- as.data.frame(X)
+    ml <- (1 - exp(-lambda)) ** 2
     I <- -hess(beta)
 
-    f1 <- colSums(-X * pw * (exp(log(lambda) - lambda) / ((1 - exp(-lambda)) ** 2)))
+
+    f1 <- colSums(-X * pw * (exp(log(lambda) - lambda) / ml))
     f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
 
-    f2 <- sum(pw * exp(-lambda) / ((1 - exp(-lambda)) ** 2))
+    f2 <- sum(pw * exp(-lambda) / ml)
 
     variation <- f1 + f2
     variation

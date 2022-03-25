@@ -21,10 +21,29 @@ IRLS <- function(dependent,
                  start,
                  disp = NULL,
                  weights = NULL,
-                 maxiter = 1000,
+                 maxiter = 10000,
                  eps = .Machine$double.eps ** .25,
                  disp.given = FALSE) {
   converged <- FALSE
+  epsdisp <- 1e-5 # TODO add to controll
+
+  mu.eta <- family$mu.eta
+  validmu <- family$validmu
+  variance <- family$variance
+  famName <- family$family
+  linkinv <- family$linkinv
+  funcZ <- function(mu, y, eta) {eta + (y - mu) / mu}
+  Wfun <- function(mu, prior, varY, eta) {prior * (mu ** 2) / varY}
+
+  if (famName %in% c("chao", "zelterman")) {
+    dependent <- dependent - 1
+    linkinv <- function(p) {1 / (1 + exp(-p))}
+    mu.eta <- function(eta, disp) {linkinv(eta) * (1 - linkinv(eta))}
+    variance <- function(mu, disp) {mu * (1 - mu)}
+    funcZ <- function(mu, y, eta) {eta + (y - linkinv(eta)) / mu}
+    Wfun <- function(mu, prior, varY, eta) {prior * exp(eta) / ((1 + exp(eta)) ** 2)}
+  }
+
   iter <- 1
   beta <- start
 
@@ -33,8 +52,8 @@ IRLS <- function(dependent,
   } else {
     prior <- 1
   }
-  W <- prior
 
+  W <- prior
   loglike <- family$make_minusloglike(y = dependent,
                                       X = covariates,
                                       weight = prior)
@@ -46,8 +65,8 @@ IRLS <- function(dependent,
   dispPrev <- Inf
 
   while (!converged && (iter < maxiter)) {
-    if (family$family %in% c("ztnegbin", "zotnegbin") &&
-        isFALSE(disp.given) && (abs(disp - dispPrev) > 1e-5)) {
+    if (famName %in% c("ztnegbin", "zotnegbin") &&
+        isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
       dispPrev <- disp
       ll <- function(alpha) loglike(c(alpha, beta))
       gr <- function(alpha) -grad(c(alpha, beta))[1]
@@ -66,15 +85,15 @@ IRLS <- function(dependent,
     LPrev <- L
 
     eta <- covariates %*% beta
-    mu <- family$mu.eta(eta = eta, disp)
-    if (!family$validmu(mu)) {
+    mu <- mu.eta(eta = eta, disp)
+    if (!validmu(mu)) {
       stop("Fit error infinite values reached consider another model,
             mu is too close to zero/infinity")
     }
 
-    varY <- family$variance(mu = mu, disp)
-    Z <- eta + (dependent - mu) / mu
-    W <- as.numeric(prior * (mu ** 2) / varY)
+    varY <- variance(mu = mu, disp)
+    Z <- funcZ(mu = mu, y = dependent, eta = eta)
+    W <- as.numeric(Wfun(mu, prior, varY, eta))
     # This is equivalent to
     # A <- t(covariates) %*% W %*% covariates
     # B <- t(covariates) %*% W %*% Z
@@ -94,6 +113,10 @@ IRLS <- function(dependent,
       beta <- betaPrev
       L <- LPrev
       W <- WPrev
+    }
+
+    if(iter == maxiter && !converged) {
+      warning("Fitting algorithm (IRLS) has not converged")
     }
 
   }

@@ -67,23 +67,33 @@ percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 \value{
 Returns an object of classes inherited from glm containing:\cr
 
-y argument used in regression\cr
-formula provided on call\cr
-Call on which model is based\cr
-vector of fitt coefficients of regression\cr
-vector of Standard errors of coeffcients\cr
-vectors of test and p-values \cr
-model used in regression\cr
-akane information criterion\cr
-vector of prior weights assingned on call\cr
-vector of weights if IRLS was the fit method then its a vector what was returned by IRLS\cr
-vector of working residuals\cr
-Log-likelihood for the model\cr
-number of itteration performed in fitting\cr
-total and reduced degrees of freedom\cr
-vector of fitt values\cr
-a list containing population size estimate form PopulationEstimate function\cr
-model, linear predictors, and qr decomposition of model matrix
+\itemize{
+\item{y argument of observations}
+\item{formula provided on call}
+\item{call on which model is based}
+\item{coefficients a vector of fitted coefficients of regression}
+\item{standard_errors SE of fitted coefficients of regression}
+\item{wValues test values for Wald test}
+\item{pValues P values for Wald test}
+\item{null.deviance TODO}
+\item{model on which estimation and regression was built}
+\item{aic akaike information criterion}
+\item{bic bayesian information criterion}
+\item{deviance TODO}
+\item{prior.weight weight provided on call}
+\item{weights if robust method of estimation was chosen, weights returned by IRLS}
+\item{residuals working residuals}
+\item{logL logarithm likelihood obtained}
+\item{iter numbers of iterations performed in fitting}
+\item{dispersion dispersion parameter if applies}
+\item{df.residuals residual degrees of freedom}
+\item{df.null null degrees of freedom}
+\item{fitt.values vector of fitted values}
+\item{populationSize a list containing information of population size estimate}
+\item{linear predictors vector of linear predictors}
+\item{qr qr decomposision of model matrix, might be removed later since it's
+not used anywhere in package}
+}
 }
 \description{
 estimate_popsize

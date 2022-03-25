@@ -2,7 +2,7 @@
 % Please edit documentation in R/Methods.R
 \name{residuals.singleR}
 \alias{residuals.singleR}
-\title{Residuals of regresion}
+\title{residuals.singleR}
 \usage{
 \method{residuals}{singleR}(object, type = c("pearson", "response", "working", "partial"), ...)
 }
@@ -18,7 +18,7 @@ returns a vector of residuals of
 selected type
 }
 \description{
-Residuals of regresion
+residuals.singleR
 }
 \details{
 S3 method for singleR class

@@ -25,30 +25,41 @@
 #'
 #' @return Returns an object of classes inherited from glm containing:\cr
 #' @returns
-#' y argument used in regression\cr
-#' formula provided on call\cr
-#' Call on which model is based\cr
-#' vector of fitt coefficients of regression\cr
-#' vector of Standard errors of coeffcients\cr
-#' vectors of test and p-values \cr
-#' model used in regression\cr
-#' akane information criterion\cr
-#' vector of prior weights assingned on call\cr
-#' vector of weights if IRLS was the fit method then its a vector what was returned by IRLS\cr
-#' vector of working residuals\cr
-#' Log-likelihood for the model\cr
-#' number of itteration performed in fitting\cr
-#' total and reduced degrees of freedom\cr
-#' vector of fitt values\cr
-#' a list containing population size estimate form PopulationEstimate function\cr
-#' model, linear predictors, and qr decomposition of model matrix
+#' \itemize{
+#'  \item{y argument of observations}
+#'  \item{formula provided on call}
+#'  \item{call on which model is based}
+#'  \item{coefficients a vector of fitted coefficients of regression}
+#'  \item{standard_errors SE of fitted coefficients of regression}
+#'  \item{wValues test values for Wald test}
+#'  \item{pValues P values for Wald test}
+#'  \item{null.deviance TODO}
+#'  \item{model on which estimation and regression was built}
+#'  \item{aic akaike information criterion}
+#'  \item{bic bayesian information criterion}
+#'  \item{deviance TODO}
+#'  \item{prior.weight weight provided on call}
+#'  \item{weights if robust method of estimation was chosen, weights returned by IRLS}
+#'  \item{residuals working residuals}
+#'  \item{logL logarithm likelihood obtained}
+#'  \item{iter numbers of iterations performed in fitting}
+#'  \item{dispersion dispersion parameter if applies}
+#'  \item{df.residuals residual degrees of freedom}
+#'  \item{df.null null degrees of freedom}
+#'  \item{fitt.values vector of fitted values}
+#'  \item{populationSize a list containing information of population size estimate}
+#'  \item{linear predictors vector of linear predictors}
+#'  \item{qr qr decomposision of model matrix, might be removed later since it's
+#'  not used anywhere in package}
+#' }
+#'
 #' @importFrom stats glm.fit
 #' @importFrom stats poisson
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom stats optim
 #' @importFrom MASS glm.nb
-#' @importFrom stats pt
+#' @importFrom stats pnorm
 #' @export
 estimate_popsize <- function(formula,
                              data,
@@ -86,7 +97,7 @@ estimate_popsize <- function(formula,
   observed <- model_frame[, 1]
   variables <- stats::model.matrix(formula, model_frame, ...)
 
-  if(length(observed[observed == 0]) > 0) {
+  if(sum(observed == 0) > 0) {
     stop("Error in function estimate.popsize, data contains zero-counts")
   }
 
@@ -103,165 +114,35 @@ estimate_popsize <- function(formula,
 
   if (family$family %in% c("zotpoisson", "zotnegbin") &&
       1 %in% as.numeric(names(table(observed)))) {
-    cat("One counts detected in two truncated model. In this model of estimation only counts >2 are used.",
-        "Enter 1 to truncate those counts and add them to trcount or 0 to stop executing function: ", sep = "\n")
-    bool <- readline()
-    bool <- as.numeric(bool)
-    if (bool) {
-      tempdata <- data.frame(observed, prior.weights, variables)
-      trcount <- trcount + length(observed[observed == 1])
-      tempdata <- tempdata[tempdata["observed"] > 1, ]
+    cat("One counts detected in two truncated model.",
+        "In this model of estimation only counts =>2 are used.",
+        "One counts will be deleted and their number added to trcount",
+        sep = "\n")
 
-      observed <- tempdata[, 1]
-      prior.weights <- tempdata[, 2]
-      variables <- as.matrix(tempdata[, -c(1, 2)])
-    } else {
-      stop("Execution terminated by user")
-    }
+    tempdata <- data.frame(observed, prior.weights, variables)
+    trcount <- trcount + length(observed[observed == 1])
+    tempdata <- tempdata[tempdata["observed"] > 1, ]
+
+    observed <- tempdata[, 1]
+    prior.weights <- tempdata[, 2]
+    variables <- as.matrix(tempdata[, -c(1, 2)])
   } else if (family$family == "chao" &&
-             (as.numeric(names(table(observed))) == c(1, 2) ||
-              as.numeric(names(table(observed))) == c(2, 1))) {
-    cat("Counts =>3 detected in two chao model. In this model of estimation only counts 1 and 2 are used.",
-        "Enter 1 to truncate those counts and add them to trcount or 0 to stop executing function: ", sep = "\n")
-    bool <- readline()
-    bool <- as.numeric(bool)
-    if (bool) {
-      tempdata <- data.frame(observed, prior.weights, variables)
-      trcount <- trcount + length(observed[observed > 2])
-      tempdata <- tempdata[tempdata["observed"] == 1 | tempdata["observed"] == 2, ]
+             !(all(as.numeric(names(table(observed))) %in% c(1, 2)))) {
+    cat("Counts > 2 detected in chao model.
+        In this model of estimation only counts 1 and 2 are used.",
+        "Counts 3 4 5 .... will be deleted and their number added to trcount",
+        sep = "\n")
 
-      observed <- tempdata[, 1]
-      prior.weights <- tempdata[, 2]
-      variables <- as.matrix(tempdata[, -c(1, 2)])
-    } else {
-      stop("Execution terminated by user")
-    }
-  } else if (0 %in% as.numeric(names(table(observed)))) {
-    stop("Error in function singleRcaptire::estimate_popsize, zero counts
-          present in data")
+    tempdata <- data.frame(observed, prior.weights, variables)
+    trcount <- trcount + length(observed[observed > 2])
+    tempdata <- tempdata[tempdata["observed"] == 1 | tempdata["observed"] == 2, ]
+
+    observed <- tempdata[, 1]
+    prior.weights <- tempdata[, 2]
+    variables <- as.matrix(tempdata[, -c(1, 2)])
   }
 
-
-  log_like <- family$make_minusloglike(y = observed,
-                                       X = as.matrix(variables),
-                                       weight = prior.weights)
-  grad <- family$make_gradient(y = observed,
-                               X = as.matrix(variables),
-                               weight = prior.weights)
-  hessian <- family$make_hessian(y= observed,
-                                 X = as.matrix(variables),
-                                 weight = prior.weights)
-
-  if (family$family %in% c("ztpoisson", "zotpoisson",
-                           "chao", "zelterman")) {
-    start <- stats::glm.fit(x = variables,
-                            y = observed,
-                            family = stats::poisson())$coefficients
-    if (family$family %in% c("chao", "zelterman")) {
-      start[1] <- start[1] + log(1 / 2)
-    }
-  } else {
-    start <- MASS::glm.nb(formula = formula, data = data)
-    dispersion <- -start$theta
-    start <- start$coefficients
-  }
-
-  if (family$family %in% c("ztpoisson",
-                           "zotpoisson",
-                           "chao")) {
-    df.reduced <- length(observed) - dim(variables)[2]
-    if (method == "robust") {
-      FITT <- IRLS(dependent = observed,
-                   covariates = as.matrix(variables),
-                   eps = .Machine$double.eps,
-                   family = family,
-                   weights = prior.weights,
-                   start = start)
-      iter <- FITT$iter
-      weights <- FITT$weights
-      coefficients <- FITT$coefficients
-    } else if (method == "mle") {
-      if (dim(variables)[2] == 1) {
-        FITT <- stats::optim(par = start,
-                             lower = start - abs(start) * 10,
-                             upper = start + abs(start) * 10,
-                             fn = log_like,
-                             gr = function(x) -grad(x),
-                             method = "Brent",
-                             control = list(reltol = .Machine$double.eps))
-        coefficients <- FITT$par
-        iter <- FITT$counts
-      } else {
-        FITT <- stats::optim(fn = log_like,
-                             par = start,
-                             gr = function(x) -grad(x),
-                             method = "L-BFGS-B",
-                             control = list(factr = .Machine$double.eps))
-        coefficients <- FITT$par
-        iter <- FITT$counts
-      }
-    } else {
-      stop("Method not implemented")
-    }
-
-    coefficients <- as.vector(coefficients)
-    names(coefficients) <- colnames(variables)
-    eta <- as.matrix(variables) %*% coefficients
-    fitt <- family$linkinv(eta)
-    hess <- hessian(beta = coefficients)
-  } else if (family$family %in% c("ztnegbin", "zotnegbin")) {
-    df.reduced <- 2 * (length(observed) - dim(variables)[2])
-    if (method == "robust") {
-      FITT <- IRLS(dependent = observed,
-                   covariates = as.matrix(variables),
-                   eps = .Machine$double.eps,
-                   disp = dispersion,
-                   family = family,
-                   weights = prior.weights,
-                   start = start)
-      if (is.null(FITT)) {
-        return(NULL)
-        stop("fitting error try another model
-             (negative binomial models are highly volitile)")
-      }
-      iter <- FITT$iter
-      weights <- FITT$W
-      beta <- FITT$coefficients
-
-      dispersion <- FITT$disp
-      coefficients <- c(dispersion, beta)
-      eta <- as.matrix(variables) %*% beta
-      fitt <- family$linkinv(eta)
-    } else if (method == "mle") {
-      if (family$family == "ztnegbin") {
-        methodopt <- "L-BFGS-B"
-        ctrl <- list(factr = .Machine$double.eps,
-                     maxit = 100000)
-      } else {
-        methodopt <- "Nelder-Mead"
-        dispersion <- abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2)
-        ctrl <- list(factr = .Machine$double.eps,
-                     maxit = 100000)
-      }
-      start <- c("(Dispersion)" = dispersion, start)
-      FITT <- stats::optim(fn = log_like,
-                           par = start,
-                           gr = function(x) -grad(x),
-                           method = methodopt,
-                           control = ctrl)
-      beta <- FITT$par[-1]
-      iter <- FITT$counts
-      eta <- as.matrix(variables) %*% beta
-      fitt <- family$linkinv(eta)
-
-      dispersion <- FITT$par[1]
-      coefficients <- c(dispersion, beta)
-    } else {
-      stop("Method not implemented")
-    }
-    names(coefficients) <- c("(Dispersion)", colnames(variables))
-    hess <- hessian(arg = coefficients)
-  } else if (family$family == "zelterman") {
+  if (family$family == "zelterman") {
     # In zelterman model regression is indeed based only on 1 and 2 counts
     # but estimation is based on ALL counts
     name1 <- "observed"
@@ -276,62 +157,66 @@ estimate_popsize <- function(formula,
       prior.weightstemp <- tempdata[, 2]
       tempvariables <- as.matrix(tempdata[, -c(1, 2)])
     }
-
-    log_like <- family$make_minusloglike(y = tempobserved,
-                                         X = as.matrix(tempvariables),
-                                         weight = prior.weightstemp)
-
-    grad <- family$make_gradient(y = tempobserved,
-                                 X = as.matrix(tempvariables),
-                                 weight = prior.weightstemp)
-    hessian <- family$make_hessian(y= tempobserved,
-                                   X = as.matrix(tempvariables),
-                                   weight = prior.weightstemp)
-
-    df.reduced <- length(tempobserved) - dim(tempvariables)[2]
-    if (method == "robust") {
-      FITT <- IRLS(dependent = tempobserved,
-                   covariates = as.matrix(tempvariables),
-                   eps = .Machine$double.eps,
-                   family = family,
-                   weights = prior.weightstemp,
-                   start = start)
-      iter <- FITT$iter
-      weights <- FITT$weights
-      coefficients <- FITT$coefficients
-    } else if (method == "mle") {
-      if (dim(variables)[2] == 1) {
-        FITT <- stats::optim(par = start,
-                             lower = start - abs(start) * 10,
-                             upper = start + abs(start) * 10,
-                             fn = log_like,
-                             gr = function(x) -grad(x),
-                             method = "Brent",
-                             control = list(reltol = .Machine$double.eps))
-        coefficients <- FITT$par
-        iter <- FITT$counts
-      } else {
-        FITT <- stats::optim(fn = log_like,
-                             par = as.vector(start),
-                             gr = function(x) -grad(x),
-                             method = "L-BFGS-B",
-                             control = list(factr = .Machine$double.eps))
-        coefficients <- FITT$par
-        iter <- FITT$counts
-      }
-    } else {
-      stop("Method not implemented")
-    }
-
-    coefficients <- as.vector(coefficients)
-    names(coefficients) <- colnames(variables)
-    eta <- as.matrix(variables) %*% coefficients
-    fitt <- family$linkinv(eta)
-    hess <- hessian(beta = coefficients)
+  } else {
+    tempobserved <- observed
+    tempvariables <- variables
+    prior.weightstemp <- prior.weights
   }
 
-  eta <- as.numeric(eta)
-  names(eta) <- rownames(variables)
+  if(colnames(tempvariables)[1] == "X.Intercept.") {
+    colnames(tempvariables)[1] <- "(Intercept)"
+    colnames(variables)[1] <- "(Intercept)"
+  }
+
+  if (family$family %in% c("ztpoisson", "zotpoisson",
+                           "chao", "zelterman")) {
+    start <- stats::glm.fit(x = variables,
+                            y = observed,
+                            family = stats::poisson())$coefficients
+    if (family$family %in% c("chao", "zelterman")) {
+      start[1] <- start[1] + log(1 / 2)
+    }
+  } else {
+    #start <- MASS::glm.nb(formula = formula, data = data)
+    #dispersion <- -start$theta
+    #start <- start$coefficients
+    start <- stats::glm.fit(x = variables,
+                            y = observed,
+                            family = stats::poisson())$coefficients
+    dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
+  }
+
+  FITT <- estimate_popsize.fit(y = tempobserved,
+                               X = tempvariables,
+                               family = family,
+                               control = control.method,
+                               method,
+                               prior.weights = prior.weightstemp,
+                               start = c(dispersion, start),
+                               dispersion = dispersion,
+                               ...)
+  eta <- FITT$eta
+  coefficients <- FITT$beta
+
+  log_like <- FITT$ll
+  grad <- FITT$grad
+  hessian <- FITT$hessian
+
+  hess <- FITT$hess
+  iter <- FITT$iter
+  df.reduced <- FITT$degf
+
+  if (is.null(dispersion)) {
+    eta <- as.matrix(variables) %*% coefficients
+  } else {
+    eta <- as.matrix(variables) %*% coefficients[-1]
+  }
+
+  fitt <- family$linkinv(eta)
+
+  if (!is.null(dispersion)) {
+    dispersion <- coefficients[1]
+  }
 
   if (sum(diag(-solve(hess)) <= 0) != 0) {
     stop("fitting error analytic hessian is invalid,
@@ -345,10 +230,11 @@ estimate_popsize <- function(formula,
   LOG <- -log_like(coefficients)
   resRes <- prior.weights * (observed - fitt)
   aic <- 2 * length(coefficients) - 2 * LOG
+  bic <- length(coefficients) * log(length(observed)) - 2 * LOG
   deviance <- as.numeric(NULL)
-  # VGAM::vglm używa przybliżenia rozkładem normalnym standaryzowanym można ewentualnie zamienić
-  pVals <- (stats::pt(q =  abs(wVal), df = df.reduced, lower.tail = FALSE) +
-            stats::pt(q = -abs(wVal), df = df.reduced, lower.tail = TRUE))
+  # In wald W-values have N(0,1) distributions (asymptotically)
+  pVals <- (stats::pnorm(q =  abs(wVal), lower.tail = FALSE) +
+            stats::pnorm(q = -abs(wVal), lower.tail = TRUE))
   qr <- qr(variables)
 
   POP <- populationEstimate(y = observed,
@@ -373,6 +259,7 @@ estimate_popsize <- function(formula,
                  null.deviance = null.deviance,
                  model = family,
                  aic = aic,
+                 bic = bic,
                  deviance = deviance,
                  prior.weights = prior.weights,
                  weights = weights,

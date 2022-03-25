@@ -68,8 +68,8 @@ zotnegbin <- function() {
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
 
       -sum(weight * (sapply(y, FUN = {function (y) compgamma(y, alpha = alpha)})
-      - log(factorial(y)) - (y + z) * log(1 + lambda / z)
-      + y * log(lambda / z) - log(prob)))
+           - log(factorial(y)) - (y + z) * log(1 + lambda / z)
+           + y * log(lambda / z) - log(prob)))
     }
   }
 
@@ -91,16 +91,20 @@ zotnegbin <- function() {
       M <- 1 + lambda * alpha
       S <- 1 / M
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
+      cp1 <- z * log(M)
+      cp2 <- lambda * S
+      cp3 <- alpha * (-1 - z)
 
-      # alpha derivative
-      G0 <- sum((z * log(M) - alpha * lambda * (y + z) * S -
-            ((S ** z) * (z * log(S) + lambda * S) - lambda *
-            (S ** (1 + z)) * (z * log(M) + lambda * alpha *
-            (-1 - z) * S)) / prob + y + alpha * sapply(y,
-            FUN = {function (y) compdigamma(y, alpha = alpha)})) * weight)
+      # log(alpha) derivative
+      G0 <- sum((cp1 - alpha * (y + z) * cp2 -
+                ((S ** z) * (z * log(S) + cp2) - lambda *
+                (S ** (1 + z)) * (cp1 + cp3 * cp2)) / prob +
+                y + alpha * sapply(y,
+                FUN = {function (y) compdigamma(y, alpha = alpha)})) * weight)
       # Beta derivative
-      G1 <- t(X) %*% (weight * (y - alpha * S * (y + z) * lambda +
-            lambda * alpha * (-1 - z) * lambda * (S ** (2 + z)) / prob))
+      G1 <- t(X) %*% (weight * (y - alpha * (y + z) * cp2 +
+                      lambda * cp3 * lambda *
+                      (S ** (2 + z)) / prob))
 
       c(G0, G1)
     }
@@ -124,58 +128,66 @@ zotnegbin <- function() {
       S <- 1 / M
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
       res <- matrix(1, nrow = length(arg), ncol = length(arg))
+      # The following vectors are meant to decrease compitation time
+      cp1 <- M ** z
+      cp2 <- alpha * lambda
+      cp3 <- (2 * alpha + 1)
+      #cp4 <- (y + lambda) No longer needed
+      cp5 <- log(M)
+      #cp6 <- (y - lambda)
+      cp7 <- (1 + alpha)
+      cp8 <- M ** (1 + z)
+      cp9 <- lambda * alpha
+      cp10 <- (M ** (2 + z))
+      cp11 <- (alpha ** 2)
+      #cp12 <- (1 + lambda)
+      #cp13 <- y * alpha
+      cp14 <- (lambda ** 2)
+      cp15 <- lambda * S
+      cp16 <- M ** 2
+      cp17 <- (-1 - z)
+      cp18 <- (cp8 - cp2 - lambda - 1)
+      cp19 <- (cp1 - 1)
+      cp20 <- cp19 ** 2
+      cp21 <- lambda * (y + lambda) * cp11
+      cp22 <- (y - lambda) * alpha * cp8
+      cp23 <- (1 + lambda) * y * alpha
+      cp24 <- (cp5 * cp10 - cp21 + cp22 - cp23)
+      cp25 <- (1 - z * cp7)
+      cp26 <- z * cp3
+      cp27 <- 1 / cp10
 
-      # 2nd alpha derivative
+      # 2nd log(alpha) derivative
 
-      G00 <- sum(alpha * sapply(y,
+      G00 <- sum(weight * alpha * sapply(y,
              FUN = {function (y) compsecond(y, alpha = alpha)}) +
-             z * (((M ** (z * (1 + 2 * alpha))) * log(M) * (
-             log(M) * (2 - z * (2 * alpha + 1)) +
-             lambda * (2 * alpha + 1) * S)) + (y - lambda) * alpha *
-             (M ** (1 + z)) * (log(M) * (1 - z * (1 + alpha)) +
-             lambda * S * (1 + alpha)) - 2 * lambda * (y + lambda) *
-             (alpha ** 2) + lambda * alpha * (M ** (z * (2 * alpha + 1) - 1)) +
-             (y - lambda) * alpha * (M ** (1 + z)) - (1 + lambda) * y * alpha) /
-             (M * (M ** (1 + z) - alpha * lambda - lambda - 1)) -
-             z * (log(M) * (M ** (2 + z)) - lambda * (y + lambda) * (alpha ** 2) +
-             (y - lambda) * alpha * (M ** (1 + z)) - y * alpha * (1 + lambda)) *
-             ((M ** (1 + z)) * ((1 - z * (1 + alpha)) * log(M) + lambda *
-             S * (1 + alpha)) - lambda * alpha) /
-             (M * ((M ** (1 + z) - alpha * lambda - lambda - 1) ** 2)) -
-             z * (log(M) * (M ** (2 + z)) - lambda * (y + lambda) *
-             (alpha ** 2) + (y - lambda) * alpha * (M ** (1 + z)) -
-             (1 + lambda) * y * alpha) /
-             (M * (M ** (1 + z) - alpha * lambda - lambda - 1)) -
-             lambda * (log(M) * (M ** (2 + z)) - lambda * (y + lambda) *
-             (alpha ** 2) + (y - lambda) * alpha * (M ** (1 + z)) -
-             (1 + lambda) * y * alpha) /
-             ((M ** 2) * (M ** (1 + z) - alpha * lambda - lambda - 1)))
+             z * (((M ** cp26) * cp5 * (cp5 * (2 - cp26) + cp15 * cp3)) +
+             cp22 * (cp5 * cp25 + cp15 * cp7) -
+             2 * cp21 + cp9 * (M ** (cp26 - 1)) +
+             cp22 - cp23) / (M * cp18) -
+             z * cp24 * (cp8 * (cp25 * cp5 + cp15 * cp7) - cp9) /
+             (M * (cp18 ** 2)) - z * (cp5 * cp10 - cp21 + cp22 - cp23) /
+             (M * cp18) - lambda * cp24 / (cp16 * cp18))
 
       # mixed derivative
-      term <- (-alpha * (y + z) * S +
-               lambda * (alpha ** 2) * (y + z) * (S ** 2) +
-               ((-1 - z) * alpha * lambda * (S ** (z + 2))) / prob +
-               (lambda * (S ** (2 + z))) / prob + S +
-               alpha * lambda * (-1 - z) * (S ** (2 + z)) *
-               (alpha * lambda * (-2 - z) * S + log(M) * z) / prob -
-               (alpha * (-1 - z) * lambda * (S ** (2 + z)) *
-               ((S ** z) * (z * log(S) + lambda * S) -
-               lambda * (S ** (1 + z)) * (z * log(M) +
-               S * lambda * alpha * (-1 - z)))) / (prob ** 2))
+      term <- (-alpha * (y + z) * S + lambda * cp11 * (y + z) * (1 / cp16) +
+               (cp17 * cp2 * cp27) / prob + (lambda * cp27) / prob + S +
+               cp2 * cp17 * cp27 * (cp2 * (-2 - z) * S + cp5 * z) / prob -
+               (alpha * cp17 * lambda * cp27 *
+               ((1 / cp1) * (z * log(S) + cp15) - lambda * (1 / cp8) *
+               (z * cp5 + S * cp9 * cp17))) / (prob ** 2))
 
-      G01 <- t(X) %*% as.numeric(term * lambda)
+      G01 <- t(X) %*% as.numeric(term * lambda * weight)
       # second beta derivative
-      term <- ((-(alpha ** 3) * y * (lambda ** 2) *
-              (((M ** z) - 1) ** 2) + (alpha ** 2) * lambda *
-              ((lambda ** 2) * (M  ** z) - lambda * ((M ** z) - 1) *
-              (1 - 2 * y + (M ** z)) - 2 * y * (((M ** z) - 1) ** 2)) +
-              (lambda ** 2) * (M ** z) + alpha * ((lambda ** 3) * (M ** z) +
-              (lambda ** 2) * (1 - y + (M ** z)) -2 * lambda * (M ** z - 1) *
-              (M ** z - y) - y * ((M ** z - 1) ** 2)) - (M ** z - 1) ** 2) /
-              ((M ** 2) * ((M ** z +
-              lambda * (alpha * (M ** z - 1) - 1) - 1) ** 2)))
+      term <- ((-(alpha ** 3) * y * cp14 * cp20 +
+              cp11 * lambda * (cp14 * cp1 - lambda * cp19 *
+              (1 - 2 * y + cp1) - 2 * y * cp20) +
+              cp14 * cp1 + alpha * ((lambda ** 3) * cp1 +
+              cp14 * (1 - y + cp1) - 2 * lambda * cp19 *
+              (cp1 - y) - y * cp20) - cp20) /
+              (cp16 * ((cp1 + lambda * (alpha * cp19 - 1) - 1) ** 2)))
 
-      G11 <- t(as.data.frame(X) * lambda * as.numeric(term)) %*% X
+      G11 <- t(as.data.frame(X) * lambda * weight * as.numeric(term)) %*% X
 
 
       res[1, 1] <- G00
@@ -222,17 +234,20 @@ zotnegbin <- function() {
     prob <- 1 - S ** z - lambda * (S ** (1 + z))
     I <- as.matrix(-hess(beta))
 
-    bigTheta1 <- sum(pw * as.numeric((prob * (-lambda * (S ** (1 + z)) *
-                     (z * log(M) + lambda * alpha * (-1 - z) * S)) -
-                     ((1 - lambda * (S ** (1 + z))) *
-                     (-lambda * (S ** (1 + z)) * (z * log(M) +
-                     alpha * lambda * S * (-1 - z)) -
-                     (z * log(M) - lambda * S) / (M ** z)))) / (prob ** 2)))
+    bigTheta1 <- sum(pw * alpha *  as.numeric(
+                    (prob * lambda * (S ** (2 + z)) *
+                    (alpha * (alpha + 1) * lambda -
+                    M * log(M)) -
+                    (1 - lambda * (S ** (1 + z))) *
+                    (-lambda * (S ** (1 + z)) *
+                    (log(M) * (z ** 2) - (1 + z) * lambda * S * z) -
+                    (S ** z) * (log(M) * (z ** 2) - lambda * z * S))) /
+                    (prob ** 2)))
 
     bigTheta2 <- t(as.matrix(X)) %*% (pw * as.numeric(lambda *
-                  (prob * ((lambda - 1) * (S ** (2 + z))) -
-                  (1 - lambda * (S ** (1 + z))) * (lambda *
-                  (1 + alpha) * (S ** (2 + z)))) / (prob ** 2)))
+                  (prob * (lambda - 1) * (S ** (2 + z)) -
+                  (1 + alpha) * lambda * (S ** (2 + z)) *
+                  (1 - lambda * (S ** (1 + z)))) / (prob ** 2)))
 
     bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
 
