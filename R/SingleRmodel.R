@@ -125,7 +125,10 @@ estimate_popsize <- function(formula,
 
     observed <- tempdata[, 1]
     prior.weights <- tempdata[, 2]
-    variables <- as.matrix(tempdata[, -c(1, 2)])
+    
+    n1 <- colnames(variables)
+    variables <- data.frame(tempdata[, -c(1, 2)])
+    colnames(variables) <- n1
   } else if (family$family == "chao" &&
              !(all(as.numeric(names(table(observed))) %in% c(1, 2)))) {
     cat("Counts > 2 detected in chao model.
@@ -139,29 +142,37 @@ estimate_popsize <- function(formula,
 
     observed <- tempdata[, 1]
     prior.weights <- tempdata[, 2]
-    variables <- as.matrix(tempdata[, -c(1, 2)])
+    n1 <- colnames(variables)
+    variables <- data.frame(tempdata[, -c(1, 2)])
+    colnames(variables) <- n1
   }
 
+  n1 <- colnames(variables)
+  
   if (family$family == "zelterman") {
     # In zelterman model regression is indeed based only on 1 and 2 counts
     # but estimation is based on ALL counts
     name1 <- "observed"
+    n1 <- colnames(variables)
     tempdata <- data.frame(observed, prior.weights, variables)
     tempdata <- tempdata[tempdata[name1] == 1 | tempdata[name1] == 2, ]
-    if (is.vector(tempdata)) {
-      tempobserved <- tempdata
-      tempvariables <- data.frame("(Intercept)" = rep(1, length(tempdata)))
+
+    if ((dim(variables)[2] == 1) && ("(Intercept)" %in% colnames(variables))) {
+      tempobserved <- tempdata[, 1]
+      tempvariables <- data.frame("(Intercept)" = rep(1, length(tempobserved)))
       prior.weightstemp <- tempdata[, 2]
     } else {
       tempobserved <- tempdata[, 1]
       prior.weightstemp <- tempdata[, 2]
       tempvariables <- as.matrix(tempdata[, -c(1, 2)])
     }
+    colnames(tempvariables) <- n1
   } else {
     tempobserved <- observed
     tempvariables <- variables
     prior.weightstemp <- prior.weights
   }
+  
 
   if(colnames(tempvariables)[1] == "X.Intercept.") {
     colnames(tempvariables)[1] <- "(Intercept)"

@@ -233,28 +233,26 @@ zotnegbin <- function() {
     S <- 1 / M
     prob <- 1 - S ** z - lambda * (S ** (1 + z))
     I <- as.matrix(-hess(beta))
-
+    
     bigTheta1 <- sum(pw * alpha *  as.numeric(
-                    (prob * lambda * (S ** (2 + z)) *
-                    (alpha * (alpha + 1) * lambda -
-                    M * log(M)) -
-                    (1 - lambda * (S ** (1 + z))) *
-                    (-lambda * (S ** (1 + z)) *
+                    (prob * lambda * (S ** (2 + z)) * 
+                    (alpha * (alpha + 1) * lambda -M * log(M)) -
+                    (1 - lambda * (S ** (1 + z))) *(-lambda * (S ** (1 + z)) *
                     (log(M) * (z ** 2) - (1 + z) * lambda * S * z) -
                     (S ** z) * (log(M) * (z ** 2) - lambda * z * S))) /
                     (prob ** 2)))
-
+    
     bigTheta2 <- t(as.matrix(X)) %*% (pw * as.numeric(lambda *
                   (prob * (lambda - 1) * (S ** (2 + z)) -
                   (1 + alpha) * lambda * (S ** (2 + z)) *
                   (1 - lambda * (S ** (1 + z)))) / (prob ** 2)))
-
+    
     bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
-
+    
     f1 <-  t(bigTheta) %*% solve(I) %*% bigTheta
     f2 <-  sum(pw * ((1 - lambda * (S ** (1 + z))) ** 2) *
-               (1 - prob) / (prob ** 2))
-
+                 (1 - prob) / (prob ** 2))
+    
     variation <- f1 + f2
     variation
   }
