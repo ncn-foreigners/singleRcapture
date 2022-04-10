@@ -9,7 +9,7 @@
 #' in estimate_popsize
 #' @param start start for regression fitting
 #' @param dispersion start for dispersion
-#'
+#' @param ... arguments to pass to other methods
 #' @return
 #' list of object connected to regression
 #' @export
@@ -20,7 +20,8 @@ estimate_popsize.fit <- function(y,
                                  method,
                                  prior.weights,
                                  start,
-                                 dispersion) {
+                                 dispersion,
+                                 ...) {
   tbgname <- colnames(X)
   X <- as.matrix(X)
 
@@ -58,13 +59,16 @@ estimate_popsize.fit <- function(y,
   } else if (method == "mle") {
     weights <- prior.weights
     methodopt <- "L-BFGS-B"
+    
     ctrl <- list(factr = .Machine$double.eps,
                  maxit = 5000)
+    
     if (family$family == "ztnegbin") {
       methodopt <- "Nelder-Mead"
       ctrl <- list(reltol = .Machine$double.eps,
                    maxit = 5000)
     }
+    
     if (dim(X)[2] == 1) {
       FITT <- stats::optim(par = start,
                            fn = log_like,
@@ -107,6 +111,7 @@ estimate_popsize.fit <- function(y,
        grad = grad,
        hessian = hessian,
        beta = beta,
+       weights = weights,
        hess = hess,
        iter = iter,
        degf = df.reduced)

@@ -14,7 +14,7 @@ Data frame with 1858 rows and 4 columns.
 }
 }
 \usage{
-data(carcassubmission)
+carcassubmission
 }
 \description{
 Carcass submissions

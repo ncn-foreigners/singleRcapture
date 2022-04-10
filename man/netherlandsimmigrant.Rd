@@ -16,7 +16,7 @@ residing in Netherlands 0 otherwise}
 }
 }
 \usage{
-data(netherlandsimmigrant)
+netherlandsimmigrant
 }
 \description{
 Netherlands immigrant data

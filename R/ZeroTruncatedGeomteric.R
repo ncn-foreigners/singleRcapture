@@ -1,4 +1,4 @@
-#' Zelerman model for population estimate
+#' Zero Truncated geometric model
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr
@@ -6,8 +6,8 @@
 #' make_hessian(X) - for creating hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
-#' dlink - a 1st derivative of link function \cr
-#' mu.eta,variance - Expected Value and variance \cr
+#' Dlink - a 1st derivative of link function \cr
+#' mu.eta,Variance - Expected Value and Variance \cr
 #' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
@@ -15,108 +15,114 @@
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
 #' @export
-zelterman <- function() {
-  link <- function(x) {log(x / 2)}
-  invlink <- function (x) {2 * exp(x)}
-  dlink <- function(lambda) {1 / lambda}
+ztgeom <- function() {
+  link <- log
+  invlink <- exp
+  dlink <- function(lambda) {
+    1 / lambda
+  }
   
   mu.eta <- function(disp = NULL, eta) {
     lambda <- invlink(eta)
-    lambda
+    (1 + lambda)
   }
   
   variance <- function(disp = NULL, mu) {
-    mu * (1 - mu)
+    mu * (mu + 1)
   }
-
+  
   minusLogLike <- function(y, X, weight = 1) {
-    y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
     if (is.null(weight)) {
       weight <- 1
     }
-
-    function(beta) {
+    y <- as.numeric(y)
+    X <- as.matrix(X)
+    
+    function(arg) {
+      beta <- arg
       eta <- as.matrix(X) %*% beta
-      lambda <- invlink(eta)
-      L1 <- lambda / 2
-      par <- L1 / (1 + L1)
-      -sum(weight * (z * log(par) + (1 - z) * log(1 - par)))
+      lambda <- exp(eta)
+      
+      -sum(weight * ((y - 1) * log(lambda) - y * log(1 + lambda)))
     }
   }
-
+  
+  
   gradient <- function(y, X, weight = 1) {
-    y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
     if (is.null(weight)) {
       weight <- 1
     }
-
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- invlink(eta)
-      L1 <- lambda / 2
-      t(X) %*% (weight * (L1 * (z - 1) + z) / (L1 + 1))
+    y <- as.numeric(y)
+    X <- as.matrix(X)
+    
+    function(arg) {
+      beta <- arg
+      eta <- X %*% beta
+      lambda <- exp(eta)
+      S <- 1 / (1 + lambda)
+      
+      # Beta derivative
+      G1 <- t((y * S - 1)  * weight) %*% X
+      
+      G1
     }
   }
-
+  
   hessian <- function(y, X, weight = 1) {
-    y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
     if (is.null(weight)) {
       weight <- 1
     }
-
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- invlink(eta)
-      L1 <- lambda / 2
-      term <- -(L1 / ((1 + L1) ** 2))
-      t(as.data.frame(X) * weight * term) %*% as.matrix(X)
+    y <- as.numeric(y)
+    X <- as.matrix(X)
+    
+    function(arg) {
+      beta <- arg
+      eta <- X %*% beta
+      lambda <- exp(eta)
+      S <- 1 / (1 + lambda)
+      
+      # second beta derivative
+      
+      G11 <- -t(as.data.frame(X) * lambda * y * (S ** 2) * weight) %*% X
+      
+      G11
     }
   }
-
+  
   validmu <- function(mu) {
-    (sum(!is.finite(mu)) == 0) && all(1 > mu)
+    (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
-
-  dev.resids <- function(y, mu, wt, disp = NULL) {
+  
+  dev.resids <- function (y, mu, wt, disp = NULL) {
     NULL
   }
-
+  
   aic <- function(y, mu, wt, dev) {
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
-    L1 <- mu / 2
-    -2 * -sum((z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))) * wt)
+    -2 * sum(wt * ((y - 1) * log(mu) - y * log(1 + mu)))
   }
-
-  pointEst <- function (disp = NULL, pw, lambda) {
-    N <- sum(pw * (1 / (1 - exp(-lambda))))
+  
+  pointEst <- function (disp, pw, lambda) {
+    pr <- 1 - 1 / (1 + lambda)
+    N <- sum(pw / pr)
     N
   }
-
-  popVar <- function (beta, pw, lambda, disp = NULL, hess, X) {
-    X <- as.data.frame(X)
-    I <- -hess(beta)
-    prob <- 1 - exp(-lambda)
-
-    f1 <- colSums(-X * pw * (exp(-lambda) * lambda / (prob ** 2)))
-    f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
-
-    f2 <- sum(pw * (1 - prob) / (prob ** 2))
-
+  
+  popVar <- function (beta, pw, lambda, disp, hess, X) {
+    pr <- 1 - 1 / (1 + lambda)
+    I <- as.matrix(-hess(beta))
+    
+    bigTheta <- -(pw * as.numeric(lambda / 
+                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(X)
+    bigTheta <- as.vector(bigTheta)
+    
+    f1 <- t(bigTheta) %*% solve(I) %*% bigTheta
+    f2 <- sum(pw * (1 - pr) / (pr ** 2))
+    
     variation <- f1 + f2
     variation
   }
-
+  
+  
   R <- list(make_minusloglike = minusLogLike,
             make_gradient = gradient,
             make_hessian = hessian,
@@ -132,7 +138,7 @@ zelterman <- function() {
             validmu = validmu,
             pointEst = pointEst,
             popVar= popVar,
-            family = "zelterman")
+            family = "ztgeom")
   class(R) <- "family"
   R
 }

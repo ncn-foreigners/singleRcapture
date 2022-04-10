@@ -205,7 +205,6 @@ ztnegbin <- function() {
   popVar <- function (beta, pw, lambda, disp, hess, X) {
     z <- exp(disp)
     pr <- 1 - (1 + z * lambda) ** (- 1 / z)
-    N <- sum(1 / pr)
     S <- 1 / (1 + z * lambda)
     I <- as.matrix(-hess(beta))
 

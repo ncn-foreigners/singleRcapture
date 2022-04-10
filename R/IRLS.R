@@ -1,6 +1,7 @@
 #' Iteratively Reweighted Least Squares
 #'
-#' A method for fitting regression parameters in generalized linear model
+#' A method for fitting regression parameters in generalized linear model. \cr
+#' Used internally in singleRcapture package.
 #'
 #' @param dependent A vector of Dependent variables
 #' @param covariates An array of Covariates
@@ -12,6 +13,7 @@
 #' @param weights Optional object of weights used in fitting the model
 #' @param disp.given FALSE is default, set true if dispersion has already been
 #' estimated and there is no need for further estimation
+#' @param silent Boolean value indicating whether warnings should be suppressed
 #' @return Returns a list of fitted Coefficients and number of iterations and final weights
 #' @importFrom stats optim
 #' @export
@@ -22,8 +24,9 @@ IRLS <- function(dependent,
                  disp = NULL,
                  weights = NULL,
                  maxiter = 10000,
-                 eps = .Machine$double.eps ** .25,
-                 disp.given = FALSE) {
+                 eps = .Machine$double.eps,
+                 disp.given = FALSE,
+                 silent = FALSE) {
   converged <- FALSE
   epsdisp <- 1e-5 # TODO add to controll
 
@@ -39,9 +42,9 @@ IRLS <- function(dependent,
     dependent <- dependent - 1
     linkinv <- function(p) {1 / (1 + exp(-p))}
     mu.eta <- function(eta, disp) {linkinv(eta) * (1 - linkinv(eta))}
-    variance <- function(mu, disp) {mu * (1 - mu)}
     funcZ <- function(mu, y, eta) {eta + (y - linkinv(eta)) / mu}
-    Wfun <- function(mu, prior, varY, eta) {prior * exp(eta) / ((1 + exp(eta)) ** 2)}
+    Wfun <- function(mu, prior, varY, eta) {prior * exp(eta) / 
+                                            ((1 + exp(eta)) ** 2)}
   }
 
   iter <- 1
@@ -93,7 +96,8 @@ IRLS <- function(dependent,
 
     varY <- variance(mu = mu, disp)
     Z <- funcZ(mu = mu, y = dependent, eta = eta)
-    W <- as.numeric(Wfun(mu, prior, varY, eta))
+    W <- as.numeric(Wfun(mu = mu, prior = prior, 
+                         varY = varY, eta = eta))
     # This is equivalent to
     # A <- t(covariates) %*% W %*% covariates
     # B <- t(covariates) %*% W %*% Z
@@ -105,6 +109,7 @@ IRLS <- function(dependent,
     temp <- c(disp, beta)
     L <- -loglike(temp)
 
+    #print(L - LPrev)
     converged <- (((L - LPrev) < eps) || (max(abs(beta - betaPrev)) < eps))
 
     if (!converged) {
@@ -115,7 +120,7 @@ IRLS <- function(dependent,
       W <- WPrev
     }
 
-    if(iter == maxiter && !converged) {
+    if(iter == maxiter && !converged && !silent) {
       warning("Fitting algorithm (IRLS) has not converged")
     }
 

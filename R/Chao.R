@@ -16,15 +16,13 @@
 #' X is a matrix / data frame of covariates
 #' @export
 chao <- function() {
-  link <- function(x) log(x / 2)
-  invlink <- function (x) 2 * exp(x)
-  dlink <- function(lambda) {
-    1 / lambda
-  }
+  link <- function(x) {log(x / 2)}
+  invlink <- function (x) {2 * exp(x)}
+  dlink <- function(lambda) {1 / lambda}
 
   mu.eta <- function(disp = NULL, eta) {
     lambda <- invlink(eta)
-    lambda / 2 / (1 + lambda / 2)
+    lambda
   }
 
   variance <- function(disp = NULL, mu) {

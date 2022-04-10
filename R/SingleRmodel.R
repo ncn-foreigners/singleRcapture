@@ -65,7 +65,8 @@ estimate_popsize <- function(formula,
                              data,
                              model = c("ztpoisson", "ztnegbin",
                                        "zotpoisson", "zotnegbin",
-                                       "zelterman", "chao"),
+                                       "zelterman", "chao",
+                                       "ztgeom", "zotgeom"),
                              weights = 1,
                              subset = NULL,
                              na.action = NULL,
@@ -112,7 +113,7 @@ estimate_popsize <- function(formula,
   }
   weights <- 1
 
-  if (family$family %in% c("zotpoisson", "zotnegbin") &&
+  if (family$family %in% c("zotpoisson", "zotnegbin", "zotgeom") &&
       1 %in% as.numeric(names(table(observed)))) {
     cat("One counts detected in two truncated model.",
         "In this model of estimation only counts =>2 are used.",
@@ -180,7 +181,8 @@ estimate_popsize <- function(formula,
   }
 
   if (family$family %in% c("ztpoisson", "zotpoisson",
-                           "chao", "zelterman")) {
+                           "chao", "zelterman",
+                           "ztgeom", "zotgeom")) {
     start <- stats::glm.fit(x = variables,
                             y = observed,
                             family = stats::poisson())$coefficients
@@ -216,6 +218,7 @@ estimate_popsize <- function(formula,
   hess <- FITT$hess
   iter <- FITT$iter
   df.reduced <- FITT$degf
+  weights <- FITT$weights
 
   if (is.null(dispersion)) {
     eta <- as.matrix(variables) %*% coefficients
@@ -223,7 +226,8 @@ estimate_popsize <- function(formula,
     eta <- as.matrix(variables) %*% coefficients[-1]
   }
 
-  fitt <- family$linkinv(eta)
+  parameter <- family$linkinv(eta)
+  fitt <- family$mu.eta(eta = eta, disp = dispersion)
 
   if (!is.null(dispersion)) {
     dispersion <- coefficients[1]
@@ -254,13 +258,14 @@ estimate_popsize <- function(formula,
                             hessian = hessian,
                             method = pop.var,
                             weights = prior.weights,
-                            parameter = fitt,
+                            parameter = parameter,
                             family = family,
                             dispersion = dispersion,
                             beta = coefficients,
                             trcount = trcount)
 
   result <- list(y = observed,
+                 X = as.data.frame(variables),
                  formula = formula,
                  call = match.call(),
                  coefficients = coefficients,

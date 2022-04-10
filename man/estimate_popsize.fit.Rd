@@ -12,7 +12,8 @@ estimate_popsize.fit(
   method,
   prior.weights,
   start,
-  dispersion
+  dispersion,
+  ...
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ in estimate_popsize}
 \item{start}{start for regression fitting}
 
 \item{dispersion}{start for dispersion}
+
+\item{...}{arguments to pass to other methods}
 }
 \value{
 list of object connected to regression

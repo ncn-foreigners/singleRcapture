@@ -12,8 +12,9 @@ IRLS(
   disp = NULL,
   weights = NULL,
   maxiter = 10000,
-  eps = .Machine$double.eps^0.25,
-  disp.given = FALSE
+  eps = .Machine$double.eps,
+  disp.given = FALSE,
+  silent = FALSE
 )
 }
 \arguments{
@@ -35,10 +36,13 @@ IRLS(
 
 \item{disp.given}{FALSE is default, set true if dispersion has already been
 estimated and there is no need for further estimation}
+
+\item{silent}{Boolean value indicating whether warnings should be suppressed}
 }
 \value{
 Returns a list of fitted Coefficients and number of iterations and final weights
 }
 \description{
-A method for fitting regression parameters in generalized linear model
+A method for fitting regression parameters in generalized linear model. \cr
+Used internally in singleRcapture package.
 }
