@@ -34,9 +34,9 @@ estimate_popsize(
 
 \item{weights}{Optional object of a-priori weights used in fitting the model}
 
-\item{subset}{As in lm/glm}
+\item{subset}{Same as in glm}
 
-\item{na.action}{||}
+\item{na.action}{TODO}
 
 \item{trcount}{Optional parameter for Zero-one truncated models, if population estimate
 is for one inflated model then it specifies one counts and includes them in
@@ -53,7 +53,7 @@ percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 
 \item{control.model}{||}
 
-\item{control.pop.var}{||}
+\item{control.pop.var}{A list indicating parameter to use in population size variance estimation}
 
 \item{model.matrix}{If true returns model matrix as a part of returned object}
 

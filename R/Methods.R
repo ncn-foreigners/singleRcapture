@@ -1,7 +1,7 @@
 #' summary.Model
 #'
 #' @details Describes an object of model class representing generalized linear regression
-#' @param object Object to be summarised
+#' @param object Object for which method is aplied summarised
 #' @param ... other arguments to be passed to other methods
 #' @return Easy to read summary of regression and most important data from a 'SingleR' class
 #' @export
@@ -41,11 +41,12 @@ summary.singleR <- function(object, ...) {
       "\nBIC:", object$bic,
       "\n\nLog-likelihood:", object$logL, "on", object$df.residual,
       "Degrees of freedom",
-      "\nNumber of iteration:", object$iter[1],
+      "\nNumber of iterations:", object$iter[1],
       "\n\nPopulation size estimation results:",
       "\nPoint estimate", object$populationSize$pointEstimate,
       "\nVariance", object$populationSize$variance,
-      "\n95% CI", object$populationSize$confidenceInterval)
+      "\n", object$populationSize$control$signiflevel * 100, "% CI:\n")
+  print(object$populationSize$confidenceInterval)
 }
 
 #' residuals.singleR
@@ -79,6 +80,45 @@ residuals.singleR <- function(object,
     rs <- res
   } else {
     # partial residuals??
+    stop()
   }
   rs
+}
+#' Summary for marginal frequencies
+#'
+#' @param object object of singleRmargin class
+#' @param df degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object
+#' @param dropl5 boolean value indicating whether to group bins with frequencies < 5, drop them or do nothing
+#' @param ... Currently does nothing
+#'
+#' @return A chi squared test for comparison between fitted and observed marginal frequencies
+#' @export
+summary.singleRmargin <- function(object, df = NULL,
+                                  dropl5 = c("drop", 
+                                             "group", 
+                                             "no"), 
+                                  ...) {
+  if (length(dropl5) > 1) {dropl5 <- "no"}
+  y <- object$y
+  A <- object$table[names(y)]
+  if(is.null(df)) {df <- max(1, object$df)}
+  if(dropl5 == "group") {
+    l <- ((y < 5) | (A < 5))
+    if (object$df == df) {df <- df - length(y) + length(y[!l]) + 1}
+    y <- c(y[!l], sum(y[l]))
+    A <- c(A[!l], sum(A[l]))
+  } else if(dropl5 == "drop") {
+    l <- ((y < 5) | (A < 5))
+    if (object$df == df) {df <- df - length(y) + length(y[!l])}
+    y <- y[!l]
+    A <- A[!l]
+  }
+  X2 <- sum(((A - y) ** 2) / A)
+  G <- 2 * sum(y * log(y / A))
+  pval <- stats::pchisq(q = c(X2, G), df = df, lower.tail = FALSE)
+  vect <- data.frame(round(c(X2, G), digits = 2),
+                     rep(df, 2), signif(pval, digits = 2))
+  rownames(vect) <- c("Chi-squared test", "G-test")
+  colnames(vect) <- c("Test statistics", "df", "P(>X^2)")
+  vect
 }

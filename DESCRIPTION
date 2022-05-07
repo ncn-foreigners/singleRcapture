@@ -1,7 +1,7 @@
 Package: singleRcapture
 Type: Package
 Title: A package for single-source capture-recapture models
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R:
     c(person(given = "Piotr",
              family = "Chlebicki",
@@ -15,7 +15,7 @@ Authors@R:
 Description: A package for population size estimation based on single source capture-recapture methods such as zero-truncated Poisson and Negative Binomial, zero-one truncated Poisson and Negative Binomial, Zelterman's and Chao's regression.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: TRUE
+LazyData: yes
 Depends:
     R (>= 3.5.0)
 Roxygen: list(markdown = TRUE)

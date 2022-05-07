@@ -24,13 +24,11 @@ zotgeom <- function() {
   
   mu.eta <- function(eta, disp) {
     lambda <- invlink(eta)
-    Pr <- 1 / (1 + lambda) + lambda / ((1 + lambda) ** 2)
-    G <- (lambda - lambda * ((1 + lambda) ** (-2))) / (1 - Pr)
-    G
+    2 + lambda
   }
   
   variance <- function(mu, disp) {
-    mu * (1 + mu)
+    (((mu - 1) ** 3) / mu + 2 * mu - 1)
   }
   
   minusLogLike <- function(y, X, weight = 1) {
@@ -103,11 +101,13 @@ zotgeom <- function() {
     -2 * sum(wt * ((y - 2) * log(mu) - (y - 1) * log(1 + mu)))
   }
   
-  pointEst <- function (disp, pw, lambda) {
-    z <- 1
+  pointEst <- function (disp, pw, lambda, contr = FALSE) {
     S <- 1 / (1 + lambda)
     prob <- 1 - S - lambda * (S ** 2)
-    N <- sum(pw * (1 - lambda * (S ** 2)) / prob)
+    N <- (pw * (1 - lambda * (S ** 2)) / prob)
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
   
@@ -130,8 +130,7 @@ zotgeom <- function() {
     f2 <-  sum(pw * ((1 - lambda * (S ** 2)) ** 2) *
                (1 - prob) / (prob ** 2))
     
-    variation <- f1 + f2
-    variation
+    f1 + f2
   }
   
   R <- list(make_minusloglike = minusLogLike,

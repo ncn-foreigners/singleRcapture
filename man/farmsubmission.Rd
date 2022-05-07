@@ -14,7 +14,7 @@ Data frame with 12036 rows and 4 columns.
 }
 }
 \usage{
-farmsubmission
+data("farmsubmission")
 }
 \description{
 All farm submissions

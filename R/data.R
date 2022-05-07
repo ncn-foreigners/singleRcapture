@@ -16,7 +16,10 @@
 #' }
 #' @name farmsubmission
 #' @references Bohning et.al (2013) BIOMETRICS 69, 1033-1042
+#' @usage data("farmsubmission")
 "farmsubmission"
+
+
 #' @title Netherlands immigrant data
 #' @details Data on irregular immigrants in Netherlands
 #' @docType data
@@ -31,7 +34,10 @@
 #' }
 #' @name netherlandsimmigrant
 #' @references van der Heijden et.al (2003) Statistical Modelling 3, 305-322
+#' @usage data("netherlandsimmigrant")
 "netherlandsimmigrant"
+
+
 #' @title Carcass submissions
 #' @details Data on british animal farms submissions to AHVLA. It is required
 #' for british farms to submit samples to AHVLA if unknown disease
@@ -49,4 +55,6 @@
 #' }
 #' @name carcassubmission
 #' @references Bohning et.al (2013) BIOMETRICS 69, 1033-1042
+#' @usage data("carcassubmission")
 "carcassubmission"
+

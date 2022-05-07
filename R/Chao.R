@@ -21,8 +21,7 @@ chao <- function() {
   dlink <- function(lambda) {1 / lambda}
 
   mu.eta <- function(disp = NULL, eta) {
-    lambda <- invlink(eta)
-    lambda
+    1 / (1 + exp(-eta))
   }
 
   variance <- function(disp = NULL, mu) {
@@ -97,8 +96,11 @@ chao <- function() {
     -2 * -sum((z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))) * wt)
   }
 
-  pointEst <- function (disp = NULL, pw, lambda) {
-    N <- sum((1 + 1 / (lambda + (lambda ** 2) / 2)) * pw)
+  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+    N <- ((1 + 1 / (lambda + (lambda ** 2) / 2)) * pw)
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
 
@@ -113,8 +115,7 @@ chao <- function() {
 
     f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ** 2))
 
-    variation <- f1 + f2
-    variation
+    f1 + f2
   }
 
   R <- list(make_minusloglike = minusLogLike,

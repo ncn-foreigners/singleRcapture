@@ -90,9 +90,12 @@ zotpoisson <- function() {
                 log(factorial(y))) * wt)
   }
 
-  pointEst <- function (disp = NULL, pw, lambda) {
-    N <- sum(pw *(1 - lambda * exp(-lambda)) /
-            (1 - exp(-lambda) - lambda * exp(-lambda)))
+  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+    N <- (pw * (1 - lambda * exp(-lambda)) /
+         (1 - exp(-lambda) - lambda * exp(-lambda)))
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
 
@@ -101,16 +104,15 @@ zotpoisson <- function() {
     I <- -hess(beta)
     prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
     term <- (1 - lambda * exp(-lambda)) ** 2
-
+    
     f1 <- t(X) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
-          ((1 + lambda - exp(lambda)) ** 2)))
-
+                                 ((1 + lambda - exp(lambda)) ** 2)))
+    
     f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
-
+    
     f2 <- sum(pw * term * (1 - prob) / (prob ** 2))
-
-    variation <- f1 + f2
-    variation
+    
+    f1 + f2
   }
 
   R <- list(make_minusloglike = minusLogLike,

@@ -4,8 +4,8 @@
 #' @param formula Description of model to that is supposed to be fitted
 #' @param model Model for regression and population estimate
 #' @param weights Optional object of a-priori weights used in fitting the model
-#' @param subset As in lm/glm
-#' @param na.action ||
+#' @param subset Same as in glm
+#' @param na.action TODO
 #' @param method Method for fitting values currently supported IRLS and MaxLikelihood
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
@@ -16,7 +16,7 @@
 #' estimator where it specifies counts of not used in estimate
 #' @param control.method ||
 #' @param control.model ||
-#' @param control.pop.var ||
+#' @param control.pop.var A list indicating parameter to use in population size variance estimation
 #' @param model.matrix If true returns model matrix as a part of returned object
 #' @param x ||
 #' @param y ||
@@ -82,6 +82,22 @@ estimate_popsize <- function(formula,
                              y = FALSE,
                              contrasts = NULL,
                              ...) {
+  subset <- parse(text = deparse(substitute(subset)))
+  # adding control parameters that may possibly be missing
+  m1 <- control.pop.var
+  m2 <- control.pop.var()
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.pop.var <- m2
+  m1 <- control.method
+  m2 <- control.method()
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.method <- m2
+  m1 <- control.model
+  m2 <- control.model()
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.model <- m2
+  typefitt <- control.model$typefitted
+  typefitt <- ifelse(is.null(typefitt), "link", typefitt)
   family <- model
   dispersion <- NULL
   if (is.character(family)) {
@@ -95,9 +111,13 @@ estimate_popsize <- function(formula,
   }
 
   model_frame <- stats::model.frame(formula, data,  ...)
-  observed <- model_frame[, 1]
   variables <- stats::model.matrix(formula, model_frame, ...)
-
+  cond <- eval(subset, model_frame)
+  if (is.null(cond)) {cond <- TRUE}
+  model_frame <- model_frame[cond, ]
+  variables <- variables[cond, ]
+  observed <- model_frame[, 1]
+  
   if(sum(observed == 0) > 0) {
     stop("Error in function estimate.popsize, data contains zero-counts")
   }
@@ -227,7 +247,11 @@ estimate_popsize <- function(formula,
   }
 
   parameter <- family$linkinv(eta)
-  fitt <- family$mu.eta(eta = eta, disp = dispersion)
+  if (typefitt == "link") {
+    fitt <- family$linkinv(eta)
+  } else if (typefitt == "mu") {
+    fitt <- family$mu.eta(eta = eta, disp = dispersion)
+  }
 
   if (!is.null(dispersion)) {
     dispersion <- coefficients[1]
@@ -262,7 +286,7 @@ estimate_popsize <- function(formula,
                             family = family,
                             dispersion = dispersion,
                             beta = coefficients,
-                            trcount = trcount)
+                            control = control.pop.var)
 
   result <- list(y = observed,
                  X = as.data.frame(variables),
@@ -290,7 +314,8 @@ estimate_popsize <- function(formula,
                  model = model_frame,
                  linear.predictors = eta,
                  qr = qr,
-                 rank = qr$rank)
+                 rank = qr$rank,
+                 trcount = trcount)
   class(result) <- c("singleR", "glm", "lm")
   result
 }

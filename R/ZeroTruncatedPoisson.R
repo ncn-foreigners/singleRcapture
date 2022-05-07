@@ -87,8 +87,11 @@ ztpoisson <- function() {
     -2 * sum((y * log(mu) - log(exp(mu) - 1) - log(factorial(y))) * wt)
   }
 
-  pointEst <- function (disp = NULL, pw, lambda) {
-    N <- sum(pw / (1 - exp(-lambda)))
+  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+    N <- pw / (1 - exp(-lambda))
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
 
@@ -103,8 +106,7 @@ ztpoisson <- function() {
 
     f2 <- sum(pw * exp(-lambda) / ml)
 
-    variation <- f1 + f2
-    variation
+    f1 + f2
   }
 
   R <- list(make_minusloglike = minusLogLike,

@@ -29,7 +29,7 @@ IRLS <- function(dependent,
                  silent = FALSE) {
   converged <- FALSE
   epsdisp <- 1e-5 # TODO add to controll
-
+  
   mu.eta <- family$mu.eta
   validmu <- family$validmu
   variance <- family$variance
@@ -40,11 +40,10 @@ IRLS <- function(dependent,
 
   if (famName %in% c("chao", "zelterman")) {
     dependent <- dependent - 1
+    # Modification to functions in IRLS to account for logit link in fitting
     linkinv <- function(p) {1 / (1 + exp(-p))}
-    mu.eta <- function(eta, disp) {linkinv(eta) * (1 - linkinv(eta))}
-    funcZ <- function(mu, y, eta) {eta + (y - linkinv(eta)) / mu}
-    Wfun <- function(mu, prior, varY, eta) {prior * exp(eta) / 
-                                            ((1 + exp(eta)) ** 2)}
+    funcZ <- function(mu, y, eta) {eta + (y - mu) / variance(mu = mu, disp)}
+    Wfun <- function(mu, prior, varY, eta) {prior * varY}
   }
 
   iter <- 1

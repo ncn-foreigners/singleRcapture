@@ -13,9 +13,9 @@ populationEstimate(
   weights = 1,
   hessian,
   family,
-  trcount,
   dispersion,
-  method = "analytic"
+  method = "analytic",
+  control
 )
 }
 \arguments{
@@ -35,11 +35,6 @@ populationEstimate(
 
 \item{family}{Model Family}
 
-\item{trcount}{Optional parameter for Zero-one truncated models, if population estimate
-is for one inflated model then it specifies one counts and includes them in
-final population estimate both point and interval, and for zeltermann/chao
-estimator where it specifies counts of not used in estimate}
-
 \item{dispersion}{Estimated dispersion parameter
 for truncated Negative binomial distributions}
 
@@ -47,6 +42,8 @@ for truncated Negative binomial distributions}
 to use formula for analytic CI or bootstrap where bootstraped confidence
 interval may either be based on 2.5\%-97.5\% percientiles ("bootstrapPerc")
 or by estimating SD ("bootstrapSD")}
+
+\item{control}{list, same as control.pop.var in estimate_popsize}
 }
 \value{
 Returns a list of size 3 with:

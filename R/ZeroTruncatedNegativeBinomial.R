@@ -26,13 +26,12 @@ ztnegbin <- function() {
     A <- exp(disp)
     lambda <- invlink(eta)
     pr <- (1 + A * lambda) ** (-1 / A)
-    G <- lambda / (1 - pr)
-    G
+    lambda / (1 - pr)
   }
 
   variance <- function(mu, disp) {
     A <- exp(disp)
-    mu * (mu * A + 1)
+    mu * (1 + A * mu) - mu * A
   }
 
   # These three functions are used only for the purposes of computation
@@ -195,10 +194,13 @@ ztnegbin <- function() {
             y * log(dev * mu) - log(1 - (1 + dev * mu) ** (-1 / dev))) * wt)
   }
 
-  pointEst <- function (disp, pw, lambda) {
+  pointEst <- function (disp, pw, lambda, contr = FALSE) {
     disp <- exp(disp)
     pr <- 1 - (1 + disp * lambda) ** (- 1 / disp)
-    N <- sum(pw / pr)
+    N <- pw / pr
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
 
@@ -225,8 +227,7 @@ ztnegbin <- function() {
     f1 <-  t(bigTheta) %*% solve(I) %*% bigTheta
     f2 <-  sum(pw * (1 - pr) / (pr ** 2))
 
-    variation <- f1 + f2
-    variation
+    f1 + f2
   }
 
   R <- list(make_minusloglike = minusLogLike,

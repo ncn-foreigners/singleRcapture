@@ -21,8 +21,7 @@ zelterman <- function() {
   dlink <- function(lambda) {1 / lambda}
   
   mu.eta <- function(disp = NULL, eta) {
-    lambda <- invlink(eta)
-    lambda
+    1 / (1 + exp(-eta))
   }
   
   variance <- function(disp = NULL, mu) {
@@ -98,8 +97,11 @@ zelterman <- function() {
     -2 * -sum((z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))) * wt)
   }
 
-  pointEst <- function (disp = NULL, pw, lambda) {
-    N <- sum(pw * (1 / (1 - exp(-lambda))))
+  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+    N <- (pw * (1 / (1 - exp(-lambda))))
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
 
@@ -113,8 +115,7 @@ zelterman <- function() {
 
     f2 <- sum(pw * (1 - prob) / (prob ** 2))
 
-    variation <- f1 + f2
-    variation
+    f1 + f2
   }
 
   R <- list(make_minusloglike = minusLogLike,

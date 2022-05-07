@@ -23,12 +23,12 @@ ztgeom <- function() {
   }
   
   mu.eta <- function(disp = NULL, eta) {
-    lambda <- invlink(eta)
-    (1 + lambda)
+    (1 + exp(eta))
   }
   
   variance <- function(disp = NULL, mu) {
-    mu * (mu + 1)
+    #(((mu - 1) ** 3) / mu + 2 * mu - 1)
+    (mu ** 2 - mu - 1 / mu + 2)
   }
   
   minusLogLike <- function(y, X, weight = 1) {
@@ -101,9 +101,12 @@ ztgeom <- function() {
     -2 * sum(wt * ((y - 1) * log(mu) - y * log(1 + mu)))
   }
   
-  pointEst <- function (disp, pw, lambda) {
+  pointEst <- function (disp, pw, lambda, contr = FALSE) {
     pr <- 1 - 1 / (1 + lambda)
-    N <- sum(pw / pr)
+    N <- pw / pr
+    if(!contr) {
+      N <- sum(N)
+    }
     N
   }
   
@@ -118,8 +121,7 @@ ztgeom <- function() {
     f1 <- t(bigTheta) %*% solve(I) %*% bigTheta
     f2 <- sum(pw * (1 - pr) / (pr ** 2))
     
-    variation <- f1 + f2
-    variation
+    f1 + f2
   }
   
   
