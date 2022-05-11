@@ -83,6 +83,9 @@ estimate_popsize <- function(formula,
                              contrasts = NULL,
                              ...) {
   subset <- parse(text = deparse(substitute(subset)))
+  if (!is.data.frame(data)) {
+    data <- data.frame(data)
+  }
   # adding control parameters that may possibly be missing
   m1 <- control.pop.var
   m2 <- control.pop.var()
@@ -112,10 +115,11 @@ estimate_popsize <- function(formula,
 
   model_frame <- stats::model.frame(formula, data,  ...)
   variables <- stats::model.matrix(formula, model_frame, ...)
-  cond <- eval(subset, model_frame)
-  if (is.null(cond)) {cond <- TRUE}
-  model_frame <- model_frame[cond, ]
-  variables <- variables[cond, ]
+  subset <- eval(subset, model_frame)
+  if (is.null(subset)) {subset <- TRUE}
+  # subset is often in conflict with some packages hence explicit call
+  model_frame <- base::subset(model_frame, subset = subset)
+  variables <- base::subset(variables, subset = subset)
   observed <- model_frame[, 1]
   
   if(sum(observed == 0) > 0) {
@@ -134,7 +138,7 @@ estimate_popsize <- function(formula,
   weights <- 1
 
   if (family$family %in% c("zotpoisson", "zotnegbin", "zotgeom") &&
-      1 %in% as.numeric(names(table(observed)))) {
+      1 %in% unique(observed)) {
     cat("One counts detected in two truncated model.",
         "In this model of estimation only counts =>2 are used.",
         "One counts will be deleted and their number added to trcount",

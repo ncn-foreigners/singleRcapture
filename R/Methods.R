@@ -101,7 +101,12 @@ summary.singleRmargin <- function(object, df = NULL,
   if (length(dropl5) > 1) {dropl5 <- "no"}
   y <- object$y
   A <- object$table[names(y)]
-  if(is.null(df)) {df <- max(1, object$df)}
+  if ((is.null(df)) && (object$df < 1)) {
+    warning("Degrees of freedom may be inacurate")
+    df <- 1
+  } else if (is.null(df)) {
+    df <- object$df
+  }
   if(dropl5 == "group") {
     l <- ((y < 5) | (A < 5))
     if (object$df == df) {df <- df - length(y) + length(y[!l]) + 1}

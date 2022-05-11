@@ -20,13 +20,13 @@ data("farmsubmission")
 All farm submissions
 }
 \details{
-Data on british animal farms submissions to AHVLA. It is required
-for british farms to submit samples to AHVLA if unknown disease
-if private veterinary surgeons cannot determine the cause of
-death for the animal and decide to submit them, unless there is notifiable
-disease suspected then it is required. This is data on such farms. This
-data set contains farms that have submitted anything at all not only carcasses but
-also blood samples etc.
+Data on british animal farms submissions to AHVLA. British farms
+are able to submit samples to AHVLA if cause of death of an animal
+cannot be determined and private veterinary surgeon decides to submit them,
+unless there is notifiable disease suspected then it is not required.
+This is data on such farms and their submissions.
+This data set contains farms that have submitted anything at all
+not only carcasses but also blood samples etc.
 }
 \references{
 Bohning et.al (2013) BIOMETRICS 69, 1033-1042
