@@ -4,7 +4,11 @@
 \alias{residuals.singleR}
 \title{residuals.singleR}
 \usage{
-\method{residuals}{singleR}(object, type = c("pearson", "response", "working", "partial"), ...)
+\method{residuals}{singleR}(
+  object,
+  type = c("pearson", "response", "working", "partial", "deviance"),
+  ...
+)
 }
 \arguments{
 \item{object}{TODO}

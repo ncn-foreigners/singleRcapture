@@ -65,23 +65,38 @@ residuals.singleR <- function(object,
                               type = c("pearson",
                                        "response",
                                        "working",
-                                       "partial"),
+                                       "partial",
+                                       "deviance"),
                               ...) {
+  type <- match.arg(type)
   res <- object$residuals
   disp <- object$dispersion
-  wts <- object$prior.weights
+  wts <- object$weights
   mu <- object$fitt.values
   y <- object$y
-  if (type == "pearson") {
-    rs <- res * sqrt(wts) / object$model$variance(mu, disp)
-  } else if (type == "working") {
-    rs <-  res / mu
-  } else if (type == "response") {
-    rs <- res
-  } else {
-    # partial residuals??
-    stop()
-  }
+  rs <- switch(type,
+               working = res / mu,
+               response = res,
+               raw = res,
+               pearson = res * sqrt(wts / object$model$variance(mu = mu, 
+                                                                disp = disp)),
+               deviance = object$model$dev.resids(y = y, mu = mu,
+                                                  disp = disp,
+                                                  wt = wts))
+  
+  #if (type == "pearson") {
+  #  rs <- res * sqrt(wts / object$model$variance(mu, disp))
+  #} else if (type == "working") {
+  #  rs <-  res / mu
+  #} else if (type == "response") {
+  #  rs <- res
+  #} else if (type == "raw") {
+  #  rs <- res
+  #} else if (type == "deviance") {
+     # partial residuals??
+  #  rs <- sqrt(d) * sign(y - mu)
+  #  stop()
+  #}
   rs
 }
 #' Summary for marginal frequencies
@@ -126,4 +141,21 @@ summary.singleRmargin <- function(object, df = NULL,
   rownames(vect) <- c("Chi-squared test", "G-test")
   colnames(vect) <- c("Test statistics", "df", "P(>X^2)")
   vect
+}
+
+#' vcov method for singleR class
+#' @title vcov method for singleR class
+#' @param object object of clas singleRclass
+#' @param ... variables to pass to other methods
+#'
+#' @method vcov singleR
+#' @return A covariance matrix for fitted coefficients obtained by inverting 
+#' analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
+#' with observed information matrix.
+#' @export
+vcov.singleR <- function(object, ...) {
+  solve(
+    object$model$make_hessian(y = object$y, X = object$X, 
+                              weight = object$prior.weights)(object$coefficients)
+  )
 }

@@ -3,6 +3,7 @@
 S3method(residuals,singleR)
 S3method(summary,singleR)
 S3method(summary,singleRmargin)
+S3method(vcov,singleR)
 export(IRLS)
 export(Weighted_Sd)
 export(chao)

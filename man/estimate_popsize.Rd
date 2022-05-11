@@ -12,7 +12,6 @@ estimate_popsize(
   weights = 1,
   subset = NULL,
   na.action = NULL,
-  trcount = 0,
   method = c("mle", "robust"),
   pop.var = c("analytic", "bootstrap"),
   control.method = NULL,
@@ -38,11 +37,6 @@ estimate_popsize(
 
 \item{na.action}{TODO}
 
-\item{trcount}{Optional parameter for Zero-one truncated models, if population estimate
-is for one inflated model then it specifies one counts and includes them in
-final population estimate both point and interval, and for zeltermann/chao
-estimator where it specifies counts of not used in estimate}
-
 \item{method}{Method for fitting values currently supported IRLS and MaxLikelihood}
 
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap
@@ -57,13 +51,13 @@ percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 
 \item{model.matrix}{If true returns model matrix as a part of returned object}
 
-\item{x}{||}
+\item{x}{manually provided model matrix}
 
-\item{y}{||}
+\item{y}{manually provided vector for dependent variable}
 
 \item{contrasts}{||}
 
-\item{...}{Arguments to be passed to other methods like subset in stats::model.frame}
+\item{...}{Arguments to be passed to other methods}
 }
 \value{
 Returns an object of classes inherited from glm containing:\cr

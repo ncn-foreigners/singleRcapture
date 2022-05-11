@@ -10,18 +10,14 @@
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
 #' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
-#' @param trcount Optional parameter for Zero-one truncated models, if population estimate
-#' is for one inflated model then it specifies one counts and includes them in
-#' final population estimate both point and interval, and for zeltermann/chao
-#' estimator where it specifies counts of not used in estimate
 #' @param control.method ||
 #' @param control.model ||
 #' @param control.pop.var A list indicating parameter to use in population size variance estimation
 #' @param model.matrix If true returns model matrix as a part of returned object
-#' @param x ||
-#' @param y ||
+#' @param x manually provided model matrix
+#' @param y manually provided vector for dependent variable
 #' @param contrasts ||
-#' @param ... Arguments to be passed to other methods like subset in stats::model.frame
+#' @param ... Arguments to be passed to other methods
 #'
 #' @return Returns an object of classes inherited from glm containing:\cr
 #' @returns
@@ -70,7 +66,6 @@ estimate_popsize <- function(formula,
                              weights = 1,
                              subset = NULL,
                              na.action = NULL,
-                             trcount = 0,
                              method = c("mle", "robust"),
                              pop.var = c("analytic",
                                          "bootstrap"),
@@ -109,9 +104,8 @@ estimate_popsize <- function(formula,
   if (is.function(family)) {
     family <- family()
   }
-  if (is.null(trcount)) {
-    trcount <- 0
-  }
+  trcount <- ifelse(is.null(control.pop.var$trcount), 0,
+                    control.pop.var$trcount)
 
   model_frame <- stats::model.frame(formula, data,  ...)
   variables <- stats::model.matrix(formula, model_frame, ...)
@@ -119,8 +113,16 @@ estimate_popsize <- function(formula,
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some packages hence explicit call
   model_frame <- base::subset(model_frame, subset = subset)
-  variables <- base::subset(variables, subset = subset)
-  observed <- model_frame[, 1]
+  if (isFALSE(x)) {
+    variables <- base::subset(variables, subset = subset)
+  } else {
+    variables <- x
+  }
+  if (isFALSE(y)) {
+    observed <- model_frame[, 1]
+  } else {
+    observed <- y
+  }
   
   if(sum(observed == 0) > 0) {
     stop("Error in function estimate.popsize, data contains zero-counts")

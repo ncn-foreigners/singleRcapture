@@ -5,3 +5,7 @@
 ^code$
 ^output$
 ^_workflowr.yml$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^README\.Rmd$
