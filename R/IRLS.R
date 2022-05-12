@@ -3,12 +3,12 @@
 #' A method for fitting regression parameters in generalized linear model. \cr
 #' Used internally in singleRcapture package.
 #'
-#' @param dependent A vector of Dependent variables
-#' @param covariates An array of Covariates
-#' @param start A place to start the numerical estimation
+#' @param dependent A vector of dependent variables
+#' @param covariates An array of covariates
+#' @param start Vector of starting points for the the numerical procedure
 #' @param maxiter Maximum number of iterations
-#' @param disp dispersion parameter if family needs it
-#' @param eps Precision level
+#' @param disp dispersion parameter if family needed
+#' @param eps Tolerance level for the numerical procedure
 #' @param family Family of distributions used in regression
 #' @param weights Optional object of weights used in fitting the model
 #' @param disp.given FALSE is default, set true if dispersion has already been
