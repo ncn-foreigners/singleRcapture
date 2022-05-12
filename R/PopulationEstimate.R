@@ -1,16 +1,14 @@
-#' Total Population Point and Interval estimate
+#' Function to estimate population size based on single-source capture-recapture models
 #'
-#' Creates a Horvitz-Thompson/Chao/Zelterman
-#' point and interval estimate for total
-#' and missing population from zero truncated poisson model.
+#' Provides point and interval estimates for the population size based on variety of models
 #'
 #' @param y Observed values
 #' @param X A matrix of covariates
 #' @param grad A gradient of a model with respect to regression parameters
-#' @param parameter An estimated Parameter for the model
-#' @param beta Fitted regression values
-#' @param family Model Family
-#' @param weights If model is weighted weights of particular observations
+#' @param parameter An estimated parameter for the model 
+#' @param beta Estimated parameters of the regression model (optional)
+#' @param family Model family
+#' @param weights Case weights if applied
 #' @param hessian Hessian of a model
 #' @param dispersion Estimated dispersion parameter
 #' for truncated Negative binomial distributions

@@ -1,4 +1,4 @@
-#' Zero Truncated Negative Binomial model
+#' Zero truncated Negative Binomial model
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr

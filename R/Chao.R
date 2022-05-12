@@ -1,4 +1,4 @@
-#' Chao model for population estimate
+#' Chao model for the population size estimation
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr

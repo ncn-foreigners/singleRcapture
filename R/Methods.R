@@ -1,7 +1,7 @@
 #' summary.Model
 #'
 #' @details Describes an object of model class representing generalized linear regression
-#' @param object Object for which method is aplied summarised
+#' @param object Object for which method is applied summarized
 #' @param ... other arguments to be passed to other methods
 #' @return Easy to read summary of regression and most important data from a 'SingleR' class
 #' @export
@@ -27,7 +27,7 @@ summary.singleR <- function(object, ...) {
                    round(object$wValues, digits = 2),
                    signif(object$pValues, digits = 2),
                    signif)
-  colnames(ob) <- c("Estimate", "Std. Error", "W-values", "P(>|t|)", "")
+  colnames(ob) <- c("Estimate", "Std. Error", "z value", "P(>|z|)", "")
 
   print(object$call)
   cat("\nResponse Residuals:\n")
@@ -45,6 +45,7 @@ summary.singleR <- function(object, ...) {
       "\n\nPopulation size estimation results:",
       "\nPoint estimate", object$populationSize$pointEstimate,
       "\nVariance", object$populationSize$variance,
+      "\nStd. Error", sqrt(object$populationSize$variance),
       "\n", object$populationSize$control$signiflevel * 100, "% CI:\n")
   print(object$populationSize$confidenceInterval)
 }

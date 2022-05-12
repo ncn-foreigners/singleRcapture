@@ -1,4 +1,4 @@
-#' Regression fitting for singleRcapture
+#' Function to fit single-source capture-recapture models
 #'
 #' @param y vector of dependent variables
 #' @param X model matrix

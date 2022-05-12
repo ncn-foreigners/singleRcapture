@@ -1,4 +1,4 @@
-#' Zelerman model for population estimate
+#' Zelterman's model for population estimate
 #'
 #' @return A object of class "family" containing objects \cr
 #' make_minusloglike(y,X) - for creating negative likelihood function \cr
