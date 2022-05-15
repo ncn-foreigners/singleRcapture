@@ -2,7 +2,7 @@
 % Please edit documentation in R/Chao.R
 \name{chao}
 \alias{chao}
-\title{Chao model for population estimate}
+\title{Chao model for the population size estimation}
 \usage{
 chao()
 }
@@ -23,5 +23,5 @@ y is a vector of observed values \cr
 X is a matrix / data frame of covariates
 }
 \description{
-Chao model for population estimate
+Chao model for the population size estimation
 }

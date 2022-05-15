@@ -2,7 +2,7 @@
 % Please edit documentation in R/ZeroOneTruncatedGeometric.R
 \name{zotgeom}
 \alias{zotgeom}
-\title{Zero One Truncated geometric model}
+\title{Zero-one truncated geometric model}
 \usage{
 zotgeom()
 }
@@ -23,5 +23,5 @@ y is a vector of observed values \cr
 X is a matrix / data frame of covariates
 }
 \description{
-Zero One Truncated geometric model
+Zero-one truncated geometric model
 }

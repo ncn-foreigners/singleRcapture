@@ -21,56 +21,38 @@ marginalFreq <- function(object,
     trcount <- onecount
   }
   
-  probFun <- ifelse(object$model$family %in% c("ztpoisson",
-                                               "zotpoisson",
-                                               "chao",
-                                               "zelterman"),
-                    function(x, lambda, disp) {stats::dpois(x = x, 
-                                                            lambda = lambda)},
-                    ifelse(object$model$family %in% c("ztnegbin",
-                                                      "zotnegbin"),
-                           function(x, lambda, disp) {stats::dnbinom(x = x,
-                                                                    mu = lambda,
-                                                                    size = exp(-disp))},
-                           ifelse(object$model$family %in% c("ztgeom",
-                                                             "zotgeom"),
-                                  function(x, lambda, disp) {stats::dgeom(x = x,
-                                                                          prob = (1 / (1 + lambda)))},
-                                  "")))
-  ifelse(object$model$family %in% c("zotpoisson",
-                                    "zotnegbin",
-                                    "zotgeom"),
-         probFun2 <- function(x, lambda, disp) {
-           (probFun(x = x, lambda = lambda, disp = disp) / 
-              (1 - probFun(x = 0, lambda = lambda, disp = disp) - 
-               probFun(x = 1, lambda = lambda, disp = disp)))
-         },
-         probFun2 <- function(x, lambda, disp) {
-           (probFun(x = x, lambda = lambda, disp = disp) / 
-              (1 - probFun(x = 0, lambda = lambda, disp = disp)))
-         }
-  )
+  # PDF for truncated distributions:
+  probFun <- switch(object$model$family,
+  "ztpoisson"  = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
+  "chao"       = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
+  "zelterman"  = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
+  "zotpoisson" = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda) - stats::dpois(x = 1, lambda = lambda))},
+  "ztnegbin"   = function(x, lambda, disp) {stats::dnbinom(x = x, mu = lambda, size = exp(-disp)) / (1 - stats::dnbinom(x = 0, mu = lambda, size = exp(-disp)))},
+  "zotnegbin"  = function(x, lambda, disp) {stats::dnbinom(x = x, mu = lambda, size = exp(-disp)) / (1 - stats::dnbinom(x = 0, mu = lambda, size = exp(-disp)) - stats::dnbinom(x = 1, mu = lambda, size = exp(-disp)))},
+  "ztgeom"     = function(x, lambda, disp) {stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))},
+  "zotgeom"    = function(x, lambda, disp) {stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))})
+
   
   res <- colSums(t(sapply(object$fitt.values,
-          FUN = function(y) {probFun2(x = range,
-                                      lambda = y,
-                                      disp = object$dispersion)})))
+          FUN = function(y) {probFun(x = range,
+                                     lambda = y,
+                                     disp = object$dispersion)})))
   names(res) <- as.character(range)
   
-  if(includeones & (object$model$family %in% c("zotpoisson",
-                                               "zotnegbin",
-                                               "zotgeom"))) {
+  if(isTRUE(includeones) & (object$model$family %in% c("zotpoisson",
+                                                       "zotnegbin",
+                                                       "zotgeom"))) {
     res <- c(trcount, res)
     names(res)[1] <- "1"
     if (!is.null(onecount)) {res[1] <- onecount}
   }
   
-  if(includezeros) {
+  if(isTRUE(includezeros)) {
     res <- c(object$populationSize$pointEstimate - length(object$y), res)
     names(res)[1] <- "0"
   }
   res <- structure(list(table = res, y = y, 
-                        df = length(y) - 1 - length(object$coefficients)), 
+                        df = length(y) - length(object$coefficients)), 
                    class = c("singleRmargin"))
   res
 }

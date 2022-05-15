@@ -18,21 +18,21 @@ IRLS(
 )
 }
 \arguments{
-\item{dependent}{A vector of Dependent variables}
+\item{dependent}{A vector of dependent variables}
 
 \item{family}{Family of distributions used in regression}
 
-\item{covariates}{An array of Covariates}
+\item{covariates}{An array of covariates}
 
-\item{start}{A place to start the numerical estimation}
+\item{start}{Vector of starting points for the the numerical procedure}
 
-\item{disp}{dispersion parameter if family needs it}
+\item{disp}{dispersion parameter if family needed}
 
 \item{weights}{Optional object of weights used in fitting the model}
 
 \item{maxiter}{Maximum number of iterations}
 
-\item{eps}{Precision level}
+\item{eps}{Tolerance level for the numerical procedure}
 
 \item{disp.given}{FALSE is default, set true if dispersion has already been
 estimated and there is no need for further estimation}

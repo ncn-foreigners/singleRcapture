@@ -127,22 +127,16 @@ parBoot <- function(family,
   prob <- contr - floor(contr)
   contr <- floor(contr) + stats::rbinom(n = n, size = 1,
                                         prob = prob)
-  dataFunc <- ifelse(famName %in% c("ztpoisson", 
-                                    "chao",
-                                    "zelterman",
-                                    "zotpoisson"),
-                     function(lambda, n, disp) {stats::rpois(n = n, 
-                                                             lambda = lambda)},
-                     ifelse(famName %in% c("ztnegbin", 
-                                           "zotnegbin"),
-                            function(lambda, n, disp) {stats::rnbinom(n = n, 
-                                                                      mu = lambda,
-                                                                      size = exp(-disp))},
-                            ifelse(famName %in% c("ztgeom",
-                                                  "zotgeom"),
-                                   function(lambda, n, disp) {stats::rgeom(n = n,
-                                                                           prob = (1 / (1 + lambda)))},
-                                   "")))
+  
+  dataFunc <- switch(famName,
+  "ztpoisson"  = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
+  "chao"       = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
+  "zelterman"  = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
+  "zotpoisson" = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
+  "ztnegbin"   = function(lambda, n, disp) {stats::rnbinom(n = n, mu = lambda, size = exp(-disp))},
+  "zotnegbin"  = function(lambda, n, disp) {stats::rnbinom(n = n, mu = lambda, size = exp(-disp))},
+  "ztgeom"     = function(lambda, n, disp) {stats::rgeom(n = n, prob = (1 / (1 + lambda)))},
+  "zotgeom"    = function(lambda, n, disp) {stats::rgeom(n = n, prob = (1 / (1 + lambda)))})
     
   prob <- contr / N
   

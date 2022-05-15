@@ -2,7 +2,7 @@
 % Please edit documentation in R/ZeroTruncatedNegativeBinomial.R
 \name{ztnegbin}
 \alias{ztnegbin}
-\title{Zero Truncated Negative Binomial model}
+\title{Zero truncated Negative Binomial model}
 \usage{
 ztnegbin()
 }
@@ -23,5 +23,5 @@ y is a vector of observed values \cr
 X is a matrix / data frame of covariates
 }
 \description{
-Zero Truncated Negative Binomial model
+Zero truncated Negative Binomial model
 }

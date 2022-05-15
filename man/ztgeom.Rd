@@ -2,7 +2,7 @@
 % Please edit documentation in R/ZeroTruncatedGeomteric.R
 \name{ztgeom}
 \alias{ztgeom}
-\title{Zero Truncated geometric model}
+\title{Zero truncated geometric model}
 \usage{
 ztgeom()
 }
@@ -23,5 +23,5 @@ y is a vector of observed values \cr
 X is a matrix / data frame of covariates
 }
 \description{
-Zero Truncated geometric model
+Zero truncated geometric model
 }

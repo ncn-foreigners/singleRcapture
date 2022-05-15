@@ -37,15 +37,13 @@ populationEstimate <- function(y,
                                method = "analytic",
                                control) {
   siglevel <- control$signiflevel
-  boot.type <- control$bootType
   trcount <- control$trcount
   numboot <- control$strapNumber
   sc <- qnorm(p = 1 - (1 - siglevel) / 2)
-  funBoot <- ifelse(boot.type == "Parametric",
-                    parBoot,
-                    ifelse(boot.type == "Semiparametric",
-                           semparBoot,
-                           noparBoot))
+  funBoot <- switch(control$bootType,
+                    "parametric" = parBoot,
+                    "semiparametric" = semparBoot,
+                    "nonparametric" = noparBoot)
   if (method == "analytic") {
     strappedStatistic <- "No bootstrap performed"
     
@@ -76,11 +74,6 @@ populationEstimate <- function(y,
       beta <- beta[-1]
     }
 
-    if (is.null(numboot)){
-      numboot <- ifelse(grepl("negbin", family$family, fixed = TRUE),
-                        2000,
-                        10000)
-    }
     strappedStatistic <- funBoot(family = family,
                                  y = y, X = X,
                                  dispersion = dispersion,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/zelterman.R
 \name{zelterman}
 \alias{zelterman}
-\title{Zelerman model for population estimate}
+\title{Zelterman's model for population estimate}
 \usage{
 zelterman()
 }
@@ -23,5 +23,5 @@ y is a vector of observed values \cr
 X is a matrix / data frame of covariates
 }
 \description{
-Zelerman model for population estimate
+Zelterman's model for population estimate
 }

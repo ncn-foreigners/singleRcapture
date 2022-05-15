@@ -7,7 +7,7 @@
 control.pop.var(
   signiflevel = 0.95,
   trcount = 0,
-  bootType = "Parametric",
+  bootType = "parametric",
   strapNumber = 500,
   confType = "Percentilic"
 )
@@ -19,9 +19,9 @@ control.pop.var(
 
 \item{bootType}{Type of bootstrap performed, by default Parametric, other posible values are: Semiparametric and Nonparametric.}
 
-\item{strapNumber}{Number of bootstrap resamplings to be performed.}
+\item{strapNumber}{Number of bootstrap samples to be performed.}
 
-\item{confType}{a type of confidence interval for bootstrap confidence intervals, Percentilic by default, may be change to studentized.}
+\item{confType}{Type of confidence interval for bootstrap confidence interval, Percentile by default, may be change to studentized.}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly

@@ -2,7 +2,7 @@
 % Please edit documentation in R/PopulationEstimate.R
 \name{populationEstimate}
 \alias{populationEstimate}
-\title{Total Population Point and Interval estimate}
+\title{Function to estimate population size based on single-source capture-recapture models}
 \usage{
 populationEstimate(
   y,
@@ -25,15 +25,15 @@ populationEstimate(
 
 \item{grad}{A gradient of a model with respect to regression parameters}
 
-\item{parameter}{An estimated Parameter for the model}
+\item{parameter}{An estimated parameter for the model}
 
-\item{beta}{Fitted regression values}
+\item{beta}{Estimated parameters of the regression model (optional)}
 
-\item{weights}{If model is weighted weights of particular observations}
+\item{weights}{Case weights if applied}
 
 \item{hessian}{Hessian of a model}
 
-\item{family}{Model Family}
+\item{family}{Model family}
 
 \item{dispersion}{Estimated dispersion parameter
 for truncated Negative binomial distributions}
@@ -50,7 +50,5 @@ Returns a list of size 3 with:
 Point estimate, Interval estimate, and Variance
 }
 \description{
-Creates a Horvitz-Thompson/Chao/Zelterman
-point and interval estimate for total
-and missing population from zero truncated poisson model.
+Provides point and interval estimates for the population size based on variety of models
 }

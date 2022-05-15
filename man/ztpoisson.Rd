@@ -2,7 +2,7 @@
 % Please edit documentation in R/ZeroTruncatedPoisson.R
 \name{ztpoisson}
 \alias{ztpoisson}
-\title{Zero Truncated Poisson Model}
+\title{Zero truncated Poisson Model}
 \usage{
 ztpoisson()
 }
@@ -23,5 +23,5 @@ y is a vector of observed values \cr
 X is a matrix / data frame of covariates
 }
 \description{
-Zero Truncated Poisson Model
+Zero truncated Poisson Model
 }

@@ -52,6 +52,11 @@ summary(ModelPo)
 summary(ModelZl)
 ```
 
+Marginal frequencies and Goodness of fit test:
+```{r}
+summary(marginalFreq(ModelPo), df = 2)
+```
+
 Here is a plot of marginal frequencies with matplot:
 
 ```{r plot}

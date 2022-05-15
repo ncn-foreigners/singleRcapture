@@ -80,7 +80,7 @@ ztpoisson <- function() {
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
-    NULL
+   sign(y - mu) * sqrt(2 * wt * (y * log(y / mu) - y + mu))
   }
 
   aic <- function(y, mu, wt, dev) {

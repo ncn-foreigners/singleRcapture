@@ -37,17 +37,18 @@ summary.singleR <- function(object, ...) {
   cat("-----------------------",
       "Signif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'",
       sep = "\n")
-  cat("\nAIC:", object$aic,
-      "\nBIC:", object$bic,
-      "\n\nLog-likelihood:", object$logL, "on", object$df.residual,
-      "Degrees of freedom",
-      "\nNumber of iterations:", object$iter[1],
+  cat("\nAIC: ", object$aic,
+      "\nBIC: ", object$bic,
+      "\nDeviance: ", object$deviance,
+      "\n\nLog-likelihood: ", object$logL, " on ", object$df.residual,
+      "Degrees of freedom ",
+      "\nNumber of iterations: ", object$iter[1],
       "\n-----------------------",
-      "\nPopulation size estimation results:",
-      "\nPoint estimate", object$populationSize$pointEstimate,
-      "\nVariance", object$populationSize$variance,
-      "\nStd. Error", sqrt(object$populationSize$variance),
-      "\n", object$populationSize$control$signiflevel * 100, "% CI:\n")
+      "\nPopulation size estimation results: ",
+      "\nPoint estimate ", object$populationSize$pointEstimate,
+      "\nVariance ", object$populationSize$variance,
+      "\nStd. Error ", sqrt(object$populationSize$variance),
+      "\n", object$populationSize$control$signiflevel * 100, "% CI:\n", sep = "")
   print(object$populationSize$confidenceInterval)
 }
 
@@ -85,20 +86,6 @@ residuals.singleR <- function(object,
                deviance = object$model$dev.resids(y = y, mu = mu,
                                                   disp = disp,
                                                   wt = wts))
-  
-  #if (type == "pearson") {
-  #  rs <- res * sqrt(wts / object$model$variance(mu, disp))
-  #} else if (type == "working") {
-  #  rs <-  res / mu
-  #} else if (type == "response") {
-  #  rs <- res
-  #} else if (type == "raw") {
-  #  rs <- res
-  #} else if (type == "deviance") {
-     # partial residuals??
-  #  rs <- sqrt(d) * sign(y - mu)
-  #  stop()
-  #}
   rs
 }
 #' Summary for marginal frequencies
@@ -125,12 +112,12 @@ summary.singleRmargin <- function(object, df = NULL,
     df <- object$df
   }
   if(dropl5 == "group") {
-    l <- ((y < 5) | (A < 5))
+    l <- (A < 5)
     if (object$df == df) {df <- df - length(y) + length(y[!l]) + 1}
     y <- c(y[!l], sum(y[l]))
     A <- c(A[!l], sum(A[l]))
   } else if(dropl5 == "drop") {
-    l <- ((y < 5) | (A < 5))
+    l <- (A < 5)
     if (object$df == df) {df <- df - length(y) + length(y[!l])}
     y <- y[!l]
     A <- A[!l]
@@ -142,7 +129,29 @@ summary.singleRmargin <- function(object, df = NULL,
                      rep(df, 2), signif(pval, digits = 2))
   rownames(vect) <- c("Chi-squared test", "G-test")
   colnames(vect) <- c("Test statistics", "df", "P(>X^2)")
-  vect
+  structure(
+    list(Test = vect,
+         l5 = switch(dropl5,
+                     drop = "dropped",
+                     group = "grouped",
+                     no = "preserved")),
+    class = "summarysingleRmargin"
+  )
+}
+
+#' Print method for summarysingleRmargin classs
+#'
+#' @param x object of class summarysingleRmargin
+#' @param ... Currently does nothing
+#'
+#' @return print of tests done by summary.singleRmargin
+#' @export
+print.summarysingleRmargin <- function(x, ...) {
+  cat("Test for Goodness of fit of a regression model:\n",
+      "\n", sep = "")
+  print(x$Test)
+  cat("\n--------------------------------------------------------\n",
+      "Cells with fitted frequencies of < 5 have been ", x$l5, "\n", sep = "")
 }
 
 #' vcov method for singleR class

@@ -85,15 +85,15 @@ estimate_popsize <- function(formula,
   m1 <- control.pop.var
   m2 <- control.pop.var()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.pop.var <- m2
+  control.pop.var <- append(m1, m2)
   m1 <- control.method
   m2 <- control.method()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.method <- m2
+  control.method <- append(m1, m2)
   m1 <- control.model
   m2 <- control.model()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.model <- m2
+  control.model <- append(m1, m2)
   typefitt <- control.model$typefitted
   typefitt <- ifelse(is.null(typefitt), "link", typefitt)
   family <- model
@@ -104,8 +104,6 @@ estimate_popsize <- function(formula,
   if (is.function(family)) {
     family <- family()
   }
-  trcount <- ifelse(is.null(control.pop.var$trcount), 0,
-                    control.pop.var$trcount)
 
   model_frame <- stats::model.frame(formula, data,  ...)
   variables <- stats::model.matrix(formula, model_frame, ...)
@@ -123,6 +121,9 @@ estimate_popsize <- function(formula,
   } else {
     observed <- y
   }
+  
+  y <- observed
+  X <- variables
   
   if(sum(observed == 0) > 0) {
     stop("Error in function estimate.popsize, data contains zero-counts")
@@ -147,7 +148,7 @@ estimate_popsize <- function(formula,
         sep = "\n")
 
     tempdata <- data.frame(observed, prior.weights, variables)
-    trcount <- trcount + length(observed[observed == 1])
+    control.pop.var$trcount <- control.pop.var$trcount + length(observed[observed == 1])
     tempdata <- tempdata[tempdata["observed"] > 1, ]
 
     observed <- tempdata[, 1]
@@ -164,7 +165,7 @@ estimate_popsize <- function(formula,
         sep = "\n")
 
     tempdata <- data.frame(observed, prior.weights, variables)
-    trcount <- trcount + length(observed[observed > 2])
+    control.pop.var$trcount <- control.pop.var$trcount + length(observed[observed > 2])
     tempdata <- tempdata[tempdata["observed"] == 1 | tempdata["observed"] == 2, ]
 
     observed <- tempdata[, 1]
@@ -274,13 +275,15 @@ estimate_popsize <- function(formula,
   null.deviance <- as.numeric(NULL)
   LOG <- -log_like(coefficients)
   resRes <- prior.weights * (observed - fitt)
-  aic <- 2 * length(coefficients) - 2 * LOG
+  aic <- 2 * (length(coefficients) - LOG)
   bic <- length(coefficients) * log(length(observed)) - 2 * LOG
-  deviance <- as.numeric(NULL)
+  deviance <- sum(family$dev.resids(y = observed, 
+                                    mu = parameter,
+                                    disp = dispersion,
+                                    wt = prior.weights) ** 2)
   # In wald W-values have N(0,1) distributions (asymptotically)
   pVals <- (stats::pnorm(q =  abs(wVal), lower.tail = FALSE) +
             stats::pnorm(q = -abs(wVal), lower.tail = TRUE))
-  qr <- qr(variables)
 
   POP <- populationEstimate(y = observed,
                             X = as.data.frame(variables),
@@ -294,12 +297,15 @@ estimate_popsize <- function(formula,
                             beta = coefficients,
                             control = control.pop.var)
 
-  result <- list(y = observed,
-                 X = as.data.frame(variables),
+  result <- list(y = y,
+                 X = as.data.frame(X),
                  formula = formula,
                  call = match.call(),
                  coefficients = coefficients,
                  standard_errors = stdErr,
+                 control = list(control.model = control.model,
+                                control.method = control.method,
+                                control.pop.var = control.pop.var),
                  wValues = wVal,
                  pValues = pVals,
                  null.deviance = null.deviance,
@@ -319,9 +325,7 @@ estimate_popsize <- function(formula,
                  populationSize = POP,
                  model = model_frame,
                  linear.predictors = eta,
-                 qr = qr,
-                 rank = qr$rank,
-                 trcount = trcount)
+                 trcount = control.pop.var$trcount)
   class(result) <- c("singleR", "glm", "lm")
   result
 }

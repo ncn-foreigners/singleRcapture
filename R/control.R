@@ -18,11 +18,12 @@ control.model <- function(typefitted = "link") {
 #' @export
 control.pop.var <- function(signiflevel = .95,
                             trcount = 0,
-                            bootType = "Parametric",
+                            bootType = "parametric",
                             strapNumber = 500,
                             confType = "Percentilic") {
   list(signiflevel = signiflevel,
        trcount = trcount,
        bootType = bootType,
-       strapNumber = strapNumber)
+       strapNumber = strapNumber,
+       confType = confType)
 }

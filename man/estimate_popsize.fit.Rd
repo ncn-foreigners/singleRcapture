@@ -2,7 +2,7 @@
 % Please edit documentation in R/SingleRfit.R
 \name{estimate_popsize.fit}
 \alias{estimate_popsize.fit}
-\title{Regression fitting for singleRcapture}
+\title{Function to fit single-source capture-recapture models}
 \usage{
 estimate_popsize.fit(
   y,
@@ -40,5 +40,5 @@ in estimate_popsize}
 list of object connected to regression
 }
 \description{
-Regression fitting for singleRcapture
+Function to fit single-source capture-recapture models
 }

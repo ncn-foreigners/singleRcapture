@@ -7,7 +7,7 @@
 \method{summary}{singleR}(object, ...)
 }
 \arguments{
-\item{object}{Object for which method is aplied summarised}
+\item{object}{Object for which method is applied summarized}
 
 \item{...}{other arguments to be passed to other methods}
 }

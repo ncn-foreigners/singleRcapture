@@ -1,9 +1,4 @@
 # cheking popsize estimation as in van der heijden et.al (2018)
-load("~/Desktop/singleRcapture/inst/tinytest/carcassubmission.rda")
-load("~/Desktop/singleRcapture/inst/tinytest/netherlandsimmigrant.rda")
-load("~/Desktop/singleRcapture/inst/tinytest/farmsubmission.rda")
-#chaocovtotal <- carcassubmisssion
-#dutchc <- netherlandsimmigrant
 expect_equal(
   round(estimate_popsize(formula = TOTAL_SUB ~ .,
                          model = "ztpoisson",
@@ -30,4 +25,12 @@ expect_equivalent(
                          method = "robust")$populationSize$confidenceInterval[1, ],
         digits = 0)),
   c(9983, 22394)
+)
+expect_error(
+  estimate_popsize(formula = Y ~ X^2, 
+                   data = data.frame(Y = rep(c(0, 1, 2, 3), 50),
+                                     X = rep(c(1, 2), 100)),
+                   model = "ztnegbin",
+                   method = "mle",
+                   pop.var = "analytic")
 )
