@@ -123,8 +123,7 @@ estimate_popsize <- function(formula,
   }
   
   y <- observed
-  X <- variables
-  
+  x <- as.matrix(variables)
   if(sum(observed == 0) > 0) {
     stop("Error in function estimate.popsize, data contains zero-counts")
   }
@@ -134,9 +133,9 @@ estimate_popsize <- function(formula,
   }
 
   if (!is.null(weights)) {
-    prior.weights <- as.numeric(weights)
+    weights0 <- prior.weights <- as.numeric(weights)
   } else {
-    prior.weights <- 1
+    weights0 <- prior.weights <- 1
   }
   weights <- 1
 
@@ -180,30 +179,24 @@ estimate_popsize <- function(formula,
   if (family$family == "zelterman") {
     # In zelterman model regression is indeed based only on 1 and 2 counts
     # but estimation is based on ALL counts
-    name1 <- "observed"
     n1 <- colnames(variables)
     tempdata <- data.frame(observed, prior.weights, variables)
-    tempdata <- tempdata[tempdata[name1] == 1 | tempdata[name1] == 2, ]
+    tempdata <- tempdata[tempdata["observed"] == 1 | tempdata["observed"] == 2, ]
 
     if ((dim(variables)[2] == 1) && ("(Intercept)" %in% colnames(variables))) {
-      tempobserved <- tempdata[, 1]
-      tempvariables <- data.frame("(Intercept)" = rep(1, length(tempobserved)))
-      prior.weightstemp <- tempdata[, 2]
+      observed <- tempdata[, 1]
+      variables <- data.frame("(Intercept)" = rep(1, length(observed)))
+      prior.weights <- tempdata[, 2]
     } else {
-      tempobserved <- tempdata[, 1]
-      prior.weightstemp <- tempdata[, 2]
-      tempvariables <- as.matrix(tempdata[, -c(1, 2)])
+      observed <- tempdata[, 1]
+      prior.weights <- tempdata[, 2]
+      variables <- as.matrix(tempdata[, -c(1, 2)])
     }
-    colnames(tempvariables) <- n1
-  } else {
-    tempobserved <- observed
-    tempvariables <- variables
-    prior.weightstemp <- prior.weights
+    colnames(variables) <- n1
   }
   
 
-  if(colnames(tempvariables)[1] == "X.Intercept.") {
-    colnames(tempvariables)[1] <- "(Intercept)"
+  if(colnames(variables)[1] == "X.Intercept.") {
     colnames(variables)[1] <- "(Intercept)"
   }
 
@@ -226,16 +219,15 @@ estimate_popsize <- function(formula,
     dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
   }
 
-  FITT <- estimate_popsize.fit(y = tempobserved,
-                               X = tempvariables,
+  FITT <- estimate_popsize.fit(y = observed,
+                               X = variables,
                                family = family,
                                control = control.method,
                                method,
-                               prior.weights = prior.weightstemp,
+                               prior.weights = prior.weights,
                                start = c(dispersion, start),
                                dispersion = dispersion,
                                ...)
-  eta <- FITT$eta
   coefficients <- FITT$beta
 
   log_like <- FITT$ll
@@ -252,13 +244,18 @@ estimate_popsize <- function(formula,
   } else {
     eta <- as.matrix(variables) %*% coefficients[-1]
   }
-
+  
   parameter <- family$linkinv(eta)
-  if (typefitt == "link") {
-    fitt <- family$linkinv(eta)
-  } else if (typefitt == "mu") {
-    fitt <- family$mu.eta(eta = eta, disp = dispersion)
+  
+  if (family$family == "zelterman") {
+    parameter <- family$linkinv(as.matrix(x) %*% coefficients)
   }
+
+  # Here do fitt a list or data.frame
+  # fitt <- data.fram("mu" = family$mu.eta(eta, disp = dispersion))
+  fitt <- data.frame("mu" = family$mu.eta(eta, disp = dispersion),
+                     "link" = family$linkinv(eta))
+  
 
   if (!is.null(dispersion)) {
     dispersion <- coefficients[1]
@@ -275,57 +272,61 @@ estimate_popsize <- function(formula,
   null.deviance <- as.numeric(NULL)
   LOG <- -log_like(coefficients)
   resRes <- prior.weights * (observed - fitt)
+  if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
   aic <- 2 * (length(coefficients) - LOG)
   bic <- length(coefficients) * log(length(observed)) - 2 * LOG
   deviance <- sum(family$dev.resids(y = observed, 
                                     mu = parameter,
                                     disp = dispersion,
                                     wt = prior.weights) ** 2)
-  # In wald W-values have N(0,1) distributions (asymptotically)
-  pVals <- (stats::pnorm(q =  abs(wVal), lower.tail = FALSE) +
-            stats::pnorm(q = -abs(wVal), lower.tail = TRUE))
+  # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
+  pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
-  POP <- populationEstimate(y = observed,
-                            X = as.data.frame(variables),
+  POP <- populationEstimate(y = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) observed else y,
+                            X = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) variables else x,
                             grad = grad,
                             hessian = hessian,
                             method = pop.var,
                             weights = prior.weights,
+                            weights0 = weights0,
                             parameter = parameter,
                             family = family,
                             dispersion = dispersion,
                             beta = coefficients,
                             control = control.pop.var)
-
-  result <- list(y = y,
-                 X = as.data.frame(X),
-                 formula = formula,
-                 call = match.call(),
-                 coefficients = coefficients,
-                 standard_errors = stdErr,
-                 control = list(control.model = control.model,
-                                control.method = control.method,
-                                control.pop.var = control.pop.var),
-                 wValues = wVal,
-                 pValues = pVals,
-                 null.deviance = null.deviance,
-                 model = family,
-                 aic = aic,
-                 bic = bic,
-                 deviance = deviance,
-                 prior.weights = prior.weights,
-                 weights = weights,
-                 residuals = resRes,
-                 logL = LOG,
-                 iter = iter,
-                 dispersion = dispersion,
-                 df.residual = df.reduced,
-                 df.null = length(observed) - 1,
-                 fitt.values = fitt,
-                 populationSize = POP,
-                 model = model_frame,
-                 linear.predictors = eta,
-                 trcount = control.pop.var$trcount)
-  class(result) <- c("singleR", "glm", "lm")
-  result
+  
+  structure(
+    list(
+      y = y,
+      X = if (isTRUE(model.matrix)) x else NULL,
+      formula = formula,
+      call = match.call(),
+      coefficients = coefficients,
+      standard_errors = stdErr,
+      control = list(control.model = control.model,
+                     control.method = control.method,
+                     control.pop.var = control.pop.var),
+      wValues = wVal,
+      pValues = pVals,
+      null.deviance = null.deviance,
+      model = family,
+      aic = aic,
+      bic = bic,
+      deviance = deviance,
+      prior.weights = prior.weights,
+      weights = weights,
+      residuals = resRes,
+      logL = LOG,
+      iter = iter,
+      dispersion = dispersion,
+      df.residual = df.reduced,
+      df.null = length(observed) - 1,
+      fitt.values = fitt,
+      populationSize = POP,
+      model = model_frame,
+      linear.predictors = eta,
+      trcount = control.pop.var$trcount
+    ),
+    class = c("singleR", "glm", "lm")
+  )
 }

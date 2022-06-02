@@ -14,6 +14,7 @@
 #' Where: \cr
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
+#' @importFrom VGAM lambertW
 #' @export
 ztpoisson <- function() {
   link <- log
@@ -64,9 +65,7 @@ ztpoisson <- function() {
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
       eml <- exp(-lambda)
-      coefficient <- (1 / (1 - eml) -
-                      lambda * eml /
-                      ((1 - eml) ** 2))
+      coefficient <- (1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2))
 
       dmu <- diag(weight * as.numeric(coefficient))
       dlam <- as.matrix(X * as.numeric(lambda))
@@ -80,7 +79,13 @@ ztpoisson <- function() {
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
-   sign(y - mu) * sqrt(2 * wt * (y * log(y / mu) - y + mu))
+    eta <- log(mu)
+    mu1 <- mu.eta(eta = eta)
+    hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
+    log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
+    loghm1y <- ifelse(y > 1, log(hm1y), 0)
+    #loghm1y <- ifelse(hm1y > )
+    sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
   aic <- function(y, mu, wt, dev) {

@@ -4,22 +4,17 @@
 \alias{residuals.singleR}
 \title{residuals.singleR}
 \usage{
-\method{residuals}{singleR}(
-  object,
-  type = c("pearson", "response", "working", "partial", "deviance"),
-  ...
-)
+\method{residuals}{singleR}(object, type = c("pearson", "response", "working", "deviance"), ...)
 }
 \arguments{
 \item{object}{TODO}
 
-\item{type}{TODO}
+\item{type}{type of residuals to be returned}
 
 \item{...}{TODO}
 }
 \value{
-returns a vector of residuals of
-selected type
+returns a vector of residuals of selected type
 }
 \description{
 residuals.singleR

@@ -31,6 +31,46 @@ expect_error(
                    data = data.frame(Y = rep(c(0, 1, 2, 3), 50),
                                      X = rep(c(1, 2), 100)),
                    model = "ztnegbin",
-                   method = "mle",
+                   method = "robust",
                    pop.var = "analytic")
+)
+expect_silent(
+  estimate_popsize(formula = TOTAL_SUB ~ .,
+                   data = farmsubmission,
+                   model = "zotpoisson",
+                   pop.var = "bootstrap",
+                   method = "robust",
+                   control.pop.var = control.pop.var(strapNumber = 10))
+)
+expect_silent(
+  estimate_popsize(formula = TOTAL_SUB ~ .,
+                   data = farmsubmission,
+                   model = "ztnegbin",
+                   pop.var = "bootstrap",
+                   method = "mle",
+                   control.pop.var = control.pop.var(strapNumber = 10))
+)
+expect_silent(
+  estimate_popsize(formula = TOTAL_SUB ~ .,
+                   data = farmsubmission,
+                   model = "chao",
+                   pop.var = "bootstrap",
+                   method = "robust",
+                   control.pop.var = control.pop.var(strapNumber = 10))
+)
+expect_silent(
+  estimate_popsize(formula = TOTAL_SUB ~ .,
+                   data = farmsubmission,
+                   model = "zelterman",
+                   pop.var = "bootstrap",
+                   method = "robust",
+                   control.pop.var = control.pop.var(strapNumber = 10))
+)
+expect_silent(
+  estimate_popsize(formula = capture ~ .,
+                   data = netherlandsimmigrant,
+                   model = "ztpoisson",
+                   pop.var = "bootstrap",
+                   method = "robust",
+                   control.pop.var = control.pop.var(strapNumber = 10))
 )

@@ -1,7 +1,7 @@
 Package: singleRcapture
 Type: Package
 Title: A package for single-source capture-recapture models
-Version: 0.1.0.3
+Version: 0.1.1
 Authors@R:
     c(person(given = "Piotr",
              family = "Chlebicki",
@@ -24,7 +24,8 @@ URL: https://github.com/ncn-foreigners/singleRcapture
 BugReports: https://github.com/ncn-foreigners/singleRcapture/issues
 Imports: 
     stats,
-    MASS
+    MASS,
+    VGAM
 Suggests: 
     rmarkdown,
     knitr,

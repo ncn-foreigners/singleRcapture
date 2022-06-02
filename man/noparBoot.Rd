@@ -4,7 +4,19 @@
 \alias{noparBoot}
 \title{Bootstraps for population size variation estimation}
 \usage{
-noparBoot(family, y, X, dispersion, beta, weights, trcount, numboot, lambda)
+noparBoot(
+  family,
+  y,
+  X,
+  dispersion,
+  beta,
+  weights,
+  trcount,
+  numboot,
+  lambda,
+  trace,
+  control.bootstrap.method = NULL
+)
 }
 \arguments{
 \item{family}{TODO}
@@ -24,6 +36,10 @@ noparBoot(family, y, X, dispersion, beta, weights, trcount, numboot, lambda)
 \item{numboot}{TODO}
 
 \item{lambda}{TODO}
+
+\item{trace}{TODO}
+
+\item{control.bootstrap.method}{TODO}
 }
 \value{
 TODO

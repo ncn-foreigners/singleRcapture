@@ -5,15 +5,17 @@
 \title{Control parameters for variance estimation}
 \usage{
 control.pop.var(
-  signiflevel = 0.95,
+  signiflevel = 0.05,
   trcount = 0,
-  bootType = "parametric",
+  bootType = c("parametric", "semiparametric", "nonparametric"),
   strapNumber = 500,
-  confType = "Percentilic"
+  confType = c("percentilic", "studentized"),
+  keepbootStat = TRUE,
+  traceBootstrapSize = FALSE
 )
 }
 \arguments{
-\item{signiflevel}{Significance level, a number from frange (0, 1) 95\% by default.}
+\item{signiflevel}{Significance level, a number from frange (0, 1) 5\% by default.}
 
 \item{trcount}{Truncated count - a number to be added to point estimator and both sides of confidence intervals.}
 
@@ -22,6 +24,10 @@ control.pop.var(
 \item{strapNumber}{Number of bootstrap samples to be performed.}
 
 \item{confType}{Type of confidence interval for bootstrap confidence interval, Percentile by default, may be change to studentized.}
+
+\item{keepbootStat}{Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large balues of strapNumber it may significant amount of size.}
+
+\item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly

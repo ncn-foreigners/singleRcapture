@@ -11,6 +11,7 @@ populationEstimate(
   parameter,
   beta,
   weights = 1,
+  weights0 = NULL,
   hessian,
   family,
   dispersion,
@@ -31,6 +32,8 @@ populationEstimate(
 
 \item{weights}{Case weights if applied}
 
+\item{weights0}{Weights for all observations}
+
 \item{hessian}{Hessian of a model}
 
 \item{family}{Model family}
@@ -40,10 +43,10 @@ for truncated Negative binomial distributions}
 
 \item{method}{A method of constructing confidence interval either analytic
 to use formula for analytic CI or bootstrap where bootstraped confidence
-interval may either be based on 2.5\%-97.5\% percientiles ("bootstrapPerc")
-or by estimating SD ("bootstrapSD")}
+interval may either be based on 2.5\%-97.5\% percentiles or by bootstrap SE
+estimation}
 
-\item{control}{list, same as control.pop.var in estimate_popsize}
+\item{control}{List argument, same as control.pop.var in estimate_popsize}
 }
 \value{
 Returns a list of size 3 with:
