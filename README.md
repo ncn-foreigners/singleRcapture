@@ -9,6 +9,10 @@
 The goal of singleRcapture is to automate single source
 capture-recapture estimation of population size.
 
+## Funding
+
+Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.
+
 ## Installation
 
 You can install the development version of singleRcapture from
