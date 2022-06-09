@@ -5,7 +5,7 @@
 #' @param y Observed values
 #' @param X A matrix of covariates
 #' @param grad A gradient of a model with respect to regression parameters
-#' @param parameter An estimated parameter for the model 
+#' @param lambda An estimated lambda parameter for the model 
 #' @param beta Estimated parameters of the regression model (optional)
 #' @param family Model family
 #' @param weights Case weights if applied
@@ -29,7 +29,7 @@
 populationEstimate <- function(y,
                                X,
                                grad,
-                               parameter,
+                               lambda,
                                beta,
                                weights = 1,
                                weights0 = NULL,
@@ -51,11 +51,11 @@ populationEstimate <- function(y,
 
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family == "zelterman") weights0 else weights,
-                         lambda = parameter) + trcount
+                         lambda = lambda) + trcount
 
     variation <- as.numeric(family$popVar(beta = beta, 
                                           pw = if (family$family == "zelterman") weights0 else weights,
-                                          lambda = parameter,
+                                          lambda = lambda,
                                           disp = dispersion,
                                           hess = hessian, X = X))
 
@@ -70,7 +70,7 @@ populationEstimate <- function(y,
   } else if (grepl("bootstrap", method, fixed = TRUE)) {
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family != "zelterman") {weights} else {weights0},
-                         lambda = parameter) + trcount
+                         lambda = lambda) + trcount
 
     if (!is.null(dispersion)) {
       beta <- beta[-1]
@@ -84,7 +84,7 @@ populationEstimate <- function(y,
                                  weights = list(weights, weights0),
                                  trcount = trcount,
                                  numboot = numboot,
-                                 lambda = parameter,
+                                 lambda = lambda,
                                  trace = control$traceBootstrapSize)
 
     if (control$confType == "percentilic") {

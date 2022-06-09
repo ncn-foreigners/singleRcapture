@@ -22,5 +22,5 @@ lower limit of confidence intervals
 }
 \description{
 A function that computes studentized confidence intervals
-for model coeficients
+for model coefficients
 }

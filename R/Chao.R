@@ -8,7 +8,6 @@
 #' linkinv - an inverse function of link \cr
 #' dlink - a 1st derivative of link function \cr
 #' mu.eta,variance - Expected Value and variance \cr
-#' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
 #' Where: \cr
@@ -20,11 +19,11 @@ chao <- function() {
   invlink <- function (x) {2 * exp(x)}
   dlink <- function(lambda) {1 / lambda}
 
-  mu.eta <- function(disp = NULL, eta) {
+  mu.eta <- function(disp = NULL, eta, type = "trunc") {
     1 / (1 + exp(-eta))
   }
 
-  variance <- function(disp = NULL, mu) {
+  variance <- function(disp = NULL, mu, type = "nontrunc") {
     mu * (1 - mu)
   }
 
@@ -85,15 +84,10 @@ chao <- function() {
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
-    NULL
-  }
-
-  aic <- function(y, mu, wt, dev) {
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
-    L1 <- mu / 2
-    -2 * -sum((z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))) * wt)
+    z <- y - 1
+    eta <- link(mu)
+    mu1 <- mu.eta(eta = eta)
+    sign(z - mu1) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
   pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
@@ -118,22 +112,24 @@ chao <- function() {
     f1 + f2
   }
 
-  R <- list(make_minusloglike = minusLogLike,
-            make_gradient = gradient,
-            make_hessian = hessian,
-            linkfun = link,
-            linkinv = invlink,
-            dlink = dlink,
-            mu.eta = mu.eta,
-            aic = aic,
-            link = "log",
-            valideta = function (eta) {TRUE},
-            variance = variance,
-            dev.resids = dev.resids,
-            validmu = validmu,
-            pointEst = pointEst,
-            popVar= popVar,
-            family = "chao")
-  class(R) <- "family"
-  R
+  structure(
+    list(
+      make_minusloglike = minusLogLike,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      linkfun = link,
+      linkinv = invlink,
+      dlink = dlink,
+      mu.eta = mu.eta,
+      link = "log",
+      valideta = function (eta) {TRUE},
+      variance = variance,
+      dev.resids = dev.resids,
+      validmu = validmu,
+      pointEst = pointEst,
+      popVar= popVar,
+      family = "chao"
+    ),
+    class = "family"
+  )
 }

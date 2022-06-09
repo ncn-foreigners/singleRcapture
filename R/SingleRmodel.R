@@ -56,6 +56,7 @@
 #' @importFrom stats optim
 #' @importFrom MASS glm.nb
 #' @importFrom stats pnorm
+#' @importFrom stats family
 #' @export
 estimate_popsize <- function(formula,
                              data,
@@ -121,47 +122,39 @@ estimate_popsize <- function(formula,
   } else {
     observed <- y
   }
-  
-  y <- observed
-  x <- as.matrix(variables)
-  if(sum(observed == 0) > 0) {
-    stop("Error in function estimate.popsize, data contains zero-counts")
-  }
-
-  if (!family$valideta(start) && !is.null(start)) {
-    stop("Invalid start parameter")
-  }
-
   if (!is.null(weights)) {
     weights0 <- prior.weights <- as.numeric(weights)
   } else {
     weights0 <- prior.weights <- 1
   }
   weights <- 1
+  
+  dataOriginal <- list(y = observed, x = as.matrix(variables), 
+                       wp = prior.weights, w = weights0)
+  
+  if(!all(observed > 0)) {
+    stop("Error in function estimate.popsize, data contains zero-counts")
+  }
+
+  if (!family$valideta(start) && !is.null(start)) {
+    stop("Invalid start parameter")
+  }
+  
+  n1 <- colnames(variables)
 
   if (family$family %in% c("zotpoisson", "zotnegbin", "zotgeom") &&
       1 %in% unique(observed)) {
-    cat("One counts detected in two truncated model.",
-        "In this model of estimation only counts =>2 are used.",
-        "One counts will be deleted and their number added to trcount",
-        sep = "\n")
-
     tempdata <- data.frame(observed, prior.weights, variables)
     control.pop.var$trcount <- control.pop.var$trcount + length(observed[observed == 1])
     tempdata <- tempdata[tempdata["observed"] > 1, ]
 
     observed <- tempdata[, 1]
     prior.weights <- tempdata[, 2]
-    
-    n1 <- colnames(variables)
+  
     variables <- data.frame(tempdata[, -c(1, 2)])
     colnames(variables) <- n1
   } else if (family$family == "chao" &&
              !(all(as.numeric(names(table(observed))) %in% c(1, 2)))) {
-    cat("Counts > 2 detected in chao model.
-        In this model of estimation only counts 1 and 2 are used.",
-        "Counts 3 4 5 .... will be deleted and their number added to trcount",
-        sep = "\n")
 
     tempdata <- data.frame(observed, prior.weights, variables)
     control.pop.var$trcount <- control.pop.var$trcount + length(observed[observed > 2])
@@ -169,17 +162,13 @@ estimate_popsize <- function(formula,
 
     observed <- tempdata[, 1]
     prior.weights <- tempdata[, 2]
-    n1 <- colnames(variables)
     variables <- data.frame(tempdata[, -c(1, 2)])
     colnames(variables) <- n1
   }
-
-  n1 <- colnames(variables)
   
   if (family$family == "zelterman") {
     # In zelterman model regression is indeed based only on 1 and 2 counts
     # but estimation is based on ALL counts
-    n1 <- colnames(variables)
     tempdata <- data.frame(observed, prior.weights, variables)
     tempdata <- tempdata[tempdata["observed"] == 1 | tempdata["observed"] == 2, ]
 
@@ -195,6 +184,8 @@ estimate_popsize <- function(formula,
     colnames(variables) <- n1
   }
   
+  dataRegression <- list(y = observed, x = as.matrix(variables), 
+                         wp = prior.weights, w = weights0)
 
   if(colnames(variables)[1] == "X.Intercept.") {
     colnames(variables)[1] <- "(Intercept)"
@@ -245,10 +236,10 @@ estimate_popsize <- function(formula,
     eta <- as.matrix(variables) %*% coefficients[-1]
   }
   
-  parameter <- family$linkinv(eta)
+  lambda <- family$linkinv(eta)
   
   if (family$family == "zelterman") {
-    parameter <- family$linkinv(as.matrix(x) %*% coefficients)
+    lambda <- family$linkinv(as.matrix(dataOriginal$x) %*% coefficients)
   }
 
   # Here do fitt a list or data.frame
@@ -275,30 +266,29 @@ estimate_popsize <- function(formula,
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
   aic <- 2 * (length(coefficients) - LOG)
   bic <- length(coefficients) * log(length(observed)) - 2 * LOG
-  deviance <- sum(family$dev.resids(y = observed, 
-                                    mu = parameter,
+  deviance <- sum(family$dev.resids(y = dataRegression$y, 
+                                    mu = fitt$link,
                                     disp = dispersion,
                                     wt = prior.weights) ** 2)
   # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
   pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
-  POP <- populationEstimate(y = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) observed else y,
-                            X = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) variables else x,
+  POP <- populationEstimate(y = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
+                            X = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
                             grad = grad,
                             hessian = hessian,
                             method = pop.var,
                             weights = prior.weights,
                             weights0 = weights0,
-                            parameter = parameter,
+                            lambda = lambda,
                             family = family,
                             dispersion = dispersion,
                             beta = coefficients,
                             control = control.pop.var)
-  
   structure(
     list(
-      y = y,
-      X = if (isTRUE(model.matrix)) x else NULL,
+      y = if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y,
+      X = if (isTRUE(model.matrix)) {if (family$family %in% c("chao", "zelterman")) dataRegression$x else dataOriginal$x} else NULL,
       formula = formula,
       call = match.call(),
       coefficients = coefficients,

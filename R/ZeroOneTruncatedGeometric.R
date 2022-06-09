@@ -8,7 +8,6 @@
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
 #' mu.eta,Variance - Expected Value and Variance \cr
-#' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
 #' Where: \cr
@@ -22,12 +21,12 @@ zotgeom <- function() {
     1 / lambda
   }
   
-  mu.eta <- function(eta, disp) {
+  mu.eta <- function(eta, disp, type = "trunc") {
     lambda <- invlink(eta)
     2 + lambda
   }
   
-  variance <- function(mu, disp) {
+  variance <- function(mu, disp, type = "nontrunc") {
     (((mu - 1) ** 3) / mu + 2 * mu - 1)
   }
   
@@ -94,11 +93,10 @@ zotgeom <- function() {
   }
   
   dev.resids <- function (y, mu, wt, disp = NULL) {
-    NULL
-  }
-  
-  aic <- function(y, mu, wt, dev) {
-    -2 * sum(wt * ((y - 2) * log(mu) - (y - 1) * log(1 + mu)))
+    eta <- log(mu)
+    mu1 <- mu.eta(eta = eta)
+    loghm1y <- ifelse(y > 2, log(y - 2), 0)
+    sign(y - mu1) * sqrt(-2 * wt * ((y - 2) * eta - (y - 1) * log(1 + mu1) - (y - 2) * loghm1y + (y - 1) * log(y - 1)))
   }
   
   pointEst <- function (disp, pw, lambda, contr = FALSE) {
@@ -133,22 +131,24 @@ zotgeom <- function() {
     f1 + f2
   }
   
-  R <- list(make_minusloglike = minusLogLike,
-            make_gradient = gradient,
-            make_hessian = hessian,
-            linkfun = link,
-            linkinv = invlink,
-            dlink = dlink,
-            mu.eta = mu.eta,
-            aic = aic,
-            link = "log",
-            valideta = function (eta) {TRUE},
-            variance = variance,
-            dev.resids = dev.resids,
-            validmu = validmu,
-            pointEst = pointEst,
-            popVar= popVar,
-            family = "zotgeom")
-  class(R) <- "family"
-  R
+  structure(
+    list(
+      make_minusloglike = minusLogLike,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      linkfun = link,
+      linkinv = invlink,
+      dlink = dlink,
+      mu.eta = mu.eta,
+      link = "log",
+      valideta = function (eta) {TRUE},
+      variance = variance,
+      dev.resids = dev.resids,
+      validmu = validmu,
+      pointEst = pointEst,
+      popVar= popVar,
+      family = "zotgeom"
+    ),
+    class = "family"
+  )
 }

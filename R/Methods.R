@@ -11,7 +11,7 @@
 #' 
 #' @method summary singleR
 #' @return Easy to read summary of regression and most important data from a singleR class
-#' @export
+#' @exportS3Method
 summary.singleR <- function(object, ...) {
   # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
   signif <- sapply(object$pValues, function(k) {
@@ -60,7 +60,7 @@ summary.singleR <- function(object, ...) {
 #'
 #' @return returns a vector of residuals of selected type
 #' @importFrom stats residuals
-#' @export
+#' @exportS3Method
 residuals.singleR <- function(object,
                               type = c("pearson",
                                        "response",
@@ -78,7 +78,7 @@ residuals.singleR <- function(object,
     working = data.frame("mu" = res[, 1] / mu[, 1],
                          "link" = res[, 2] / mu[, 2]),
     response = res,
-    pearson = (y - mu$mu)/ sqrt((1 - hatvalues(object)) * (1 + mu$link - mu$mu) * mu$mu),
+    pearson = (y - mu$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
     deviance = data.frame("mu" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts))
   )
   rs
@@ -92,7 +92,7 @@ residuals.singleR <- function(object,
 #'
 #' @method summary singleRmargin
 #' @return A chi squared test for comparison between fitted and observed marginal frequencies
-#' @export
+#' @exportS3Method
 summary.singleRmargin <- function(object, df = NULL,
                                   dropl5 = c("drop", 
                                              "group", 
@@ -146,7 +146,7 @@ summary.singleRmargin <- function(object, df = NULL,
 #' @return A covariance matrix for fitted coefficients obtained by inverting 
 #' analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
 #' with observed information matrix.
-#' @export
+#' @exportS3Method
 vcov.singleR <- function(object, ...) {
   solve(
     object$model$make_hessian(y = object$y, X = object$X, 
@@ -163,21 +163,49 @@ vcov.singleR <- function(object, ...) {
 #' @method hatvalues singleR
 #' @importFrom stats hatvalues
 #' @return TODO
-#' @export
+#' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  # only poisson is correct for now
-  W <- (model$fitt.values$link**2)/model$fitt.values$link
+  if (model$model$family %in% c("chao", "zelterman")) {
+    W <- model$prior.weights * (model$model$variance(mu = model$fitt.values$mu, type = "nontrunc"))
+  } else {
+    W <- model$prior.weights / (model$model$variance(mu = model$fitt.values$link, type = "nontrunc", disp = model$dispersion) * (model$model$dlink(model$fitt.values$link) ** 2))
+  }
+
   hatvector <- diag(
-    as.matrix(sqrt(W) * model$X) %*% 
-      solve(t(as.matrix(model$X)) %*% as.matrix(model$X * W)) %*% 
-      t(as.matrix(sqrt(W) * model$X))
+    tcrossprod(
+      x = as.matrix(model$X) %*% solve(crossprod(x = as.matrix(model$X), 
+                                                 y = as.matrix(model$X * W))),
+      y = as.matrix(W * model$X))
   )
   hatvector
+}
+#' dfbeta for singleRclass
+#' @title TODO
+#' @param model TODO
+#' @param ... TODO
+#' @description TODO
+#' 
+#' @method dfbeta singleR
+#' @importFrom stats dfbeta
+#' @return TODO
+#' @exportS3Method 
+dfbeta.singleR <- function(model, ...) {
+  if (model$model$family %in% c("chao", "zelterman")) {
+    W <- model$prior.weights * (model$model$variacne(mu = model$fitt.values$mu, type = "nontrunc"))
+  } else {
+    W <- model$prior.weights / (model$model$variance(mu = model$fitt.values$link, type = "nontrunc", disp = model$dispersion) * (model$model$dlink(model$fitt.values$link) ** 2))
+  }
+  #W <- model$weights
+  hatvector <- hatvalues.singleR(model, ...)
+  rp <- residuals.singleR(object = model, type = "pearson")
+  t(
+    solve(crossprod(x = model$X, (model$X * W))) %*% t(model$X) * sqrt(W) * rp / sqrt(1 - hatvector)
+  )
 }
 #' @title Confidence Intervals for Model Parameters
 #' 
 #' @description A function that computes studentized confidence intervals
-#' for model coeficients
+#' for model coefficients
 #' 
 #' @param object a fitted model object.
 #' @param parm names of parameters for which confidence intervals are to be 
@@ -188,8 +216,8 @@ hatvalues.singleR <- function(model, ...) {
 #' @method confint singleR
 #' @return An object with named columns that include upper and 
 #' lower limit of confidence intervals
-#' @export
-confint.singleR <- function(object, 
+#' @exportS3Method
+confint.singleR <- function(object,
                             parm, 
                             level = 0.95, 
                             ...) {
@@ -208,15 +236,15 @@ confint.singleR <- function(object,
 }
 
 # There is no need for doccumenting the following methods:
-
+#' @exportS3Method
+family.singleR <- function(object, ...) {
+  object$model
+}
+#' @exportS3Method 
 print.summarysingleRmargin <- function(x, ...) {
   cat("Test for Goodness of fit of a regression model:\n",
       "\n", sep = "")
   print(x$Test)
   cat("\n--------------------------------------------------------\n",
       "Cells with fitted frequencies of < 5 have been ", x$l5, "\n", sep = "")
-}
-
-family.singleR <- function(object, ...) {
-  object$model
 }

@@ -25,7 +25,7 @@ BugReports: https://github.com/ncn-foreigners/singleRcapture/issues
 Imports: 
     stats,
     MASS,
-    VGAM
+    lamW
 Suggests: 
     rmarkdown,
     knitr,

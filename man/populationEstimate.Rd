@@ -8,7 +8,7 @@ populationEstimate(
   y,
   X,
   grad,
-  parameter,
+  lambda,
   beta,
   weights = 1,
   weights0 = NULL,
@@ -26,7 +26,7 @@ populationEstimate(
 
 \item{grad}{A gradient of a model with respect to regression parameters}
 
-\item{parameter}{An estimated parameter for the model}
+\item{lambda}{An estimated lambda parameter for the model}
 
 \item{beta}{Estimated parameters of the regression model (optional)}
 

@@ -8,12 +8,12 @@
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
 #' mu.eta,Variance - Expected Value and Variance \cr
-#' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
 #' Where: \cr
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
+#' @importFrom stats uniroot
 #' @export
 ztnegbin <- function() {
   link <- log
@@ -22,31 +22,21 @@ ztnegbin <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(eta, disp) {
+  mu.eta <- function(eta, disp, type = "trunc") {
     A <- exp(disp)
     lambda <- invlink(eta)
-    pr <- (1 + A * lambda) ** (-1 / A)
-    lambda / (1 - pr)
+    switch (type,
+      nontrunc = lambda,
+      trunc = lambda / (1 - (1 + A * lambda) ** (-1 / A))
+    )
   }
 
-  variance <- function(mu, disp) {
+  variance <- function(mu, disp, type = "nontrunc") {
     A <- exp(disp)
-    mu * (1 + A * mu) - mu * A
-  }
-
-  # These three functions are used only for the purposes of computation
-  compgamma <- function(y, alpha) {
-    temp <- 0:(y-1)
-    sum(log(temp + 1 / alpha))
-  }
-  compdigamma <- function(y, alpha) {
-    temp <- 0:(y-1)
-    sum(-(alpha ** (-2)) / (temp + 1 / alpha))
-  }
-
-  comptrigamma <- function(y, alpha) {
-    temp <- 0:(y-1)
-    sum(- (temp ** 2) / (((1 + temp * alpha)) ** 2))
+    switch (type,
+      nontrunc = mu * (1 + A * mu),
+      trunc = (mu + A * (mu ** 2) - A * (mu ** 2) * ((1 + A * mu) ** (-1 / A))) / ((1 - (1 + A * mu) ** (-1 / A)) ** 2)
+    )
   }
 
   minusLogLike <- function(y, X, weight = 1) {
@@ -64,9 +54,9 @@ ztnegbin <- function() {
       lambda <- exp(eta)
       M <- 1 + lambda / z
 
-      -sum(weight * (sapply(y, FUN = {function (y) compgamma(y, alpha = alpha)})
-           -log(factorial(y)) - (y + z) * log(M) +
-           y * log(lambda / z) - log(1 - (M ** (-z)))))
+      -sum(weight * (lgamma(y + z) - lgamma(z) -
+      log(factorial(y)) - (y + z) * log(M) +
+      y * log(lambda / z) - log(1 - (M ** (-z)))))
     }
   }
 
@@ -92,10 +82,14 @@ ztnegbin <- function() {
       cp3 <- S ** (-z)
 
       # log(alpha) derivative
-      G0 <- sum(weight * (cp1 +
-                sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
-                y * z - (y + z) * cp2 +
-                G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
+      #G0 <- sum(weight * (cp1 +
+      #          sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
+      #          y * z - (y + z) * cp2 +
+      #          G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
+      G0 <- sum(weight * (cp1 -
+                            (digamma(y + z) - digamma(z)) * (z ** 2) +
+                            y * z - (y + z) * cp2 +
+                            G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
 
       # Beta derivative
       G1 <- t(((y + (lambda - y) * cp3) * S / (1 - cp3))  * weight) %*% X
@@ -135,19 +129,33 @@ ztnegbin <- function() {
       cp11 <- (S / M)
 
       # log(alpha) derivative
-      G0 <- sum(weight * (cp1 + y * z - (y + z) * cp2 +
-                sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
-                G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
+      #G0 <- sum(weight * (cp1 +
+      #          sapply(y, FUN = {function (y) compdigamma(y, alpha = alpha)}) +
+      #          y * z - (y + z) * cp2 +
+      #          G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
+      G0 <- sum(weight * (cp1 -
+                            (digamma(y + z) - digamma(z)) * (z ** 2) +
+                            y * z - (y + z) * cp2 +
+                            G * (1 / cp3) * (cp1 - z * cp2)) * alpha)
 
       # 2nd log(alpha) derivative
+      #G00 <- sum((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) +
+      #            sapply(y, FUN = {function (y) comptrigamma(y, alpha = alpha)}) +
+      #            (y + z) * (lambda ** 2) * cp6 +
+      #            (z ** 3) * 2 * cp8 * cp11 +
+      #            cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
+      #            cp8 / (M ** 2) +
+      #            cp4 * lambda * log(cp9) * cp11 +
+      #            cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2) * weight)
       G00 <- sum((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) +
-                  sapply(y, FUN = {function (y) comptrigamma(y, alpha = alpha)}) +
-                  (y + z) * (lambda ** 2) * cp6 +
-                  (z ** 3) * 2 * cp8 * cp11 +
-                  cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
-                  cp8 / (M ** 2) +
-                  cp4 * lambda * log(cp9) * cp11 +
-                  cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2) * weight)
+                    (trigamma(y + z) - trigamma(z)) * (z ** 4) -
+                    (digamma(y + z) - digamma(z)) * (z ** 2) +
+                    (y + z) * (lambda ** 2) * cp6 +
+                    (z ** 3) * 2 * cp8 * cp11 +
+                    cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
+                    cp8 / (M ** 2) +
+                    cp4 * lambda * log(cp9) * cp11 +
+                    cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2) * weight)
 
       # Correction for taking the derivative with respect to log(alpha)
       G00 <- G00 + G0
@@ -181,17 +189,24 @@ ztnegbin <- function() {
   }
 
   validmu <- function(mu) {
-    (sum(!is.finite(mu)) == 0) && all(0 < mu)
+    all(is.finite(mu)) && all(0 < mu)
   }
 
   dev.resids <- function (y, mu, wt, disp = NULL) {
-    NULL
-  }
-
-  aic <- function(y, mu, wt, dev) {
-    -2 * sum((log(gamma(y + 1 / dev)) - log(gamma(1 / dev)) -
-            log(factorial(y)) - (y + 1 / dev) * log(1 + dev * mu) +
-            y * log(dev * mu) - log(1 - (1 + dev * mu) ** (-1 / dev))) * wt)
+    eta <- log(mu)
+    disp1 <- exp(disp)
+    mu1 <- mu.eta(eta = eta, disp = disp)
+    a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = disp) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
+    hm1y <- y
+    hm1y[y == 1] <- -16 # This theoretically outght to be -Inf but that would cause an error this is basically the lowest value that wont cause any
+                           # errors. It approximates mu.eta(eta = hm1y) for its values so well it probably wont cause any incorrect decisions.
+                           # Manually setting the values of to-be logarithms to zero for values with y = 1 also causes errors.
+                           # This is an imperfect solution but it will do for now.
+    hm1y[y > 1] <- sapply(y[y > 1], FUN = a)
+    loghm1ytdisp <- log(disp1 * exp(hm1y))
+    logprobhm1y <- log(1 - ((1 + disp1 * exp(hm1y)) ** (-1 / disp1)))
+    sign(y - mu1) * sqrt(-2 * wt * (-(y + 1 / disp1) * log(1 + mu * disp1) + y * log(mu * disp1) - log(1 - ((1 + mu * disp1) ** (-1/disp1))) +
+                                    (y + 1 / disp1) * log(1 + exp(hm1y) * disp1) - y * loghm1ytdisp + logprobhm1y))
   }
 
   pointEst <- function (disp, pw, lambda, contr = FALSE) {
@@ -230,22 +245,24 @@ ztnegbin <- function() {
     f1 + f2
   }
 
-  R <- list(make_minusloglike = minusLogLike,
-            make_gradient = gradient,
-            make_hessian = hessian,
-            linkfun = link,
-            linkinv = invlink,
-            dlink = dlink,
-            mu.eta = mu.eta,
-            aic = aic,
-            link = "log",
-            valideta = function (eta) {TRUE},
-            variance = variance,
-            dev.resids = dev.resids,
-            validmu = validmu,
-            pointEst = pointEst,
-            popVar= popVar,
-            family = "ztnegbin")
-  class(R) <- "family"
-  R
+  structure(
+    list(
+      make_minusloglike = minusLogLike,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      linkfun = link,
+      linkinv = invlink,
+      dlink = dlink,
+      mu.eta = mu.eta,
+      link = "log",
+      valideta = function (eta) {TRUE},
+      variance = variance,
+      dev.resids = dev.resids,
+      validmu = validmu,
+      pointEst = pointEst,
+      popVar= popVar,
+      family = "ztnegbin"
+    ),
+    class = "family"
+  )
 }

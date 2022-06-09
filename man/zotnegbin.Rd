@@ -15,7 +15,6 @@ linkfun - a link function to connect between linear predictor and model paramete
 linkinv - an inverse function of link \cr
 Dlink - a 1st derivative of link function \cr
 mu.eta,Variance - Expected Value and Variance \cr
-aic - for aic computation\cr
 valedmu, valideta - for checking if regression arguments and valid\cr
 family - family name\cr
 Where: \cr

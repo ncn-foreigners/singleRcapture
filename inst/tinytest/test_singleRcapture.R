@@ -8,14 +8,32 @@ expect_equal(
         digits = 0),
   18346
 )
+expect_equal(
+  round(estimate_popsize(formula = TOTAL_SUB ~ .,
+                         model = "ztpoisson",
+                         method = "mle",
+                         pop.var = "analytic",
+                         data = farmsubmission)$populationSize$pointEstimate,
+        digits = 0),
+  18346
+)
 expect_equivalent(
   c(17932, 18760),
   as.numeric(round(estimate_popsize(formula = TOTAL_SUB ~ .,
                    model = "ztpoisson",
-                   method = "mle",
+                   method = "robust",
                    pop.var = "analytic",
                    data = farmsubmission)$populationSize$confidenceInterval[1, ],
         digits = 0))
+)
+expect_equivalent(
+  c(17932, 18760),
+  as.numeric(round(estimate_popsize(formula = TOTAL_SUB ~ .,
+                                    model = "ztpoisson",
+                                    method = "mle",
+                                    pop.var = "analytic",
+                                    data = farmsubmission)$populationSize$confidenceInterval[1, ],
+                   digits = 0))
 )
 expect_equivalent(
   as.numeric(round(estimate_popsize(formula = capture ~ .,
@@ -24,6 +42,15 @@ expect_equivalent(
                          pop.var = "analytic",
                          method = "robust")$populationSize$confidenceInterval[1, ],
         digits = 0)),
+  c(9983, 22394)
+)
+expect_equivalent(
+  as.numeric(round(estimate_popsize(formula = capture ~ .,
+                                    data = netherlandsimmigrant,
+                                    model = "zelterman",
+                                    pop.var = "analytic",
+                                    method = "mle")$populationSize$confidenceInterval[1, ],
+                   digits = 0)),
   c(9983, 22394)
 )
 expect_error(
