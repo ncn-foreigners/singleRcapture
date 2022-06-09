@@ -8,7 +8,6 @@
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
 #' mu.eta,Variance - Expected Value and Variance \cr
-#' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
 #' Where: \cr
@@ -22,12 +21,12 @@ zotpoisson <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(disp = NULL, eta) {
+  mu.eta <- function(disp = NULL, eta, type = "trunc") {
     lambda <- invlink(eta)
     (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
   }
 
-  variance <- function(disp = NULL, mu) {
+  variance <- function(disp = NULL, mu, type = "nontrunc") {
     mu
   }
 
@@ -82,12 +81,16 @@ zotpoisson <- function() {
   }
 
   dev.resids <- function(y, mu, wt, disp = NULL) {
-    NULL
-  }
-
-  aic <- function(y, mu, wt, dev) {
-    -2 * sum((y * log(mu) - mu - log(1 - exp(-mu) - mu * exp(-mu)) -
-                log(factorial(y))) * wt)
+    eta <- log(mu)
+    mu1 <- mu.eta(eta = eta, disp = disp)
+    a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = NULL) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
+    loghm1y <- y
+    loghm1y[y == 2] <- -Inf
+    loghm1y[y > 2] <- sapply(y[y > 2], FUN = a)
+    loghm1y[y == 2] <- -10
+    hm1y <- exp(loghm1y)
+    log1mexphm1y <- log(1 - exp(-hm1y) - hm1y * exp(-hm1y))#ifelse(y > 2, log(1 - exp(-hm1y) - hm1y * exp(-hm1y)), 0)
+    sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu) - mu * exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
   pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
@@ -115,22 +118,24 @@ zotpoisson <- function() {
     f1 + f2
   }
 
-  R <- list(make_minusloglike = minusLogLike,
-            make_gradient = gradient,
-            make_hessian = hessian,
-            linkfun = link,
-            linkinv = invlink,
-            dlink = dlink,
-            mu.eta = mu.eta,
-            aic = aic,
-            link = "log",
-            valideta = function (eta) {TRUE},
-            variance = variance,
-            dev.resids = dev.resids,
-            validmu = validmu,
-            pointEst = pointEst,
-            popVar= popVar,
-            family = "zotpoisson")
-  class(R) <- "family"
-  R
+  structure(
+    list(
+      make_minusloglike = minusLogLike,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      linkfun = link,
+      linkinv = invlink,
+      dlink = dlink,
+      mu.eta = mu.eta,
+      link = "log",
+      valideta = function (eta) {TRUE},
+      variance = variance,
+      dev.resids = dev.resids,
+      validmu = validmu,
+      pointEst = pointEst,
+      popVar= popVar,
+      family = "zotpoisson"
+    ),
+    class = "family"
+  )
 }

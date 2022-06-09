@@ -8,7 +8,6 @@
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
 #' mu.eta,Variance - Expected Value and Variance \cr
-#' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
 #' Where: \cr
@@ -22,13 +21,20 @@ ztgeom <- function() {
     1 / lambda
   }
   
-  mu.eta <- function(disp = NULL, eta) {
-    (1 + exp(eta))
+  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    switch (type,
+      nontrunc = lambda,
+      trunc = 1 + lambda
+    )
   }
   
-  variance <- function(disp = NULL, mu) {
+  variance <- function(disp = NULL, mu, type = "nontrunc") {
     #(((mu - 1) ** 3) / mu + 2 * mu - 1)
-    (mu ** 2 - mu - 1 / mu + 2)
+    switch (type,
+      nontrunc = mu ** 2 - mu - 1 / mu + 2,
+      trunc = (mu + 1) / mu
+    )
   }
   
   minusLogLike <- function(y, X, weight = 1) {
@@ -94,11 +100,12 @@ ztgeom <- function() {
   }
   
   dev.resids <- function (y, mu, wt, disp = NULL) {
-    NULL
-  }
-  
-  aic <- function(y, mu, wt, dev) {
-    -2 * sum(wt * ((y - 1) * log(mu) - y * log(1 + mu)))
+    eta <- log(mu)
+    mu1 <- mu.eta(eta = eta)
+    hm1y <- y - 1 # thats an analytic inverse for geometric
+    #log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
+    loghm1y <- ifelse(y > 1, log(hm1y), 0)
+    sign(y - mu1) * sqrt(-2 * wt * ((y - 1) * eta - y * log(mu1) - (y - 1) * loghm1y + y * log(y)))
   }
   
   pointEst <- function (disp, pw, lambda, contr = FALSE) {
@@ -125,22 +132,24 @@ ztgeom <- function() {
   }
   
   
-  R <- list(make_minusloglike = minusLogLike,
-            make_gradient = gradient,
-            make_hessian = hessian,
-            linkfun = link,
-            linkinv = invlink,
-            dlink = dlink,
-            mu.eta = mu.eta,
-            aic = aic,
-            link = "log",
-            valideta = function (eta) {TRUE},
-            variance = variance,
-            dev.resids = dev.resids,
-            validmu = validmu,
-            pointEst = pointEst,
-            popVar= popVar,
-            family = "ztgeom")
-  class(R) <- "family"
-  R
+  structure(
+    list(
+      make_minusloglike = minusLogLike,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      linkfun = link,
+      linkinv = invlink,
+      dlink = dlink,
+      mu.eta = mu.eta,
+      link = "log",
+      valideta = function (eta) {TRUE},
+      variance = variance,
+      dev.resids = dev.resids,
+      validmu = validmu,
+      pointEst = pointEst,
+      popVar= popVar,
+      family = "ztgeom"
+    ),
+    class = "family"
+  )
 }

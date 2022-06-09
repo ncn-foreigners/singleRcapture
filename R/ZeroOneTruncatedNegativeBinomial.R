@@ -8,7 +8,6 @@
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
 #' mu.eta,Variance - Expected Value and Variance \cr
-#' aic - for aic computation\cr
 #' valedmu, valideta - for checking if regression arguments and valid\cr
 #' family - family name\cr
 #' Where: \cr
@@ -22,7 +21,7 @@ zotnegbin <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(eta, disp) {
+  mu.eta <- function(eta, disp, type = "trunc") {
     A <- exp(disp)
     lambda <- invlink(eta)
     Pr <- (1 + A * lambda) ** (-1 / A)
@@ -31,24 +30,9 @@ zotnegbin <- function() {
     G
   }
 
-  variance <- function(mu, disp) {
+  variance <- function(mu, disp, type = "nontrunc") {
     A <- exp(disp)
     mu * (1 + A * mu) - A * mu
-  }
-
-  # These three functions are used only for the purposes of computation
-  compgamma <- function(y, alpha) {
-    temp <- 0:(y - 1)
-    sum(log(temp + 1 / alpha))
-  }
-  compdigamma <- function(y, alpha) {
-    temp <- 0:(y - 1)
-    sum(-(alpha ** (-2)) / (temp + 1 / alpha))
-  }
-
-  compsecond <- function(y, alpha) {
-    temp <- 0:(y - 1)
-    sum(temp / (((1 + temp * alpha)) ** 2))
   }
 
   minusLogLike <- function(y, X, weight = 1) {
@@ -67,9 +51,9 @@ zotnegbin <- function() {
       S <- 1 / (1 + lambda / z)
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
 
-      -sum(weight * (sapply(y, FUN = {function (y) compgamma(y, alpha = alpha)})
-           - log(factorial(y)) - (y + z) * log(1 + lambda / z)
-           + y * log(lambda / z) - log(prob)))
+      -sum(weight * (lgamma(y + z) - lgamma(z) -
+      log(factorial(y)) - (y + z) * log(1 + lambda / z)
+      + y * log(lambda / z) - log(prob)))
     }
   }
 
@@ -99,8 +83,7 @@ zotnegbin <- function() {
       G0 <- sum((cp1 - alpha * (y + z) * cp2 -
                 ((S ** z) * (z * log(S) + cp2) - lambda *
                 (S ** (1 + z)) * (cp1 + cp3 * cp2)) / prob +
-                y + alpha * sapply(y,
-                FUN = {function (y) compdigamma(y, alpha = alpha)})) * weight)
+                y - (digamma(y + z) - digamma(z)) * z) * weight)
       # Beta derivative
       G1 <- t(X) %*% (weight * (y - alpha * (y + z) * cp2 +
                       lambda * cp3 * lambda *
@@ -159,15 +142,15 @@ zotnegbin <- function() {
 
       # 2nd log(alpha) derivative
 
-      G00 <- sum(weight * alpha * sapply(y,
-             FUN = {function (y) compsecond(y, alpha = alpha)}) +
+      G00 <- sum(weight * ((trigamma(y + z) - trigamma(z)) * (z ** 2) + 
+            (digamma(y + z) - digamma(z)) * z +
              z * (((M ** cp26) * cp5 * (cp5 * (2 - cp26) + cp15 * cp3)) +
              cp22 * (cp5 * cp25 + cp15 * cp7) -
              2 * cp21 + cp9 * (M ** (cp26 - 1)) +
              cp22 - cp23) / (M * cp18) -
              z * cp24 * (cp8 * (cp25 * cp5 + cp15 * cp7) - cp9) /
              (M * (cp18 ** 2)) - z * (cp5 * cp10 - cp21 + cp22 - cp23) /
-             (M * cp18) - lambda * cp24 / (cp16 * cp18))
+             (M * cp18) - lambda * cp24 / (cp16 * cp18)))
 
       # mixed derivative
       term <- (-alpha * (y + z) * S + lambda * cp11 * (y + z) * (1 / cp16) +
@@ -204,18 +187,18 @@ zotnegbin <- function() {
   }
 
   dev.resids <- function (y, mu, wt, disp = NULL) {
-    NULL
-  }
-
-  aic <- function(y, mu, wt, dev) {
-    S <- 1 / (1 + mu / dev)
-    prob <- S ** dev
-    prob <- prob + mu * (S ** (1 + dev))
-    prob <- 1 - prob
-    -2 * sum(wt * (sapply(y,
-    FUN = {function (y) compgamma(y, alpha = 1 / dev)})
-    -log(factorial(y)) - (y + dev) * log(1 + mu / dev) +
-    y * log(mu / dev) - log(prob)))
+    eta <- log(mu)
+    disp1 <- exp(disp)
+    mu1 <- mu.eta(eta = eta, disp = disp)
+    a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = disp) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
+    loghm1y <- y
+    loghm1y[y == 2] <- -11
+    loghm1y[y > 2] <- sapply(y[y > 2], FUN = a)
+    h1my <- exp(loghm1y)
+    logh1mydivdisp1 <- ifelse(y > 2, log(h1my / disp1), 0)
+    logprobdey <- ifelse(y > 2, log(1 - (1 + disp1 * h1my) ** (-1 / disp1) - h1my * ((1 + disp1 * h1my) ** (- 1 - 1 / disp1))), 0)
+    sign(y - mu1) * sqrt(-2 * wt * (-(y + 1 / disp1) * log(1 + mu * disp1) + y * log(mu / disp1) - log(1 - (1 + disp1 * mu) ** (-1 / disp1) - mu * ((1 + disp1 * mu) ** (- 1 - 1 / disp1))) +
+                                     (y + 1 / disp1) * log(1 + h1my * disp1) - y * logh1mydivdisp1 + logprobdey))
   }
 
   pointEst <- function (disp, pw, lambda, contr = FALSE) {
@@ -259,22 +242,24 @@ zotnegbin <- function() {
     f1 + f2
   }
 
-  R <- list(make_minusloglike = minusLogLike,
-            make_gradient = gradient,
-            make_hessian = hessian,
-            linkfun = link,
-            linkinv = invlink,
-            dlink = dlink,
-            mu.eta = mu.eta,
-            aic = aic,
-            link = "log",
-            valideta = function (eta) {TRUE},
-            variance = variance,
-            dev.resids = dev.resids,
-            validmu = validmu,
-            pointEst = pointEst,
-            popVar= popVar,
-            family = "zotnegbin")
-  class(R) <- "family"
-  R
+  structure(
+    list(
+      make_minusloglike = minusLogLike,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      linkfun = link,
+      linkinv = invlink,
+      dlink = dlink,
+      mu.eta = mu.eta,
+      link = "log",
+      valideta = function (eta) {TRUE},
+      variance = variance,
+      dev.resids = dev.resids,
+      validmu = validmu,
+      pointEst = pointEst,
+      popVar= popVar,
+      family = "zotnegbin"
+    ),
+    class = "family"
+  )
 }

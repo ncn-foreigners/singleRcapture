@@ -1,27 +1,26 @@
-#' summary.Model
-#'
-#' @details Describes an object of model class representing generalized linear regression
+#' @title summary.singleR
+#' @description 
+#' Method for class singleR, unlike glm and lm standard errors are 
+#' needed to estimate population size in main function, 
+#' so this only prints results and no object is returned.
+#' 
+#' @details Description of an object with class singleR, focusing on the associated 
+#' regression model and population size estimation performed
 #' @param object Object for which method is applied summarized
 #' @param ... other arguments to be passed to other methods
-#' @return Easy to read summary of regression and most important data from a 'SingleR' class
-#' @export
+#' 
+#' @method summary singleR
+#' @return Easy to read summary of regression and most important data from a singleR class
+#' @exportS3Method
 summary.singleR <- function(object, ...) {
-  signif <- c()
-  for (k in object$pValues) {
-    if (k <= 2e-16) {
-      signif <- c(signif, "****")
-    } else if (k <= .001) {
-      signif <- c(signif, "***")
-    } else if (k <= .01) {
-      signif <- c(signif, "**")
-    } else if (k <= .05){
-      signif <- c(signif, "*")
-    } else if (k <= .1){
-      signif <- c(signif, ".")
-    } else {
-      signif <- c(signif, "")
-    }
-  }
+  # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
+  signif <- sapply(object$pValues, function(k) {
+    ifelse(k <= 2e-16, "****",
+    ifelse(k <= .001, "***",
+    ifelse(k <= .01, "**", 
+    ifelse(k <= .05, "*",
+    ifelse(k <= .1, ".", "")))))
+    })
   ob <- data.frame(round(object$coefficients, digits = 3),
                    round(object$standard_errors, digits = 3),
                    round(object$wValues, digits = 2),
@@ -31,7 +30,7 @@ summary.singleR <- function(object, ...) {
 
   print(object$call)
   cat("\nResponse Residuals:\n")
-  print(summary(c(object$residuals)))
+  print(summary(c(object$residuals$mu)))
   cat("\nCoefficients:\n")
   print(ob)
   cat("-----------------------",
@@ -40,15 +39,14 @@ summary.singleR <- function(object, ...) {
   cat("\nAIC: ", object$aic,
       "\nBIC: ", object$bic,
       "\nDeviance: ", object$deviance,
-      "\n\nLog-likelihood: ", object$logL, " on ", object$df.residual,
-      "Degrees of freedom ",
+      "\n\nLog-likelihood: ", object$logL, " on ", object$df.residual, " Degrees of freedom ",
       "\nNumber of iterations: ", object$iter[1],
       "\n-----------------------",
       "\nPopulation size estimation results: ",
       "\nPoint estimate ", object$populationSize$pointEstimate,
-      "\nVariance ", object$populationSize$variance,
+      #if std.error is printed variance is probably not needed
       "\nStd. Error ", sqrt(object$populationSize$variance),
-      "\n", object$populationSize$control$signiflevel * 100, "% CI:\n", sep = "")
+      "\n", (1 - object$populationSize$control$signiflevel) * 100, "% CI:\n", sep = "")
   print(object$populationSize$confidenceInterval)
 }
 
@@ -57,35 +55,32 @@ summary.singleR <- function(object, ...) {
 #' @details S3 method for singleR class
 #'
 #' @param object TODO
-#' @param type TODO
+#' @param type type of residuals to be returned
 #' @param ... TODO
 #'
-#' @return returns a vector of residuals of
-#' selected type
+#' @return returns a vector of residuals of selected type
 #' @importFrom stats residuals
-#' @export
+#' @exportS3Method
 residuals.singleR <- function(object,
                               type = c("pearson",
                                        "response",
                                        "working",
-                                       "partial",
                                        "deviance"),
                               ...) {
   type <- match.arg(type)
   res <- object$residuals
   disp <- object$dispersion
-  wts <- object$weights
+  wts <- object$prior.weights
   mu <- object$fitt.values
   y <- object$y
-  rs <- switch(type,
-               working = res / mu,
-               response = res,
-               raw = res,
-               pearson = res * sqrt(wts / object$model$variance(mu = mu, 
-                                                                disp = disp)),
-               deviance = object$model$dev.resids(y = y, mu = mu,
-                                                  disp = disp,
-                                                  wt = wts))
+  rs <- switch(
+    type,
+    working = data.frame("mu" = res[, 1] / mu[, 1],
+                         "link" = res[, 2] / mu[, 2]),
+    response = res,
+    pearson = (y - mu$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
+    deviance = data.frame("mu" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts))
+  )
   rs
 }
 #' Summary for marginal frequencies
@@ -95,14 +90,15 @@ residuals.singleR <- function(object,
 #' @param dropl5 boolean value indicating whether to group bins with frequencies < 5, drop them or do nothing
 #' @param ... Currently does nothing
 #'
+#' @method summary singleRmargin
 #' @return A chi squared test for comparison between fitted and observed marginal frequencies
-#' @export
+#' @exportS3Method
 summary.singleRmargin <- function(object, df = NULL,
                                   dropl5 = c("drop", 
                                              "group", 
                                              "no"), 
                                   ...) {
-  if (length(dropl5) > 1) {dropl5 <- "no"}
+  dropl5 <- match.arg(dropl5)
   y <- object$y
   A <- object$table[names(y)]
   if ((is.null(df)) && (object$df < 1)) {
@@ -139,34 +135,116 @@ summary.singleRmargin <- function(object, df = NULL,
   )
 }
 
-#' Print method for summarysingleRmargin classs
-#'
-#' @param x object of class summarysingleRmargin
-#' @param ... Currently does nothing
-#'
-#' @return print of tests done by summary.singleRmargin
-#' @export
+#' vcov method for singleR class
+#' @title vcov method for singleR class
+#' @param object object of clas singleRclass
+#' @param ... variables to pass to solve
+#' @description Returns a estimated covariance matrix for model coefficients
+#' calculated from analytic hessian.
+#' 
+#' @method vcov singleR
+#' @return A covariance matrix for fitted coefficients obtained by inverting 
+#' analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
+#' with observed information matrix.
+#' @exportS3Method
+vcov.singleR <- function(object, ...) {
+  solve(
+    object$model$make_hessian(y = object$y, X = object$X, 
+    weight = object$prior.weights)(object$coefficients),
+    ...
+  )
+}
+#' Hat values for singleRclass
+#' @title Hat values for singleRclass
+#' @param model object of clas singleRclass
+#' @param ... additional parameters to pass to other methods
+#' @description TODO
+#' 
+#' @method hatvalues singleR
+#' @importFrom stats hatvalues
+#' @return TODO
+#' @exportS3Method 
+hatvalues.singleR <- function(model, ...) {
+  if (model$model$family %in% c("chao", "zelterman")) {
+    W <- model$prior.weights * (model$model$variance(mu = model$fitt.values$mu, type = "nontrunc"))
+  } else {
+    W <- model$prior.weights / (model$model$variance(mu = model$fitt.values$link, type = "nontrunc", disp = model$dispersion) * (model$model$dlink(model$fitt.values$link) ** 2))
+  }
+
+  hatvector <- diag(
+    tcrossprod(
+      x = as.matrix(model$X) %*% solve(crossprod(x = as.matrix(model$X), 
+                                                 y = as.matrix(model$X * W))),
+      y = as.matrix(W * model$X))
+  )
+  hatvector
+}
+#' dfbeta for singleRclass
+#' @title TODO
+#' @param model TODO
+#' @param ... TODO
+#' @description TODO
+#' 
+#' @method dfbeta singleR
+#' @importFrom stats dfbeta
+#' @return TODO
+#' @exportS3Method 
+dfbeta.singleR <- function(model, ...) {
+  if (model$model$family %in% c("chao", "zelterman")) {
+    W <- model$prior.weights * (model$model$variacne(mu = model$fitt.values$mu, type = "nontrunc"))
+  } else {
+    W <- model$prior.weights / (model$model$variance(mu = model$fitt.values$link, type = "nontrunc", disp = model$dispersion) * (model$model$dlink(model$fitt.values$link) ** 2))
+  }
+  #W <- model$weights
+  hatvector <- hatvalues.singleR(model, ...)
+  rp <- residuals.singleR(object = model, type = "pearson")
+  t(
+    solve(crossprod(x = model$X, (model$X * W))) %*% t(model$X) * sqrt(W) * rp / sqrt(1 - hatvector)
+  )
+}
+#' @title Confidence Intervals for Model Parameters
+#' 
+#' @description A function that computes studentized confidence intervals
+#' for model coefficients
+#' 
+#' @param object a fitted model object.
+#' @param parm names of parameters for which confidence intervals are to be 
+#' computed, if missing all parameters will be considered
+#' @param level confidence level for intervals.
+#' @param ... additional argument(s) for methods.
+#' 
+#' @method confint singleR
+#' @return An object with named columns that include upper and 
+#' lower limit of confidence intervals
+#' @exportS3Method
+confint.singleR <- function(object,
+                            parm, 
+                            level = 0.95, 
+                            ...) {
+  if (missing(parm)) {
+    coef <- object$coefficients
+    std <- object$standard_errors
+  } else {
+    coef <- object$coefficients[parm]
+    std <- object$standard_errors[parm]
+  }
+  sc <- qnorm(p = 1 - (1 - level) / 2)
+  res <- data.frame(coef - sc * std, coef + sc * std)
+  colnames(res) <- c(paste0(100 * (1 - level) / 2, "%"),
+                     paste0(100 * (1 - (1 - level) / 2), "%"))
+  res
+}
+
+# There is no need for doccumenting the following methods:
+#' @exportS3Method
+family.singleR <- function(object, ...) {
+  object$model
+}
+#' @exportS3Method 
 print.summarysingleRmargin <- function(x, ...) {
   cat("Test for Goodness of fit of a regression model:\n",
       "\n", sep = "")
   print(x$Test)
   cat("\n--------------------------------------------------------\n",
       "Cells with fitted frequencies of < 5 have been ", x$l5, "\n", sep = "")
-}
-
-#' vcov method for singleR class
-#' @title vcov method for singleR class
-#' @param object object of clas singleRclass
-#' @param ... variables to pass to other methods
-#'
-#' @method vcov singleR
-#' @return A covariance matrix for fitted coefficients obtained by inverting 
-#' analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
-#' with observed information matrix.
-#' @export
-vcov.singleR <- function(object, ...) {
-  solve(
-    object$model$make_hessian(y = object$y, X = object$X, 
-                              weight = object$prior.weights)(object$coefficients)
-  )
 }

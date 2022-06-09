@@ -33,7 +33,7 @@ marginalFreq <- function(object,
   "zotgeom"    = function(x, lambda, disp) {stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))})
 
   
-  res <- colSums(t(sapply(object$fitt.values,
+  res <- colSums(t(sapply(object$fitt.values$link,
           FUN = function(y) {probFun(x = range,
                                      lambda = y,
                                      disp = object$dispersion)})))

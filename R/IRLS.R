@@ -37,7 +37,7 @@ IRLS <- function(dependent,
   linkinv <- family$linkinv
   funcZ <- function(mu, y, eta) {eta + (y - mu) / mu}
   Wfun <- function(mu, prior, varY, eta) {prior * (mu ** 2) / varY}
-
+  
   if (famName %in% c("chao", "zelterman")) {
     dependent <- dependent - 1
     # Modification to functions in IRLS to account for logit link in fitting
@@ -45,16 +45,16 @@ IRLS <- function(dependent,
     funcZ <- function(mu, y, eta) {eta + (y - mu) / variance(mu = mu, disp)}
     Wfun <- function(mu, prior, varY, eta) {prior * varY}
   }
-
+  
   iter <- 1
   beta <- start
-
+  
   if (!is.null(weights)) {
     prior <- as.numeric(weights)
   } else {
     prior <- 1
   }
-
+  
   W <- prior
   loglike <- family$make_minusloglike(y = dependent,
                                       X = covariates,
@@ -65,7 +65,7 @@ IRLS <- function(dependent,
   temp <- c(disp, beta)
   L <- -loglike(temp)
   dispPrev <- Inf
-
+  
   while (!converged && (iter < maxiter)) {
     if (famName %in% c("ztnegbin", "zotnegbin") &&
         isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
@@ -80,19 +80,19 @@ IRLS <- function(dependent,
                            method = "Brent",
                            control = list(reltol = .Machine$double.eps))$par
     }
-
+    
     WPrev <- W
     tempPrev <- temp
     betaPrev <- beta
     LPrev <- L
-
+    
     eta <- covariates %*% beta
     mu <- mu.eta(eta = eta, disp)
     if (!validmu(mu)) {
       stop("Fit error infinite values reached consider another model,
             mu is too close to zero/infinity")
     }
-
+    
     varY <- variance(mu = mu, disp)
     Z <- funcZ(mu = mu, y = dependent, eta = eta)
     W <- as.numeric(Wfun(mu = mu, prior = prior, 
@@ -104,26 +104,25 @@ IRLS <- function(dependent,
     A <- t(covariates) %*% (covariates * W)
     B <- t(covariates) %*% (Z * W)
     beta <- solve(A, B, tol = .Machine$double.eps)
-
+    
     temp <- c(disp, beta)
     L <- -loglike(temp)
 
-    #print(L - LPrev)
-    converged <- (((L - LPrev) < eps) || (max(abs(beta - betaPrev)) < eps))
-
+    converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
+    
     if (!converged) {
       iter <- iter + 1
-    } else if ((L - LPrev) < 0) {
+    } else if (L < LPrev) {
       beta <- betaPrev
       L <- LPrev
       W <- WPrev
     }
-
+    
     if(iter == maxiter && !converged && !silent) {
       warning("Fitting algorithm (IRLS) has not converged")
     }
-
+    
   }
-
+  
   list(coefficients = beta, iter = iter, weights = W, disp = disp)
 }

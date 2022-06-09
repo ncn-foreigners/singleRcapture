@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{object of clas singleRclass}
 
-\item{...}{variables to pass to other methods}
+\item{...}{variables to pass to solve}
 }
 \value{
 A covariance matrix for fitted coefficients obtained by inverting
@@ -17,5 +17,9 @@ analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
 with observed information matrix.
 }
 \description{
+Returns a estimated covariance matrix for model coefficients
+calculated from analytic hessian.
+}
+\details{
 vcov method for singleR class
 }

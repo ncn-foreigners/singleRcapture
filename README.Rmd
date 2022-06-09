@@ -20,6 +20,10 @@ knitr::opts_chunk$set(
 
 The goal of singleRcapture is to automate single source capture-recapture estimation of population size.
 
+## Funding
+
+Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.
+
 ## Installation
 
 You can install the development version of singleRcapture from [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
@@ -53,8 +57,9 @@ summary(ModelZl)
 ```
 
 Marginal frequencies and Goodness of fit test:
+
 ```{r}
-summary(marginalFreq(ModelPo), df = 2)
+summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
 ```
 
 Here is a plot of marginal frequencies with matplot:
@@ -71,4 +76,19 @@ legend("topright",
                   "Zelterman model",
                   "Observed data"),
        col = 1:3, pch = 21:23)
+```
+
+singleRcapture also includes bootstraps and models truncated at values 0 and 1
+
+```{r boot}
+summary(
+  estimate_popsize(
+    formula = TOTAL_SUB ~ .,
+    data = farmsubmission,
+    pop.var = "bootstrap",
+    model = "zotgeom",
+    method = "robust",
+    control.pop.var = control.pop.var(strapNumber = 1000)
+  )
+)
 ```

@@ -11,7 +11,8 @@ capture-recapture estimation of population size.
 
 ## Funding
 
-Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.
+Work on this package is supported by the the National Science Center,
+OPUS 22 grant no. 2020/39/B/HS4/00941.
 
 ## Installation
 
@@ -45,8 +46,8 @@ summary(ModelPo)
 #>     model = "ztpoisson", method = "robust", pop.var = "analytic")
 #> 
 #> Response Residuals:
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>  0.5250  0.5302  0.8227  0.8578  0.9114  5.5302 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -0.25624 -0.25325 -0.09126  0.00000 -0.04493  4.74675 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
@@ -64,14 +65,13 @@ summary(ModelPo)
 #> 
 #> AIC: 1714.896
 #> BIC: 1764.747
-#> Deviance: 3688.542
+#> Deviance: 1128.549
 #> 
-#> Log-likelihood: -848.4481 on 1871Degrees of freedom 
+#> Log-likelihood: -848.4481 on 1871 Degrees of freedom 
 #> Number of iterations: 653
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 12691.36
-#> Variance 7892651
 #> Std. Error 2809.386
 #> 95% CI:
 #>              lowerBound upperBound
@@ -85,8 +85,8 @@ summary(ModelZl)
 #>     model = "zelterman", method = "robust", pop.var = "analytic")
 #> 
 #> Response Residuals:
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>  0.5488  0.6266  0.8699  0.9286  0.9273  5.6266 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -0.18406 -0.15731 -0.06934  0.00000 -0.03509  0.98949 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
@@ -103,15 +103,14 @@ summary(ModelZl)
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
 #> AIC: 1133.029
-#> BIC: 1182.88
-#> Deviance: 0
+#> BIC: 1182.627
+#> Deviance: 1115.029
 #> 
-#> Log-likelihood: -557.5143 on 1819Degrees of freedom 
-#> Number of iterations: 8
+#> Log-likelihood: -557.5143 on 1819 Degrees of freedom 
+#> Number of iterations: 10
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 16188.3
-#> Variance 10024148
 #> Std. Error 3166.094
 #> 95% CI:
 #>              lowerBound upperBound
@@ -122,15 +121,15 @@ summary(ModelZl)
 Marginal frequencies and Goodness of fit test:
 
 ``` r
-summary(marginalFreq(ModelPo), df = 2)
+summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
 #> Test for Goodness of fit of a regression model:
 #> 
 #>                  Test statistics df P(>X^2)
-#> Chi-squared test           87.48  2 1.0e-19
-#> G-test                     37.31  2 7.9e-09
+#> Chi-squared test           50.06  2 1.4e-11
+#> G-test                     34.31  2 3.6e-08
 #> 
 #> --------------------------------------------------------
-#> Cells with fitted frequencies of < 5 have been preserved
+#> Cells with fitted frequencies of < 5 have been grouped
 ```
 
 Here is a plot of marginal frequencies with matplot:
@@ -150,3 +149,49 @@ legend("topright",
 ```
 
 <img src="man/figures/README-plot-1.png" width="100%" />
+
+singleRcapture also includes bootstraps and models truncated at values 0
+and 1
+
+``` r
+summary(
+  estimate_popsize(
+    formula = TOTAL_SUB ~ .,
+    data = farmsubmission,
+    pop.var = "bootstrap",
+    model = "zotgeom",
+    method = "robust",
+    control.pop.var = control.pop.var(strapNumber = 1000)
+  )
+)
+#> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
+#>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
+#>     control.pop.var = control.pop.var(strapNumber = 1000))
+#> 
+#> Response Residuals:
+#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#> -17.26369  -1.41803  -0.58713  -0.00353   0.56448  40.78678 
+#> 
+#> Coefficients:
+#>              Estimate Std. Error z value  P(>|z|)     
+#> (Intercept)    -2.653      0.298   -8.91  5.3e-19 ****
+#> log_size        0.587      0.022   26.51 6.5e-155 ****
+#> log_distance   -0.065      0.025   -2.53  1.1e-02    *
+#> C_TYPE          0.615      0.044   13.81  2.1e-43 ****
+#> -----------------------
+#> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
+#> 
+#> AIC: 19483.14
+#> BIC: 19509.73
+#> Deviance: 23154.9
+#> 
+#> Log-likelihood: -9737.569 on 5692 Degrees of freedom 
+#> Number of iterations: 18
+#> -----------------------
+#> Population size estimation results: 
+#> Point estimate 29176.06
+#> Std. Error 1783.913
+#> 95% CI:
+#> lowerBound upperBound 
+#>   26169.35   33011.10
+```

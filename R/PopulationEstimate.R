@@ -5,18 +5,19 @@
 #' @param y Observed values
 #' @param X A matrix of covariates
 #' @param grad A gradient of a model with respect to regression parameters
-#' @param parameter An estimated parameter for the model 
+#' @param lambda An estimated lambda parameter for the model 
 #' @param beta Estimated parameters of the regression model (optional)
 #' @param family Model family
 #' @param weights Case weights if applied
+#' @param weights0 Weights for all observations
 #' @param hessian Hessian of a model
 #' @param dispersion Estimated dispersion parameter
 #' for truncated Negative binomial distributions
 #' @param method A method of constructing confidence interval either analytic
 #' to use formula for analytic CI or bootstrap where bootstraped confidence
-#' interval may either be based on 2.5%-97.5% percientiles ("bootstrapPerc")
-#' or by estimating SD ("bootstrapSD")
-#' @param control list, same as control.pop.var in estimate_popsize
+#' interval may either be based on 2.5%-97.5% percentiles or by bootstrap SE
+#' estimation
+#' @param control List argument, same as control.pop.var in estimate_popsize
 #'
 #' @return Returns a list of size 3 with:
 #' Point estimate, Interval estimate, and Variance
@@ -28,9 +29,10 @@
 populationEstimate <- function(y,
                                X,
                                grad,
-                               parameter,
+                               lambda,
                                beta,
                                weights = 1,
+                               weights0 = NULL,
                                hessian,
                                family,
                                dispersion,
@@ -39,20 +41,21 @@ populationEstimate <- function(y,
   siglevel <- control$signiflevel
   trcount <- control$trcount
   numboot <- control$strapNumber
-  sc <- qnorm(p = 1 - (1 - siglevel) / 2)
+  sc <- qnorm(p = 1 - siglevel / 2)
   funBoot <- switch(control$bootType,
                     "parametric" = parBoot,
                     "semiparametric" = semparBoot,
                     "nonparametric" = noparBoot)
   if (method == "analytic") {
     strappedStatistic <- "No bootstrap performed"
-    
-    N <- family$pointEst(disp = dispersion,
-                          pw = weights,
-                          lambda = parameter) + trcount
 
-    variation <- as.numeric(family$popVar(beta = beta, pw = weights,
-                                          lambda = parameter,
+    N <- family$pointEst(disp = dispersion,
+                         pw = if (family$family == "zelterman") weights0 else weights,
+                         lambda = lambda) + trcount
+
+    variation <- as.numeric(family$popVar(beta = beta, 
+                                          pw = if (family$family == "zelterman") weights0 else weights,
+                                          lambda = lambda,
                                           disp = dispersion,
                                           hess = hessian, X = X))
 
@@ -65,29 +68,30 @@ populationEstimate <- function(y,
                          upperBound = length(y) + (N - length(y)) * G)
     )))
   } else if (grepl("bootstrap", method, fixed = TRUE)) {
-    
     N <- family$pointEst(disp = dispersion,
-                         pw = weights,
-                         lambda = parameter) + trcount
-    
+                         pw = if (family$family != "zelterman") {weights} else {weights0},
+                         lambda = lambda) + trcount
+
     if (!is.null(dispersion)) {
       beta <- beta[-1]
     }
 
     strappedStatistic <- funBoot(family = family,
-                                 y = y, X = X,
+                                 y = y, 
+                                 X = X,
                                  dispersion = dispersion,
                                  beta = beta,
-                                 weights = weights,
+                                 weights = list(weights, weights0),
                                  trcount = trcount,
                                  numboot = numboot,
-                                 lambda = parameter)
+                                 lambda = lambda,
+                                 trace = control$traceBootstrapSize)
 
-    if (control$confType == "Percentilic") {
+    if (control$confType == "percentilic") {
       variation <- stats::var(strappedStatistic)
       confidenceInterval <- stats::quantile(strappedStatistic,
-                                            c((1 - siglevel) / 2, 
-                                              1 - (1 - siglevel) / 2))
+                                            c(siglevel / 2,
+                                              1 - siglevel / 2))
       names(confidenceInterval) <- c("lowerBound", "upperBound")
     } else {
       variation <- stats::var(strappedStatistic)
@@ -106,6 +110,6 @@ populationEstimate <- function(y,
   list(pointEstimate = N,
        variance = variation,
        confidenceInterval = confidenceInterval,
-       boot = strappedStatistic,
+       boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
        control = control)
 }

@@ -4,7 +4,19 @@
 \alias{semparBoot}
 \title{Bootstraps for population size variation estimation}
 \usage{
-semparBoot(family, y, X, dispersion, beta, weights, trcount, numboot, lambda)
+semparBoot(
+  family,
+  y,
+  X,
+  dispersion,
+  beta,
+  weights,
+  trcount,
+  numboot,
+  lambda,
+  trace,
+  control.bootstrap.method = NULL
+)
 }
 \arguments{
 \item{family}{TODO}
@@ -24,6 +36,10 @@ semparBoot(family, y, X, dispersion, beta, weights, trcount, numboot, lambda)
 \item{numboot}{TODO}
 
 \item{lambda}{TODO}
+
+\item{trace}{TODO}
+
+\item{control.bootstrap.method}{TODO}
 }
 \value{
 TODO
