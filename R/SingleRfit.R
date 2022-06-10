@@ -46,11 +46,15 @@ estimate_popsize.fit <- function(y,
 
     FITT <- IRLS(dependent = y,
                  covariates = X,
-                 eps = .Machine$double.eps,
+                 eps = control$epsilon,
                  family = family,
+                 maxiter = control$maxiter,
                  disp = dispersion,
                  weights = prior.weights,
-                 start = start)
+                 start = start,
+                 silent = control$silent,
+                 disp.given = control$disp.given,
+                 trace = control$trace)
 
     iter <- FITT$iter
     dispersion <- FITT$disp
@@ -58,35 +62,25 @@ estimate_popsize.fit <- function(y,
     beta <- c(dispersion, FITT$coefficients)
   } else if (method == "mle") {
     weights <- prior.weights
-    methodopt <- "L-BFGS-B"
+    methodopt <- control$mleMethod
     
-    ctrl <- list(factr = .Machine$double.eps,
-                 maxit = 5000)
-    
-    if (family$family == "ztnegbin") {
-      methodopt <- "Nelder-Mead"
-      ctrl <- list(reltol = .Machine$double.eps,
-                   maxit = 5000)
-    }
-    
-    if (dim(X)[2] == 1) {
-      FITT <- stats::optim(par = start,
-                           fn = log_like,
-                           gr = function(x) -grad(x),
-                           method = "Nelder-Mead",
-                           control = list(reltol = .Machine$double.eps,
-                                          warn.1d.NelderMead = FALSE))
-      beta <- FITT$par
-      iter <- FITT$counts
+    if (!isFALSE(control$optimPass)) {
+      ctrl <- control$optimPass
     } else {
-      FITT <- stats::optim(fn = log_like,
-                           par = start,
-                           gr = function(x) -grad(x),
-                           method = methodopt,
-                           control = ctrl)
-      beta <- FITT$par
-      iter <- FITT$counts
+      ctrl <- list(
+        factr = control$epsilon,
+        maxit = control$maxiter,
+        trace = if (is.numeric(control$trace)) control$trace else 0
+      )
     }
+    
+    FITT <- stats::optim(fn = log_like,
+                         par = start,
+                         gr = function(x) -grad(x),
+                         method = methodopt,
+                         control = ctrl)
+    beta <- FITT$par
+    iter <- FITT$counts
   } else {
     stop("Method not implemented")
   }

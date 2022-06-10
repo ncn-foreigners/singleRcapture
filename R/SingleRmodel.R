@@ -82,21 +82,6 @@ estimate_popsize <- function(formula,
   if (!is.data.frame(data)) {
     data <- data.frame(data)
   }
-  # adding control parameters that may possibly be missing
-  m1 <- control.pop.var
-  m2 <- control.pop.var()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.pop.var <- append(m1, m2)
-  m1 <- control.method
-  m2 <- control.method()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.method <- append(m1, m2)
-  m1 <- control.model
-  m2 <- control.model()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.model <- append(m1, m2)
-  typefitt <- control.model$typefitted
-  typefitt <- ifelse(is.null(typefitt), "link", typefitt)
   family <- model
   dispersion <- NULL
   if (is.character(family)) {
@@ -105,6 +90,21 @@ estimate_popsize <- function(formula,
   if (is.function(family)) {
     family <- family()
   }
+  # adding control parameters that may possibly be missing
+  m1 <- control.pop.var
+  m1 <- m1[sapply(m1, is.null) == FALSE]
+  m2 <- control.pop.var(fittingMethod = if (grepl(x = family$family, pattern = "negbin")) "mle" else "robust", 
+                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE, disp.given = TRUE))
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.pop.var <- append(m1, m2)
+  m1 <- control.method
+  m2 <- control.method(mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B")
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.method <- append(m1, m2)
+  m1 <- control.model
+  m2 <- control.model()
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.model <- append(m1, m2)
 
   model_frame <- stats::model.frame(formula, data,  ...)
   variables <- stats::model.matrix(formula, model_frame, ...)
@@ -191,25 +191,25 @@ estimate_popsize <- function(formula,
   dataRegression <- list(y = observed, x = as.matrix(variables), 
                          wp = prior.weights, w = weights0)
 
-  if (family$family %in% c("ztpoisson", "zotpoisson",
-                           "chao", "zelterman",
-                           "ztgeom", "zotgeom")) {
+  if (is.null(control.model$start)) {
     start <- stats::glm.fit(x = variables,
                             y = observed,
                             family = stats::poisson())$coefficients
     if (family$family %in% c("chao", "zelterman")) {
       start[1] <- start[1] + log(1 / 2)
     }
+    if (family$family %in% c("ztnegbin", "zotnegbin")) {
+      #start <- MASS::glm.nb(formula = formula, data = data)
+      #dispersion <- -start$theta
+      #start <- start$coefficients
+      dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
+    }
   } else {
-    #start <- MASS::glm.nb(formula = formula, data = data)
-    #dispersion <- -start$theta
-    #start <- start$coefficients
-    start <- stats::glm.fit(x = variables,
-                            y = observed,
-                            family = stats::poisson())$coefficients
-    dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
+    start <- control.model$start
+    dispersion <- control.model$dispersionstart
+    if (is.null(dispersion)) {dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))}
   }
-
+  
   FITT <- estimate_popsize.fit(y = observed,
                                X = variables,
                                family = family,

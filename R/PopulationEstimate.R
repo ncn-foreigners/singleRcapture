@@ -38,9 +38,9 @@ populationEstimate <- function(y,
                                dispersion,
                                method = "analytic",
                                control) {
-  siglevel <- control$signiflevel
+  siglevel <- control$alpha
   trcount <- control$trcount
-  numboot <- control$strapNumber
+  numboot <- control$B
   sc <- qnorm(p = 1 - siglevel / 2)
   funBoot <- switch(control$bootType,
                     "parametric" = parBoot,
@@ -85,7 +85,9 @@ populationEstimate <- function(y,
                                  trcount = trcount,
                                  numboot = numboot,
                                  lambda = lambda,
-                                 trace = control$traceBootstrapSize)
+                                 trace = control$traceBootstrapSize,
+                                 method = control$fittingMethod,
+                                 control.bootstrap.method = control$bootstrapFitcontrol)
 
     if (control$confType == "percentilic") {
       variation <- stats::var(strappedStatistic)

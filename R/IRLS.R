@@ -8,12 +8,13 @@
 #' @param start Vector of starting points for the the numerical procedure
 #' @param maxiter Maximum number of iterations
 #' @param disp dispersion parameter if family needed
-#' @param eps Tolerance level for the numerical procedure
+#' @param eps Relative tolerance level for the numerical procedure
 #' @param family Family of distributions used in regression
 #' @param weights Optional object of weights used in fitting the model
 #' @param disp.given FALSE is default, set true if dispersion has already been
 #' estimated and there is no need for further estimation
 #' @param silent Boolean value indicating whether warnings should be suppressed
+#' @param trace Indicates what values to trace
 #' @return Returns a list of fitted Coefficients and number of iterations and final weights
 #' @importFrom stats optim
 #' @export
@@ -26,7 +27,8 @@ IRLS <- function(dependent,
                  maxiter = 10000,
                  eps = .Machine$double.eps,
                  disp.given = FALSE,
-                 silent = FALSE) {
+                 silent = FALSE,
+                 trace) {
   converged <- FALSE
   epsdisp <- 1e-5 # TODO add to controll
   
@@ -108,7 +110,9 @@ IRLS <- function(dependent,
     temp <- c(disp, beta)
     L <- -loglike(temp)
 
-    converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
+    if (trace == "logL") {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE))} else if (trace == "beta") {cat(sep = "", "Iteration number ", iter, " parameter vector = ", temp)}
+    
+    converged <- ((L - LPrev < LPrev * eps) || (max(abs(beta - betaPrev)) < eps))
     
     if (!converged) {
       iter <- iter + 1

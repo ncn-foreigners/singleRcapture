@@ -24,7 +24,7 @@ You can install the development version of singleRcapture from
 devtools::install_github("ncn-foreigners/singleRcapture")
 ```
 
-## Example
+### Examples
 
 This is a basic example of zero truncated poisson model and zelterman
 model with netherlands imigrant data with analytic variance:
@@ -154,6 +154,7 @@ singleRcapture also includes bootstraps and models truncated at values 0
 and 1
 
 ``` r
+set.seed(123)
 summary(
   estimate_popsize(
     formula = TOTAL_SUB ~ .,
@@ -161,12 +162,13 @@ summary(
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
-    control.pop.var = control.pop.var(strapNumber = 1000)
+    control.pop.var = control.pop.var(B = 1000,
+                                      alpha = .01)
   )
 )
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
-#>     control.pop.var = control.pop.var(strapNumber = 1000))
+#>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
 #> Response Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
@@ -190,8 +192,8 @@ summary(
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 29176.06
-#> Std. Error 1783.913
-#> 95% CI:
+#> Std. Error 1979.256
+#> 99% CI:
 #> lowerBound upperBound 
-#>   26169.35   33011.10
+#>   25167.43   36429.53
 ```

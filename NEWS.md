@@ -1,5 +1,11 @@
 # singleRcapture 0.2.0
 
+# singleRcapture 0.1.2
+
+* features:
+  * control parameters for model
+  * control parameters for regression in bootstrap sampling
+
 # singleRcapture 0.1.1
 
 * bug fixes and some of the promised features for 0.2.0 in particullar

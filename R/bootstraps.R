@@ -14,6 +14,7 @@
 #' @param lambda TODO
 #' @param trace TODO
 #' @param control.bootstrap.method TODO
+#' @param method TODO
 #' 
 #' @return TODO
 #' @export
@@ -27,7 +28,8 @@ noparBoot <- function(family,
                       numboot,
                       lambda,
                       trace,
-                      control.bootstrap.method = NULL) {
+                      control.bootstrap.method = NULL,
+                      method) {
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
@@ -80,24 +82,32 @@ noparBoot <- function(family,
       Xstrap <- Xstraptemp
     }
     
-    theta <- IRLS(dependent = ystrap,
-                  covariates = Xstraptemp,
-                  family = family,
-                  start = beta,
-                  disp = dispersion,
-                  disp.given = TRUE,
-                  eps = 1e-6,
-                  weights = weightsstraptemp,
-                  maxiter = 50,
-                  silent = TRUE)$coefficients
+    theta <- NULL
+    try(
+      theta <- estimate_popsize.fit(
+        y = ystrap,
+        X = Xstraptemp,
+        family = family,
+        start = beta,
+        dispersion = dispersion,
+        method = method,
+        prior.weights = weightsstraptemp,
+        control = control.bootstrap.method
+      )$beta,
+      silent = TRUE
+    )
     
-    theta <- family$linkinv(Xstrap %*% theta)
-    if (isTRUE(trace)) print(theta)
-    
-    strappedStatistic <- c(strappedStatistic,
-                           family$pointEst(disp = dispersion,
-                                           pw = weightsstrap,
-                                           lambda = theta) + trcount)
+    if (is.null(theta)) {
+      k <- k - 1
+    } else {
+      theta <- family$linkinv(Xstrap %*% theta)
+      if (isTRUE(trace)) {print(theta)}
+      
+      strappedStatistic <- c(strappedStatistic,
+                             family$pointEst(disp = dispersion,
+                                             pw = weightsstrap,
+                                             lambda = theta) + trcount)
+    }
   }
   
   strappedStatistic
@@ -118,6 +128,7 @@ noparBoot <- function(family,
 #' @param lambda TODO
 #' @param trace TODO
 #' @param control.bootstrap.method TODO
+#' @param method TODO
 #' 
 #' @return TODO
 #' @export
@@ -131,7 +142,8 @@ parBoot <- function(family,
                     numboot,
                     lambda,
                     trace,
-                    control.bootstrap.method = NULL) {
+                    control.bootstrap.method = NULL,
+                    method) {
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
@@ -242,59 +254,43 @@ parBoot <- function(family,
       Xstraptemp <- as.matrix(df[, -c(1, 2)])
       Xstrap <- Xstraptemp
     }
-
-    ll <- family$make_minusloglike(y = ystrap,
-                                   X = Xstraptemp,
-                                   weight = weightsstraptemp)
-    gr <- family$make_gradient(y = ystrap,
-                               X = Xstraptemp,
-                               weight = weightsstraptemp)
-
-    if (TRUE) {
-      if (famName %in% c("ztnegbin",
-                         "zotnegbin")) {
-        theta <- NULL
-        try(theta <- stats::optim(par = c(dispersion, beta),
-                                  fn = ll,
-                                  gr = function(x) -gr(x),
-                                  control = list(reltol = 1e-5,
-                                                 warn.1d.NelderMead = FALSE,
-                                                 maxit = 50))$par[-1],
-            silent = TRUE)
-      } else if (famName %in% c("ztgeom",
-                                "zotgeom")) {
-        theta <- stats::optim(par = beta,
-                              fn = ll,
-                              gr = function(x) -gr(x),
-                              control = list(reltol = 1e-5,
-                                             warn.1d.NelderMead = FALSE,
-                                             maxit = 50))$par
-      } else {
-        theta <- IRLS(dependent = ystrap,
-                      covariates = Xstraptemp,
-                      family = family,
-                      start = beta,
-                      disp = dispersion,
-                      disp.given = TRUE,
-                      eps = 1e-6,
-                      weights = weightsstraptemp,
-                      maxiter = 50,
-                      silent = TRUE)$coefficients
-      }
-    } else {
-      try(
-        theta <- estimate_popsize.fit(
-          y = ystrap,
-          X = Xstraptemp,
+    
+    theta <- NULL
+    try(
+      if (method == "mle") {
+        methodopt <- control.bootstrap.method$mleMethod
+        log_like <- family$make_minusloglike(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
+        grad <- family$make_gradient(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
+        ctrl <- control.bootstrap.method$optimPass
+        if (is.null(ctrl)) {
+          list(maxit = control.bootstrap.method$maxiter,
+               factr = control.bootstrap.method$epsilon)
+        }
+        theta <- stats::optim(
+          par = if (grepl(x = family$family, pattern = "negbin")) c(dispersion, beta) else beta,
+          fn = log_like,
+          gr = function(x) -grad(x),
+          method = methodopt,
+          control = ctrl
+        )$par
+        
+        if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}
+      } else if (method == "robust") {
+        theta <- IRLS(
+          dependent = ystrap,
           family = family,
+          covariates = Xstraptemp,
           start = beta,
-          dispersion = dispersion,
-          prior.weights = weightsstraptemp,
-          control = control.bootstrap.method
-        )$bbeta,
-        silent = TRUE
-      )
-    }
+          disp.given = TRUE,
+          disp = dispersion,
+          eps = control.bootstrap.method$epsilon,
+          maxiter = control.bootstrap.method$maxiter,
+          silent = TRUE,
+          trace = FALSE
+        )$coefficients
+      },
+      silent = TRUE
+    )
 
     if(!is.null(theta)) {
       theta <- family$linkinv(Xstrap %*% theta)
@@ -327,6 +323,7 @@ parBoot <- function(family,
 #' @param lambda TODO
 #' @param trace TODO
 #' @param control.bootstrap.method TODO
+#' @param method TODO
 #'
 #' @return TODO
 #' @export
@@ -340,7 +337,8 @@ semparBoot <- function(family,
                        numboot,
                        lambda,
                        trace,
-                       control.bootstrap.method = NULL) {
+                       control.bootstrap.method = NULL,
+                       method) {
   strappedStatistic <- NULL
   n <- length(y)
   weights <- weights

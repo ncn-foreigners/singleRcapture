@@ -449,7 +449,7 @@ expect_silent(
                    model = "zotpoisson",
                    pop.var = "bootstrap",
                    method = "robust",
-                   control.pop.var = control.pop.var(strapNumber = 10))
+                   control.pop.var = control.pop.var(B = 10))
 )
 expect_silent(
   estimate_popsize(formula = TOTAL_SUB ~ .,
@@ -457,7 +457,7 @@ expect_silent(
                    model = "ztnegbin",
                    pop.var = "bootstrap",
                    method = "mle",
-                   control.pop.var = control.pop.var(strapNumber = 10))
+                   control.pop.var = control.pop.var(B = 10))
 )
 expect_silent(
   estimate_popsize(formula = TOTAL_SUB ~ .,
@@ -465,7 +465,7 @@ expect_silent(
                    model = "chao",
                    pop.var = "bootstrap",
                    method = "robust",
-                   control.pop.var = control.pop.var(strapNumber = 10))
+                   control.pop.var = control.pop.var(B = 10))
 )
 expect_silent(
   estimate_popsize(formula = TOTAL_SUB ~ .,
@@ -473,7 +473,7 @@ expect_silent(
                    model = "zelterman",
                    pop.var = "bootstrap",
                    method = "robust",
-                   control.pop.var = control.pop.var(strapNumber = 10))
+                   control.pop.var = control.pop.var(B = 10))
 )
 expect_silent(
   estimate_popsize(formula = capture ~ .,
@@ -481,5 +481,5 @@ expect_silent(
                    model = "ztpoisson",
                    pop.var = "bootstrap",
                    method = "robust",
-                   control.pop.var = control.pop.var(strapNumber = 10))
+                   control.pop.var = control.pop.var(B = 10))
 )

@@ -14,7 +14,8 @@ IRLS(
   maxiter = 10000,
   eps = .Machine$double.eps,
   disp.given = FALSE,
-  silent = FALSE
+  silent = FALSE,
+  trace
 )
 }
 \arguments{
@@ -32,12 +33,14 @@ IRLS(
 
 \item{maxiter}{Maximum number of iterations}
 
-\item{eps}{Tolerance level for the numerical procedure}
+\item{eps}{Relative tolerance level for the numerical procedure}
 
 \item{disp.given}{FALSE is default, set true if dispersion has already been
 estimated and there is no need for further estimation}
 
 \item{silent}{Boolean value indicating whether warnings should be suppressed}
+
+\item{trace}{Indicates what values to trace}
 }
 \value{
 Returns a list of fitted Coefficients and number of iterations and final weights

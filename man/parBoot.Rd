@@ -15,7 +15,8 @@ parBoot(
   numboot,
   lambda,
   trace,
-  control.bootstrap.method = NULL
+  control.bootstrap.method = NULL,
+  method
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ parBoot(
 \item{trace}{TODO}
 
 \item{control.bootstrap.method}{TODO}
+
+\item{method}{TODO}
 }
 \value{
 TODO

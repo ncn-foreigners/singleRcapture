@@ -46,7 +46,7 @@ summary.singleR <- function(object, ...) {
       "\nPoint estimate ", object$populationSize$pointEstimate,
       #if std.error is printed variance is probably not needed
       "\nStd. Error ", sqrt(object$populationSize$variance),
-      "\n", (1 - object$populationSize$control$signiflevel) * 100, "% CI:\n", sep = "")
+      "\n", (1 - object$populationSize$control$alpha) * 100, "% CI:\n", sep = "")
   print(object$populationSize$confidenceInterval)
 }
 
