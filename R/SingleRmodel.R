@@ -183,13 +183,13 @@ estimate_popsize <- function(formula,
     }
     colnames(variables) <- n1
   }
-  
-  dataRegression <- list(y = observed, x = as.matrix(variables), 
-                         wp = prior.weights, w = weights0)
 
   if(colnames(variables)[1] == "X.Intercept.") {
     colnames(variables)[1] <- "(Intercept)"
   }
+  
+  dataRegression <- list(y = observed, x = as.matrix(variables), 
+                         wp = prior.weights, w = weights0)
 
   if (family$family %in% c("ztpoisson", "zotpoisson",
                            "chao", "zelterman",
@@ -273,8 +273,8 @@ estimate_popsize <- function(formula,
   # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
   pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
-  POP <- populationEstimate(y = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
-                            X = if (grepl(x = family$family, pattern = "^zot.*") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
+  POP <- populationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
+                            X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
                             grad = grad,
                             hessian = hessian,
                             method = pop.var,
