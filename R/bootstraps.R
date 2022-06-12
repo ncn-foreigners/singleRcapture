@@ -84,16 +84,38 @@ noparBoot <- function(family,
     
     theta <- NULL
     try(
-      theta <- estimate_popsize.fit(
-        y = ystrap,
-        X = Xstraptemp,
-        family = family,
-        start = beta,
-        dispersion = dispersion,
-        method = method,
-        prior.weights = weightsstraptemp,
-        control = control.bootstrap.method
-      )$beta,
+      if (method == "mle") {
+        methodopt <- control.bootstrap.method$mleMethod
+        log_like <- family$make_minusloglike(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
+        grad <- family$make_gradient(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
+        ctrl <- control.bootstrap.method$optimPass
+        if (is.null(ctrl)) {
+          list(maxit = control.bootstrap.method$maxiter,
+               factr = control.bootstrap.method$epsilon)
+        }
+        theta <- stats::optim(
+          par = if (grepl(x = family$family, pattern = "negbin")) c(dispersion, beta) else beta,
+          fn = log_like,
+          gr = function(x) -grad(x),
+          method = methodopt,
+          control = ctrl
+        )$par
+        
+        if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}
+      } else if (method == "robust") {
+        theta <- IRLS(
+          dependent = ystrap,
+          family = family,
+          covariates = Xstraptemp,
+          start = beta,
+          disp.given = TRUE,
+          disp = dispersion,
+          eps = control.bootstrap.method$epsilon,
+          maxiter = control.bootstrap.method$maxiter,
+          silent = TRUE,
+          trace = FALSE
+        )$coefficients
+      },
       silent = TRUE
     )
     
@@ -224,7 +246,7 @@ parBoot <- function(family,
            df <- df[df["ystrap"] > 1, ],
            df <- df[df["ystrap"] > 0, ])
 
-    if (isTRUE(trace)) cat("Iteration number:", k, "untruncated sample size:", nrow(df), "\n", sep = " ")
+    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", nrow(df), "\n", sep = " ")
     ystrap <- as.numeric(unlist(df[, 1]))
     weightsstrap <- weightsstraptemp <- as.numeric(unlist(df[, 2]))
     Xstrap <- Xstraptemp <- as.matrix(df[, -c(1, 2)])
