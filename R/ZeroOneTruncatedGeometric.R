@@ -23,11 +23,17 @@ zotgeom <- function() {
   
   mu.eta <- function(eta, disp, type = "trunc") {
     lambda <- invlink(eta)
-    2 + lambda
+    switch (type,
+      "nontrunc" = lambda,
+      "trunc" = 2 + lambda
+    )
   }
   
   variance <- function(mu, disp, type = "nontrunc") {
-    (((mu - 1) ** 3) / mu + 2 * mu - 1)
+    switch (type,
+      "nontrunc" = mu * (mu - 1),
+      "trunc" = mu * (mu + 1)
+    )
   }
   
   minusLogLike <- function(y, X, weight = 1) {

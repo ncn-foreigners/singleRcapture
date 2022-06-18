@@ -78,7 +78,7 @@ legend("topright",
        col = 1:3, pch = 21:23)
 ```
 
-singleRcapture also includes bootstraps and models truncated at values 0 and 1
+singleRcapture also includes bootstraps and models truncated at values 0 and 1 and non standard confidence levels
 
 ```{r boot}
 set.seed(123)

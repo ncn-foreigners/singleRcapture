@@ -1,6 +1,6 @@
 #' Function to estimate population size based on single-source capture-recapture models
 #'
-#' Provides point and interval estimates for the population size based on variety of models
+#' @description Provides point and interval estimates for the population size based on variety of models
 #'
 #' @param y Observed values
 #' @param X A matrix of covariates

@@ -72,11 +72,16 @@ summary(ModelPo)
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 12691.36
+#> Observed proportion: 14.8% (N obs = 1880)
 #> Std. Error 2809.386
-#> 95% CI:
+#> 95% CI for the population size:
 #>              lowerBound upperBound
 #> Studentized    7185.061   18197.65
 #> Logtransform   8430.801   19722.92
+#> 95% CI for the share of observed population:
+#>              lowerBound upperBound
+#> Studentized   10.331003   26.16540
+#> Logtransform   9.532056   22.29919
 ```
 
 ``` r
@@ -111,11 +116,16 @@ summary(ModelZl)
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 16188.3
+#> Observed proportion: 11.3% (N obs = 1828)
 #> Std. Error 3166.094
-#> 95% CI:
+#> 95% CI for the population size:
 #>              lowerBound upperBound
 #> Studentized    9982.871   22393.73
 #> Logtransform  11201.447   23843.06
+#> 95% CI for the share of observed population:
+#>              lowerBound upperBound
+#> Studentized    8.162999   18.31137
+#> Logtransform   7.666803   16.31932
 ```
 
 Marginal frequencies and Goodness of fit test:
@@ -151,7 +161,7 @@ legend("topright",
 <img src="man/figures/README-plot-1.png" width="100%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
-and 1
+and 1 and non standard confidence levels
 
 ``` r
 set.seed(123)
@@ -171,29 +181,33 @@ summary(
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
 #> Response Residuals:
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -17.26369  -1.41803  -0.58713  -0.00353   0.56448  40.78678 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -17.0373  -1.4139  -0.5842   0.0029   0.5684  40.8180 
 #> 
 #> Coefficients:
 #>              Estimate Std. Error z value  P(>|z|)     
-#> (Intercept)    -2.653      0.298   -8.91  5.3e-19 ****
-#> log_size        0.587      0.022   26.51 6.5e-155 ****
-#> log_distance   -0.065      0.025   -2.53  1.1e-02    *
-#> C_TYPE          0.615      0.044   13.81  2.1e-43 ****
+#> (Intercept)    -2.608      0.298   -8.76  2.0e-18 ****
+#> log_size        0.585      0.022   26.47 2.2e-154 ****
+#> log_distance   -0.068      0.025   -2.66  7.7e-03   **
+#> C_TYPE          0.611      0.044   13.73  6.6e-43 ****
 #> -----------------------
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
-#> AIC: 19483.14
-#> BIC: 19509.73
-#> Deviance: 23154.9
+#> AIC: 19483.08
+#> BIC: 19509.67
+#> Deviance: 23179.43
 #> 
-#> Log-likelihood: -9737.569 on 5692 Degrees of freedom 
-#> Number of iterations: 18
+#> Log-likelihood: -9737.539 on 5692 Degrees of freedom 
+#> Number of iterations: 60
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 29176.06
-#> Std. Error 1979.256
-#> 99% CI:
+#> Point estimate 29087.95
+#> Observed proportion: 41.4% (N obs = 12036)
+#> Bootstrap Std. Error 1948.582
+#> 99% CI for the population size:
 #> lowerBound upperBound 
-#>   25167.43   36429.53
+#>   25491.83   36157.85 
+#> 99% CI for the share of observed population:
+#>                      lowerBound upperBound
+#> percentilicBootstrap   33.28738   47.21513
 ```

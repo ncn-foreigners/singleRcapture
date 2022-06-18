@@ -24,15 +24,18 @@ zotnegbin <- function() {
   mu.eta <- function(eta, disp, type = "trunc") {
     A <- exp(disp)
     lambda <- invlink(eta)
-    Pr <- (1 + A * lambda) ** (-1 / A)
-    Pr <- Pr + lambda * ((1 + A * lambda) ** (-1 - 1 / A))
-    G <- (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - Pr)
-    G
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - ((1 + A * lambda) ** (-1 / A) + lambda * ((1 + A * lambda) ** (-1 - 1 / A))))
+    )
   }
 
   variance <- function(mu, disp, type = "nontrunc") {
     A <- exp(disp)
-    mu * (1 + A * mu) - A * mu
+    switch (type,
+            "nontrunc" = mu * (1 + A * mu),
+            "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
+    )
   }
 
   minusLogLike <- function(y, X, weight = 1) {

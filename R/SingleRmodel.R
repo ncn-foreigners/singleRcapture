@@ -10,12 +10,10 @@
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
 #' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
-#' @param control.method ||
+#' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function
 #' @param control.model ||
-#' @param control.pop.var A list indicating parameter to use in population size variance estimation
-#' @param model.matrix If true returns model matrix as a part of returned object
-#' @param x manually provided model matrix
-#' @param y manually provided vector for dependent variable
+#' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function
+#' @param model_frame,x,y logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output
 #' @param contrasts ||
 #' @param ... Arguments to be passed to other methods
 #'
@@ -61,9 +59,9 @@
 estimate_popsize <- function(formula,
                              data,
                              model = c("ztpoisson", "ztnegbin",
-                                       "zotpoisson", "zotnegbin",
-                                       "zelterman", "chao",
-                                       "ztgeom", "zotgeom"),
+                                       "ztgeom", "zotpoisson", 
+                                       "zotnegbin", "zotgeom",
+                                       "zelterman", "chao"),
                              weights = 1,
                              subset = NULL,
                              na.action = NULL,
@@ -73,9 +71,9 @@ estimate_popsize <- function(formula,
                              control.method = NULL,
                              control.model = NULL,
                              control.pop.var = NULL,
-                             model.matrix = TRUE,
-                             x = FALSE,
-                             y = FALSE,
+                             model_frame = FALSE,
+                             x = TRUE,
+                             y = TRUE,
                              contrasts = NULL,
                              ...) {
   subset <- parse(text = deparse(substitute(subset)))
@@ -106,22 +104,16 @@ estimate_popsize <- function(formula,
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.model <- append(m1, m2)
 
-  model_frame <- stats::model.frame(formula, data,  ...)
-  variables <- stats::model.matrix(formula, model_frame, ...)
-  subset <- eval(subset, model_frame)
+  modelFrame <- stats::model.frame(formula, data,  ...)
+  variables <- stats::model.matrix(formula, modelFrame, ...)
+  subset <- eval(subset, modelFrame)
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some packages hence explicit call
-  model_frame <- base::subset(model_frame, subset = subset)
-  if (isFALSE(x)) {
-    variables <- base::subset(variables, subset = subset)
-  } else {
-    variables <- x
-  }
-  if (isFALSE(y)) {
-    observed <- model_frame[, 1]
-  } else {
-    observed <- y
-  }
+  modelFrame <- base::subset(modelFrame, subset = subset)
+  
+  variables <- base::subset(variables, subset = subset)
+  observed <- modelFrame[, 1]
+  
   if (!is.null(weights)) {
     weights0 <- prior.weights <- as.numeric(weights)
   } else {
@@ -287,15 +279,14 @@ estimate_popsize <- function(formula,
                             control = control.pop.var)
   structure(
     list(
-      y = if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y,
-      X = if (isTRUE(model.matrix)) {if (family$family %in% c("chao", "zelterman")) dataRegression$x else dataOriginal$x} else NULL,
+      y = if (isTRUE(y)) {if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y} else NULL,
+      X = if (isTRUE(x)) {if (family$family %in% c("chao", "zelterman")) dataRegression$x else dataOriginal$x} else NULL,
       formula = formula,
       call = match.call(),
       coefficients = coefficients,
       standard_errors = stdErr,
       control = list(control.model = control.model,
-                     control.method = control.method,
-                     control.pop.var = control.pop.var),
+                     control.method = control.method),
       wValues = wVal,
       pValues = pVals,
       null.deviance = null.deviance,
@@ -313,7 +304,7 @@ estimate_popsize <- function(formula,
       df.null = length(observed) - 1,
       fitt.values = fitt,
       populationSize = POP,
-      model = model_frame,
+      model_frame = if (isTRUE(model_frame)) modelFrame else NULL,
       linear.predictors = eta,
       trcount = control.pop.var$trcount
     ),

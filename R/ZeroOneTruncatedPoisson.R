@@ -23,11 +23,17 @@ zotpoisson <- function() {
 
   mu.eta <- function(disp = NULL, eta, type = "trunc") {
     lambda <- invlink(eta)
-    (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
+    )
   }
 
   variance <- function(disp = NULL, mu, type = "nontrunc") {
-    mu
+    switch (type,
+            "nontrunc" = mu,
+            "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
+    )
   }
 
   minusLogLike <- function(y, X, weight = 1) {

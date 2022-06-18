@@ -43,46 +43,24 @@ summary.singleR <- function(object, ...) {
       "\nNumber of iterations: ", object$iter[1],
       "\n-----------------------",
       "\nPopulation size estimation results: ",
-      "\nPoint estimate ", object$populationSize$pointEstimate,
-      #if std.error is printed variance is probably not needed
-      "\nStd. Error ", sqrt(object$populationSize$variance),
-      "\n", (1 - object$populationSize$control$alpha) * 100, "% CI:\n", sep = "")
+      "\nPoint estimate ", object$populationSize$pointEstimate, 
+      "\nObserved proportion: ", round(100 * nrow(object$X) / object$populationSize$pointEstimate, digits = 1), "% (N obs = ", nrow(object$X), ")",
+      if (object$call$pop.var == "bootstrap") {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(object$populationSize$variance),
+      "\n", (1 - object$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(object$populationSize$confidenceInterval)
+  cat((1 - object$populationSize$control$alpha) * 100, "% CI for the share of observed population:\n", sep = "")
+  dd <- as.data.frame(object$populationSize$confidenceInterval)
+  if (ncol(dd) == 1) {
+    dd <- t(dd)
+    rownames(dd) <- paste0(object$populationSize$control$confType, "Bootstrap")
+  }
+  print(data.frame(
+    lowerBound = 100 * nrow(object$X) / dd[, 2], 
+    upperBound = 100 * nrow(object$X) / dd[, 1],
+    row.names = rownames(dd)
+  ))
 }
 
-#' residuals.singleR
-#'
-#' @details S3 method for singleR class
-#'
-#' @param object TODO
-#' @param type type of residuals to be returned
-#' @param ... TODO
-#'
-#' @return returns a vector of residuals of selected type
-#' @importFrom stats residuals
-#' @exportS3Method
-residuals.singleR <- function(object,
-                              type = c("pearson",
-                                       "response",
-                                       "working",
-                                       "deviance"),
-                              ...) {
-  type <- match.arg(type)
-  res <- object$residuals
-  disp <- object$dispersion
-  wts <- object$prior.weights
-  mu <- object$fitt.values
-  y <- object$y
-  rs <- switch(
-    type,
-    working = data.frame("mu" = res[, 1] / mu[, 1],
-                         "link" = res[, 2] / mu[, 2]),
-    response = res,
-    pearson = (y - mu$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
-    deviance = data.frame("mu" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts))
-  )
-  rs
-}
 #' Summary for marginal frequencies
 #'
 #' @param object object of singleRmargin class
@@ -165,17 +143,23 @@ vcov.singleR <- function(object, ...) {
 #' @return TODO
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
+  if (grepl("zot", model$model$family)) {
+    X <- model$X[rownames(model$linear.predictors), ]
+  } else {
+    X <- model$X
+  }
   if (model$model$family %in% c("chao", "zelterman")) {
     W <- model$prior.weights * (model$model$variance(mu = model$fitt.values$mu, type = "nontrunc"))
   } else {
-    W <- model$prior.weights / (model$model$variance(mu = model$fitt.values$link, type = "nontrunc", disp = model$dispersion) * (model$model$dlink(model$fitt.values$link) ** 2))
+    W <- model$prior.weights / (model$model$variance(mu = if (model$model$family %in% c("ztgeom", "zotgeom")) model$fitt.values$mu else model$fitt.values$link, type = "nontrunc", disp = model$dispersion) * (model$model$dlink(model$fitt.values$link) ** 2))
   }
 
   hatvector <- diag(
     tcrossprod(
-      x = as.matrix(model$X) %*% solve(crossprod(x = as.matrix(model$X), 
-                                                 y = as.matrix(model$X * W))),
-      y = as.matrix(W * model$X))
+      x = as.matrix(X) %*% 
+        solve(crossprod(x = as.matrix(X), 
+                        y = as.matrix(X * W))),
+      y = as.matrix(W * X))
   )
   hatvector
 }
@@ -236,6 +220,30 @@ confint.singleR <- function(object,
 }
 
 # There is no need for doccumenting the following methods:
+#' @importFrom stats residuals
+#' @exportS3Method
+residuals.singleR <- function(object,
+                              type = c("pearson",
+                                       "response",
+                                       "working",
+                                       "deviance"),
+                              ...) {
+  type <- match.arg(type)
+  res <- object$residuals
+  disp <- object$dispersion
+  wts <- object$prior.weights
+  mu <- object$fitt.values
+  y <- object$y
+  rs <- switch(
+    type,
+    working = data.frame("mu" = res[, 1] / object$model$variance(disp = disp, type = "trunc", mu  = mu$link),
+                         "link" = res[, 2] / object$model$variance(disp = disp, type = "nontrunc", mu  =  mu$link)),
+    response = res,
+    pearson = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
+    deviance = data.frame("mu" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts))
+  )
+  rs
+}
 #' @exportS3Method
 family.singleR <- function(object, ...) {
   object$model

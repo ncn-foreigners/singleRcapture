@@ -21,7 +21,7 @@ marginalFreq <- function(object,
     trcount <- onecount
   }
   
-  # PDF for truncated distributions:
+  # PMF for truncated distributions:
   probFun <- switch(object$model$family,
   "ztpoisson"  = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
   "chao"       = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},

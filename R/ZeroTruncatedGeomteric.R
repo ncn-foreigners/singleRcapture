@@ -24,13 +24,12 @@ ztgeom <- function() {
   mu.eta <- function(disp = NULL, eta, type = "trunc") {
     lambda <- invlink(eta)
     switch (type,
-      nontrunc = lambda,
-      trunc = 1 + lambda
+      "nontrunc" = lambda,
+      "trunc" = 1 + lambda
     )
   }
   
   variance <- function(disp = NULL, mu, type = "nontrunc") {
-    #(((mu - 1) ** 3) / mu + 2 * mu - 1)
     switch (type,
       nontrunc = mu ** 2 - mu - 1 / mu + 2,
       trunc = (mu + 1) / mu
