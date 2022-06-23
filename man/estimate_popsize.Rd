@@ -37,7 +37,7 @@ estimate_popsize(
 
 \item{na.action}{TODO}
 
-\item{method}{Method for fitting values currently supported IRLS and MaxLikelihood}
+\item{method}{Method for fitting values currently supported robust (IRLS) and MaxLikelihood}
 
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap
 where bootstraped confidence interval may either be based on 2.5\%-97.5\%

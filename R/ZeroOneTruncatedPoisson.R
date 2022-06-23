@@ -35,6 +35,17 @@ zotpoisson <- function() {
             "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
     )
   }
+  
+  Wfun <- function(prior, eta, ...) {
+    lambda <- exp(eta)
+    -lambda * (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
+              ((exp(lambda) - lambda - 1) ** 2))
+  }
+  
+  funcZ <- function(eta, weight, y, ...) {
+    lambda <- exp(eta)
+    eta + (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
+  }
 
   minusLogLike <- function(y, X, weight = 1) {
     y <- as.numeric(y)
@@ -77,8 +88,7 @@ zotpoisson <- function() {
       term <- (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
                 ((exp(lambda) - lambda - 1) ** 2))
 
-      hes <- t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term)))
-      hes
+      t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term)))
     }
   }
 
@@ -136,6 +146,8 @@ zotpoisson <- function() {
       link = "log",
       valideta = function (eta) {TRUE},
       variance = variance,
+      Wfun = Wfun,
+      funcZ = funcZ,
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,

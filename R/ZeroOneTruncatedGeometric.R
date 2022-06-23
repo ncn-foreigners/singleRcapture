@@ -36,6 +36,15 @@ zotgeom <- function() {
     )
   }
   
+  Wfun <- function(prior, eta, ...) {
+    lambda <- exp(eta)
+    lambda / (1 + lambda)
+  }
+  
+  funcZ <- function(eta, weight, y, mu, ...) {
+    eta + ((y - 1) / (1 + exp(eta)) - 1) / weight
+  }
+  
   minusLogLike <- function(y, X, weight = 1) {
     if (is.null(weight)) {
       weight <- 1
@@ -149,6 +158,8 @@ zotgeom <- function() {
       link = "log",
       valideta = function (eta) {TRUE},
       variance = variance,
+      Wfun = Wfun,
+      funcZ = funcZ,
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,

@@ -26,6 +26,18 @@ chao <- function() {
   variance <- function(disp = NULL, mu, type = "nontrunc") {
     mu * (1 - mu)
   }
+  
+  Wfun <- function(prior, eta, ...) {
+    lambda <- invlink(eta)
+    L1 <- lambda / 2
+    (L1 / ((1 + L1) ** 2))
+  }
+  
+  funcZ <- function(eta, weight, y, mu, ...) {
+    lambda <- invlink(eta)
+    L1 <- lambda / 2
+    eta + (L1 * (y - 1) + y) / (L1 + 1) / weight
+  }
 
   minusLogLike <- function(y, X, weight = 1) {
     y <- as.numeric(y)
@@ -124,6 +136,8 @@ chao <- function() {
       link = "log",
       valideta = function (eta) {TRUE},
       variance = variance,
+      Wfun = Wfun,
+      funcZ = funcZ,
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,

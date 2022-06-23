@@ -1,23 +1,4 @@
-#' Bootstraps for population size variation estimation
-#'
-#' @description {
-#'  TODO
-#' }
-#' @param family TODO
-#' @param y TODO
-#' @param X TODO
-#' @param dispersion TODO
-#' @param beta TODO
-#' @param weights TODO
-#' @param trcount TODO
-#' @param numboot TODO
-#' @param lambda TODO
-#' @param trace TODO
-#' @param control.bootstrap.method TODO
-#' @param method TODO
-#' 
-#' @return TODO
-#' @export
+# These functions are only used internally in the package so there is no need for documenting them
 noparBoot <- function(family,
                       y,
                       X,
@@ -103,7 +84,7 @@ noparBoot <- function(family,
         
         if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}
       } else if (method == "robust") {
-        theta <- IRLS(
+        theta <- signleRcaptureinternalIRLS(
           dependent = ystrap,
           family = family,
           covariates = Xstraptemp,
@@ -134,26 +115,10 @@ noparBoot <- function(family,
   
   strappedStatistic
 }
-#' Bootstraps for population size variation estimation
-#'
-#' @description {
-#'  TODO
-#' }
-#' @param family TODO
-#' @param y TODO
-#' @param X TODO
-#' @param dispersion TODO
-#' @param beta TODO
-#' @param weights TODO
-#' @param trcount TODO
-#' @param numboot TODO
-#' @param lambda TODO
-#' @param trace TODO
-#' @param control.bootstrap.method TODO
-#' @param method TODO
-#' 
-#' @return TODO
-#' @export
+#' @importFrom stats rpois
+#' @importFrom stats rnbinom
+#' @importFrom stats rgeom
+#' @importFrom stats optim
 parBoot <- function(family,
                     y,
                     X,
@@ -298,7 +263,7 @@ parBoot <- function(family,
         
         if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}
       } else if (method == "robust") {
-        theta <- IRLS(
+        theta <- signleRcaptureinternalIRLS(
           dependent = ystrap,
           family = family,
           covariates = Xstraptemp,
@@ -329,26 +294,6 @@ parBoot <- function(family,
   
   strappedStatistic
 }
-#' Bootstraps for population size variation estimation
-#'
-#' @description {
-#'  TODO
-#' }
-#' @param family TODO
-#' @param y TODO
-#' @param X TODO
-#' @param dispersion TODO
-#' @param beta TODO
-#' @param weights TODO
-#' @param trcount TODO
-#' @param numboot TODO
-#' @param lambda TODO
-#' @param trace TODO
-#' @param control.bootstrap.method TODO
-#' @param method TODO
-#'
-#' @return TODO
-#' @export
 semparBoot <- function(family,
                        y,
                        X,

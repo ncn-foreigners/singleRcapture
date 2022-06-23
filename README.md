@@ -35,15 +35,18 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 summary(ModelPo)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "ztpoisson", method = "robust", pop.var = "analytic")
+#>     model = "ztpoisson", method = "robust", pop.var = "analytic", 
+#>     control.method = control.method(epsilon = 1e-05))
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -68,26 +71,27 @@ summary(ModelPo)
 #> Deviance: 1128.549
 #> 
 #> Log-likelihood: -848.4481 on 1871 Degrees of freedom 
-#> Number of iterations: 653
+#> Number of iterations: 8
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 12691.36
+#> Point estimate 12691.45
 #> Observed proportion: 14.8% (N obs = 1880)
-#> Std. Error 2809.386
+#> Std. Error 2809.508
 #> 95% CI for the population size:
 #>              lowerBound upperBound
-#> Studentized    7185.061   18197.65
-#> Logtransform   8430.801   19722.92
+#> Studentized    7184.917   18197.99
+#> Logtransform   8430.749   19723.38
 #> 95% CI for the share of observed population:
 #>              lowerBound upperBound
-#> Studentized   10.331003   26.16540
-#> Logtransform   9.532056   22.29919
+#> Studentized   10.330814   26.16592
+#> Logtransform   9.531836   22.29932
 ```
 
 ``` r
 summary(ModelZl)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "zelterman", method = "robust", pop.var = "analytic")
+#>     model = "zelterman", method = "robust", pop.var = "analytic", 
+#>     control.method = control.method(epsilon = 1e-05))
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -112,11 +116,11 @@ summary(ModelZl)
 #> Deviance: 1115.029
 #> 
 #> Log-likelihood: -557.5143 on 1819 Degrees of freedom 
-#> Number of iterations: 10
+#> Number of iterations: 7
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 16188.3
-#> Observed proportion: 11.3% (N obs = 1828)
+#> Observed proportion: 11.6% (N obs = 1880)
 #> Std. Error 3166.094
 #> 95% CI for the population size:
 #>              lowerBound upperBound
@@ -124,8 +128,8 @@ summary(ModelZl)
 #> Logtransform  11201.447   23843.06
 #> 95% CI for the share of observed population:
 #>              lowerBound upperBound
-#> Studentized    8.162999   18.31137
-#> Logtransform   7.666803   16.31932
+#> Studentized    8.395207   18.83226
+#> Logtransform   7.884896   16.78355
 ```
 
 Marginal frequencies and Goodness of fit test:
@@ -173,12 +177,14 @@ summary(
     model = "zotgeom",
     method = "robust",
     control.pop.var = control.pop.var(B = 1000,
-                                      alpha = .01)
+                                      alpha = .01),
+    control.method = control.method(epsilon = 1e-6)
   )
 )
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
-#>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
+#>     control.method = control.method(epsilon = 1e-06), control.pop.var = control.pop.var(B = 1000, 
+#>         alpha = 0.01))
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -198,16 +204,16 @@ summary(
 #> Deviance: 23179.43
 #> 
 #> Log-likelihood: -9737.539 on 5692 Degrees of freedom 
-#> Number of iterations: 60
+#> Number of iterations: 8
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 29087.95
+#> Point estimate 29087.97
 #> Observed proportion: 41.4% (N obs = 12036)
-#> Bootstrap Std. Error 1948.582
+#> Bootstrap Std. Error 1982.127
 #> 99% CI for the population size:
 #> lowerBound upperBound 
-#>   25491.83   36157.85 
+#>   25461.63   36238.35 
 #> 99% CI for the share of observed population:
 #>                      lowerBound upperBound
-#> percentilicBootstrap   33.28738   47.21513
+#> percentilicBootstrap   33.21343   47.27113
 ```

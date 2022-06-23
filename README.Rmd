@@ -43,12 +43,14 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 summary(ModelPo)
 ```
 
@@ -90,7 +92,8 @@ summary(
     model = "zotgeom",
     method = "robust",
     control.pop.var = control.pop.var(B = 1000,
-                                      alpha = .01)
+                                      alpha = .01),
+    control.method = control.method(epsilon = 1e-6)
   )
 )
 ```

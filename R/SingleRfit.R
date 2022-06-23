@@ -44,17 +44,17 @@ estimate_popsize.fit <- function(y,
       start <- start[-1]
     }
 
-    FITT <- IRLS(dependent = y,
-                 covariates = X,
-                 eps = control$epsilon,
-                 family = family,
-                 maxiter = control$maxiter,
-                 disp = dispersion,
-                 weights = prior.weights,
-                 start = start,
-                 silent = control$silent,
-                 disp.given = control$disp.given,
-                 trace = control$trace)
+    FITT <- signleRcaptureinternalIRLS(dependent = y,
+                                       covariates = X,
+                                       eps = control$epsilon,
+                                       family = family,
+                                       maxiter = control$maxiter,
+                                       disp = dispersion,
+                                       weights = prior.weights,
+                                       start = start,
+                                       silent = control$silent,
+                                       disp.given = control$disp.given,
+                                       trace = control$trace)
 
     iter <- FITT$iter
     dispersion <- FITT$disp

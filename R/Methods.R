@@ -44,7 +44,7 @@ summary.singleR <- function(object, ...) {
       "\n-----------------------",
       "\nPopulation size estimation results: ",
       "\nPoint estimate ", object$populationSize$pointEstimate, 
-      "\nObserved proportion: ", round(100 * nrow(object$X) / object$populationSize$pointEstimate, digits = 1), "% (N obs = ", nrow(object$X), ")",
+      "\nObserved proportion: ", round(100 * object$sizeObserved / object$populationSize$pointEstimate, digits = 1), "% (N obs = ", object$sizeObserved, ")",
       if (object$call$pop.var == "bootstrap") {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(object$populationSize$variance),
       "\n", (1 - object$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(object$populationSize$confidenceInterval)
@@ -55,8 +55,8 @@ summary.singleR <- function(object, ...) {
     rownames(dd) <- paste0(object$populationSize$control$confType, "Bootstrap")
   }
   print(data.frame(
-    lowerBound = 100 * nrow(object$X) / dd[, 2], 
-    upperBound = 100 * nrow(object$X) / dd[, 1],
+    lowerBound = 100 * object$sizeObserved / dd[, 2], 
+    upperBound = 100 * object$sizeObserved / dd[, 1],
     row.names = rownames(dd)
   ))
 }
@@ -255,4 +255,12 @@ print.summarysingleRmargin <- function(x, ...) {
   print(x$Test)
   cat("\n--------------------------------------------------------\n",
       "Cells with fitted frequencies of < 5 have been ", x$l5, "\n", sep = "")
+}
+#' @exportS3Method 
+AIC.singleR <- function(object, ...) {
+  object$aic
+}
+#' @exportS3Method 
+BIC.singleR <- function(object, ...) {
+  object$bic
 }

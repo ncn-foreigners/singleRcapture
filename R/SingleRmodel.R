@@ -6,7 +6,7 @@
 #' @param weights Optional object of a-priori weights used in fitting the model
 #' @param subset Same as in glm
 #' @param na.action TODO
-#' @param method Method for fitting values currently supported IRLS and MaxLikelihood
+#' @param method Method for fitting values currently supported robust (IRLS) and MaxLikelihood
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
 #' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
@@ -113,6 +113,7 @@ estimate_popsize <- function(formula,
   
   variables <- base::subset(variables, subset = subset)
   observed <- modelFrame[, 1]
+  sizeObserved <- nrow(data) + control.pop.var$trcount
   
   if (!is.null(weights)) {
     weights0 <- prior.weights <- as.numeric(weights)
@@ -265,7 +266,7 @@ estimate_popsize <- function(formula,
   # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
   pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
-  POP <- populationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
+  POP <- signleRcaptureinternalpopulationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
                             X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
                             grad = grad,
                             hessian = hessian,
@@ -306,7 +307,8 @@ estimate_popsize <- function(formula,
       populationSize = POP,
       model_frame = if (isTRUE(model_frame)) modelFrame else NULL,
       linear.predictors = eta,
-      trcount = control.pop.var$trcount
+      trcount = control.pop.var$trcount,
+      sizeObserved = sizeObserved
     ),
     class = c("singleR", "glm", "lm")
   )
