@@ -274,6 +274,7 @@ estimate_popsize <- function(formula,
   # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
   pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
+
   POP <- signleRcaptureinternalpopulationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
                                                   X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
                                                   grad = grad,
@@ -286,7 +287,7 @@ estimate_popsize <- function(formula,
                                                   dispersion = dispersion,
                                                   beta = coefficients,
                                                   control = control.pop.var)
-  
+                       
   structure(
     list(
       y = if (isTRUE(y)) {if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y} else NULL,

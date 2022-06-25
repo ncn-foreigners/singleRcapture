@@ -188,7 +188,7 @@ expect_equivalent(
                                     pop.var = "analytic",
                                     method = "robust")$populationSize$confidenceInterval[1, ],
                    digits = 0)),
-  c(7186, 18194)
+c(7186, 18194)
 )
 expect_equivalent(
   as.numeric(round(estimate_popsize(formula = capture ~ . - reason,
