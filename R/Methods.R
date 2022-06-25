@@ -244,6 +244,7 @@ residuals.singleR <- function(object,
   )
   rs
 }
+#' @importFrom stats family
 #' @exportS3Method
 family.singleR <- function(object, ...) {
   object$model
@@ -256,10 +257,12 @@ print.summarysingleRmargin <- function(x, ...) {
   cat("\n--------------------------------------------------------\n",
       "Cells with fitted frequencies of < 5 have been ", x$l5, "\n", sep = "")
 }
+#' @importFrom stats AIC
 #' @exportS3Method 
 AIC.singleR <- function(object, ...) {
   object$aic
 }
+#' @importFrom stats BIC
 #' @exportS3Method 
 BIC.singleR <- function(object, ...) {
   object$bic
