@@ -36,6 +36,15 @@ ztpoisson <- function() {
       "trunc" = mu.eta(eta = log(mu)) * (1 + mu - mu.eta(eta = log(mu)))
     )
   }
+  
+  Wfun <- function(prior, eta, ...) {
+    lambda <- exp(eta)
+     -lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2))
+  }
+  
+  funcZ <- function(eta, weight, y, mu, ...) {
+    eta + (y - mu) / weight
+  }
 
   minusLogLike <- function(y, X, weight = 1) {
     y <- as.numeric(y)
@@ -128,6 +137,8 @@ ztpoisson <- function() {
       link = "log",
       valideta = function (eta) {TRUE},
       variance = variance,
+      Wfun = Wfun,
+      funcZ = funcZ,
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,

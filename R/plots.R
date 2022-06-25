@@ -21,7 +21,7 @@ plot.singleR <- function(x,
   # add all other from plot.lm
   # marginal - optional y, optional 0, optional more models
   plotType <- match.arg(plotType)
-  if(missing(type)) {type <- "pearson"}
+  type <- "pearson"
   res <- residuals.singleR(x, type = type)
   switch(plotType,
   QQ = plot(

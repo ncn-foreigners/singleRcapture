@@ -7,8 +7,8 @@
 estimate_popsize(
   formula,
   data,
-  model = c("ztpoisson", "ztnegbin", "zotpoisson", "zotnegbin", "zelterman", "chao",
-    "ztgeom", "zotgeom"),
+  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "zotnegbin", "zotgeom",
+    "zelterman", "chao"),
   weights = 1,
   subset = NULL,
   na.action = NULL,
@@ -17,9 +17,9 @@ estimate_popsize(
   control.method = NULL,
   control.model = NULL,
   control.pop.var = NULL,
-  model.matrix = TRUE,
-  x = FALSE,
-  y = FALSE,
+  model_frame = FALSE,
+  x = TRUE,
+  y = TRUE,
   contrasts = NULL,
   ...
 )
@@ -37,23 +37,19 @@ estimate_popsize(
 
 \item{na.action}{TODO}
 
-\item{method}{Method for fitting values currently supported IRLS and MaxLikelihood}
+\item{method}{Method for fitting values currently supported robust (IRLS) and MaxLikelihood}
 
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap
 where bootstraped confidence interval may either be based on 2.5\%-97.5\%
 percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 
-\item{control.method}{||}
+\item{control.method}{A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function}
 
 \item{control.model}{||}
 
-\item{control.pop.var}{A list indicating parameter to use in population size variance estimation}
+\item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function}
 
-\item{model.matrix}{If true returns model matrix as a part of returned object}
-
-\item{x}{manually provided model matrix}
-
-\item{y}{manually provided vector for dependent variable}
+\item{model_frame, x, y}{logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output}
 
 \item{contrasts}{||}
 

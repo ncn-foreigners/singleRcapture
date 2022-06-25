@@ -38,6 +38,43 @@ ztnegbin <- function() {
       trunc = (mu + A * (mu ** 2) - A * (mu ** 2) * ((1 + A * mu) ** (-1 / A))) / ((1 - (1 + A * mu) ** (-1 / A)) ** 2)
     )
   }
+  
+  Wfun <- function(prior, eta, disp, ...) {
+    lambda <- exp(eta)
+    alpha <- exp(disp)
+    z <- 1 / alpha
+    M <- ((1 + lambda / z) ** z) - 1
+    S <- 1 / (1 + lambda / z)
+    G <- 1 / (1 - (1 + lambda / z) ** (-z))
+    cp4 <- z ** 2
+    cp9 <- (1 / S)
+    cp1 <- log(cp9) * cp4
+    cp2 <- lambda * S
+    cp3 <- S ** (-z)
+    cp5 <- log(S) / S
+    cp6 <- (S ** 2)
+    cp7 <- log(S)
+    cp8 <- (lambda / z + cp5)
+    cp10 <- cp9 ** (-1 - z)
+    cp11 <- (S / M)
+    C1 <- as.numeric(((cp9 ** z) * (lambda - 1) + 1) *
+                       cp6 / ((cp9 ** z - 1) ** 2))
+    C2 <- (1 + mu.eta(eta = eta, disp = disp) / z) * cp6
+    -lambda * (C1 - C2)
+  }
+  
+  funcZ <- function(eta, weight, disp, y, mu, ...) {
+    lambda <- exp(eta)
+    alpha <- exp(disp)
+    z <- 1 / alpha
+    S <- 1 / (1 + lambda / z)
+    G <- 1 / (1 - (1 + lambda / z) ** (-z))
+    cp1 <- log(1 / S) * (z ** 2)
+    cp2 <- lambda * S
+    cp3 <- S ** (-z)
+    
+    eta + ((y + (lambda - y) * cp3) * S / (1 - cp3)) / weight
+  }
 
   minusLogLike <- function(y, X, weight = 1) {
     if (is.null(weight)) {
@@ -257,6 +294,8 @@ ztnegbin <- function() {
       link = "log",
       valideta = function (eta) {TRUE},
       variance = variance,
+      Wfun = Wfun,
+      funcZ = funcZ,
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,

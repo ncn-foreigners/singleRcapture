@@ -6,16 +6,14 @@
 #' @param weights Optional object of a-priori weights used in fitting the model
 #' @param subset Same as in glm
 #' @param na.action TODO
-#' @param method Method for fitting values currently supported IRLS and MaxLikelihood
+#' @param method Method for fitting values currently supported robust (IRLS) and MaxLikelihood
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
 #' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
-#' @param control.method ||
+#' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function
 #' @param control.model ||
-#' @param control.pop.var A list indicating parameter to use in population size variance estimation
-#' @param model.matrix If true returns model matrix as a part of returned object
-#' @param x manually provided model matrix
-#' @param y manually provided vector for dependent variable
+#' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function
+#' @param model_frame,x,y logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output
 #' @param contrasts ||
 #' @param ... Arguments to be passed to other methods
 #'
@@ -61,9 +59,9 @@
 estimate_popsize <- function(formula,
                              data,
                              model = c("ztpoisson", "ztnegbin",
-                                       "zotpoisson", "zotnegbin",
-                                       "zelterman", "chao",
-                                       "ztgeom", "zotgeom"),
+                                       "ztgeom", "zotpoisson", 
+                                       "zotnegbin", "zotgeom",
+                                       "zelterman", "chao"),
                              weights = 1,
                              subset = NULL,
                              na.action = NULL,
@@ -73,30 +71,15 @@ estimate_popsize <- function(formula,
                              control.method = NULL,
                              control.model = NULL,
                              control.pop.var = NULL,
-                             model.matrix = TRUE,
-                             x = FALSE,
-                             y = FALSE,
+                             model_frame = FALSE,
+                             x = TRUE,
+                             y = TRUE,
                              contrasts = NULL,
                              ...) {
   subset <- parse(text = deparse(substitute(subset)))
   if (!is.data.frame(data)) {
     data <- data.frame(data)
   }
-  # adding control parameters that may possibly be missing
-  m1 <- control.pop.var
-  m2 <- control.pop.var()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.pop.var <- append(m1, m2)
-  m1 <- control.method
-  m2 <- control.method()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.method <- append(m1, m2)
-  m1 <- control.model
-  m2 <- control.model()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.model <- append(m1, m2)
-  typefitt <- control.model$typefitted
-  typefitt <- ifelse(is.null(typefitt), "link", typefitt)
   family <- model
   dispersion <- NULL
   if (is.character(family)) {
@@ -105,23 +88,33 @@ estimate_popsize <- function(formula,
   if (is.function(family)) {
     family <- family()
   }
+  # adding control parameters that may possibly be missing
+  m1 <- control.pop.var
+  m1 <- m1[sapply(m1, is.null) == FALSE]
+  m2 <- control.pop.var(fittingMethod = if (grepl(x = family$family, pattern = "negbin")) "mle" else "robust", 
+                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE, disp.given = TRUE))
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.pop.var <- append(m1, m2)
+  m1 <- control.method
+  m2 <- control.method(mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B")
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.method <- append(m1, m2)
+  m1 <- control.model
+  m2 <- control.model()
+  m2 <- m2[names(m2) %in% names(m1) == FALSE]
+  control.model <- append(m1, m2)
 
-  model_frame <- stats::model.frame(formula, data,  ...)
-  variables <- stats::model.matrix(formula, model_frame, ...)
-  subset <- eval(subset, model_frame)
+  modelFrame <- stats::model.frame(formula, data,  ...)
+  variables <- stats::model.matrix(formula, modelFrame, ...)
+  subset <- eval(subset, modelFrame)
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some packages hence explicit call
-  model_frame <- base::subset(model_frame, subset = subset)
-  if (isFALSE(x)) {
-    variables <- base::subset(variables, subset = subset)
-  } else {
-    variables <- x
-  }
-  if (isFALSE(y)) {
-    observed <- model_frame[, 1]
-  } else {
-    observed <- y
-  }
+  modelFrame <- base::subset(modelFrame, subset = subset)
+  
+  variables <- base::subset(variables, subset = subset)
+  observed <- modelFrame[, 1]
+  sizeObserved <- nrow(data) + control.pop.var$trcount
+  
   if (!is.null(weights)) {
     weights0 <- prior.weights <- as.numeric(weights)
   } else {
@@ -191,43 +184,51 @@ estimate_popsize <- function(formula,
   dataRegression <- list(y = observed, x = as.matrix(variables), 
                          wp = prior.weights, w = weights0)
 
-  if (family$family %in% c("ztpoisson", "zotpoisson",
-                           "chao", "zelterman",
-                           "ztgeom", "zotgeom")) {
+  if (is.null(control.model$start)) {
     start <- stats::glm.fit(x = variables,
                             y = observed,
                             family = stats::poisson())$coefficients
     if (family$family %in% c("chao", "zelterman")) {
       start[1] <- start[1] + log(1 / 2)
     }
+    if (family$family %in% c("ztnegbin", "zotnegbin")) {
+      #start <- MASS::glm.nb(formula = formula, data = data)
+      #dispersion <- -start$theta
+      #start <- start$coefficients
+      dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
+    }
   } else {
-    #start <- MASS::glm.nb(formula = formula, data = data)
-    #dispersion <- -start$theta
-    #start <- start$coefficients
-    start <- stats::glm.fit(x = variables,
-                            y = observed,
-                            family = stats::poisson())$coefficients
-    dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
+    start <- control.model$start
+    dispersion <- control.model$dispersionstart
+    if (is.null(dispersion)) {dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))}
   }
-
+  
   FITT <- estimate_popsize.fit(y = observed,
                                X = variables,
                                family = family,
                                control = control.method,
-                               method,
+                               method = method,
                                prior.weights = prior.weights,
                                start = c(dispersion, start),
                                dispersion = dispersion,
                                ...)
   coefficients <- FITT$beta
-
-  log_like <- FITT$ll
-  grad <- FITT$grad
-  hessian <- FITT$hessian
-
-  hess <- FITT$hess
   iter <- FITT$iter
-  df.reduced <- FITT$degf
+
+  log_like <- family$make_minusloglike(y = observed, X = as.matrix(variables),
+                                       weight = prior.weights)
+  grad <- family$make_gradient(y = observed, X = as.matrix(variables),
+                               weight = prior.weights)
+  hessian <- family$make_hessian(y = observed, X = as.matrix(variables),
+                                 weight = prior.weights)
+  hess <- hessian(coefficients)
+
+  df.reduced <- length(observed) - dim(variables)[2]
+  
+  if (family$family %in% c("zotnegbin", "ztnegbin")) {
+    df.reduced <- 2 * df.reduced
+  }
+  
   weights <- FITT$weights
 
   if (is.null(dispersion)) {
@@ -273,29 +274,30 @@ estimate_popsize <- function(formula,
   # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
   pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
-  POP <- populationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
-                            X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
-                            grad = grad,
-                            hessian = hessian,
-                            method = pop.var,
-                            weights = prior.weights,
-                            weights0 = weights0,
-                            lambda = lambda,
-                            family = family,
-                            dispersion = dispersion,
-                            beta = coefficients,
-                            control = control.pop.var)
+
+  POP <- signleRcaptureinternalpopulationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
+                                                  X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
+                                                  grad = grad,
+                                                  hessian = hessian,
+                                                  method = pop.var,
+                                                  weights = prior.weights,
+                                                  weights0 = weights0,
+                                                  lambda = lambda,
+                                                  family = family,
+                                                  dispersion = dispersion,
+                                                  beta = coefficients,
+                                                  control = control.pop.var)
+                       
   structure(
     list(
-      y = if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y,
-      X = if (isTRUE(model.matrix)) {if (family$family %in% c("chao", "zelterman")) dataRegression$x else dataOriginal$x} else NULL,
+      y = if (isTRUE(y)) {if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y} else NULL,
+      X = if (isTRUE(x)) {if (family$family %in% c("chao")) dataRegression$x else dataOriginal$x} else NULL,
       formula = formula,
       call = match.call(),
       coefficients = coefficients,
       standard_errors = stdErr,
       control = list(control.model = control.model,
-                     control.method = control.method,
-                     control.pop.var = control.pop.var),
+                     control.method = control.method),
       wValues = wVal,
       pValues = pVals,
       null.deviance = null.deviance,
@@ -303,7 +305,7 @@ estimate_popsize <- function(formula,
       aic = aic,
       bic = bic,
       deviance = deviance,
-      prior.weights = prior.weights,
+      prior.weights = if (family$family == "zelterman") {weights0} else {prior.weights},
       weights = weights,
       residuals = resRes,
       logL = LOG,
@@ -313,9 +315,10 @@ estimate_popsize <- function(formula,
       df.null = length(observed) - 1,
       fitt.values = fitt,
       populationSize = POP,
-      model = model_frame,
+      model_frame = if (isTRUE(model_frame)) modelFrame else NULL,
       linear.predictors = eta,
-      trcount = control.pop.var$trcount
+      trcount = control.pop.var$trcount,
+      sizeObserved = sizeObserved
     ),
     class = c("singleR", "glm", "lm")
   )

@@ -33,7 +33,7 @@ You can install the development version of singleRcapture from [GitHub](https://
 devtools::install_github("ncn-foreigners/singleRcapture")
 ```
 
-## Example
+### Examples
 
 This is a basic example of zero truncated poisson model and zelterman model with netherlands imigrant data with analytic variance:
 
@@ -43,12 +43,14 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 summary(ModelPo)
 ```
 
@@ -78,9 +80,10 @@ legend("topright",
        col = 1:3, pch = 21:23)
 ```
 
-singleRcapture also includes bootstraps and models truncated at values 0 and 1
+singleRcapture also includes bootstraps and models truncated at values 0 and 1 and non standard confidence levels
 
 ```{r boot}
+set.seed(123)
 summary(
   estimate_popsize(
     formula = TOTAL_SUB ~ .,
@@ -88,7 +91,9 @@ summary(
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
-    control.pop.var = control.pop.var(strapNumber = 1000)
+    control.pop.var = control.pop.var(B = 1000,
+                                      alpha = .01),
+    control.method = control.method(epsilon = 1e-6)
   )
 )
 ```

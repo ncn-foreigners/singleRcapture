@@ -24,15 +24,50 @@ zotnegbin <- function() {
   mu.eta <- function(eta, disp, type = "trunc") {
     A <- exp(disp)
     lambda <- invlink(eta)
-    Pr <- (1 + A * lambda) ** (-1 / A)
-    Pr <- Pr + lambda * ((1 + A * lambda) ** (-1 - 1 / A))
-    G <- (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - Pr)
-    G
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - ((1 + A * lambda) ** (-1 / A) + lambda * ((1 + A * lambda) ** (-1 - 1 / A))))
+    )
   }
 
   variance <- function(mu, disp, type = "nontrunc") {
     A <- exp(disp)
-    mu * (1 + A * mu) - A * mu
+    switch (type,
+            "nontrunc" = mu * (1 + A * mu),
+            "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
+    )
+  }
+  
+  Wfun <- function(prior, eta, disp, ...) {
+    alpha <- exp(disp)
+    z <- 1 / alpha
+    lambda <- exp(eta)
+    yexp <- mu.eta(eta = eta, disp = disp)
+    M <- 1 + lambda * alpha
+    S <- 1 / M
+    cp1 <- M ** z
+    cp11 <- (alpha ** 2)
+    cp14 <- (lambda ** 2)
+    cp16 <- M ** 2
+    cp19 <- (cp1 - 1)
+    cp20 <- cp19 ** 2
+    term <- ((-(alpha ** 3) * yexp * cp14 * cp20 +cp11 * lambda * (cp14 * cp1 - lambda * cp19 * (1 - 2 * yexp + cp1) - 2 * yexp * cp20) +
+                cp14 * cp1 + alpha * ((lambda ** 3) * cp1 + cp14 * (1 - yexp + cp1) - 2 * lambda * cp19 * (cp1 - yexp) - yexp * cp20) - cp20) /
+               (cp16 * ((cp1 + lambda * (alpha * cp19 - 1) - 1) ** 2)))
+    -lambda * term
+  }
+  
+  funcZ <- function(eta, weight, disp, y, mu, ...) {
+    alpha <- exp(disp)
+    z <- 1 / alpha
+    lambda <- exp(eta)
+    M <- 1 + lambda * alpha
+    S <- 1 / M
+    prob <- 1 - S ** z - lambda * (S ** (1 + z))
+    cp1 <- z * log(M)
+    cp2 <- lambda * S
+    cp3 <- alpha * (-1 - z)
+    eta + ((y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob)) / weight
   }
 
   minusLogLike <- function(y, X, weight = 1) {
@@ -254,6 +289,8 @@ zotnegbin <- function() {
       link = "log",
       valideta = function (eta) {TRUE},
       variance = variance,
+      Wfun = Wfun,
+      funcZ = funcZ,
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,

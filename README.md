@@ -24,7 +24,7 @@ You can install the development version of singleRcapture from
 devtools::install_github("ncn-foreigners/singleRcapture")
 ```
 
-## Example
+### Examples
 
 This is a basic example of zero truncated poisson model and zelterman
 model with netherlands imigrant data with analytic variance:
@@ -35,15 +35,18 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "robust",
+                            control.method = control.method(epsilon = 1e-5))
 summary(ModelPo)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "ztpoisson", method = "robust", pop.var = "analytic")
+#>     model = "ztpoisson", method = "robust", pop.var = "analytic", 
+#>     control.method = control.method(epsilon = 1e-05))
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -68,21 +71,27 @@ summary(ModelPo)
 #> Deviance: 1128.549
 #> 
 #> Log-likelihood: -848.4481 on 1871 Degrees of freedom 
-#> Number of iterations: 653
+#> Number of iterations: 8
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 12691.36
-#> Std. Error 2809.386
-#> 95% CI:
+#> Point estimate 12691.45
+#> Observed proportion: 14.8% (N obs = 1880)
+#> Std. Error 2809.508
+#> 95% CI for the population size:
 #>              lowerBound upperBound
-#> Studentized    7185.061   18197.65
-#> Logtransform   8430.801   19722.92
+#> Studentized    7184.917   18197.99
+#> Logtransform   8430.749   19723.38
+#> 95% CI for the share of observed population:
+#>              lowerBound upperBound
+#> Studentized   10.330814   26.16592
+#> Logtransform   9.531836   22.29932
 ```
 
 ``` r
 summary(ModelZl)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "zelterman", method = "robust", pop.var = "analytic")
+#>     model = "zelterman", method = "robust", pop.var = "analytic", 
+#>     control.method = control.method(epsilon = 1e-05))
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -107,15 +116,20 @@ summary(ModelZl)
 #> Deviance: 1115.029
 #> 
 #> Log-likelihood: -557.5143 on 1819 Degrees of freedom 
-#> Number of iterations: 10
+#> Number of iterations: 7
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 16188.3
+#> Observed proportion: 11.6% (N obs = 1880)
 #> Std. Error 3166.094
-#> 95% CI:
+#> 95% CI for the population size:
 #>              lowerBound upperBound
 #> Studentized    9982.871   22393.73
 #> Logtransform  11201.447   23843.06
+#> 95% CI for the share of observed population:
+#>              lowerBound upperBound
+#> Studentized    8.395207   18.83226
+#> Logtransform   7.884896   16.78355
 ```
 
 Marginal frequencies and Goodness of fit test:
@@ -151,9 +165,10 @@ legend("topright",
 <img src="man/figures/README-plot-1.png" width="100%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
-and 1
+and 1 and non standard confidence levels
 
 ``` r
+set.seed(123)
 summary(
   estimate_popsize(
     formula = TOTAL_SUB ~ .,
@@ -161,37 +176,44 @@ summary(
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
-    control.pop.var = control.pop.var(strapNumber = 1000)
+    control.pop.var = control.pop.var(B = 1000,
+                                      alpha = .01),
+    control.method = control.method(epsilon = 1e-6)
   )
 )
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
-#>     control.pop.var = control.pop.var(strapNumber = 1000))
+#>     control.method = control.method(epsilon = 1e-06), control.pop.var = control.pop.var(B = 1000, 
+#>         alpha = 0.01))
 #> 
 #> Response Residuals:
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -17.26369  -1.41803  -0.58713  -0.00353   0.56448  40.78678 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -17.0373  -1.4139  -0.5842   0.0029   0.5684  40.8180 
 #> 
 #> Coefficients:
 #>              Estimate Std. Error z value  P(>|z|)     
-#> (Intercept)    -2.653      0.298   -8.91  5.3e-19 ****
-#> log_size        0.587      0.022   26.51 6.5e-155 ****
-#> log_distance   -0.065      0.025   -2.53  1.1e-02    *
-#> C_TYPE          0.615      0.044   13.81  2.1e-43 ****
+#> (Intercept)    -2.608      0.298   -8.76  2.0e-18 ****
+#> log_size        0.585      0.022   26.47 2.2e-154 ****
+#> log_distance   -0.068      0.025   -2.66  7.7e-03   **
+#> C_TYPE          0.611      0.044   13.73  6.6e-43 ****
 #> -----------------------
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
-#> AIC: 19483.14
-#> BIC: 19509.73
-#> Deviance: 23154.9
+#> AIC: 19483.08
+#> BIC: 19509.67
+#> Deviance: 23179.43
 #> 
-#> Log-likelihood: -9737.569 on 5692 Degrees of freedom 
-#> Number of iterations: 18
+#> Log-likelihood: -9737.539 on 5692 Degrees of freedom 
+#> Number of iterations: 8
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 29176.06
-#> Std. Error 1783.913
-#> 95% CI:
+#> Point estimate 29087.97
+#> Observed proportion: 41.4% (N obs = 12036)
+#> Bootstrap Std. Error 1982.127
+#> 99% CI for the population size:
 #> lowerBound upperBound 
-#>   26169.35   33011.10
+#>   25461.63   36238.35 
+#> 99% CI for the share of observed population:
+#>                      lowerBound upperBound
+#> percentilicBootstrap   33.21343   47.27113
 ```

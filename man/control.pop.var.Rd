@@ -5,32 +5,38 @@
 \title{Control parameters for variance estimation}
 \usage{
 control.pop.var(
-  signiflevel = 0.05,
+  alpha = 0.05,
   trcount = 0,
   bootType = c("parametric", "semiparametric", "nonparametric"),
-  strapNumber = 500,
-  confType = c("percentilic", "studentized"),
+  B = 500,
+  confType = c("percentilic", "studentized", "basic"),
   keepbootStat = TRUE,
-  traceBootstrapSize = FALSE
+  traceBootstrapSize = FALSE,
+  fittingMethod = NULL,
+  bootstrapFitcontrol = NULL
 )
 }
 \arguments{
-\item{signiflevel}{Significance level, a number from frange (0, 1) 5\% by default.}
+\item{alpha}{Significance level, a number from frange (0, 1) 5\% by default.}
 
 \item{trcount}{Truncated count - a number to be added to point estimator and both sides of confidence intervals.}
 
 \item{bootType}{Type of bootstrap performed, by default Parametric, other posible values are: Semiparametric and Nonparametric.}
 
-\item{strapNumber}{Number of bootstrap samples to be performed.}
+\item{B}{Number of bootstrap samples to be performed.}
 
 \item{confType}{Type of confidence interval for bootstrap confidence interval, Percentile by default, may be change to studentized.}
 
 \item{keepbootStat}{Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large balues of strapNumber it may significant amount of size.}
 
 \item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.}
+
+\item{fittingMethod}{method used for fitting models from boostrap samples}
+
+\item{bootstrapFitcontrol}{control parameters for each regression works exactly like control.method}
 }
 \value{
-A list with selected parameters, it is also possible to call list directly
+A list with selected parameters, it is also possible to call list directly.
 }
 \description{
 Control parameters for variance estimation

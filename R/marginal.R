@@ -14,14 +14,14 @@ marginalFreq <- function(object,
                          onecount = NULL,
                          range) {
   if (missing(range)) {range <- (min(object$y):max(object$y))}
-  y <- table(object$y)[range]
+  y <- table(object$y)[names(table(object$y)) %in% as.character(range)]
   y <- y[!is.na(y)]
   trcount <- object$trcount
   if(!is.null(onecount)) {
     trcount <- onecount
   }
   
-  # PDF for truncated distributions:
+  # PMF for truncated distributions:
   probFun <- switch(object$model$family,
   "ztpoisson"  = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
   "chao"       = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
@@ -52,7 +52,8 @@ marginalFreq <- function(object,
     names(res)[1] <- "0"
   }
   res <- structure(list(table = res, y = y, 
-                        df = length(y) - length(object$coefficients)), 
+                        df = length(y) - length(object$coefficients),
+                        name = object$model$family), 
                    class = c("singleRmargin"))
   res
 }
