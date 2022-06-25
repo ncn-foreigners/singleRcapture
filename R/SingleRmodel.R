@@ -207,20 +207,28 @@ estimate_popsize <- function(formula,
                                X = variables,
                                family = family,
                                control = control.method,
-                               method,
+                               method = method,
                                prior.weights = prior.weights,
                                start = c(dispersion, start),
                                dispersion = dispersion,
                                ...)
   coefficients <- FITT$beta
-
-  log_like <- FITT$ll
-  grad <- FITT$grad
-  hessian <- FITT$hessian
-
-  hess <- FITT$hess
   iter <- FITT$iter
-  df.reduced <- FITT$degf
+
+  log_like <- family$make_minusloglike(y = observed, X = as.matrix(variables),
+                                       weight = prior.weights)
+  grad <- family$make_gradient(y = observed, X = as.matrix(variables),
+                               weight = prior.weights)
+  hessian <- family$make_hessian(y = observed, X = as.matrix(variables),
+                                 weight = prior.weights)
+  hess <- hessian(coefficients)
+
+  df.reduced <- length(observed) - dim(variables)[2]
+  
+  if (family$family %in% c("zotnegbin", "ztnegbin")) {
+    df.reduced <- 2 * df.reduced
+  }
+  
   weights <- FITT$weights
 
   if (is.null(dispersion)) {
@@ -267,21 +275,22 @@ estimate_popsize <- function(formula,
   pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
 
   POP <- signleRcaptureinternalpopulationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
-                            X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
-                            grad = grad,
-                            hessian = hessian,
-                            method = pop.var,
-                            weights = prior.weights,
-                            weights0 = weights0,
-                            lambda = lambda,
-                            family = family,
-                            dispersion = dispersion,
-                            beta = coefficients,
-                            control = control.pop.var)
+                                                  X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
+                                                  grad = grad,
+                                                  hessian = hessian,
+                                                  method = pop.var,
+                                                  weights = prior.weights,
+                                                  weights0 = weights0,
+                                                  lambda = lambda,
+                                                  family = family,
+                                                  dispersion = dispersion,
+                                                  beta = coefficients,
+                                                  control = control.pop.var)
+  
   structure(
     list(
       y = if (isTRUE(y)) {if (family$family %in% c("chao", "zelterman")) dataOriginal$y else dataRegression$y} else NULL,
-      X = if (isTRUE(x)) {if (family$family %in% c("chao", "zelterman")) dataRegression$x else dataOriginal$x} else NULL,
+      X = if (isTRUE(x)) {if (family$family %in% c("chao")) dataRegression$x else dataOriginal$x} else NULL,
       formula = formula,
       call = match.call(),
       coefficients = coefficients,
@@ -295,7 +304,7 @@ estimate_popsize <- function(formula,
       aic = aic,
       bic = bic,
       deviance = deviance,
-      prior.weights = prior.weights,
+      prior.weights = if (family$family == "zelterman") {weights0} else {prior.weights},
       weights = weights,
       residuals = resRes,
       logL = LOG,

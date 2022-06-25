@@ -9,7 +9,7 @@ control.pop.var(
   trcount = 0,
   bootType = c("parametric", "semiparametric", "nonparametric"),
   B = 500,
-  confType = c("percentilic", "studentized"),
+  confType = c("percentilic", "studentized", "basic"),
   keepbootStat = TRUE,
   traceBootstrapSize = FALSE,
   fittingMethod = NULL,

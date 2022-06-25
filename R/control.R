@@ -1,8 +1,8 @@
 #' Control parameters for regression
 #'
-#' @param epsilon relative tolerance for fitting algorithms
+#' @param epsilon relative tolerance for fitting algorithms by default 1e-8
 #' @param maxiter Maximal number of iterations
-#' @param trace Value indicating whether to trace steps of fitting algorithm for robust its either "no", "logL" or "beta", for mle it should be logical
+#' @param verbose Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihhod) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace
 #' @param start initial parameters for regression if NULL they will be derived from simple poisson regression
 #' @param dispersionstart initial parameters for dispersion parameter if applies
 #' @param mleMethod method of stats::optim used L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used
@@ -12,9 +12,9 @@
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @export
-control.method <- function(epsilon = .Machine$double.eps,
+control.method <- function(epsilon = 1e-8,
                            maxiter = 1000,
-                           trace = "no",
+                           verbose = 0,
                            start = NULL,
                            dispersionstart = NULL,
                            mleMethod = "L-BFGS-B",
@@ -24,7 +24,7 @@ control.method <- function(epsilon = .Machine$double.eps,
   list(
     epsilon = epsilon,
     maxiter = maxiter,
-    trace = trace,
+    verbose = verbose,
     start = start,
     dispersionstart = NULL,
     mleMethod = mleMethod,
@@ -57,7 +57,8 @@ control.pop.var <- function(alpha = .05,
                                          "nonparametric"),
                             B = 500,
                             confType = c("percentilic",
-                                         "studentized"),
+                                         "studentized",
+                                         "basic"),
                             keepbootStat = TRUE,
                             traceBootstrapSize = FALSE,
                             fittingMethod = NULL,
@@ -68,7 +69,7 @@ control.pop.var <- function(alpha = .05,
     trcount = trcount,
     bootType = if(missing(bootType)) "parametric" else bootType,
     B = B,
-    confType = if(missing(bootType)) "percentilic" else bootType,
+    confType = if(missing(confType)) "percentilic" else confType,
     keepbootStat = keepbootStat,
     traceBootstrapSize = traceBootstrapSize,
     fittingMethod = fittingMethod,

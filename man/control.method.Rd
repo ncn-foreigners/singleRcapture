@@ -5,9 +5,9 @@
 \title{Control parameters for regression}
 \usage{
 control.method(
-  epsilon = .Machine$double.eps,
+  epsilon = 1e-08,
   maxiter = 1000,
-  trace = "no",
+  verbose = 0,
   start = NULL,
   dispersionstart = NULL,
   mleMethod = "L-BFGS-B",
@@ -17,11 +17,11 @@ control.method(
 )
 }
 \arguments{
-\item{epsilon}{relative tolerance for fitting algorithms}
+\item{epsilon}{relative tolerance for fitting algorithms by default 1e-8}
 
 \item{maxiter}{Maximal number of iterations}
 
-\item{trace}{Value indicating whether to trace steps of fitting algorithm for robust its either "no", "logL" or "beta", for mle it should be logical}
+\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihhod) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace}
 
 \item{start}{initial parameters for regression if NULL they will be derived from simple poisson regression}
 

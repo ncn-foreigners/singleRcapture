@@ -19,11 +19,11 @@ zelterman <- function() {
   invlink <- function (x) {2 * exp(x)}
   dlink <- function(lambda) {1 / lambda}
   
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, ...) {
     1 / (1 + exp(-eta))
   }
   
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(mu, ...) {
     mu * (1 - mu)
   }
   

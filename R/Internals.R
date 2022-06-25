@@ -1,16 +1,16 @@
 # These functions are only used internally in the package so there is no need for documenting them
 #' @importFrom stats optim
 signleRcaptureinternalIRLS <- function(dependent,
-                 family,
-                 covariates,
-                 start,
-                 disp = NULL,
-                 weights = NULL,
-                 maxiter = 10000,
-                 eps = .Machine$double.eps,
-                 disp.given = FALSE,
-                 silent = FALSE,
-                 trace) {
+                                       family,
+                                       covariates,
+                                       start,
+                                       disp = NULL,
+                                       weights = NULL,
+                                       maxiter = 10000,
+                                       eps = .Machine$double.eps,
+                                       disp.given = FALSE,
+                                       silent = FALSE,
+                                       trace = 0) {
   converged <- FALSE
   epsdisp <- 1e-5 # TODO add to controll
   
@@ -49,7 +49,7 @@ signleRcaptureinternalIRLS <- function(dependent,
   L <- -loglike(temp)
   dispPrev <- Inf
   
-  while (!converged && (iter < maxiter)) {
+  while (!converged && (iter <= maxiter)) {
     if (famName %in% c("ztnegbin", "zotnegbin") &&
         isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
       dispPrev <- disp
@@ -118,11 +118,12 @@ signleRcaptureinternalIRLS <- function(dependent,
       }
     }
 
-    if (trace == "logL") {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n")} else if (trace == "beta") {cat(sep = "", "Iteration number ", iter, " parameter vector = ", temp)}
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n")}  
+    if (trace > 1) {cat(sep = " ", "Parameter vector =", temp, "\n")}
     
     converged <- ((L - LPrev < LPrev * eps) || (max(abs(beta - betaPrev)) < eps))
     
-    if (!converged) {
+    if (!converged && (iter + 1 <= maxiter)) {
       iter <- iter + 1
     } else if (L < LPrev) {
       beta <- betaPrev
@@ -184,7 +185,8 @@ signleRcaptureinternalpopulationEstimate <- function(y,
       "Studentized" = c(lowerBound = max(N - sc * sqrt(variation), 
                                          length(y) + trcount), 
                         upperBound = N + sc * sqrt(variation)),
-      "Logtransform" = c(lowerBound = length(y) + (N - length(y)) / G, 
+      "Logtransform" = c(lowerBound = max(length(y) + (N - length(y)) / G, 
+                                          (length(y) + trcount)), 
                          upperBound = length(y) + (N - length(y)) * G)
     )))
   } else if (grepl("bootstrap", method, fixed = TRUE)) {
@@ -209,23 +211,29 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
     
+    variation <- stats::var(strappedStatistic)
+    
     if (control$confType == "percentilic") {
-      variation <- stats::var(strappedStatistic)
       confidenceInterval <- stats::quantile(strappedStatistic,
                                             c(siglevel / 2,
                                               1 - siglevel / 2))
       names(confidenceInterval) <- c("lowerBound", "upperBound")
-    } else {
-      variation <- stats::var(strappedStatistic)
+    } else if (control$confType == "studentized") {
       G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
       
       confidenceInterval <- data.frame(t(data.frame(
         "Studentized" = c(lowerBound = max(N - sc * sqrt(variation), 
                                            (length(y) + trcount)), 
                           upperBound = N + sc * sqrt(variation)),
-        "Logtransform" = c(lowerBound = length(y) + (N - length(y)) / G, 
+        "Logtransform" = c(lowerBound = max(length(y) + (N - length(y)) / G, 
+                                            (length(y) + trcount)), 
                            upperBound = length(y) + (N - length(y)) * G)
       )))
+    } else if (control$confType == "basic") {
+      confidenceInterval <- 2 * N - stats::quantile(strappedStatistic,
+                                                    c(1 - siglevel / 2, 
+                                                      siglevel / 2))
+      names(confidenceInterval) <- c("lowerBound", "upperBound")
     }
   }
   
