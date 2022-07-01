@@ -1,71 +1,3 @@
-#' @title summary.singleR
-#' @description 
-#' Method for class singleR, unlike glm and lm standard errors are 
-#' needed to estimate population size in main function, 
-#' so this only prints results and no object is returned.
-#' 
-#' @details Description of an object with class singleR, focusing on the associated 
-#' regression model and population size estimation performed
-#' @param object Object for which method is applied summarized
-#' @param ... other arguments to be passed to other methods
-#' 
-#' @method summary singleR
-#' @return Easy to read summary of regression and most important data from a singleR class
-#' @exportS3Method
-summary.singleR <- function(object, ...) {
-  # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
-  signif <- sapply(object$pValues, function(k) {
-    ifelse(k <= 2e-16, "****",
-    ifelse(k <= .001, "***",
-    ifelse(k <= .01, "**", 
-    ifelse(k <= .05, "*",
-    ifelse(k <= .1, ".", "")))))
-    })
-  ob <- data.frame(round(object$coefficients, digits = 3),
-                   round(object$standard_errors, digits = 3),
-                   round(object$wValues, digits = 2),
-                   signif(object$pValues, digits = 2),
-                   signif)
-  colnames(ob) <- c("Estimate", "Std. Error", "z value", "P(>|z|)", "")
-
-  print(object$call)
-  cat("\nResponse Residuals:\n")
-  print(summary(c(object$residuals$mu)))
-  cat("\nCoefficients:\n")
-  print(ob)
-  cat("-----------------------",
-      "Signif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'",
-      sep = "\n")
-  cat("\nAIC: ", object$aic,
-      "\nBIC: ", object$bic,
-      "\nDeviance: ", object$deviance,
-      "\n\nLog-likelihood: ", object$logL, " on ", object$df.residual, " Degrees of freedom ",
-      if (object$call$method == "robust") {
-        "\nNumber of iterations: "
-      } else {
-        "\nNumber of calls to log-likelihood function: " # optim does not allow for accesing information
-        # on number of iterations performed only a number of calls for gradient and objective function
-      }, object$iter[1], 
-      "\n-----------------------",
-      "\nPopulation size estimation results: ",
-      "\nPoint estimate ", object$populationSize$pointEstimate, 
-      "\nObserved proportion: ", round(100 * object$sizeObserved / object$populationSize$pointEstimate, digits = 1), "% (N obs = ", object$sizeObserved, ")",
-      if (object$call$pop.var == "bootstrap") {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(object$populationSize$variance),
-      "\n", (1 - object$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
-  print(object$populationSize$confidenceInterval)
-  cat((1 - object$populationSize$control$alpha) * 100, "% CI for the share of observed population:\n", sep = "")
-  dd <- as.data.frame(object$populationSize$confidenceInterval)
-  if (ncol(dd) == 1) {
-    dd <- t(dd)
-    rownames(dd) <- paste0(object$populationSize$control$confType, "Bootstrap")
-  }
-  print(data.frame(
-    lowerBound = 100 * object$sizeObserved / dd[, 2], 
-    upperBound = 100 * object$sizeObserved / dd[, 1],
-    row.names = rownames(dd)
-  ))
-}
-
 #' dfpopsize
 #'
 #' @param model Model for which leave one out diagnostic of popsize will be done
@@ -172,7 +104,7 @@ hatvalues.singleR <- function(model, ...) {
   if (model$call$method == "robust") {
     W <- model$weights
   } else {
-    W <- model$model$Wfun(prior = model$prior.weights, mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion)
+    W <- model$model$Wfun(prior = model$prior.weights, mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion)[, 1]
   }
 
   hatvector <- diag(
@@ -310,7 +242,7 @@ residuals.singleR <- function(object,
                                                        y = y, mu = mu$link,
                                                        disp = object$dispersion)),
     response = res,
-    pearson = data.frame("pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc"))),
+    pearson = data.frame("pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts)),
     all = {colnames(res) <- c("muResponse", "linkResponse")
       data.frame(
@@ -319,7 +251,7 @@ residuals.singleR <- function(object,
                                     y = y, mu = mu$link,
                                     disp = object$dispersion),
       res,
-      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
+      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc")),
       "deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts),
       row.names = rownames(object$linear.predictors)
     )}
@@ -343,29 +275,47 @@ print.summarysingleRmargin <- function(x, ...) {
 }
 #' @method AIC singleR
 #' @importFrom stats AIC
-#' @exportS3Method 
+#' @exportS3Method AIC
 AIC.singleR <- function(object, ...) {
   object$aic
 }
 #' @method BIC singleR
 #' @importFrom stats BIC
-#' @exportS3Method 
+#' @exportS3Method BIC
 BIC.singleR <- function(object, ...) {
   object$bic
 }
 #' @method extractAIC singleR
 #' @importFrom stats extractAIC
-#' @exportS3Method 
+#' @exportS3Method extractAIC
 extractAIC.singleR <- function(fit, scale, k = 2, ...) {
   -2 * fit$logL + k * length(fit$coefficients)
 }
+#' @method dfbeta singleR
 #' @importFrom stats dfbeta
-#' @exportS3Method 
+#' @exportS3Method dfbeta
 dfbeta.singleR <- function(model, ...) {
   dfbetasingleR(model, ...)
 }
+#' @method logLik singleR
+#' @importFrom stats logLik
+#' @exportS3Method logLik
+logLik.singleR <- function(object, ...) {
+  val <- object$logL
+  attr(val, "nobs") <- dim(residuals(object))[1]
+  attr(val, "df") <- length(object$coefficients)
+  class(val) <- "logLik"
+  val
+}
+#' @method model.matrix singleR
+#' @importFrom stats model.matrix
+#' @exportS3Method model.matrix
+model.matrix.singleR <- function(object, ...) {
+  object$X
+}
+
 #' @method dfpopsize singleR
-#' @exportS3Method
+#' @exportS3Method dfpopsize
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
@@ -407,4 +357,101 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   }
   
   res1
+}
+#' @method summary singleR
+#' @importFrom stats pt
+#' @exportS3Method summary
+summary.singleR <- function(object, test = c("t", "z"), correlation = FALSE, ...) {
+  if (missing(test)) {test <- "z"}
+  df.residual <- object$df.residual
+  cov <- vcov.singleR(object, ...)
+  pers <- residuals.singleR(object, type = "pearson")
+  cf <- stats::coef(object)
+  se <- sqrt(diag(cov))
+  wValues <- cf / se
+  pValues <- switch (test,
+    "t" = 2 * stats::pt(q = abs(wValues), df = df.residual),
+    "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
+  )
+  structure(
+    list(
+      call = object$call,
+      coefficients = cf,
+      standard_errors = se,
+      wValues = wValues,
+      pValues = pValues,
+      residuals = pers,
+      aic = object$aic,
+      bic = object$bic,
+      iter = object$iter,
+      logL = object$logL,
+      deviance = object$deviance,
+      populationSize = object$populationSize,
+      df.residual = df.residual,
+      sizeObserved = object$sizeObserved,
+      correlation = if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
+    ),
+    class = "summarysingleR"
+  )
+}
+#' @method print summarysingleR
+#' @exportS3Method print
+print.summarysingleR <- function(x, ...) {
+  # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
+  signif <- sapply(x$pValues, function(k) {
+    ifelse(k <= 2e-16, "****",
+           ifelse(k <= .001, "***",
+                  ifelse(k <= .01, "**", 
+                         ifelse(k <= .05, "*",
+                                ifelse(k <= .1, ".", "")))))
+  })
+  ob <- data.frame(round(x$coefficients, digits = 3),
+                   round(x$standard_errors, digits = 3),
+                   round(x$wValues, digits = 2),
+                   signif(x$pValues, digits = 2),
+                   signif)
+  colnames(ob) <- c("Estimate", "Std. Error", "z value", "P(>|z|)", "")
+  
+  print(x$call)
+  cat("\nStandardised Pearson Residuals:\n")
+  print(summary(c(x$residuals[, 1])))
+  cat("\nCoefficients:\n")
+  print(ob)
+  cat("-----------------------",
+      "Signif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'\n",
+      sep = "\n")
+  if (!is.null(x$correlation)) {
+    corr <- round(x$correlation, digits = 2)
+    corr[!lower.tri(corr)] <- ""
+    print(corr[-1, -dim(corr)[2]], quote = FALSE)
+    cat("\n")
+  }
+  cat("AIC: ", x$aic,
+      "\nBIC: ", x$bic,
+      "\nDeviance: ", x$deviance,
+      "\n\nLog-likelihood: ", x$logL, " on ", x$df.residual, " Degrees of freedom ",
+      if (x$call$method == "robust") {
+        "\nNumber of iterations: "
+      } else {
+        "\nNumber of calls to log-likelihood function: " # optim does not allow for accesing information
+        # on number of iterations performed only a number of calls for gradient and objective function
+      }, x$iter[1], 
+      "\n-----------------------",
+      "\nPopulation size estimation results: ",
+      "\nPoint estimate ", x$populationSize$pointEstimate, 
+      "\nObserved proportion: ", round(100 * x$sizeObserved / x$populationSize$pointEstimate, digits = 1), "% (N obs = ", x$sizeObserved, ")",
+      if (x$call$pop.var == "bootstrap") {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(x$populationSize$variance),
+      "\n", (1 - x$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
+  print(x$populationSize$confidenceInterval)
+  cat((1 - x$populationSize$control$alpha) * 100, "% CI for the share of observed population:\n", sep = "")
+  dd <- as.data.frame(x$populationSize$confidenceInterval)
+  if (ncol(dd) == 1) {
+    dd <- t(dd)
+    rownames(dd) <- paste0(x$populationSize$control$confType, "Bootstrap")
+  }
+  print(data.frame(
+    lowerBound = 100 * x$sizeObserved / dd[, 2], 
+    upperBound = 100 * x$sizeObserved / dd[, 1],
+    row.names = rownames(dd)
+  ))
 }

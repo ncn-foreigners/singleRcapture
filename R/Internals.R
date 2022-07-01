@@ -8,11 +8,12 @@ signleRcaptureinternalIRLS <- function(dependent,
                                        weights = NULL,
                                        maxiter = 10000,
                                        eps = .Machine$double.eps,
+                                       epsdisp = 1e-5,
                                        disp.given = FALSE,
                                        silent = FALSE,
-                                       trace = 0) {
+                                       trace = 0,
+                                       stepsize = 1) {
   converged <- FALSE
-  epsdisp <- 1e-5 # TODO add to controll
   
   mu.eta <- family$mu.eta
   validmu <- family$validmu
@@ -49,7 +50,7 @@ signleRcaptureinternalIRLS <- function(dependent,
   L <- -loglike(temp)
   dispPrev <- Inf
   
-  while (!converged && (iter <= maxiter)) {
+  while (!converged & (iter < maxiter)) {
     if (famName %in% c("ztnegbin", "zotnegbin") &&
         isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
       dispPrev <- disp
@@ -86,7 +87,8 @@ signleRcaptureinternalIRLS <- function(dependent,
     # But much much faster and less memory heavy
     A <- t(covariates) %*% (covariates * W)
     B <- t(covariates) %*% (Z * W)
-    beta <- solve(A, B, tol = .Machine$double.eps)
+    beta <- betaPrev + stepsize * (solve(A, B, tol = .Machine$double.eps) - betaPrev)
+    
     #beta <- beta - solve(A, B, tol = .Machine$double.eps)
     
     temp <- c(disp, beta)
@@ -94,9 +96,10 @@ signleRcaptureinternalIRLS <- function(dependent,
     
     if (L < LPrev) {
       halfstepsizing <- TRUE
-      h <- betaPrev - beta
-      if (trace %in% c("logL", "beta")) {
-        if (trace == "logL") cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n") else if (trace == "beta") {cat(sep = "", "Iteration number ", iter, " parameter vector = ", temp)}
+      h <- stepsize * (betaPrev - beta)
+      if (trace > 0) {
+        cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 12), "\n")
+        if (trace > 1) {cat(sep = "","Parameter vector = ", temp, "\n")}
         cat("Taking a modified step....\n")
       }
       repeat {
@@ -119,7 +122,7 @@ signleRcaptureinternalIRLS <- function(dependent,
       }
     }
 
-    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n")}  
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 20), "\n")}  
     if (trace > 1) {cat(sep = " ", "Parameter vector =", temp, "\n")}
     
     converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
@@ -132,14 +135,14 @@ signleRcaptureinternalIRLS <- function(dependent,
       W <- WPrev
     }
     
-    if(iter == maxiter && !converged && !silent) {
-      warning("Fitting algorithm (IRLS) has not converged")
-    }
-    
     if (converged && halfstepsizing && !silent) {
       warning("Convergence at halfstepsize")
     }
     
+  }
+  
+  if(iter == maxiter && !converged && !silent) {
+    warning("Fitting algorithm (IRLS) has not converged")
   }
   
   list(coefficients = beta, iter = iter, weights = W, disp = disp)
@@ -211,6 +214,14 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                  trace = control$traceBootstrapSize,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
+    if (N < stats::quantile(strappedStatistic, .05)) {
+      warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+    } else if (N > stats::quantile(strappedStatistic, .95)) {
+      warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+    }
+    if (max(strappedStatistic) > N ** 1.375) {
+      warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+    }
     
     variation <- stats::var(strappedStatistic)
     

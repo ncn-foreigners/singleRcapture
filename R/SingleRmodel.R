@@ -103,9 +103,12 @@ estimate_popsize <- function(formula,
   m2 <- control.model()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.model <- append(m1, m2)
-
+  
   modelFrame <- stats::model.frame(formula, data,  ...)
-  variables <- stats::model.matrix(formula, modelFrame, ...)
+  variables <- stats::model.matrix(formula, modelFrame, contrasts = contrasts, ...)
+  terms <- attr(modelFrame, "terms")
+  contrasts <- attr(variables, "contrasts")
+  
   subset <- eval(subset, modelFrame)
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some packages hence explicit call
@@ -114,6 +117,7 @@ estimate_popsize <- function(formula,
   variables <- base::subset(variables, subset = subset)
   observed <- modelFrame[, 1]
   sizeObserved <- nrow(data) + control.pop.var$trcount
+
   
   if (!is.null(weights)) {
     weights0 <- prior.weights <- as.numeric(weights)
@@ -243,8 +247,6 @@ estimate_popsize <- function(formula,
     lambda <- family$linkinv(as.matrix(dataOriginal$x) %*% coefficients)
   }
 
-  # Here do fitt a list or data.frame
-  # fitt <- data.fram("mu" = family$mu.eta(eta, disp = dispersion))
   fitt <- data.frame("mu" = family$mu.eta(eta, disp = dispersion),
                      "link" = family$linkinv(eta))
   
@@ -256,10 +258,7 @@ estimate_popsize <- function(formula,
   if (sum(diag(-solve(hess)) <= 0) != 0) {
     stop("fitting error analytic hessian is invalid,
          try another model")
-  } else {
-    stdErr <- sqrt(diag(solve(-hess)))
   }
-  wVal <- coefficients / stdErr
 
   null.deviance <- as.numeric(NULL)
   LOG <- -log_like(coefficients)
@@ -271,9 +270,6 @@ estimate_popsize <- function(formula,
                                     mu = fitt$link,
                                     disp = dispersion,
                                     wt = prior.weights) ** 2)
-  # In wald W-values have N(0,1) distributions (asymptotically) pnorm is symmetric wrt 0
-  pVals <- 2 * stats::pnorm(q =  abs(wVal), lower.tail = FALSE)
-
 
   POP <- signleRcaptureinternalpopulationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
                                                   X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
@@ -295,11 +291,8 @@ estimate_popsize <- function(formula,
       formula = formula,
       call = match.call(),
       coefficients = coefficients,
-      standard_errors = stdErr,
       control = list(control.model = control.model,
                      control.method = control.method),
-      wValues = wVal,
-      pValues = pVals,
       null.deviance = null.deviance,
       model = family,
       aic = aic,
@@ -318,7 +311,10 @@ estimate_popsize <- function(formula,
       model_frame = if (isTRUE(model_frame)) modelFrame else NULL,
       linear.predictors = eta,
       trcount = control.pop.var$trcount,
-      sizeObserved = sizeObserved
+      sizeObserved = sizeObserved,
+      terms = terms,
+      contrasts = contrasts,
+      na.action = na.action
     ),
     class = c("singleR", "glm", "lm")
   )

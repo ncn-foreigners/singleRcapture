@@ -4,7 +4,11 @@
 \alias{plot.singleR}
 \title{Diagnostic plots singleR regression}
 \usage{
-\method{plot}{singleR}(x, plotType = c("QQ", "marginal", "fitresid"), ...)
+\method{plot}{singleR}(
+  x,
+  plotType = c("QQ", "marginal", "fitresid", "bootHist", "rootogram"),
+  ...
+)
 }
 \arguments{
 \item{x}{TODO}

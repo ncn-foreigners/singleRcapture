@@ -450,7 +450,7 @@ expect_silent(
                    pop.var = "bootstrap",
                    method = "robust",
                    control.method = control.method(epsilon = 1e-6),
-                   control.pop.var = control.pop.var(B = 10))
+                   control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps)))
 )
 expect_silent(
   estimate_popsize(formula = TOTAL_SUB ~ .,
@@ -459,7 +459,7 @@ expect_silent(
                    pop.var = "bootstrap",
                    method = "mle",
                    control.method = control.method(epsilon = 1e-6),
-                   control.pop.var = control.pop.var(B = 10))
+                   control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps)))
 )
 expect_silent(
   estimate_popsize(formula = TOTAL_SUB ~ .,
@@ -467,8 +467,8 @@ expect_silent(
                    model = "chao",
                    pop.var = "bootstrap",
                    method = "robust",
-                   control.method = control.method(epsilon = 1e-4),
-                   control.pop.var = control.pop.var(B = 10))
+                   control.method = control.method(silent = TRUE),
+                   control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps)))
 )
 expect_silent(
   estimate_popsize(formula = TOTAL_SUB ~ .,
@@ -477,7 +477,7 @@ expect_silent(
                    pop.var = "bootstrap",
                    method = "robust",
                    control.method = control.method(epsilon = 1e-6, silent = TRUE),
-                   control.pop.var = control.pop.var(B = 10))
+                   control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps)))
 )
 expect_silent(
   estimate_popsize(formula = capture ~ .,
@@ -485,6 +485,5 @@ expect_silent(
                    model = "ztpoisson",
                    pop.var = "bootstrap",
                    method = "robust",
-                   control.method = control.method(epsilon = 1e-6, silent = TRUE),
-                   control.pop.var = control.pop.var(B = 10))
+                   control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps)))
 )

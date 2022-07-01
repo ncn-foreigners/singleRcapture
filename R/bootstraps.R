@@ -65,38 +65,17 @@ noparBoot <- function(family,
     
     theta <- NULL
     try(
-      if (method == "mle") {
-        methodopt <- control.bootstrap.method$mleMethod
-        log_like <- family$make_minusloglike(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
-        grad <- family$make_gradient(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
-        ctrl <- control.bootstrap.method$optimPass
-        if (is.null(ctrl)) {
-          list(maxit = control.bootstrap.method$maxiter,
-               factr = control.bootstrap.method$epsilon)
-        }
-        theta <- stats::optim(
-          par = if (grepl(x = family$family, pattern = "negbin")) c(dispersion, beta) else beta,
-          fn = log_like,
-          gr = function(x) -grad(x),
-          method = methodopt,
-          control = ctrl
-        )$par
-        
-        if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}
-      } else if (method == "robust") {
-        theta <- signleRcaptureinternalIRLS(
-          dependent = ystrap,
-          family = family,
-          covariates = Xstraptemp,
-          start = beta,
-          disp.given = TRUE,
-          disp = dispersion,
-          eps = control.bootstrap.method$epsilon,
-          maxiter = control.bootstrap.method$maxiter,
-          silent = TRUE,
-          trace = FALSE
-        )$coefficients
-      },
+      {theta <- estimate_popsize.fit(
+        y = ystrap,
+        X = Xstraptemp,
+        family = family,
+        control = control.bootstrap.method,
+        method = method,
+        prior.weights = weightsstraptemp,
+        start = c(dispersion, beta),
+        dispersion = dispersion
+      )$beta;
+      if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
       silent = TRUE
     )
     
@@ -104,7 +83,7 @@ noparBoot <- function(family,
       k <- k - 1
     } else {
       theta <- family$linkinv(Xstrap %*% theta)
-      if (isTRUE(trace)) {print(theta)}
+      if (isTRUE(trace)) {print(summary(theta))}
       
       strappedStatistic <- c(strappedStatistic,
                              family$pointEst(disp = dispersion,
@@ -241,53 +220,32 @@ parBoot <- function(family,
       Xstraptemp <- as.matrix(df[, -c(1, 2)])
       Xstrap <- Xstraptemp
     }
-    
     theta <- NULL
+    
     try(
-      if (method == "mle") {
-        methodopt <- control.bootstrap.method$mleMethod
-        log_like <- family$make_minusloglike(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
-        grad <- family$make_gradient(y = ystrap, X = Xstraptemp, weight = weightsstraptemp)
-        ctrl <- control.bootstrap.method$optimPass
-        if (is.null(ctrl)) {
-          list(maxit = control.bootstrap.method$maxiter,
-               factr = control.bootstrap.method$epsilon)
-        }
-        theta <- stats::optim(
-          par = if (grepl(x = family$family, pattern = "negbin")) c(dispersion, beta) else beta,
-          fn = log_like,
-          gr = function(x) -grad(x),
-          method = methodopt,
-          control = ctrl
-        )$par
-        
-        if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}
-      } else if (method == "robust") {
-        theta <- signleRcaptureinternalIRLS(
-          dependent = ystrap,
-          family = family,
-          covariates = Xstraptemp,
-          start = beta,
-          disp.given = TRUE,
-          disp = dispersion,
-          eps = control.bootstrap.method$epsilon,
-          maxiter = control.bootstrap.method$maxiter,
-          silent = TRUE,
-          trace = FALSE
-        )$coefficients
-      },
+      {theta <- estimate_popsize.fit(
+        y = ystrap,
+        X = Xstraptemp,
+        family = family,
+        control = control.bootstrap.method,
+        method = method,
+        prior.weights = weightsstraptemp,
+        start = c(dispersion, beta),
+        dispersion = dispersion
+      )$beta;
+      if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
       silent = TRUE
     )
-
-    if(!is.null(theta)) {
+    
+    if (is.null(theta)) {
+      k <- k - 1
+    } else {
       theta <- family$linkinv(Xstrap %*% theta)
 
       strappedStatistic <- c(strappedStatistic,
                              family$pointEst(disp = dispersion,
                                              pw = weightsstrap,
                                              lambda = theta) + trcount)
-    } else {
-      k <- k - 1
     }
 
   }
