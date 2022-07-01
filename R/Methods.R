@@ -97,6 +97,7 @@ summary.singleRmargin <- function(object, df = NULL,
                                   ...) {
   dropl5 <- match.arg(dropl5)
   y <- object$y
+  if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
   A <- object$table[names(y)]
   if ((is.null(df)) && (object$df < 1)) {
     warning("Degrees of freedom may be inacurate")
@@ -147,7 +148,7 @@ summary.singleRmargin <- function(object, df = NULL,
 #' @exportS3Method
 vcov.singleR <- function(object, ...) {
   solve(
-    object$model$make_hessian(y = object$y, X = object$X, 
+    -object$model$make_hessian(y = object$y, X = object$X, 
     weight = object$prior.weights)(object$coefficients),
     ...
   )
@@ -163,7 +164,7 @@ vcov.singleR <- function(object, ...) {
 #' @return TODO
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  if (grepl("zot", model$model$family)) {
+  if (grepl("zot", model$model$family) | model$model$family %in% c("chao", "zelterman")) {
     X <- model$X[rownames(model$linear.predictors), ]
   } else {
     X <- model$X
@@ -285,7 +286,8 @@ residuals.singleR <- function(object,
                               type = c("pearson",
                                        "response",
                                        "working",
-                                       "deviance"),
+                                       "deviance",
+                                       "all"),
                               ...) {
   type <- match.arg(type)
   res <- object$residuals
@@ -293,13 +295,34 @@ residuals.singleR <- function(object,
   wts <- object$prior.weights
   mu <- object$fitt.values
   y <- object$y
+  if (object$model$family %in% c("chao",
+                                 "zelterman")) {
+    indx <- (y %in% 1:2)
+    mu <- mu[indx, ]
+    res <- res[indx, ]
+    if (length(wts) != 1) {wts <- wts[indx]}
+    y <- y[indx]
+  }
   rs <- switch(
     type,
-    working = data.frame("mu" = res[, 1] / object$model$variance(disp = disp, type = "trunc", mu  = mu$link),
-                         "link" = res[, 2] / object$model$variance(disp = disp, type = "nontrunc", mu  =  mu$link)),
+    working = data.frame("working" = object$model$funcZ(eta = object$linear.predictors,
+                                                       weight = object$weights,
+                                                       y = y, mu = mu$link,
+                                                       disp = object$dispersion)),
     response = res,
-    pearson = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
-    deviance = data.frame("mu" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts))
+    pearson = data.frame("pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc"))),
+    deviance = data.frame("deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts)),
+    all = {colnames(res) <- c("muResponse", "linkResponse")
+      data.frame(
+      "working" = object$model$funcZ(eta = object$linear.predictors,
+                                    weight = object$weights,
+                                    y = y, mu = mu$link,
+                                    disp = object$dispersion),
+      res,
+      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = mu$link, disp = object$dispersion, type = "trunc")),
+      "deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts),
+      row.names = rownames(object$linear.predictors)
+    )}
   )
   rs
 }
