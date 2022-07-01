@@ -105,14 +105,15 @@ signleRcaptureinternalIRLS <- function(dependent,
         temp <- c(disp, beta)
         L <- -loglike(temp)
         
-        if (max(abs(h)) < .Machine$double.eps ** (1/4)) {
+        if (L > LPrev) {
+          break
+        }
+        
+        if (max(abs(h)) < .Machine$double.eps ** (1 / 4)) {
           if (L < LPrev) {
             L <- LPrev
             beta <- betaPrev
           }
-          break
-        }
-        if (L > LPrev) {
           break
         }
       }
@@ -121,7 +122,7 @@ signleRcaptureinternalIRLS <- function(dependent,
     if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n")}  
     if (trace > 1) {cat(sep = " ", "Parameter vector =", temp, "\n")}
     
-    converged <- ((L - LPrev < LPrev * eps) || (max(abs(beta - betaPrev)) < eps))
+    converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
     
     if (!converged && (iter + 1 <= maxiter)) {
       iter <- iter + 1

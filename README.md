@@ -35,18 +35,15 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust",
-                            control.method = control.method(epsilon = 1e-5))
+                            method = "robust")
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust",
-                            control.method = control.method(epsilon = 1e-5))
+                            method = "robust")
 summary(ModelPo)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "ztpoisson", method = "robust", pop.var = "analytic", 
-#>     control.method = control.method(epsilon = 1e-05))
+#>     model = "ztpoisson", method = "robust", pop.var = "analytic")
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -90,8 +87,7 @@ summary(ModelPo)
 ``` r
 summary(ModelZl)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "zelterman", method = "robust", pop.var = "analytic", 
-#>     control.method = control.method(epsilon = 1e-05))
+#>     model = "zelterman", method = "robust", pop.var = "analytic")
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -169,22 +165,19 @@ and 1 and non standard confidence levels
 
 ``` r
 set.seed(123)
-summary(
-  estimate_popsize(
+zotgeomBoot <- estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
     control.pop.var = control.pop.var(B = 1000,
-                                      alpha = .01),
-    control.method = control.method(epsilon = 1e-6)
+                                      alpha = .01)
   )
-)
+summary(zotgeomBoot)
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
-#>     control.method = control.method(epsilon = 1e-06), control.pop.var = control.pop.var(B = 1000, 
-#>         alpha = 0.01))
+#>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
 #> Response Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -204,12 +197,12 @@ summary(
 #> Deviance: 23179.43
 #> 
 #> Log-likelihood: -9737.539 on 5692 Degrees of freedom 
-#> Number of iterations: 8
+#> Number of iterations: 7
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 29087.97
+#> Point estimate 29087.96
 #> Observed proportion: 41.4% (N obs = 12036)
-#> Bootstrap Std. Error 1982.127
+#> Bootstrap Std. Error 1982.073
 #> 99% CI for the population size:
 #> lowerBound upperBound 
 #>   25461.63   36238.35 
@@ -217,3 +210,9 @@ summary(
 #>                      lowerBound upperBound
 #> percentilicBootstrap   33.21343   47.27113
 ```
+
+``` r
+plot(zotgeomBoot, plotType = "bootHist")
+```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
