@@ -45,9 +45,9 @@ summary(ModelPo)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
 #>     model = "ztpoisson", method = "robust", pop.var = "analytic")
 #> 
-#> Response Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.25624 -0.25325 -0.09126  0.00000 -0.04493  4.74675 
+#> Standardised Pearson Residuals:
+#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#> -0.490392 -0.486401 -0.300208  0.002051 -0.210901 13.945794 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
@@ -89,21 +89,21 @@ summary(ModelZl)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
 #>     model = "zelterman", method = "robust", pop.var = "analytic")
 #> 
-#> Response Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.18406 -0.15731 -0.06934  0.00000 -0.03509  0.98949 
+#> Standardised Pearson Residuals:
+#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#> -0.476526 -0.432354 -0.274793  0.001439 -0.191085  9.762261 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
-#> (Intercept)            -3.359      0.528   -6.36 2.0e-10 ***
-#> gender                  0.535      0.232    2.30 2.1e-02   *
+#> (Intercept)            -3.359      0.525   -6.40 1.5e-10 ***
+#> gender                  0.535      0.229    2.34 1.9e-02   *
 #> age                     0.567      0.434    1.31 1.9e-01    
-#> reason                  0.189      0.220    0.86 3.9e-01    
-#> nationAsia             -1.056      0.448   -2.36 1.8e-02   *
-#> nationNorth Africa      0.579      0.307    1.89 5.9e-02   .
-#> nationRest of Africa   -0.664      0.425   -1.56 1.2e-01    
-#> nationSurinam          -1.720      1.050   -1.64 1.0e-01    
-#> nationTurkey           -1.030      0.657   -1.57 1.2e-01    
+#> reason                  0.189      0.217    0.87 3.8e-01    
+#> nationAsia             -1.056      0.442   -2.39 1.7e-02   *
+#> nationNorth Africa      0.579      0.300    1.93 5.3e-02   .
+#> nationRest of Africa   -0.664      0.419   -1.59 1.1e-01    
+#> nationSurinam          -1.720      1.048   -1.64 1.0e-01    
+#> nationTurkey           -1.030      0.654   -1.58 1.2e-01    
 #> -----------------------
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
@@ -165,7 +165,7 @@ and 1 and non standard confidence levels
 
 ``` r
 set.seed(123)
-zotgeomBoot <- estimate_popsize(
+zotgeoBoot <- estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
@@ -174,21 +174,21 @@ zotgeomBoot <- estimate_popsize(
     control.pop.var = control.pop.var(B = 1000,
                                       alpha = .01)
   )
-summary(zotgeomBoot)
+summary(zotgeoBoot)
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
-#> Response Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -17.0373  -1.4139  -0.5842   0.0029   0.5684  40.8180 
+#> Standardised Pearson Residuals:
+#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#> -0.953664 -0.727750 -0.426863  0.003653  0.322952 16.133747 
 #> 
 #> Coefficients:
 #>              Estimate Std. Error z value  P(>|z|)     
-#> (Intercept)    -2.608      0.298   -8.76  2.0e-18 ****
-#> log_size        0.585      0.022   26.47 2.2e-154 ****
-#> log_distance   -0.068      0.025   -2.66  7.7e-03   **
-#> C_TYPE          0.611      0.044   13.73  6.6e-43 ****
+#> (Intercept)    -2.608      0.208  -12.51  6.5e-36 ****
+#> log_size        0.585      0.013   45.20  0.0e+00 ****
+#> log_distance   -0.068      0.019   -3.67  2.5e-04  ***
+#> C_TYPE          0.611      0.025   24.19 2.9e-129 ****
 #> -----------------------
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
@@ -212,7 +212,7 @@ summary(zotgeomBoot)
 ```
 
 ``` r
-plot(zotgeomBoot, plotType = "bootHist")
+plot(zotgeoBoot, plotType = "bootHist")
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />

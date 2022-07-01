@@ -227,12 +227,11 @@ residuals.singleR <- function(object,
   wts <- object$prior.weights
   mu <- object$fitt.values
   y <- object$y
-  if (object$model$family %in% c("chao",
-                                 "zelterman")) {
+  if (object$model$family %in% c("chao", "zelterman")) {
     indx <- (y %in% 1:2)
-    mu <- mu[indx, ]
-    res <- res[indx, ]
-    if (length(wts) != 1) {wts <- wts[indx]}
+    #mu <- mu[indx, ]
+    #res <- res[indx, ]
+    #if (length(wts) != 1) {wts <- wts[indx]}
     y <- y[indx]
   }
   rs <- switch(
@@ -244,7 +243,7 @@ residuals.singleR <- function(object,
     response = res,
     pearson = data.frame("pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts)),
-    all = {colnames(res) <- c("muResponse", "linkResponse")
+    all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
       "working" = object$model$funcZ(eta = object$linear.predictors,
                                     weight = object$weights,

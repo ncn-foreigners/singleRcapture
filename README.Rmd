@@ -82,7 +82,7 @@ singleRcapture also includes bootstraps and models truncated at values 0 and 1 a
 
 ```{r boot}
 set.seed(123)
-zotgeomBoot <- estimate_popsize(
+zotgeoBoot <- estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
@@ -91,9 +91,9 @@ zotgeomBoot <- estimate_popsize(
     control.pop.var = control.pop.var(B = 1000,
                                       alpha = .01)
   )
-summary(zotgeomBoot)
+summary(zotgeoBoot)
 ```
 
 ```{r}
-plot(zotgeomBoot, plotType = "bootHist")
+plot(zotgeoBoot, plotType = "bootHist")
 ```
