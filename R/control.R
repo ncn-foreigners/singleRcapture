@@ -38,21 +38,42 @@ control.method <- function(epsilon = 1e-8,
     stepsize = stepsize
   )
 }
-control.model <- function() {
+#' control.model
+#' TODO
+#' @param weightsAsCounts TODO
+#' @param omegaFormula TODO
+#' @param alphaFormula TODO
+#' for now does nothing
+#' @return control.model
+#' @export
+control.model <- function(weightsAsCounts = FALSE,
+                          omegaFormula = NULL,# ????
+                          alphaFormula = NULL # ????
+                          # I suspect no other parameters will be used in the whole package so maybe its better to just specify them in control
+                          # instead of making formula argument in main function a list or something like that.
+                          # In VGAM there is a zero argument when calling vgam family class functions it specifies which argument
+                          # is to be modeled as intercept only eg. in ztnegbin zero is by default on alpha so their fitting is 
+                          # the same as ours. The only other aptions are for lambda or nothing i.e. there is no manual formula specification
+                          ) {
   # TODO
-  list()
+  list(
+    weightsAsCounts = weightsAsCounts,
+    omegaFormula = omegaFormula,
+    alphaFormula = alphaFormula
+  )
 }
-#' Control parameters for variance estimation
+#' Control parameters for population size estimation
 #'
-#' @param alpha Significance level, a number from frange (0, 1) 5% by default.
+#' @param alpha Significance level, a number from range (0, 1) 5% by default.
 #' @param trcount Truncated count - a number to be added to point estimator and both sides of confidence intervals.
 #' @param bootType Type of bootstrap performed, by default Parametric, other posible values are: Semiparametric and Nonparametric.
 #' @param B Number of bootstrap samples to be performed.
-#' @param confType Type of confidence interval for bootstrap confidence interval, Percentile by default, may be change to studentized.
-#' @param keepbootStat Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large balues of strapNumber it may significant amount of size.
+#' @param confType Type of confidence interval for bootstrap confidence interval, percentilic by default.
+#' @param keepbootStat Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large values of B it may significant amount of size.
 #' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.
-#' @param fittingMethod method used for fitting models from boostrap samples
-#' @param bootstrapFitcontrol control parameters for each regression works exactly like control.method
+#' @param fittingMethod method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.
+#' @param bootstrapFitcontrol control parameters for each regression works exactly like control.method.
+#' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @export
@@ -64,11 +85,13 @@ control.pop.var <- function(alpha = .05,
                             B = 500,
                             confType = c("percentilic",
                                          "studentized",
-                                         "basic"),
+                                         "basic"), # TODO: add all
                             keepbootStat = TRUE,
                             traceBootstrapSize = FALSE,
                             fittingMethod = NULL,
-                            bootstrapFitcontrol = NULL
+                            bootstrapFitcontrol = NULL,
+                            covType = c("observedInform",
+                                        "Fisher")
                             ) {
   list(
     alpha = alpha,
@@ -79,6 +102,7 @@ control.pop.var <- function(alpha = .05,
     keepbootStat = keepbootStat,
     traceBootstrapSize = traceBootstrapSize,
     fittingMethod = fittingMethod,
-    bootstrapFitcontrol = bootstrapFitcontrol
+    bootstrapFitcontrol = bootstrapFitcontrol,
+    covType = if (missing(covType)) "observedInform" else covType
   )
 }

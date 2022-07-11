@@ -165,7 +165,7 @@ and 1 and non standard confidence levels
 
 ``` r
 set.seed(123)
-zotgeoBoot <- estimate_popsize(
+zotgeomBoot <- estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
@@ -174,7 +174,7 @@ zotgeoBoot <- estimate_popsize(
     control.pop.var = control.pop.var(B = 1000,
                                       alpha = .01)
   )
-summary(zotgeoBoot)
+summary(zotgeomBoot)
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
@@ -184,11 +184,11 @@ summary(zotgeoBoot)
 #> -0.953664 -0.727750 -0.426863  0.003653  0.322952 16.133747 
 #> 
 #> Coefficients:
-#>              Estimate Std. Error z value  P(>|z|)     
-#> (Intercept)    -2.608      0.208  -12.51  6.5e-36 ****
-#> log_size        0.585      0.013   45.20  0.0e+00 ****
-#> log_distance   -0.068      0.019   -3.67  2.5e-04  ***
-#> C_TYPE          0.611      0.025   24.19 2.9e-129 ****
+#>              Estimate Std. Error z value  P(>|z|)    
+#> (Intercept)    -2.608      0.298   -8.76  2.0e-18 ***
+#> log_size        0.585      0.022   26.47 2.2e-154 ***
+#> log_distance   -0.068      0.025   -2.66  7.7e-03  **
+#> C_TYPE          0.611      0.044   13.73  6.6e-43 ***
 #> -----------------------
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
@@ -207,12 +207,12 @@ summary(zotgeoBoot)
 #> lowerBound upperBound 
 #>   25461.63   36238.35 
 #> 99% CI for the share of observed population:
-#>                      lowerBound upperBound
-#> percentilicBootstrap   33.21343   47.27113
+#> lowerBound upperBound 
+#>   33.21343   47.27113
 ```
 
 ``` r
-plot(zotgeoBoot, plotType = "bootHist")
+plot(zotgeomBoot, plotType = "bootHist")
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />

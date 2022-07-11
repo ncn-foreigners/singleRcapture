@@ -1,4 +1,5 @@
 # cheking popsize estimation as in van der heijden et.al (2018)
+set.seed(123)
 expect_equal(
   round(estimate_popsize(formula = TOTAL_SUB ~ .,
                          model = "ztpoisson",

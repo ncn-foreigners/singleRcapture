@@ -3,8 +3,8 @@
 #' @param data Data frame for the regression
 #' @param formula Description of model to that is supposed to be fitted
 #' @param model Model for regression and population estimate
-#' @param weights Optional object of a-priori weights used in fitting the model
-#' @param subset Same as in glm
+#' @param weights Optional object of prior weights used in fitting the model
+#' @param subset A logical vector indicating which observations should be used in regression and population size estimation
 #' @param na.action TODO
 #' @param method Method for fitting values currently supported robust (IRLS) and MaxLikelihood
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
@@ -13,39 +13,44 @@
 #' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function
 #' @param control.model ||
 #' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function
-#' @param model_frame,x,y logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output
-#' @param contrasts ||
+#' @param modelFrame,x,y logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output
+#' @param contrasts Not yet implemented
 #' @param ... Arguments to be passed to other methods
 #'
 #' @return Returns an object of classes inherited from glm containing:\cr
 #' @returns
 #' \itemize{
-#'  \item{y argument of observations}
-#'  \item{formula provided on call}
-#'  \item{call on which model is based}
-#'  \item{coefficients a vector of fitted coefficients of regression}
-#'  \item{standard_errors SE of fitted coefficients of regression}
-#'  \item{wValues test values for Wald test}
-#'  \item{pValues P values for Wald test}
+#'  \item{y -- Vector of dependent variable if specified at function call.}
+#'  \item{X -- Model matrix if specified at function call.}
+#'  \item{formula -- Formula provided on call.}
+#'  \item{call -- Call matching original input.}
+#'  \item{coefficients -- A vector of fitted coefficients of regression.}
+#'  \item{control -- A list of control parameters for control.method and control.model, control.pop.var is included in populationSize.}
 #'  \item{null.deviance TODO}
-#'  \item{model on which estimation and regression was built}
-#'  \item{aic akaike information criterion}
-#'  \item{bic bayesian information criterion}
-#'  \item{deviance TODO}
-#'  \item{prior.weight weight provided on call}
-#'  \item{weights if robust method of estimation was chosen, weights returned by IRLS}
-#'  \item{residuals working residuals}
-#'  \item{logL logarithm likelihood obtained}
-#'  \item{iter numbers of iterations performed in fitting}
-#'  \item{dispersion dispersion parameter if applies}
-#'  \item{df.residuals residual degrees of freedom}
-#'  \item{df.null null degrees of freedom}
-#'  \item{fitt.values vector of fitted values}
-#'  \item{populationSize a list containing information of population size estimate}
-#'  \item{linear predictors vector of linear predictors}
-#'  \item{qr qr decomposision of model matrix, might be removed later since it's
-#'  not used anywhere in package}
+#'  \item{model -- Model which estimation of population size and regression was built, object of class family.}
+#'  \item{aic -- Akaike information criterion.}
+#'  \item{bic -- Bayesian information criterion.}
+#'  \item{deviance -- Deviance for the model.}
+#'  \item{prior.weights -- Prior weight provided on call.}
+#'  \item{weights -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
+#'  \item{residuals -- Vector of raw residuals.}
+#'  \item{logL -- Logarithm likelihood obtained at final iteration.}
+#'  \item{iter -- Numbers of iterations performed in fitting or if stats::optim was used number of call to loglikelihhod function.}
+#'  \item{dispersion -- Dispersion parameter if applies.}
+#'  \item{df.residuals -- Residual degrees of freedom.}
+#'  \item{df.null -- Null degrees of freedom.}
+#'  \item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
+#'  \item{populationSize -- a list containing information of population size estimate.}
+#'  \item{modelFrame -- Model frame if specified at call.}
+#'  \item{linear predictors -- vector of fitted linear predictors.}
+#'  \item{trcount -- Number of truncated observations.}
+#'  \item{sizeObserved -- Number of observations in original model frame.}
+#'  \item{terms -- terms object used.}
+#'  \item{contrasts -- contrasts specified in function call.}
+#'  \item{na.aciton -- na.action used.}
 #' }
+#' 
+#' @seealso [stats::optim()] [control.method()] [control.pop.var()] [control.model()] [estimate_popsize.fit()]
 #'
 #' @importFrom stats glm.fit
 #' @importFrom stats poisson
@@ -71,7 +76,7 @@ estimate_popsize <- function(formula,
                              control.method = NULL,
                              control.model = NULL,
                              control.pop.var = NULL,
-                             model_frame = FALSE,
+                             modelFrame = FALSE,
                              x = TRUE,
                              y = TRUE,
                              contrasts = NULL,
@@ -89,9 +94,10 @@ estimate_popsize <- function(formula,
     family <- family()
   }
   # adding control parameters that may possibly be missing
+  # since passing simple lists as control arguments is allowed
   m1 <- control.pop.var
   m1 <- m1[sapply(m1, is.null) == FALSE]
-  m2 <- control.pop.var(fittingMethod = if (grepl(x = family$family, pattern = "negbin")) "mle" else "robust", 
+  m2 <- control.pop.var(fittingMethod = match.arg(method), 
                         bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE, disp.given = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.pop.var <- append(m1, m2)
@@ -103,6 +109,7 @@ estimate_popsize <- function(formula,
   m2 <- control.model()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.model <- append(m1, m2)
+  if (grepl(x = family$family, pattern = "negbin") && control.pop.var$covType == "Fisher") {stop("Obtaining covariance martix from fisher information matrix is not yet aviable for negative binomial models")}
   
   modelFrame <- stats::model.frame(formula, data,  ...)
   variables <- stats::model.matrix(formula, modelFrame, contrasts = contrasts, ...)
@@ -219,11 +226,11 @@ estimate_popsize <- function(formula,
   coefficients <- FITT$beta
   iter <- FITT$iter
 
-  log_like <- family$make_minusloglike(y = observed, X = as.matrix(variables),
+  log_like <- family$makeMinusLogLike(y = observed, X = as.matrix(variables),
                                        weight = prior.weights)
-  grad <- family$make_gradient(y = observed, X = as.matrix(variables),
+  grad <- family$makeGradient(y = observed, X = as.matrix(variables),
                                weight = prior.weights)
-  hessian <- family$make_hessian(y = observed, X = as.matrix(variables),
+  hessian <- family$makeHessian(y = observed, X = as.matrix(variables),
                                  weight = prior.weights)
   hess <- hessian(coefficients)
 
@@ -308,7 +315,7 @@ estimate_popsize <- function(formula,
       df.null = length(observed) - 1,
       fitt.values = fitt,
       populationSize = POP,
-      model_frame = if (isTRUE(model_frame)) modelFrame else NULL,
+      modelFrame = if (isTRUE(modelFrame)) modelFrame else NULL,
       linear.predictors = eta,
       trcount = control.pop.var$trcount,
       sizeObserved = sizeObserved,

@@ -6,7 +6,8 @@
 \usage{
 \method{plot}{singleR}(
   x,
-  plotType = c("QQ", "marginal", "fitresid", "bootHist", "rootogram"),
+  plotType = c("QQ", "marginal", "fitresid", "bootHist", "rootogram", "dfpopContr",
+    "dfpopBox", "scaleLoc", "Cooks"),
   ...
 )
 }

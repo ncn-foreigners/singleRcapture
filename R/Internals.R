@@ -29,10 +29,10 @@ signleRcaptureinternalIRLS <- function(dependent,
     prior <- 1
   }
   
-  loglike <- family$make_minusloglike(y = dependent,
+  loglike <- family$makeMinusLogLike(y = dependent,
                                       X = covariates,
                                       weight = prior)
-  grad <- family$make_gradient(y = dependent,
+  grad <- family$makeGradient(y = dependent,
                                X = covariates,
                                weight = prior)
   
@@ -107,7 +107,6 @@ signleRcaptureinternalIRLS <- function(dependent,
         beta <- betaPrev - h
         temp <- c(disp, beta)
         L <- -loglike(temp)
-        
         if (L > LPrev) {
           break
         }
@@ -152,37 +151,40 @@ signleRcaptureinternalIRLS <- function(dependent,
 #' @importFrom stats quantile
 #' @importFrom stats qnorm
 signleRcaptureinternalpopulationEstimate <- function(y,
-                               X,
-                               grad,
-                               lambda,
-                               beta,
-                               weights = 1,
-                               weights0 = NULL,
-                               hessian,
-                               family,
-                               dispersion,
-                               method = "analytic",
-                               control) {
+                                                     X,
+                                                     grad,
+                                                     lambda,
+                                                     beta,
+                                                     weights = 1,
+                                                     weights0 = NULL,
+                                                     hessian,
+                                                     family,
+                                                     dispersion,
+                                                     method = "analytic",
+                                                     control) {
   siglevel <- control$alpha
   trcount <- control$trcount
   numboot <- control$B
   sc <- qnorm(p = 1 - siglevel / 2)
-  funBoot <- switch(control$bootType,
-                    "parametric" = parBoot,
-                    "semiparametric" = semparBoot,
-                    "nonparametric" = noparBoot)
   if (method == "analytic") {
     strappedStatistic <- "No bootstrap performed"
     
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family == "zelterman") weights0 else weights,
                          lambda = lambda) + trcount
+    cov <- switch(control$covType, # Change covariance here by adding more cases
+      "observedInform" = solve(-hessian(beta)),
+      "Fisher" = solve(crossprod(x = as.matrix(X) * as.numeric(family$Wfun(prior = if (family$family == "zelterman") weights0 else weights, disp = dispersion, eta = family$linkfun(lambda))), 
+                                 y = as.matrix(X)))
+    )
+    # TODO : add Fisher for negbins
     
     variation <- as.numeric(family$popVar(beta = beta, 
                                           pw = if (family$family == "zelterman") weights0 else weights,
                                           lambda = lambda,
                                           disp = dispersion,
-                                          hess = hessian, X = X))
+                                          cov = cov, 
+                                          X = X))
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
     confidenceInterval <- data.frame(t(data.frame(
@@ -194,6 +196,10 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                          upperBound = length(y) + (N - length(y)) * G)
     )))
   } else if (grepl("bootstrap", method, fixed = TRUE)) {
+    funBoot <- switch(control$bootType,
+                      "parametric" = parBoot,
+                      "semiparametric" = semparBoot,
+                      "nonparametric" = noparBoot)
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family != "zelterman") {weights} else {weights0},
                          lambda = lambda) + trcount
@@ -214,6 +220,7 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                  trace = control$traceBootstrapSize,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
+
     if (N < stats::quantile(strappedStatistic, .05)) {
       warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
     } else if (N > stats::quantile(strappedStatistic, .95)) {

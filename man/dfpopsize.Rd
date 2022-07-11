@@ -7,14 +7,14 @@
 dfpopsize(model, dfbeta = NULL, observedPop = FALSE, ...)
 }
 \arguments{
-\item{model}{Model for which leave one out diagnostic of popsize will be done}
+\item{model}{Model for which leave one out diagnostic of popsize will be done.}
 
 \item{dfbeta}{If dfbeta was already obtained it is possible to pass them into
-function so that they need not be computed for the second time}
+function so that they need not be computed for the second time.}
 
 \item{observedPop}{TODO}
 
-\item{...}{Arguments to be passed down to other methods such as dfbeta}
+\item{...}{Arguments to be passed down to other methods such as dfbeta.}
 }
 \value{
 TODO: MAKE BETTER DOCUMENTATION

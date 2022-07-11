@@ -50,9 +50,9 @@ estimate_popsize.fit <- function(y,
     weights <- FITT$weights
     beta <- c(dispersion, FITT$coefficients)
   } else if (method == "mle") {
-    log_like <- family$make_minusloglike(y = y, X = X,
+    log_like <- family$makeMinusLogLike(y = y, X = X,
                                          weight = prior.weights)
-    grad <- family$make_gradient(y = y, X = X,
+    grad <- family$makeGradient(y = y, X = X,
                                  weight = prior.weights)
     
     weights <- prior.weights
