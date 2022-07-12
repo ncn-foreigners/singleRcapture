@@ -1,9 +1,9 @@
 #' Zero truncated Poisson Model
 #'
 #' @return A object of class "family" containing objects \cr
-#' make_minusloglike(y,X) - for creating negative likelihood function \cr
-#' make_gradient(y,X) - for creating gradient function \cr
-#' make_hessian(X) - for creating hessian \cr
+#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
+#' makeGradient(y,X) - for creating gradient function \cr
+#' makeHessian(X) - for creating hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
@@ -111,14 +111,12 @@ ztpoisson <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, hess, X) {
+  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
     X <- as.data.frame(X)
     ml <- (1 - exp(-lambda)) ** 2
-    I <- -hess(beta)
-
 
     f1 <- colSums(-X * pw * (exp(log(lambda) - lambda) / ml))
-    f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
+    f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
     f2 <- sum(pw * exp(-lambda) / ml)
 
@@ -127,9 +125,9 @@ ztpoisson <- function() {
   
   structure(
     list(
-      make_minusloglike = minusLogLike,
-      make_gradient = gradient,
-      make_hessian = hessian,
+      makeMinusLogLike = minusLogLike,
+      makeGradient = gradient,
+      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,

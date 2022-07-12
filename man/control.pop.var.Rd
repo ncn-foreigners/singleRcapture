@@ -2,7 +2,7 @@
 % Please edit documentation in R/control.R
 \name{control.pop.var}
 \alias{control.pop.var}
-\title{Control parameters for variance estimation}
+\title{Control parameters for population size estimation}
 \usage{
 control.pop.var(
   alpha = 0.05,
@@ -13,11 +13,12 @@ control.pop.var(
   keepbootStat = TRUE,
   traceBootstrapSize = FALSE,
   fittingMethod = NULL,
-  bootstrapFitcontrol = NULL
+  bootstrapFitcontrol = NULL,
+  covType = c("observedInform", "Fisher")
 )
 }
 \arguments{
-\item{alpha}{Significance level, a number from frange (0, 1) 5\% by default.}
+\item{alpha}{Significance level, a number from range (0, 1) 5\% by default.}
 
 \item{trcount}{Truncated count - a number to be added to point estimator and both sides of confidence intervals.}
 
@@ -25,19 +26,21 @@ control.pop.var(
 
 \item{B}{Number of bootstrap samples to be performed.}
 
-\item{confType}{Type of confidence interval for bootstrap confidence interval, Percentile by default, may be change to studentized.}
+\item{confType}{Type of confidence interval for bootstrap confidence interval, percentilic by default.}
 
-\item{keepbootStat}{Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large balues of strapNumber it may significant amount of size.}
+\item{keepbootStat}{Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large values of B it may significant amount of size.}
 
 \item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.}
 
-\item{fittingMethod}{method used for fitting models from boostrap samples}
+\item{fittingMethod}{method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.}
 
-\item{bootstrapFitcontrol}{control parameters for each regression works exactly like control.method}
+\item{bootstrapFitcontrol}{control parameters for each regression works exactly like control.method.}
+
+\item{covType}{type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly.
 }
 \description{
-Control parameters for variance estimation
+Control parameters for population size estimation
 }

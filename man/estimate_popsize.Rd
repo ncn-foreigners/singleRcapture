@@ -17,7 +17,7 @@ estimate_popsize(
   control.method = NULL,
   control.model = NULL,
   control.pop.var = NULL,
-  model_frame = FALSE,
+  modelFrame = FALSE,
   x = TRUE,
   y = TRUE,
   contrasts = NULL,
@@ -31,9 +31,9 @@ estimate_popsize(
 
 \item{model}{Model for regression and population estimate}
 
-\item{weights}{Optional object of a-priori weights used in fitting the model}
+\item{weights}{Optional object of prior weights used in fitting the model}
 
-\item{subset}{Same as in glm}
+\item{subset}{A logical vector indicating which observations should be used in regression and population size estimation}
 
 \item{na.action}{TODO}
 
@@ -49,9 +49,9 @@ percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 
 \item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function}
 
-\item{model_frame, x, y}{logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output}
+\item{modelFrame, x, y}{logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output}
 
-\item{contrasts}{||}
+\item{contrasts}{Not yet implemented}
 
 \item{...}{Arguments to be passed to other methods}
 }
@@ -59,33 +59,39 @@ percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")}
 Returns an object of classes inherited from glm containing:\cr
 
 \itemize{
-\item{y argument of observations}
-\item{formula provided on call}
-\item{call on which model is based}
-\item{coefficients a vector of fitted coefficients of regression}
-\item{standard_errors SE of fitted coefficients of regression}
-\item{wValues test values for Wald test}
-\item{pValues P values for Wald test}
+\item{y -- Vector of dependent variable if specified at function call.}
+\item{X -- Model matrix if specified at function call.}
+\item{formula -- Formula provided on call.}
+\item{call -- Call matching original input.}
+\item{coefficients -- A vector of fitted coefficients of regression.}
+\item{control -- A list of control parameters for control.method and control.model, control.pop.var is included in populationSize.}
 \item{null.deviance TODO}
-\item{model on which estimation and regression was built}
-\item{aic akaike information criterion}
-\item{bic bayesian information criterion}
-\item{deviance TODO}
-\item{prior.weight weight provided on call}
-\item{weights if robust method of estimation was chosen, weights returned by IRLS}
-\item{residuals working residuals}
-\item{logL logarithm likelihood obtained}
-\item{iter numbers of iterations performed in fitting}
-\item{dispersion dispersion parameter if applies}
-\item{df.residuals residual degrees of freedom}
-\item{df.null null degrees of freedom}
-\item{fitt.values vector of fitted values}
-\item{populationSize a list containing information of population size estimate}
-\item{linear predictors vector of linear predictors}
-\item{qr qr decomposision of model matrix, might be removed later since it's
-not used anywhere in package}
+\item{model -- Model which estimation of population size and regression was built, object of class family.}
+\item{aic -- Akaike information criterion.}
+\item{bic -- Bayesian information criterion.}
+\item{deviance -- Deviance for the model.}
+\item{prior.weights -- Prior weight provided on call.}
+\item{weights -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
+\item{residuals -- Vector of raw residuals.}
+\item{logL -- Logarithm likelihood obtained at final iteration.}
+\item{iter -- Numbers of iterations performed in fitting or if stats::optim was used number of call to loglikelihhod function.}
+\item{dispersion -- Dispersion parameter if applies.}
+\item{df.residuals -- Residual degrees of freedom.}
+\item{df.null -- Null degrees of freedom.}
+\item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
+\item{populationSize -- a list containing information of population size estimate.}
+\item{modelFrame -- Model frame if specified at call.}
+\item{linear predictors -- vector of fitted linear predictors.}
+\item{trcount -- Number of truncated observations.}
+\item{sizeObserved -- Number of observations in original model frame.}
+\item{terms -- terms object used.}
+\item{contrasts -- contrasts specified in function call.}
+\item{na.aciton -- na.action used.}
 }
 }
 \description{
 estimate_popsize
+}
+\seealso{
+\code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}
 }

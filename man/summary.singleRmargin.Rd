@@ -7,11 +7,11 @@
 \method{summary}{singleRmargin}(object, df = NULL, dropl5 = c("drop", "group", "no"), ...)
 }
 \arguments{
-\item{object}{object of singleRmargin class}
+\item{object}{object of singleRmargin class.}
 
-\item{df}{degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object}
+\item{df}{degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object.}
 
-\item{dropl5}{boolean value indicating whether to group bins with frequencies < 5, drop them or do nothing}
+\item{dropl5}{a character indicating treatment of cells with frequencies < 5 either grouping them, droping or leaving them as is. Defaults to drop.}
 
 \item{...}{Currently does nothing}
 }

@@ -1,9 +1,9 @@
 #' Zero truncated geometric model
 #'
 #' @return A object of class "family" containing objects \cr
-#' make_minusloglike(y,X) - for creating negative likelihood function \cr
-#' make_gradient(y,X) - for creating gradient function \cr
-#' make_hessian(X) - for creating hessian \cr
+#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
+#' makeGradient(y,X) - for creating gradient function \cr
+#' makeHessian(X) - for creating hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
@@ -125,15 +125,14 @@ ztgeom <- function() {
     N
   }
   
-  popVar <- function (beta, pw, lambda, disp, hess, X) {
+  popVar <- function (beta, pw, lambda, disp, cov, X) {
     pr <- 1 - 1 / (1 + lambda)
-    I <- as.matrix(-hess(beta))
     
     bigTheta <- -(pw * as.numeric(lambda / 
                  ((1 - (1 + lambda)) ** 2))) %*% as.matrix(X)
     bigTheta <- as.vector(bigTheta)
     
-    f1 <- t(bigTheta) %*% solve(I) %*% bigTheta
+    f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     f2 <- sum(pw * (1 - pr) / (pr ** 2))
     
     f1 + f2
@@ -142,9 +141,9 @@ ztgeom <- function() {
   
   structure(
     list(
-      make_minusloglike = minusLogLike,
-      make_gradient = gradient,
-      make_hessian = hessian,
+      makeMinusLogLike = minusLogLike,
+      makeGradient = gradient,
+      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,

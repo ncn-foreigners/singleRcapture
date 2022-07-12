@@ -8,9 +8,9 @@ zotnegbin()
 }
 \value{
 A object of class "family" containing objects \cr
-make_minusloglike(y,X) - for creating negative likelihood function \cr
-make_gradient(y,X) - for creating gradient function \cr
-make_hessian(X) - for creating hessian \cr
+makeMinusLogLike(y,X) - for creating negative likelihood function \cr
+makeGradient(y,X) - for creating gradient function \cr
+makeHessian(X) - for creating hessian \cr
 linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 linkinv - an inverse function of link \cr
 Dlink - a 1st derivative of link function \cr

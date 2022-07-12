@@ -1,9 +1,9 @@
 #' Chao model for the population size estimation
 #'
 #' @return A object of class "family" containing objects \cr
-#' make_minusloglike(y,X) - for creating negative likelihood function \cr
-#' make_gradient(y,X) - for creating gradient function \cr
-#' make_hessian(X) - for creating hessian \cr
+#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
+#' makeGradient(y,X) - for creating gradient function \cr
+#' makeHessian(X) - for creating hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
 #' dlink - a 1st derivative of link function \cr
@@ -99,7 +99,7 @@ chao <- function() {
     z <- y - 1
     eta <- link(mu)
     mu1 <- mu.eta(eta = eta)
-    sign(z - mu1) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
+    ((-1) ** y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
   pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
@@ -110,14 +110,13 @@ chao <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, hess, X) {
+  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
     X <- as.data.frame(X)
-    I <- -hess(beta)
     prob <- lambda * exp(-lambda) + (lambda ** 2) * exp(-lambda) / 2
 
     f1 <- colSums(-X * pw * ((lambda + (lambda ** 2)) /
                   ((lambda + (lambda ** 2) / 2) ** 2)))
-    f1 <- t(f1) %*% solve(as.matrix(I)) %*% f1
+    f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
     f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ** 2))
 
@@ -126,14 +125,14 @@ chao <- function() {
 
   structure(
     list(
-      make_minusloglike = minusLogLike,
-      make_gradient = gradient,
-      make_hessian = hessian,
+      makeMinusLogLike = minusLogLike,
+      makeGradient = gradient,
+      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,
       mu.eta = mu.eta,
-      link = "log",
+      link = "2 * log",
       valideta = function (eta) {TRUE},
       variance = variance,
       Wfun = Wfun,

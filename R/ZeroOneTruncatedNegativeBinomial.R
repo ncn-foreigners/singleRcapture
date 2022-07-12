@@ -1,9 +1,9 @@
 #' Zero One Truncated Negative Binomial model
 #'
 #' @return A object of class "family" containing objects \cr
-#' make_minusloglike(y,X) - for creating negative likelihood function \cr
-#' make_gradient(y,X) - for creating gradient function \cr
-#' make_hessian(X) - for creating hessian \cr
+#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
+#' makeGradient(y,X) - for creating gradient function \cr
+#' makeHessian(X) - for creating hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
@@ -247,13 +247,12 @@ zotnegbin <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp, hess, X) {
+  popVar <- function (beta, pw, lambda, disp, cov, X) {
     alpha <- exp(disp)
     z <- 1 / alpha
     M <- 1 + lambda / z
     S <- 1 / M
     prob <- 1 - S ** z - lambda * (S ** (1 + z))
-    I <- as.matrix(-hess(beta))
     
     bigTheta1 <- sum(pw * alpha *  as.numeric(
                     (prob * lambda * (S ** (2 + z)) * 
@@ -270,7 +269,7 @@ zotnegbin <- function() {
     
     bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
     
-    f1 <-  t(bigTheta) %*% solve(I) %*% bigTheta
+    f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     f2 <-  sum(pw * ((1 - lambda * (S ** (1 + z))) ** 2) *
               (1 - prob) / (prob ** 2))
     
@@ -279,9 +278,9 @@ zotnegbin <- function() {
 
   structure(
     list(
-      make_minusloglike = minusLogLike,
-      make_gradient = gradient,
-      make_hessian = hessian,
+      makeMinusLogLike = minusLogLike,
+      makeGradient = gradient,
+      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,
