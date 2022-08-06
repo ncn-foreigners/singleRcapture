@@ -17,24 +17,24 @@ estimate_popsize.fit(
 )
 }
 \arguments{
-\item{y}{vector of dependent variables}
+\item{y}{Vector of dependent variables.}
 
-\item{X}{model matrix}
+\item{X}{A model matrix.}
 
-\item{family}{same as model in estimate_popsize}
+\item{family}{Same as model in \code{estimate_popsize}.}
 
-\item{control}{control parameters}
+\item{control}{Control parameters.}
 
-\item{method}{method of estimation same as in estimate_popsize}
+\item{method}{Method of estimation same as in \code{estimate_popsize}.}
 
-\item{prior.weights}{vector of weights its the same argument as weights
-in estimate_popsize}
+\item{prior.weights}{Vector of weights its the same argument as weights
+in \code{estimate_popsize}.}
 
-\item{start}{start for regression fitting}
+\item{start}{Start for regression fitting.}
 
-\item{dispersion}{start for dispersion}
+\item{dispersion}{Start for dispersion.}
 
-\item{...}{arguments to pass to other methods}
+\item{...}{Arguments to pass to other methods.}
 }
 \value{
 list of object connected to regression

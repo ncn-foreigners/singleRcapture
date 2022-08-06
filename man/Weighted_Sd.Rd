@@ -7,11 +7,11 @@
 Weighted_Sd(x, w, ...)
 }
 \arguments{
-\item{x}{a vector of values from which standard deviation is to be calculated}
+\item{x}{A vector of values from which standard deviation is to be calculated.}
 
-\item{w}{a vector of weights}
+\item{w}{A vector of weights.}
 
-\item{...}{arguments to be passed from/to other methods}
+\item{...}{Arguments to be passed from/to other methods.}
 }
 \value{
 numeric vector of weighted standard deviation

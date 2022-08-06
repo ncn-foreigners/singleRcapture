@@ -19,30 +19,28 @@ control.method(
 )
 }
 \arguments{
-\item{epsilon}{relative tolerance (absolute for robust method) for fitting algorithms by default 1e-8}
+\item{epsilon}{Relative tolerance for fitting algorithms by default 1e-8.}
 
-\item{dispEpsilon}{tolerance for estimation of dispersion parameter only matters for negbins in robust}
+\item{maxiter}{Maximum number of iterations.}
 
-\item{maxiter}{Maximal number of iterations}
+\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihood) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace.}
 
-\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihhod) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace}
+\item{start}{Initial parameters for regression coefficients if NULL they will be derived from simple poisson regression.}
 
-\item{start}{initial parameters for regression if NULL they will be derived from simple poisson regression}
+\item{dispersionstart}{Initial parameters for dispersion parameter if applicable.}
 
-\item{dispersionstart}{initial parameters for dispersion parameter if applies}
+\item{mleMethod}{Passed to stats::optim. L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used.}
 
-\item{mleMethod}{method of stats::optim used L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used}
+\item{silent}{Logical, indicating whether warnings in robust method should be suppressed.}
 
-\item{silent}{logical indicating whether warnings in robust method should be suppressed}
+\item{optimPass}{Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.}
 
-\item{optimPass}{optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of controlparameters will be infered from other parameters}
+\item{disp.given}{Logical, indicates whether to estimate dispersion parameter or assume the one provided is already correct.}
 
-\item{disp.given}{logical indicates whether to estimate dispersion parameter or assume the one provided is already correct}
-
-\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1}
+\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1.}
 }
 \value{
-A list with selected parameters, it is also possible to call list directly.
+List with selected parameters, it is also possible to call list directly.
 }
 \description{
 Control parameters for regression

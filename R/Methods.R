@@ -284,7 +284,7 @@ print.summarysingleRmargin <- function(x, ...) {
 }
 #' @method AIC singleR
 #' @importFrom stats AIC
-#' @exportS3Method AIC
+#' @exportS3Method AIC.singleR
 AIC.singleR <- function(object, ...) {
   object$aic
 }

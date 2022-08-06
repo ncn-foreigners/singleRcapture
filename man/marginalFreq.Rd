@@ -13,18 +13,18 @@ marginalFreq(
 )
 }
 \arguments{
-\item{object}{object of class singleR}
+\item{object}{Object of class singleR.}
 
-\item{includeones}{Boolean value indicating whether to include estimated number of zero counts}
+\item{includeones}{Boolean value indicating whether to include the estimated number of zero counts.}
 
-\item{includezeros}{Boolean value indicating whether to include one counts in zero one truncated models}
+\item{includezeros}{Boolean value indicating whether to include one counts in the zero-one truncated models.}
 
-\item{onecount}{a numeric value indicating number of one counts if null trcount from object will be assumed to be a number one counts}
+\item{onecount}{A numeric value indicating number of one counts if null \code{trcount} from object will be assumed to be a number one counts.}
 
-\item{range}{optional argument specifying range of selected Y values}
+\item{range}{Optional argument specifying range of selected Y values.}
 }
 \value{
-A table with marginal frequencies predicted by the model
+A table with marginal frequencies predicted by the model.
 }
 \description{
 Marginal Frequencies

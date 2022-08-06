@@ -5,7 +5,7 @@
 \alias{carcassubmission}
 \title{Carcass submissions}
 \format{
-Data frame with 1858 rows and 4 columns.
+Data frame with 1,858 rows and 4 columns.
 \describe{
 \item{TOTAL_SUB}{Number of submissions}
 \item{log_size}{logarithm of size of farm}
@@ -28,6 +28,6 @@ This is data on such farms and their submissions. This
 data set contains submission of animal carcasses only.
 }
 \references{
-Bohning et.al (2013) BIOMETRICS 69, 1033-1042
+B{\"o}hning, D., Vidal‐Diez, A., Lerdsuwansri, R., Viwatwongkasem, C., and Arnold, M. (2013). "A generalization of Chao's estimator for covariate information". \emph{Biometrics}, 69(4), 1033-1042. doi:10.1111/biom.12082
 }
 \keyword{datasets}

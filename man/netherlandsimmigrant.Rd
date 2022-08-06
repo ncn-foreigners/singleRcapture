@@ -5,7 +5,7 @@
 \alias{netherlandsimmigrant}
 \title{Netherlands immigrant data}
 \format{
-Data frame with 1880 rows and 5 columns.
+Data frame with 1,880 rows and 5 columns.
 \describe{
 \item{capture}{Number of times a person has been captured}
 \item{gender}{Gender for apprehended person 1 for male and 0 for female}
@@ -25,6 +25,6 @@ Netherlands immigrant data
 Data on irregular immigrants in Netherlands
 }
 \references{
-van der Heijden et.al (2003) Statistical Modelling 3, 305-322
+van Der Heijden, P. G., Bustami, R., Cruyff, M. J., Engbersen, G., and Van Houwelingen, H. C. (2003). Point and interval estimation of the population size using the truncated Poisson regression model. \emph{Statistical Modelling}, 3(4), 305-322. doi:10.1191/1471082X03st057oa
 }
 \keyword{datasets}
