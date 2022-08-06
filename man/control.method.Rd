@@ -6,6 +6,7 @@
 \usage{
 control.method(
   epsilon = 1e-08,
+  dispEpsilon = 1e-05,
   maxiter = 1000,
   verbose = 0,
   start = NULL,
@@ -13,11 +14,14 @@ control.method(
   mleMethod = "L-BFGS-B",
   silent = FALSE,
   optimPass = FALSE,
-  disp.given = FALSE
+  disp.given = FALSE,
+  stepsize = 1
 )
 }
 \arguments{
-\item{epsilon}{relative tolerance for fitting algorithms by default 1e-8}
+\item{epsilon}{relative tolerance (absolute for robust method) for fitting algorithms by default 1e-8}
+
+\item{dispEpsilon}{tolerance for estimation of dispersion parameter only matters for negbins in robust}
 
 \item{maxiter}{Maximal number of iterations}
 
@@ -34,6 +38,8 @@ control.method(
 \item{optimPass}{optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of controlparameters will be infered from other parameters}
 
 \item{disp.given}{logical indicates whether to estimate dispersion parameter or assume the one provided is already correct}
+
+\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly.

@@ -1,7 +1,7 @@
 Package: singleRcapture
 Type: Package
 Title: A package for single-source capture-recapture models
-Version: 0.1.2
+Version: 0.1.2.2
 Authors@R:
     c(person(given = "Piotr",
              family = "Chlebicki",

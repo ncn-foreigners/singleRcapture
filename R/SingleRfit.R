@@ -34,6 +34,7 @@ estimate_popsize.fit <- function(y,
     FITT <- signleRcaptureinternalIRLS(dependent = y,
                                        covariates = X,
                                        eps = control$epsilon,
+                                       epsdisp = control$dispEpsilon,
                                        family = family,
                                        maxiter = control$maxiter,
                                        disp = dispersion,
@@ -41,16 +42,17 @@ estimate_popsize.fit <- function(y,
                                        start = start,
                                        silent = control$silent,
                                        disp.given = control$disp.given,
-                                       trace = control$verbose)
+                                       trace = control$verbose,
+                                       stepsize = control$stepsize)
 
     iter <- FITT$iter
     dispersion <- FITT$disp
     weights <- FITT$weights
     beta <- c(dispersion, FITT$coefficients)
   } else if (method == "mle") {
-    log_like <- family$make_minusloglike(y = y, X = X,
+    log_like <- family$makeMinusLogLike(y = y, X = X,
                                          weight = prior.weights)
-    grad <- family$make_gradient(y = y, X = X,
+    grad <- family$makeGradient(y = y, X = X,
                                  weight = prior.weights)
     
     weights <- prior.weights

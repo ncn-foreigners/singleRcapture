@@ -8,11 +8,12 @@ signleRcaptureinternalIRLS <- function(dependent,
                                        weights = NULL,
                                        maxiter = 10000,
                                        eps = .Machine$double.eps,
+                                       epsdisp = 1e-5,
                                        disp.given = FALSE,
                                        silent = FALSE,
-                                       trace = 0) {
+                                       trace = 0,
+                                       stepsize = 1) {
   converged <- FALSE
-  epsdisp <- 1e-5 # TODO add to controll
   
   mu.eta <- family$mu.eta
   validmu <- family$validmu
@@ -28,10 +29,10 @@ signleRcaptureinternalIRLS <- function(dependent,
     prior <- 1
   }
   
-  loglike <- family$make_minusloglike(y = dependent,
+  loglike <- family$makeMinusLogLike(y = dependent,
                                       X = covariates,
                                       weight = prior)
-  grad <- family$make_gradient(y = dependent,
+  grad <- family$makeGradient(y = dependent,
                                X = covariates,
                                weight = prior)
   
@@ -49,7 +50,7 @@ signleRcaptureinternalIRLS <- function(dependent,
   L <- -loglike(temp)
   dispPrev <- Inf
   
-  while (!converged && (iter <= maxiter)) {
+  while (!converged & (iter < maxiter)) {
     if (famName %in% c("ztnegbin", "zotnegbin") &&
         isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
       dispPrev <- disp
@@ -86,7 +87,8 @@ signleRcaptureinternalIRLS <- function(dependent,
     # But much much faster and less memory heavy
     A <- t(covariates) %*% (covariates * W)
     B <- t(covariates) %*% (Z * W)
-    beta <- solve(A, B, tol = .Machine$double.eps)
+    beta <- betaPrev + stepsize * (solve(A, B, tol = .Machine$double.eps) - betaPrev)
+    
     #beta <- beta - solve(A, B, tol = .Machine$double.eps)
     
     temp <- c(disp, beta)
@@ -94,9 +96,10 @@ signleRcaptureinternalIRLS <- function(dependent,
     
     if (L < LPrev) {
       halfstepsizing <- TRUE
-      h <- betaPrev - beta
-      if (trace %in% c("logL", "beta")) {
-        if (trace == "logL") cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n") else if (trace == "beta") {cat(sep = "", "Iteration number ", iter, " parameter vector = ", temp)}
+      h <- stepsize * (betaPrev - beta)
+      if (trace > 0) {
+        cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 12), "\n")
+        if (trace > 1) {cat(sep = "","Parameter vector = ", temp, "\n")}
         cat("Taking a modified step....\n")
       }
       repeat {
@@ -104,24 +107,24 @@ signleRcaptureinternalIRLS <- function(dependent,
         beta <- betaPrev - h
         temp <- c(disp, beta)
         L <- -loglike(temp)
+        if (L > LPrev) {
+          break
+        }
         
-        if (max(abs(h)) < .Machine$double.eps ** (1/4)) {
+        if (max(abs(h)) < .Machine$double.eps ** (1 / 4)) {
           if (L < LPrev) {
             L <- LPrev
             beta <- betaPrev
           }
           break
         }
-        if (L > LPrev) {
-          break
-        }
       }
     }
 
-    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE), "\n")}  
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 20), "\n")}  
     if (trace > 1) {cat(sep = " ", "Parameter vector =", temp, "\n")}
     
-    converged <- ((L - LPrev < LPrev * eps) || (max(abs(beta - betaPrev)) < eps))
+    converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
     
     if (!converged && (iter + 1 <= maxiter)) {
       iter <- iter + 1
@@ -131,14 +134,14 @@ signleRcaptureinternalIRLS <- function(dependent,
       W <- WPrev
     }
     
-    if(iter == maxiter && !converged && !silent) {
-      warning("Fitting algorithm (IRLS) has not converged")
-    }
-    
     if (converged && halfstepsizing && !silent) {
       warning("Convergence at halfstepsize")
     }
     
+  }
+  
+  if(iter == maxiter && !converged && !silent) {
+    warning("Fitting algorithm (IRLS) has not converged")
   }
   
   list(coefficients = beta, iter = iter, weights = W, disp = disp)
@@ -148,37 +151,40 @@ signleRcaptureinternalIRLS <- function(dependent,
 #' @importFrom stats quantile
 #' @importFrom stats qnorm
 signleRcaptureinternalpopulationEstimate <- function(y,
-                               X,
-                               grad,
-                               lambda,
-                               beta,
-                               weights = 1,
-                               weights0 = NULL,
-                               hessian,
-                               family,
-                               dispersion,
-                               method = "analytic",
-                               control) {
+                                                     X,
+                                                     grad,
+                                                     lambda,
+                                                     beta,
+                                                     weights = 1,
+                                                     weights0 = NULL,
+                                                     hessian,
+                                                     family,
+                                                     dispersion,
+                                                     method = "analytic",
+                                                     control) {
   siglevel <- control$alpha
   trcount <- control$trcount
   numboot <- control$B
   sc <- qnorm(p = 1 - siglevel / 2)
-  funBoot <- switch(control$bootType,
-                    "parametric" = parBoot,
-                    "semiparametric" = semparBoot,
-                    "nonparametric" = noparBoot)
   if (method == "analytic") {
     strappedStatistic <- "No bootstrap performed"
     
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family == "zelterman") weights0 else weights,
                          lambda = lambda) + trcount
+    cov <- switch(control$covType, # Change covariance here by adding more cases
+      "observedInform" = solve(-hessian(beta)),
+      "Fisher" = solve(crossprod(x = as.matrix(X) * as.numeric(family$Wfun(prior = if (family$family == "zelterman") weights0 else weights, disp = dispersion, eta = family$linkfun(lambda))), 
+                                 y = as.matrix(X)))
+    )
+    # TODO : add Fisher for negbins
     
     variation <- as.numeric(family$popVar(beta = beta, 
                                           pw = if (family$family == "zelterman") weights0 else weights,
                                           lambda = lambda,
                                           disp = dispersion,
-                                          hess = hessian, X = X))
+                                          cov = cov, 
+                                          X = X))
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
     confidenceInterval <- data.frame(t(data.frame(
@@ -190,6 +196,10 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                          upperBound = length(y) + (N - length(y)) * G)
     )))
   } else if (grepl("bootstrap", method, fixed = TRUE)) {
+    funBoot <- switch(control$bootType,
+                      "parametric" = parBoot,
+                      "semiparametric" = semparBoot,
+                      "nonparametric" = noparBoot)
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family != "zelterman") {weights} else {weights0},
                          lambda = lambda) + trcount
@@ -210,6 +220,15 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                  trace = control$traceBootstrapSize,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
+
+    if (N < stats::quantile(strappedStatistic, .05)) {
+      warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+    } else if (N > stats::quantile(strappedStatistic, .95)) {
+      warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+    }
+    if (max(strappedStatistic) > N ** 1.375) {
+      warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+    }
     
     variation <- stats::var(strappedStatistic)
     

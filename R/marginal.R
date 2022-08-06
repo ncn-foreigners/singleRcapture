@@ -44,7 +44,9 @@ marginalFreq <- function(object,
                                                        "zotgeom"))) {
     res <- c(trcount, res)
     names(res)[1] <- "1"
-    if (!is.null(onecount)) {res[1] <- onecount}
+    y <- c(trcount, y)
+    names(y)[1] <- "1"
+    if (!is.null(onecount)) {res[1] <- onecount; y[1] <- onecount}
   }
   
   if(isTRUE(includezeros)) {

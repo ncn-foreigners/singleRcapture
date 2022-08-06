@@ -2,23 +2,25 @@
 % Please edit documentation in R/Methods.R
 \name{vcov.singleR}
 \alias{vcov.singleR}
-\title{vcov method for singleR class}
+\title{vcov method for singleR class.}
 \usage{
 \method{vcov}{singleR}(object, ...)
 }
 \arguments{
-\item{object}{object of clas singleRclass}
+\item{object}{object of clas singleRclass.}
 
-\item{...}{variables to pass to solve}
+\item{...}{variables to pass to solve.}
 }
 \value{
 A covariance matrix for fitted coefficients obtained by inverting
 analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
-with observed information matrix.
+with observed information/fisher information matrix.
 }
 \description{
 Returns a estimated covariance matrix for model coefficients
-calculated from analytic hessian.
+calculated from analytic hessian or fisher information matrix.
+Covariance type is taken from control parameter that have been provided
+on call that created object.
 }
 \details{
 vcov method for singleR class

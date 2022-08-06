@@ -43,14 +43,12 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust",
-                            control.method = control.method(epsilon = 1e-5))
+                            method = "robust")
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust",
-                            control.method = control.method(epsilon = 1e-5))
+                            method = "robust")
 summary(ModelPo)
 ```
 
@@ -84,16 +82,18 @@ singleRcapture also includes bootstraps and models truncated at values 0 and 1 a
 
 ```{r boot}
 set.seed(123)
-summary(
-  estimate_popsize(
+zotgeomBoot <- estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
     control.pop.var = control.pop.var(B = 1000,
-                                      alpha = .01),
-    control.method = control.method(epsilon = 1e-6)
+                                      alpha = .01)
   )
-)
+summary(zotgeomBoot)
+```
+
+```{r}
+plot(zotgeomBoot, plotType = "bootHist")
 ```

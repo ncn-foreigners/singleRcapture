@@ -1,9 +1,9 @@
 #' Zero truncated Negative Binomial model
 #'
 #' @return A object of class "family" containing objects \cr
-#' make_minusloglike(y,X) - for creating negative likelihood function \cr
-#' make_gradient(y,X) - for creating gradient function \cr
-#' make_hessian(X) - for creating hessian \cr
+#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
+#' makeGradient(y,X) - for creating gradient function \cr
+#' makeHessian(X) - for creating hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
 #' Dlink - a 1st derivative of link function \cr
@@ -256,11 +256,10 @@ ztnegbin <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp, hess, X) {
+  popVar <- function (beta, pw, lambda, disp, cov, X) {
     z <- exp(disp)
     pr <- 1 - (1 + z * lambda) ** (- 1 / z)
     S <- 1 / (1 + z * lambda)
-    I <- as.matrix(-hess(beta))
 
     cp1 <- (1 / S)
     cp2 <- (S ** (1 - 1 / z))
@@ -276,7 +275,7 @@ ztnegbin <- function() {
 
     bigTheta <- matrix(c(bigTheta1, bigTheta2), ncol = 1)
 
-    f1 <-  t(bigTheta) %*% solve(I) %*% bigTheta
+    f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     f2 <-  sum(pw * (1 - pr) / (pr ** 2))
 
     f1 + f2
@@ -284,9 +283,9 @@ ztnegbin <- function() {
 
   structure(
     list(
-      make_minusloglike = minusLogLike,
-      make_gradient = gradient,
-      make_hessian = hessian,
+      makeMinusLogLike = minusLogLike,
+      makeGradient = gradient,
+      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,
