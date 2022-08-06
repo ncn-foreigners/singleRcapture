@@ -5,12 +5,12 @@
 #' so this only prints results and no object is returned.
 #' 
 #' @details Description of an object with class \code{singleR}, focusing on the associated 
-#' regression model and population size estimation performed
-#' @param object Object for which method is applied summarized
-#' @param ... other arguments to be passed to other methods
+#' regression model and population size estimation performed.
+#' @param object Object for which method is applied summarized.
+#' @param ... Other arguments to be passed to other methods.
 #' 
-#' @method summary singleR
-#' @return Easy to read summary of regression and most important data from a singleR class
+#' @method summary singleR.
+#' @return Easy to read summary of regression and most important data from a singleR class.
 #' @exportS3Method
 summary.singleR <- function(object, ...) {
   # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
@@ -68,11 +68,11 @@ summary.singleR <- function(object, ...) {
 
 #' dfpopsize
 #'
-#' @param model Model for which leave one out diagnostic of popsize will be done
-#' @param dfbeta If dfbeta was already obtained it is possible to pass them into 
-#' function so that they need not be computed for the second time
+#' @param model Model for which leave-one-out diagnostics of population size estimator will be done.
+#' @param dfbeta If \code{dfbeta} was already obtained it is possible to pass them into 
+#' function so that they need not be computed for the second time.
 #' @param observedPop TODO
-#' @param ... Arguments to be passed down to other methods such as dfbeta
+#' @param ... Arguments to be passed down to other methods such as \code{dfbeta}.
 #'
 #' @return TODO: MAKE BETTER DOCUMENTATION
 #' @export
@@ -82,13 +82,13 @@ dfpopsize <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 
 #' Summary for marginal frequencies
 #'
-#' @param object object of singleRmargin class
-#' @param df degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object
-#' @param dropl5 boolean value indicating whether to group bins with frequencies < 5, drop them or do nothing
+#' @param object Object of \code{singleRmargin} class.
+#' @param df Degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object.
+#' @param dropl5 Boolean value indicating whether to group bins with frequencies < 5, drop them or do nothing.
 #' @param ... Currently does nothing
 #'
-#' @method summary singleRmargin
-#' @return A chi squared test for comparison between fitted and observed marginal frequencies
+#' @method Summary singleRmargin,
+#' @return A chi-squared test for comparison between fitted and observed marginal frequencies.
 #' @exportS3Method
 summary.singleRmargin <- function(object, df = NULL,
                                   dropl5 = c("drop", 
@@ -134,10 +134,10 @@ summary.singleRmargin <- function(object, df = NULL,
 }
 
 #' vcov method for singleR class
-#' @title vcov method for singleR class
-#' @param object object of clas singleRclass
-#' @param ... variables to pass to solve
-#' @description Returns a estimated covariance matrix for model coefficients
+#' @title vcov method for \code{singleR} class
+#' @param object object of class \code{singleRclass}
+#' @param ... Variables to pass to solve.
+#' @description Returns an estimated covariance matrix for model coefficients
 #' calculated from analytic hessian.
 #' 
 #' @method vcov singleR
@@ -153,9 +153,9 @@ vcov.singleR <- function(object, ...) {
   )
 }
 #' Hat values for singleRclass
-#' @title Hat values for singleRclass
-#' @param model object of clas singleRclass
-#' @param ... additional parameters to pass to other methods
+#' @title Hat values for singleRclass.
+#' @param model Object of clas singleRclass.
+#' @param ... Additional parameters to pass to other methods.
 #' @description TODO
 #' 
 #' @method hatvalues singleR
@@ -185,14 +185,14 @@ hatvalues.singleR <- function(model, ...) {
 }
 #' dfbeta for singleRclass
 #' @title TODO
-#' @param model Fitted object of singleR class
-#' @param method Method for finding dfbetas, either "formula" where the formula for 
+#' @param model Fitted object of \code{singleR} class.
+#' @param method Method for finding \code{dfbetas}, either "formula" where the formula for 
 #' approximate difference will be used or "simulation" where for each observation new 
 #' object will be fitted, with already obtained coefficients as starting values and with 
-#' just 1 iteration (or other number specified in maxit.new parameter), with i'th row 
-#' removed for all observations.
-#' @param maxit.new maximal number of iterations for regression
-#' @param ... Arguments to pass to other methods
+#' just 1 iteration (or other number specified in \code{maxit.new} parameter), with i'th row 
+#' removed from dataset.
+#' @param maxit.new Maximum number of iterations for regression.
+#' @param ... Arguments to pass to other methods.
 #' @description TODO
 #' 
 #' @return TODO
@@ -249,11 +249,11 @@ dfbetasingleR <- function(model,
 #' @description A function that computes studentized confidence intervals
 #' for model coefficients
 #' 
-#' @param object a fitted model object.
-#' @param parm names of parameters for which confidence intervals are to be 
-#' computed, if missing all parameters will be considered
-#' @param level confidence level for intervals.
-#' @param ... additional argument(s) for methods.
+#' @param object A fitted model object.
+#' @param parm Names of parameters for which confidence intervals are to be 
+#' computed, if missing all parameters will be considered.
+#' @param level Confidence level for intervals.
+#' @param ... Additional argument(s) for methods.
 #' 
 #' @method confint singleR
 #' @return An object with named columns that include upper and 

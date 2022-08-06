@@ -1,8 +1,8 @@
 #' Weighted_sd
 #'
-#' @param x a vector of values from which standard deviation is to be calculated
-#' @param w a vector of weights
-#' @param ... arguments to be passed from/to other methods
+#' @param x A vector of values from which standard deviation is to be calculated.
+#' @param w A vector of weights.
+#' @param ... Arguments to be passed from/to other methods.
 #'
 #' @return numeric vector of weighted standard deviation
 #' @export
