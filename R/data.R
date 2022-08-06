@@ -7,7 +7,7 @@
 #' This data set contains farms that have submitted anything at all 
 #' not only carcasses but also blood samples etc.
 #' @docType data
-#' @format Data frame with 12036 rows and 4 columns.
+#' @format Data frame with 12,036 rows and 4 columns.
 #' \describe{
 #'   \item{TOTAL_SUB}{Number of submissions}
 #'   \item{log_size}{logarithm of size of farm}
@@ -24,7 +24,7 @@
 #' @title Netherlands immigrant data
 #' @details Data on irregular immigrants in Netherlands
 #' @docType data
-#' @format Data frame with 1880 rows and 5 columns.
+#' @format Data frame with 1,880 rows and 5 columns.
 #' \describe{
 #'   \item{capture}{Number of times a person has been captured}
 #'   \item{gender}{Gender for apprehended person 1 for male and 0 for female}
@@ -48,7 +48,7 @@
 #' This is data on such farms and their submissions. This
 #' data set contains submission of animal carcasses only.
 #' @docType data
-#' @format Data frame with 1858 rows and 4 columns.
+#' @format Data frame with 1,858 rows and 4 columns.
 #' \describe{
 #'   \item{TOTAL_SUB}{Number of submissions}
 #'   \item{log_size}{logarithm of size of farm}
