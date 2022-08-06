@@ -1,10 +1,10 @@
 #' @title summary.singleR
 #' @description 
-#' Method for class singleR, unlike glm and lm standard errors are 
+#' Method for class \code{singleR}, unlike glm and lm standard errors are 
 #' needed to estimate population size in main function, 
 #' so this only prints results and no object is returned.
 #' 
-#' @details Description of an object with class singleR, focusing on the associated 
+#' @details Description of an object with class \code{singleR}, focusing on the associated 
 #' regression model and population size estimation performed
 #' @param object Object for which method is applied summarized
 #' @param ... other arguments to be passed to other methods
