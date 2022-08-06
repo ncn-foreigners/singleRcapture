@@ -1,6 +1,7 @@
 #' Control parameters for regression
 #'
-#' @param epsilon Relative tolerance for fitting algorithms by default 1e-8.
+#' @param epsilon Absolute tolerance for fitting algorithms by default 1e-8.
+#' @param dispEpsilon Absolute tolerance for estimating dispersion parameter by default 1e-5.
 #' @param maxiter Maximum number of iterations.
 #' @param verbose Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihood) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace.
 #' @param start Initial parameters for regression coefficients if NULL they will be derived from simple poisson regression.
@@ -14,7 +15,7 @@
 #' @return List with selected parameters, it is also possible to call list directly.
 #' @export
 control.method <- function(epsilon = 1e-8,
-                           dispEpsilon = 1e-5,
+                           dispEpsilon = 1e-5, # TODO: this will be unnecessary in the next update.
                            maxiter = 1000,
                            verbose = 0,
                            start = NULL,

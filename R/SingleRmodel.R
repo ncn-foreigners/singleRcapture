@@ -13,7 +13,7 @@
 #' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.method} function.
 #' @param control.model TODO
 #' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.pop.var} function.
-#' @param model_frame,x,y Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.
+#' @param modelFrame,x,y Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.
 #' @param contrasts Not yet implemented.
 #' @param ... Arguments to be passed to other methods
 #'

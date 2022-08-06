@@ -284,31 +284,31 @@ print.summarysingleRmargin <- function(x, ...) {
 }
 #' @method AIC singleR
 #' @importFrom stats AIC
-#' @exportS3Method AIC.singleR
+#' @exportS3Method
 AIC.singleR <- function(object, ...) {
   object$aic
 }
 #' @method BIC singleR
 #' @importFrom stats BIC
-#' @exportS3Method BIC
+#' @exportS3Method
 BIC.singleR <- function(object, ...) {
   object$bic
 }
 #' @method extractAIC singleR
 #' @importFrom stats extractAIC
-#' @exportS3Method extractAIC
+#' @exportS3Method
 extractAIC.singleR <- function(fit, scale, k = 2, ...) {
   -2 * fit$logL + k * length(fit$coefficients)
 }
 #' @method dfbeta singleR
 #' @importFrom stats dfbeta
-#' @exportS3Method dfbeta
+#' @exportS3Method
 dfbeta.singleR <- function(model, ...) {
   dfbetasingleR(model, ...)
 }
 #' @method logLik singleR
 #' @importFrom stats logLik
-#' @exportS3Method logLik
+#' @exportS3Method
 logLik.singleR <- function(object, ...) {
   val <- object$logL
   attr(val, "nobs") <- dim(residuals(object))[1]
@@ -318,13 +318,15 @@ logLik.singleR <- function(object, ...) {
 }
 #' @method model.matrix singleR
 #' @importFrom stats model.matrix
-#' @exportS3Method model.matrix
+#' @exportS3Method
 model.matrix.singleR <- function(object, ...) {
+  # TODO :
+  ## - add Xvlm
   object$X
 }
 
 #' @method dfpopsize singleR
-#' @exportS3Method dfpopsize
+#' @exportS3Method
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
@@ -368,7 +370,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @method summary singleR
 #' @importFrom stats pt
 #' @importFrom stats coef
-#' @exportS3Method summary
+#' @exportS3Method
 summary.singleR <- function(object, test = c("t", "z"), correlation = FALSE, ...) {
   if (missing(test)) {test <- "z"}
   df.residual <- object$df.residual
@@ -407,14 +409,14 @@ summary.singleR <- function(object, test = c("t", "z"), correlation = FALSE, ...
 }
 #' @importFrom stats cooks.distance
 #' @method cooks.distance singleR
-#' @exportS3Method cooks.distance
+#' @exportS3Method
 cooks.distance.singleR <- function(model, ...) {
   res <- ((residuals(model, type = "pearson") ** 2) * (hatvalues(model) / (length(model$coefficients))))$pearson
   names(res) <- rownames(model$linear.predictors)
   res
 }
 #' @method print summarysingleR
-#' @exportS3Method print
+#' @exportS3Method
 print.summarysingleR <- function(x, ...) {
   # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
   signif <- sapply(x$pValues, function(k) {

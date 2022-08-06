@@ -49,11 +49,11 @@ percientiles (\code{"bootstrapPerc"}) or studentized CI (\code{"bootstrapSD"}).}
 
 \item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.pop.var} function.}
 
+\item{modelFrame, x, y}{Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.}
+
 \item{contrasts}{Not yet implemented.}
 
 \item{...}{Arguments to be passed to other methods}
-
-\item{model_frame, x, y}{Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.}
 }
 \value{
 Returns an object of classes inherited from glm containing:\cr

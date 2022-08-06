@@ -19,7 +19,9 @@ control.method(
 )
 }
 \arguments{
-\item{epsilon}{Relative tolerance for fitting algorithms by default 1e-8.}
+\item{epsilon}{Absolute tolerance for fitting algorithms by default 1e-8.}
+
+\item{dispEpsilon}{Absolute tolerance for estimating dispersion parameter by default 1e-5.}
 
 \item{maxiter}{Maximum number of iterations.}
 
