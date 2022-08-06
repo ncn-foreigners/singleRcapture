@@ -1,20 +1,20 @@
 #' @title estimate_popsize
 #'
-#' @param data Data frame for the regression
-#' @param formula Description of model to that is supposed to be fitted
-#' @param model Model for regression and population estimate
-#' @param weights Optional object of prior weights used in fitting the model
+#' @param data Data frame for the regression.
+#' @param formula Formula for the model to be fitted.
+#' @param model Model for regression and population estimate. Possible values are \code{"ztpoisson"}, \code{"ztnegbin"}, \code{"ztgeom"}, \code{"zotpoisson"}, \code{"zotnegbin"}, \code{"zotgeom"}, \code{"zelterman"}, or \code{"chao"}.
+#' @param weights Optional object of a priori weights used in fitting the model.
 #' @param subset A logical vector indicating which observations should be used in regression and population size estimation
 #' @param na.action TODO
-#' @param method Method for fitting values currently supported robust (IRLS) and MaxLikelihood
-#' @param pop.var A method of constructing confidence interval either analytic or bootstrap
+#' @param method Method for fitting values currently supported: iteratively reweighted least squares (\code{robust}) and maximum likelihood (\code{mle}).
+#' @param pop.var A method of constructing confidence interval either analytic or bootstrap.
 #' where bootstraped confidence interval may either be based on 2.5%-97.5%
-#' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
-#' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function
-#' @param control.model ||
-#' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function
-#' @param modelFrame,x,y logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output
-#' @param contrasts Not yet implemented
+#' percientiles (\code{"bootstrapPerc"}) or studentized CI (\code{"bootstrapSD"}).
+#' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.method} function.
+#' @param control.model TODO
+#' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.pop.var} function.
+#' @param model_frame,x,y Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.
+#' @param contrasts Not yet implemented.
 #' @param ... Arguments to be passed to other methods
 #'
 #' @return Returns an object of classes inherited from glm containing:\cr

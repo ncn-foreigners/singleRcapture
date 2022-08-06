@@ -1,15 +1,15 @@
 #' Function to fit single-source capture-recapture models
 #'
-#' @param y vector of dependent variables
-#' @param X model matrix
-#' @param family same as model in estimate_popsize
-#' @param control control parameters
-#' @param method method of estimation same as in estimate_popsize
-#' @param prior.weights vector of weights its the same argument as weights
-#' in estimate_popsize
-#' @param start start for regression fitting
-#' @param dispersion start for dispersion
-#' @param ... arguments to pass to other methods
+#' @param y Vector of dependent variables.
+#' @param X A model matrix.
+#' @param family Same as model in \code{estimate_popsize}.
+#' @param control Control parameters.
+#' @param method Method of estimation same as in \code{estimate_popsize}.
+#' @param prior.weights Vector of weights its the same argument as weights
+#' in \code{estimate_popsize}.
+#' @param start Start for regression fitting.
+#' @param dispersion Start for dispersion.
+#' @param ... Arguments to pass to other methods.
 #' @return
 #' list of object connected to regression
 #' @export

@@ -47,7 +47,7 @@ summary.singleRmargin <- function(object, df = NULL,
     y <- y[!l]
     A <- A[!l]
   }
-
+  
   X2 <- sum(((A - y) ** 2) / A)
   G <- 2 * sum(y * log(y / A))
   pval <- stats::pchisq(q = c(X2, G), df = df, lower.tail = FALSE)
@@ -115,7 +115,7 @@ hatvalues.singleR <- function(model, ...) {
   } else {
     W <- model$model$Wfun(prior = model$prior.weights, mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion)[, 1]
   }
-
+  
   hatvector <- diag(
     tcrossprod(
       x = as.matrix(X) %*% 
@@ -144,45 +144,45 @@ dfbetasingleR <- function(model,
                           ...) {
   if (missing(method)) {method = "simulation"}
   switch (method,
-    "formula" = {
-      if (model$call$method == "robust") {
-        W <- model$weights
-      } else {
-        W <- model$model$Wfun(prior = model$prior.weights[rownames(model$linear.predictors), ], mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion)
-      }
-      X <- model$X[rownames(model$X) %in% rownames(model$linear.predictors),]
-      hatvector <- hatvalues.singleR(model, ...)
-      rp <- residuals.singleR(object = model, type = "pearson")$pearson
-      res <- t(
-        solve(crossprod(x = X, (X * W))) %*% (t(X) * sqrt(W) * rp / sqrt(1 - hatvector))
-      )},
-    "simulation" = {
-      X <- model$X[rownames(model$X) %in% rownames(model$linear.predictors),]
-      if (model$model$family %in% c("chao", "zelterman")) {
-        y <- model$y[model$y %in% c(1, 2)]
-      } else {
-        y <- model$y
-      }
-      res <- matrix(nrow = nrow(X), ncol = ncol(X) + !(is.null(model$dispersion)))
-      cf <- model$coefficients
-      for (k in 1:nrow(X)) {
-        #cat("Iter nr.", k, "\n")
-        res[k, ] <- cf - estimate_popsize.fit(
-          control = control.method(
-            silent = TRUE, 
-            start = cf, 
-            maxiter = maxit.new + 1
-          ),
-          y = y[-k],
-          X = X[-k, ],
-          start = cf,
-          dispersion = model$dispersion,
-          family = model$model,
-          prior.weights = if (length(model$prior.weights) == 1) model$prior.weights else model$prior.weights[-k],
-          method = model$call$method
-        )$beta
-      }
-    }
+          "formula" = {
+            if (model$call$method == "robust") {
+              W <- model$weights
+            } else {
+              W <- model$model$Wfun(prior = model$prior.weights[rownames(model$linear.predictors), ], mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion)
+            }
+            X <- model$X[rownames(model$X) %in% rownames(model$linear.predictors),]
+            hatvector <- hatvalues.singleR(model, ...)
+            rp <- residuals.singleR(object = model, type = "pearson")$pearson
+            res <- t(
+              solve(crossprod(x = X, (X * W))) %*% (t(X) * sqrt(W) * rp / sqrt(1 - hatvector))
+            )},
+          "simulation" = {
+            X <- model$X[rownames(model$X) %in% rownames(model$linear.predictors),]
+            if (model$model$family %in% c("chao", "zelterman")) {
+              y <- model$y[model$y %in% c(1, 2)]
+            } else {
+              y <- model$y
+            }
+            res <- matrix(nrow = nrow(X), ncol = ncol(X) + !(is.null(model$dispersion)))
+            cf <- model$coefficients
+            for (k in 1:nrow(X)) {
+              #cat("Iter nr.", k, "\n")
+              res[k, ] <- cf - estimate_popsize.fit(
+                control = control.method(
+                  silent = TRUE, 
+                  start = cf, 
+                  maxiter = maxit.new + 1
+                ),
+                y = y[-k],
+                X = X[-k, ],
+                start = cf,
+                dispersion = model$dispersion,
+                family = model$model,
+                prior.weights = if (length(model$prior.weights) == 1) model$prior.weights else model$prior.weights[-k],
+                method = model$call$method
+              )$beta
+            }
+          }
   )
   colnames(res) <- names(model$coefficients)
   res
@@ -247,18 +247,18 @@ residuals.singleR <- function(object,
   rs <- switch(
     type,
     working = data.frame("working" = object$model$funcZ(eta = object$linear.predictors,
-                                                       weight = object$weights,
-                                                       y = y, mu = mu$link,
-                                                       disp = object$dispersion)),
+                                                        weight = object$weights,
+                                                        y = y, mu = mu$link,
+                                                        disp = object$dispersion)),
     response = res,
     pearson = data.frame("pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y, mu = mu$link, disp = disp, wt = wts)),
     all = {colnames(res) <- c("muResponse", "linkResponse");
-      data.frame(
+    data.frame(
       "working" = object$model$funcZ(eta = object$linear.predictors,
-                                    weight = object$weights,
-                                    y = y, mu = mu$link,
-                                    disp = object$dispersion),
+                                     weight = object$weights,
+                                     y = y, mu = mu$link,
+                                     disp = object$dispersion),
       res,
       "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc")),
       "deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts),
@@ -347,8 +347,8 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
       cf <- cf[-1]
     }
     res <- c(res, model$trcount + model$model$pointEst(disp = disp,
-             pw = if (length(model$prior.weights) == 1) {model$prior.weights} else {model$prior.weights[-k]},
-             lambda = model$model$linkinv(as.matrix(X[-k, ]) %*% cf)))
+                                                       pw = if (length(model$prior.weights) == 1) {model$prior.weights} else {model$prior.weights[-k]},
+                                                       lambda = model$model$linkinv(as.matrix(X[-k, ]) %*% cf)))
   }
   
   if(isTRUE(observedPop) & (grepl("zot", model$model$family) | model$model$family == "chao")) {
@@ -378,8 +378,8 @@ summary.singleR <- function(object, test = c("t", "z"), correlation = FALSE, ...
   se <- sqrt(diag(cov))
   wValues <- cf / se
   pValues <- switch (test,
-    "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
-    "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
+                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
+                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
   )
   crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
   if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}

@@ -1,18 +1,17 @@
 #' Control parameters for regression
 #'
-#' @param epsilon relative tolerance (absolute for robust method) for fitting algorithms by default 1e-8
-#' @param dispEpsilon tolerance for estimation of dispersion parameter only matters for negbins in robust
-#' @param maxiter Maximal number of iterations
-#' @param verbose Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihhod) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace
-#' @param start initial parameters for regression if NULL they will be derived from simple poisson regression
-#' @param dispersionstart initial parameters for dispersion parameter if applies
-#' @param mleMethod method of stats::optim used L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used
-#' @param silent logical indicating whether warnings in robust method should be suppressed
-#' @param optimPass optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of controlparameters will be infered from other parameters
-#' @param disp.given logical indicates whether to estimate dispersion parameter or assume the one provided is already correct
-#' @param stepsize Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1
+#' @param epsilon Relative tolerance for fitting algorithms by default 1e-8.
+#' @param maxiter Maximum number of iterations.
+#' @param verbose Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihood) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace.
+#' @param start Initial parameters for regression coefficients if NULL they will be derived from simple poisson regression.
+#' @param dispersionstart Initial parameters for dispersion parameter if applicable.
+#' @param mleMethod Passed to stats::optim. L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used.
+#' @param silent Logical, indicating whether warnings in robust method should be suppressed.
+#' @param optimPass Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
+#' @param disp.given Logical, indicates whether to estimate dispersion parameter or assume the one provided is already correct.
+#' @param stepsize Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1.
 #'
-#' @return A list with selected parameters, it is also possible to call list directly.
+#' @return List with selected parameters, it is also possible to call list directly.
 #' @export
 control.method <- function(epsilon = 1e-8,
                            dispEpsilon = 1e-5,
@@ -64,16 +63,16 @@ control.model <- function(weightsAsCounts = FALSE,
 }
 #' Control parameters for population size estimation
 #'
-#' @param alpha Significance level, a number from range (0, 1) 5% by default.
-#' @param trcount Truncated count - a number to be added to point estimator and both sides of confidence intervals.
-#' @param bootType Type of bootstrap performed, by default Parametric, other posible values are: Semiparametric and Nonparametric.
-#' @param B Number of bootstrap samples to be performed.
-#' @param confType Type of confidence interval for bootstrap confidence interval, percentilic by default.
-#' @param keepbootStat Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large values of B it may significant amount of size.
-#' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.
-#' @param fittingMethod method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.
-#' @param bootstrapFitcontrol control parameters for each regression works exactly like control.method.
-#' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
+#' @param alpha Significance level, 0.05 used by default.
+#' @param trcount Truncated count -- a number to be added to point estimator and both sides of confidence intervals.
+#' @param bootType Bootstrap type. Default is \code{"parametric"}, other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.
+#' @param B Number of bootstrap samples to be performed (default 500).
+#' @param confType Type of confidence interval for bootstrap confidence interval, \code{"percentile"} by default. Other possibility: \code{"studentized"} and \code{"basic"}.
+#' @param keepbootStat Boolean value indicating whether to keep a vector of statistics produced by bootstrap.
+#' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.
+#' @param fittingMethod Method used for fitting models from bootstrap samples.
+#' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{control.method}
+#' @param covType Type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @export
