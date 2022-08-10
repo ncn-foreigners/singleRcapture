@@ -21,7 +21,7 @@ zotpoisson <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
             "nontrunc" = lambda,
@@ -29,7 +29,7 @@ zotpoisson <- function() {
     )
   }
 
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(mu, type = "nontrunc", ...) {
     switch (type,
             "nontrunc" = mu,
             "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
@@ -47,7 +47,7 @@ zotpoisson <- function() {
     eta + (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -61,20 +61,19 @@ zotpoisson <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
-      term <- lambda / (exp(lambda) - lambda - 1)
 
-      t(as.matrix(X)) %*% (weight * (y - lambda - lambda * term))
+      t(as.matrix(X)) %*% (weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     X <- as.matrix(X)
     y <- as.numeric(y)
 
@@ -96,9 +95,9 @@ zotpoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, mu, wt, disp = NULL) {
+  dev.resids <- function(y, mu, wt, ...) {
     eta <- log(mu)
-    mu1 <- mu.eta(eta = eta, disp = disp)
+    mu1 <- mu.eta(eta = eta)
     a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = NULL) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
     loghm1y <- y
     loghm1y[y == 2] <- -Inf
@@ -109,7 +108,7 @@ zotpoisson <- function() {
     sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu) - mu * exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
-  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, lambda, contr = FALSE, ...) {
     N <- (pw * (1 - lambda * exp(-lambda)) /
          (1 - exp(-lambda) - lambda * exp(-lambda)))
     if(!contr) {
@@ -118,7 +117,7 @@ zotpoisson <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
+  popVar <- function (pw, lambda, cov, X, ...) {
     X <- as.data.frame(X)
     prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
     term <- (1 - lambda * exp(-lambda)) ** 2
@@ -151,7 +150,8 @@ zotpoisson <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "zotpoisson"
+      family = "zotpoisson",
+      parNum = 1
     ),
     class = "family"
   )

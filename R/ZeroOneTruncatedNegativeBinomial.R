@@ -21,21 +21,53 @@ zotnegbin <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(eta, disp, type = "trunc") {
-    A <- exp(disp)
-    lambda <- invlink(eta)
+  mu.eta <- function(eta, type = "trunc", ...) {
+    A <- exp(eta[, 2])
+    lambda <- invlink(eta[, 1])
     switch (type,
             "nontrunc" = lambda,
             "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - ((1 + A * lambda) ** (-1 / A) + lambda * ((1 + A * lambda) ** (-1 - 1 / A))))
     )
   }
 
-  variance <- function(mu, disp, type = "nontrunc") {
+  variance <- function(mu, disp, type = "nontrunc", ...) {
     A <- exp(disp)
     switch (type,
             "nontrunc" = mu * (1 + A * mu),
             "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
     )
+  }
+  
+  compdigamma <- function(y, alpha) {
+    #temp <- 0:(y-1)
+    #sum(-(alpha ** (-2)) / (temp + 1 / alpha))
+    (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ** 2)
+  }
+  
+  
+  comptrigamma <- function(y, alpha) {
+    #temp <- 0:(y-1)
+    #sum(-(temp ** 2) / (((1 + temp * alpha)) ** 2))
+    (alpha ** 2 * (1 - y) + 2 * alpha * digamma(y + 1 / alpha) + trigamma(y + 1 / alpha) - 2 * alpha * digamma(1 + 1 / alpha) - trigamma(1 + 1 / alpha)) / (alpha ** 4)
+  }
+  
+  compExpect <- function (eta1, eta2) {
+    lambda <- exp(eta1)
+    alpha <- exp(eta2)
+    res <- res1 <- 0
+    k <- 0
+    repeat{
+      k <- k + 1 # 1 is the first possible y value for 0 truncated distribution
+      prob <- stats::dnbinom(size = 1 / alpha, mu = lambda, x = k) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda))
+      toAdd <- compdigamma(y = k, alpha = alpha) * prob
+      toAdd1 <- comptrigamma(y = k, alpha = alpha) * prob
+      res <- res + toAdd
+      res1 <- res1 + toAdd1
+      if ((k == nSim) | ((abs(toAdd) < 1e-8) & (abs(toAdd1) < 1e-8))) {
+        break
+      }
+    }
+    c(res, res1)
   }
   
   Wfun <- function(prior, eta, disp, ...) {
@@ -67,85 +99,87 @@ zotnegbin <- function() {
     cp1 <- z * log(M)
     cp2 <- lambda * S
     cp3 <- alpha * (-1 - z)
-    eta + ((y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob)) / weight
+    dig <- compdigamma(y = y, alpha = alpha)
+    c((y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob),
+      (dig + cp1 - alpha * (y + z) * cp2 -
+      ((S ** z) * (z * log(S) + cp2) - lambda *
+      (S ** (1 + z)) * (cp1 + cp3 * cp2)) / prob +
+      y)) / as.numeric(weight[,1:2])
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(arg) {
-      alpha <- exp(arg[1])
+    function(beta) {
+      eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+      lambda <- exp(eta[,1])
+      alpha <- exp(eta[,2])
       z <- 1 / alpha
-      beta <- arg[-1]
-      eta <- X %*% beta
-      lambda <- exp(eta)
       S <- 1 / (1 + lambda / z)
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
 
       -sum(weight * (lgamma(y + z) - lgamma(z) -
-      log(factorial(y)) - (y + z) * log(1 + lambda / z)
-      + y * log(lambda / z) - log(prob)))
+      log(factorial(y)) - (y + z) * log(1 + lambda / z) +
+      y * log(lambda / z) - log(prob)))
     }
   }
 
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(arg) {
-      alpha <- exp(arg[1])
+    function(beta) {
+      eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+      lambda <- exp(eta[,1])
+      alpha <- exp(eta[,2])
       # z is inverse of alpha in documentation
       z <- 1 / alpha
-      beta <- arg[-1]
-      eta <- X %*% beta
-      lambda <- exp(eta)
       M <- 1 + lambda * alpha
       S <- 1 / M
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
       cp1 <- z * log(M)
       cp2 <- lambda * S
       cp3 <- alpha * (-1 - z)
+      dig <- compdigamma(y = y, alpha = alpha)
 
       # log(alpha) derivative
-      G0 <- sum((cp1 - alpha * (y + z) * cp2 -
-                ((S ** z) * (z * log(S) + cp2) - lambda *
-                (S ** (1 + z)) * (cp1 + cp3 * cp2)) / prob +
-                y - (digamma(y + z) - digamma(z)) * z) * weight)
+      G0 <- t((dig - (-lambda * (S ** (1 + z)) * (log(M) * (z ** 2) - (1 + z) * lambda * S) -
+            (S ** z) * (log(M) * (z ** 2) - cp2 * z)) / prob +
+            log(M) * (z ** 2) - S * lambda * (y + z) + y * z) * alpha * weight)
       # Beta derivative
-      G1 <- t(X) %*% (weight * (y - alpha * (y + z) * cp2 +
-                      lambda * cp3 * lambda *
-                      (S ** (2 + z)) / prob))
+      G1 <- (weight * (y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob))
 
-      c(G0, G1)
+      as.numeric(c(G1, G0) %*% X)
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, lambdaPredNumber) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(arg) {
-      alpha <- exp(arg[1])
+    function(beta) {
+      eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+      lambda <- exp(eta[,1])
+      alpha <- exp(eta[,2])
+      Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+      Xalpha <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
       # z is inverse of alpha in documentation
       z <- 1 / alpha
-      beta <- arg[-1]
-      eta <- X %*% beta
-      lambda <- exp(eta)
       M <- 1 + lambda * alpha
       S <- 1 / M
       prob <- 1 - S ** z - lambda * (S ** (1 + z))
-      res <- matrix(1, nrow = length(arg), ncol = length(arg))
+      res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
       # The following vectors are meant to decrease compitation time
       cp1 <- M ** z
       cp2 <- alpha * lambda
@@ -164,28 +198,30 @@ zotnegbin <- function() {
       cp15 <- lambda * S
       cp16 <- M ** 2
       cp17 <- (-1 - z)
-      cp18 <- (cp8 - cp2 - lambda - 1)
+      #cp18 <- (cp8 - cp2 - lambda - 1)
       cp19 <- (cp1 - 1)
       cp20 <- cp19 ** 2
-      cp21 <- lambda * (y + lambda) * cp11
-      cp22 <- (y - lambda) * alpha * cp8
-      cp23 <- (1 + lambda) * y * alpha
-      cp24 <- (cp5 * cp10 - cp21 + cp22 - cp23)
-      cp25 <- (1 - z * cp7)
-      cp26 <- z * cp3
+      #cp21 <- lambda * (y + lambda) * cp11
+      #cp22 <- (y - lambda) * alpha * cp8
+      #cp23 <- (1 + lambda) * y * alpha
+      #cp24 <- (cp5 * cp10 - cp21 + cp22 - cp23)
+      #cp25 <- (1 - z * cp7)
+      #cp26 <- z * cp3
       cp27 <- 1 / cp10
+      dig <- compdigamma(y = y, alpha = alpha)
+      trig <- comptrigamma(y = y, alpha = alpha)
 
       # 2nd log(alpha) derivative
+      # TODO this is bad repair
 
-      G00 <- sum(weight * ((trigamma(y + z) - trigamma(z)) * (z ** 2) + 
-            (digamma(y + z) - digamma(z)) * z +
-             z * (((M ** cp26) * cp5 * (cp5 * (2 - cp26) + cp15 * cp3)) +
-             cp22 * (cp5 * cp25 + cp15 * cp7) -
-             2 * cp21 + cp9 * (M ** (cp26 - 1)) +
-             cp22 - cp23) / (M * cp18) -
-             z * cp24 * (cp8 * (cp25 * cp5 + cp15 * cp7) - cp9) /
-             (M * (cp18 ** 2)) - z * (cp5 * cp10 - cp21 + cp22 - cp23) /
-             (M * cp18) - lambda * cp24 / (cp16 * cp18)))
+      G00 <- t(as.data.frame(Xalpha) *
+             (trig * (alpha ** 2) + dig * alpha + (cp9 ** 2) * (y + z) * (S ** 2) +
+             (1 / cp1) * ((cp15 ** 2) * cp11 + cp15 - z * cp5) - lambda / cp10 *
+             (cp11 * (1 + z) * cp14 / cp16 - cp7 * cp15 + 2 * cp15 - z * cp5) + 
+             (-((-cp15 + z * cp5) ** 2)) / cp1 - lambda * ((-cp15 * cp7 + z * cp5) ** 2) / 
+             (cp8 * prob) - alpha * (y + z) * cp15 + 2 * cp15 + 
+             (((1 / cp1) * (cp15 - z * cp5) - (lambda / cp8) * (-cp15 * cp7 - z * cp5)) ** 2) / 
+             (prob ** 2) - z * cp5)) %*% Xalpha
 
       # mixed derivative
       term <- (-alpha * (y + z) * S + lambda * cp11 * (y + z) * (1 / cp16) +
@@ -195,7 +231,7 @@ zotnegbin <- function() {
                ((1 / cp1) * (z * log(S) + cp15) - lambda * (1 / cp8) *
                (z * cp5 + S * cp9 * cp17))) / (prob ** 2))
 
-      G01 <- t(X) %*% as.numeric(term * lambda * weight)
+      G01 <- t(as.data.frame(Xlambda) * as.numeric(term * lambda * weight)) %*% as.matrix(Xalpha)
       # second beta derivative
       term <- ((-(alpha ** 3) * y * cp14 * cp20 +
               cp11 * lambda * (cp14 * cp1 - lambda * cp19 *
@@ -205,14 +241,14 @@ zotnegbin <- function() {
               (cp1 - y) - y * cp20) - cp20) /
               (cp16 * ((cp1 + lambda * (alpha * cp19 - 1) - 1) ** 2)))
 
-      G11 <- t(as.data.frame(X) * lambda * weight * as.numeric(term)) %*% X
+      G11 <- t(as.data.frame(Xlambda) * lambda * weight * as.numeric(term)) %*% Xlambda
 
 
-      res[1, 1] <- G00
-      res[-1, -1] <- G11
-      res[1, -1] <- G01
-      res[-1, 1] <- G01
-
+      res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
+      res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
+      res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(G01)
+      res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- G01
+      
       res
     }
   }
@@ -221,22 +257,23 @@ zotnegbin <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function (y, mu, wt, disp = NULL) {
-    eta <- log(mu)
-    disp1 <- exp(disp)
-    mu1 <- mu.eta(eta = eta, disp = disp)
-    a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = disp) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
-    loghm1y <- y
-    loghm1y[y == 2] <- -11
-    loghm1y[y > 2] <- sapply(y[y > 2], FUN = a)
-    h1my <- exp(loghm1y)
-    logh1mydivdisp1 <- ifelse(y > 2, log(h1my / disp1), 0)
-    logprobdey <- ifelse(y > 2, log(1 - (1 + disp1 * h1my) ** (-1 / disp1) - h1my * ((1 + disp1 * h1my) ** (- 1 - 1 / disp1))), 0)
-    sign(y - mu1) * sqrt(-2 * wt * (-(y + 1 / disp1) * log(1 + mu * disp1) + y * log(mu / disp1) - log(1 - (1 + disp1 * mu) ** (-1 / disp1) - mu * ((1 + disp1 * mu) ** (- 1 - 1 / disp1))) +
-                                     (y + 1 / disp1) * log(1 + h1my * disp1) - y * logh1mydivdisp1 + logprobdey))
+  dev.resids <- function (y, eta, wt, ...) {
+    # disp1 <- exp(eta[, 2])
+    # mu <- invlink(eta[, 1])
+    # mu1 <- mu.eta(eta = eta)
+    # a <- function(n) {stats::uniroot(f = function(x) {mu.eta(matrix(c(x, eta[n, 2]), ncol = 2)) - y[n]}, lower = -log(y[n]), upper = y[n] * 10, tol = .Machine$double.eps)$root}
+    # loghm1y <- y
+    # loghm1y[y == 2] <- -11
+    # loghm1y[y > 2] <- sapply(y[y > 2], FUN = a)
+    # h1my <- exp(loghm1y)
+    # logh1mydivdisp1 <- ifelse(y > 2, log(h1my / disp1), 0)
+    # logprobdey <- ifelse(y > 2, log(1 - (1 + disp1 * h1my) ** (-1 / disp1) - h1my * ((1 + disp1 * h1my) ** (- 1 - 1 / disp1))), 0)
+    # sign(y - mu1) * sqrt(-2 * wt * (-(y + 1 / disp1) * log(1 + mu * disp1) + y * log(mu / disp1) - log(1 - (1 + disp1 * mu) ** (-1 / disp1) - mu * ((1 + disp1 * mu) ** (- 1 - 1 / disp1))) +
+    #                                  (y + 1 / disp1) * log(1 + h1my * disp1) - y * logh1mydivdisp1 + logprobdey))
+    NULL
   }
 
-  pointEst <- function (disp, pw, lambda, contr = FALSE) {
+  pointEst <- function (disp, pw, lambda, contr = FALSE, ...) {
     z <- exp(-disp)
     S <- 1 / (1 + lambda / z)
     prob <- 1 - S ** z - lambda * (S ** (1 + z))
@@ -247,7 +284,7 @@ zotnegbin <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp, cov, X) {
+  popVar <- function (pw, lambda, disp, cov, X, ...) {
     alpha <- exp(disp)
     z <- 1 / alpha
     M <- 1 + lambda / z
@@ -294,7 +331,8 @@ zotnegbin <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "zotnegbin"
+      family = "zotnegbin",
+      parNum = 2
     ),
     class = "family"
   )

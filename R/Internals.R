@@ -5,14 +5,18 @@ signleRcaptureinternalIRLS <- function(dependent,
                                        covariates,
                                        start,
                                        disp = NULL,
+                                       omegaTheta = NULL,
                                        weights = NULL,
                                        maxiter = 10000,
                                        eps = .Machine$double.eps,
+                                       omgeps = .Machine$double.eps,
                                        epsdisp = 1e-5,
-                                       disp.given = FALSE,
+                                       dispGiven = FALSE,
+                                       omegaThetaGiven = FALSE,
                                        silent = FALSE,
                                        trace = 0,
-                                       stepsize = 1) {
+                                       stepsize = 1,
+                                       ...) {
   converged <- FALSE
   
   mu.eta <- family$mu.eta
@@ -29,12 +33,8 @@ signleRcaptureinternalIRLS <- function(dependent,
     prior <- 1
   }
   
-  loglike <- family$makeMinusLogLike(y = dependent,
-                                      X = covariates,
-                                      weight = prior)
-  grad <- family$makeGradient(y = dependent,
-                               X = covariates,
-                               weight = prior)
+  logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
+  grad <- family$makeGradient(y = dependent, X = covariates, weight = prior)
   
   if (famName %in% c("chao", "zelterman")) {
     dependent <- dependent - 1
@@ -46,23 +46,24 @@ signleRcaptureinternalIRLS <- function(dependent,
   beta <- start
   
   W <- prior
-  temp <- c(disp, beta)
-  L <- -loglike(temp)
+  temp <- c(disp, omegaTheta, beta)
+  L <- -logLike(temp)
   dispPrev <- Inf
+  omegaThetaPrev <- Inf
   
   while (!converged & (iter < maxiter)) {
     if (famName %in% c("ztnegbin", "zotnegbin") &&
-        isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
+        isFALSE(dispGiven) && (abs(disp - dispPrev) > epsdisp)) {
       dispPrev <- disp
-      ll <- function(alpha) loglike(c(alpha, beta))
-      gr <- function(alpha) -grad(c(alpha, beta))[1]
+      ll <- function(a) logLike(c(a, beta))
+      gr <- function(a) -grad(c(a, beta))[1]
       disp <- stats::optim(par = disp,
                            lower = disp - 5 * abs(disp),
                            upper = disp + 5 * abs(disp),
                            fn = ll,
                            gr = gr,
                            method = "Brent",
-                           control = list(reltol = .Machine$double.eps))$par
+                           control = list(reltol = epsdisp))$par
     }
     
     halfstepsizing <- FALSE
@@ -72,46 +73,45 @@ signleRcaptureinternalIRLS <- function(dependent,
     LPrev <- L
     
     eta <- covariates %*% beta
-    mu <- mu.eta(eta = eta, disp)
+    mu <- mu.eta(eta = eta, disp = disp, theta = omegaTheta)
     if (!validmu(mu)) {
       stop("Fit error infinite values reached consider another model,
             mu is too close to zero/infinity")
     }
     
-    varY <- variance(mu = mu, disp)
-    W <- as.numeric(Wfun(mu = mu, prior = prior, disp = disp, eta = eta))
-    Z <- funcZ(mu = mu, y = dependent, eta = eta, weight = W, disp = disp)
+    W <- as.numeric(Wfun(mu = mu, prior = prior, disp = disp, eta = eta, theta = omegaTheta))
+    Z <- eta + funcZ(mu = mu, y = dependent, eta = eta, weight = W, disp = disp, theta = omegaTheta)
     # This is equivalent to
     # A <- t(covariates) %*% W %*% covariates
     # B <- t(covariates) %*% W %*% Z
     # But much much faster and less memory heavy
     A <- t(covariates) %*% (covariates * W)
     B <- t(covariates) %*% (Z * W)
-    beta <- betaPrev + stepsize * (solve(A, B, tol = .Machine$double.eps) - betaPrev)
+    beta <- betaPrev + stepsize * (solve(A, B) - betaPrev)
     
     #beta <- beta - solve(A, B, tol = .Machine$double.eps)
     
-    temp <- c(disp, beta)
-    L <- -loglike(temp)
+    temp <- c(disp, omegaTheta, beta)
+    L <- -logLike(temp)
     
     if (L < LPrev) {
       halfstepsizing <- TRUE
       h <- stepsize * (betaPrev - beta)
       if (trace > 0) {
         cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 12), "\n")
-        if (trace > 1) {cat(sep = "","Parameter vector = ", temp, "\n")}
+        if (trace > 1) {cat(sep = " ","Parameter vector =", temp, "\n")}
         cat("Taking a modified step....\n")
       }
       repeat {
         h <- h / 2
         beta <- betaPrev - h
-        temp <- c(disp, beta)
-        L <- -loglike(temp)
+        temp <- c(disp, omegaTheta, beta)
+        L <- -logLike(temp)
         if (L > LPrev) {
           break
         }
         
-        if (max(abs(h)) < .Machine$double.eps ** (1 / 4)) {
+        if (max(abs(h)) < .Machine$double.eps ** (1 / 8)) {
           if (L < LPrev) {
             L <- LPrev
             beta <- betaPrev
@@ -120,7 +120,7 @@ signleRcaptureinternalIRLS <- function(dependent,
         }
       }
     }
-
+    
     if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 20), "\n")}  
     if (trace > 1) {cat(sep = " ", "Parameter vector =", temp, "\n")}
     
@@ -144,7 +144,7 @@ signleRcaptureinternalIRLS <- function(dependent,
     warning("Fitting algorithm (IRLS) has not converged")
   }
   
-  list(coefficients = beta, iter = iter, weights = W, disp = disp)
+  list(coefficients = beta, iter = iter, weights = W, disp = disp, omegaTheta = omegaTheta)
 }
 #' @importFrom stats runif
 #' @importFrom stats var
@@ -152,6 +152,7 @@ signleRcaptureinternalIRLS <- function(dependent,
 #' @importFrom stats qnorm
 signleRcaptureinternalpopulationEstimate <- function(y,
                                                      X,
+                                                     Xvlm = NULL,
                                                      grad,
                                                      lambda,
                                                      beta,
@@ -159,9 +160,12 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                                      weights0 = NULL,
                                                      hessian,
                                                      family,
+                                                     eta,
                                                      dispersion,
+                                                     omegaTheta,
                                                      method = "analytic",
                                                      control) {
+  if (method == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
   numboot <- control$B
@@ -171,11 +175,12 @@ signleRcaptureinternalpopulationEstimate <- function(y,
     
     N <- family$pointEst(disp = dispersion,
                          pw = if (family$family == "zelterman") weights0 else weights,
-                         lambda = lambda) + trcount
+                         lambda = lambda,
+                         theta = omegaTheta) + trcount
     cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(crossprod(x = as.matrix(X) * as.numeric(family$Wfun(prior = if (family$family == "zelterman") weights0 else weights, disp = dispersion, eta = family$linkfun(lambda))), 
-                                 y = as.matrix(X)))
+      "Fisher" = solve(crossprod(x = as.matrix(Xvlm) * as.numeric(family$Wfun(prior = if (family$family == "zelterman") weights0 else weights, eta = eta)), 
+                                 y = as.matrix(Xvlm)))
     )
     # TODO : add Fisher for negbins
     
@@ -183,8 +188,10 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                           pw = if (family$family == "zelterman") weights0 else weights,
                                           lambda = lambda,
                                           disp = dispersion,
+                                          theta = omegaTheta,
                                           cov = cov, 
-                                          X = X))
+                                          X = X,
+                                          Xvlm = Xvlm))
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
     confidenceInterval <- data.frame(t(data.frame(
@@ -201,6 +208,7 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                       "semiparametric" = semparBoot,
                       "nonparametric" = noparBoot)
     N <- family$pointEst(disp = dispersion,
+                         theta = omegaTheta,
                          pw = if (family$family != "zelterman") {weights} else {weights0},
                          lambda = lambda) + trcount
     
@@ -261,4 +269,132 @@ signleRcaptureinternalpopulationEstimate <- function(y,
        confidenceInterval = confidenceInterval,
        boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
        control = control)
+}
+# multiparameter
+signleRcaptureinternalIRLSmultipar <- function(dependent,
+                                               family,
+                                               covariates,
+                                               Xvlm = NULL,
+                                               start,
+                                               disp = NULL,
+                                               omegaTheta = NULL,
+                                               weights = NULL,
+                                               maxiter = 10000,
+                                               eps = .Machine$double.eps,
+                                               silent = FALSE,
+                                               trace = 0,
+                                               stepsize = 1,
+                                               ...) {
+  converged <- FALSE
+  
+  momentumFactor <- 0 # add to control
+  mu.eta <- family$mu.eta
+  validmu <- family$validmu
+  variance <- family$variance
+  famName <- family$family
+  linkinv <- family$linkinv
+  Zfun <- family$funcZ
+  Wfun <- family$Wfun
+  
+  if (!is.null(weights)) {
+    prior <- as.numeric(weights)
+  } else {
+    prior <- 1
+  }
+  
+  iter <- 1
+  betaPrev <- NULL
+  beta <- start
+  
+  logLike <- family$makeMinusLogLike(y = dependent, X = Xvlm, weight = prior)
+  grad <- family$makeGradient(y = dependent, X = Xvlm, weight = prior)
+  
+  W <- prior
+  LPrev <- -Inf
+  L <- -logLike(beta)
+  eta <- Xvlm %*% beta
+  eta <- matrix(eta, ncol = family$parNum)
+  while (!converged & (iter < maxiter)) {
+    halfstepsizing <- FALSE
+    mu <- mu.eta(eta = eta, ...)
+    if (!validmu(mu)) {
+      stop("Fit error infinite values reached consider another model,
+            mu is too close to zero/infinity")
+    }
+    
+    WPrev <- W
+    W <- Wfun(prior = prior, eta = eta, y = dependent)
+    z <- eta + Zfun(eta = eta, weight = W, y = dependent)
+    
+    XbyW <- family$multiplyWeight(X = Xvlm, W = W, thick = family$parNum)
+
+    # A <- t(Xvlm) %*% WW %*% (Xvlm)
+    # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
+    A <- XbyW %*% Xvlm
+    B <- XbyW %*% as.numeric(z)
+    
+    betaPrevPrev <- betaPrev
+    betaPrev <- beta
+    stepPrev <- step
+    
+    step <- solve(A,B) - betaPrev
+    beta <- betaPrev + stepsize * (step + if ((is.null(betaPrevPrev) | !momentumFactor)) {0} else {if (L-LPrev < 1) momentumFactor * stepPrev else 0})
+
+    eta <- Xvlm %*% beta
+    eta <- matrix(eta, ncol = family$parNum)
+    LPrev <- L
+    L <- -logLike(beta)
+    
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 20), "\n")}
+    if (trace > 1) {cat(sep = " ", "Parameter vector =", beta, "\n")}
+    if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = 20), "\n")}
+    
+    if (isTRUE(L < LPrev)) {
+      halfstepsizing <- TRUE
+      h <- stepsize * (betaPrev - beta)
+      if (trace > 0) {
+        cat("Taking a modified step....\n")
+      }
+      repeat {
+        h <- h / 2
+        beta <- betaPrev - h
+        L <- -logLike(beta)
+        if (isTRUE(L > LPrev)) {
+          break
+        }
+        
+        if (max(abs(h)) < eps) {
+          if (isTRUE(L < LPrev)) {
+            L <- LPrev
+            beta <- betaPrev
+          }
+          break
+        }
+      }
+      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 12), "\n")}
+      if (trace > 1) {cat(sep = " ","Parameter vector =", beta, "\n")}
+      if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = 20), "\n")}
+    }
+    if (trace > 0) {cat(sep = "", "----\n")}
+    converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
+
+    if (!converged && (iter + 1 <= maxiter)) {
+      iter <- iter + 1
+    } else if ((L < LPrev) & converged) {
+      beta <- betaPrev
+      L <- LPrev
+      W <- WPrev
+    }
+    
+    if (converged && halfstepsizing && !silent) {
+      warning("Convergence at halfstepsize")
+    }
+    
+  }
+  
+  if(iter == maxiter && !converged && !silent) {
+    warning("Fitting algorithm (IRLS) has not converged")
+  }
+  
+  list(coefficients = beta, iter = iter, weights = W, disp = disp, omegaTheta = omegaTheta)
 }

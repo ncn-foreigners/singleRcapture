@@ -21,7 +21,7 @@ ztgeom <- function() {
     1 / lambda
   }
   
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
@@ -29,7 +29,7 @@ ztgeom <- function() {
     )
   }
   
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(mu, type = "nontrunc", ...) {
     switch (type,
       nontrunc = mu ** 2 - mu - 1 / mu + 2,
       trunc = (mu + 1) / mu
@@ -42,10 +42,10 @@ ztgeom <- function() {
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
-    eta + (y  / mu - 1) / weight
+    (y  / mu - 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -62,7 +62,7 @@ ztgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -82,7 +82,7 @@ ztgeom <- function() {
     }
   }
   
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -107,7 +107,7 @@ ztgeom <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, mu, wt, disp = NULL) {
+  dev.resids <- function (y, mu, wt, ...) {
     eta <- log(mu)
     mu1 <- mu.eta(eta = eta)
     hm1y <- y - 1 # thats an analytic inverse for geometric
@@ -116,7 +116,7 @@ ztgeom <- function() {
     sign(y - mu1) * sqrt(-2 * wt * ((y - 1) * eta - y * log(mu1) - (y - 1) * loghm1y + y * log(y)))
   }
   
-  pointEst <- function (disp, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, lambda, contr = FALSE, ...) {
     pr <- 1 - 1 / (1 + lambda)
     N <- pw / pr
     if(!contr) {
@@ -125,7 +125,7 @@ ztgeom <- function() {
     N
   }
   
-  popVar <- function (beta, pw, lambda, disp, cov, X) {
+  popVar <- function (pw, lambda, cov, X, ...) {
     pr <- 1 - 1 / (1 + lambda)
     
     bigTheta <- -(pw * as.numeric(lambda / 
@@ -157,7 +157,8 @@ ztgeom <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "ztgeom"
+      family = "ztgeom",
+      parNum = 1
     ),
     class = "family"
   )

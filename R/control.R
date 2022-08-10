@@ -6,10 +6,12 @@
 #' @param verbose Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihhod) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace
 #' @param start initial parameters for regression if NULL they will be derived from simple poisson regression
 #' @param dispersionstart initial parameters for dispersion parameter if applies
+#' @param omegastart initial parameters for inflation parameter if applies
 #' @param mleMethod method of stats::optim used L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used
 #' @param silent logical indicating whether warnings in robust method should be suppressed
 #' @param optimPass optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of controlparameters will be infered from other parameters
-#' @param disp.given logical indicates whether to estimate dispersion parameter or assume the one provided is already correct
+#' @param dispGiven logical indicates whether to estimate dispersion parameter or assume the one provided is already correct
+#' @param thetaGiven TODO
 #' @param stepsize Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
@@ -20,10 +22,12 @@ control.method <- function(epsilon = 1e-8,
                            verbose = 0,
                            start = NULL,
                            dispersionstart = NULL,
+                           omegastart = NULL,
                            mleMethod = "L-BFGS-B",
                            silent = FALSE,
                            optimPass = FALSE,
-                           disp.given = FALSE,
+                           dispGiven = FALSE,
+                           thetaGiven = FALSE,
                            stepsize = 1) {
   list(
     epsilon = epsilon,
@@ -31,24 +35,27 @@ control.method <- function(epsilon = 1e-8,
     maxiter = maxiter,
     verbose = verbose,
     start = start,
-    dispersionstart = NULL,
+    dispersionstart = dispersionstart,
+    omegastart = omegastart,
     mleMethod = mleMethod,
     silent = silent,
     optimPass = optimPass,
-    stepsize = stepsize
+    dispGiven = dispGiven,
+    stepsize = stepsize,
+    thetaGiven = thetaGiven
   )
 }
 #' control.model
 #' TODO
 #' @param weightsAsCounts TODO
-#' @param omegaFormula TODO
-#' @param alphaFormula TODO
+#' @param omegaIntercept TODO
+#' @param alphaIntercept TODO
 #' for now does nothing
 #' @return control.model
 #' @export
 control.model <- function(weightsAsCounts = FALSE,
-                          omegaFormula = NULL,# ????
-                          alphaFormula = NULL # ????
+                          omegaIntercept = NULL,# ????
+                          alphaIntercept = TRUE # ????
                           # I suspect no other parameters will be used in the whole package so maybe its better to just specify them in control
                           # instead of making formula argument in main function a list or something like that.
                           # In VGAM there is a zero argument when calling vgam family class functions it specifies which argument
@@ -58,8 +65,8 @@ control.model <- function(weightsAsCounts = FALSE,
   # TODO
   list(
     weightsAsCounts = weightsAsCounts,
-    omegaFormula = omegaFormula,
-    alphaFormula = alphaFormula
+    omegaIntercept = omegaIntercept,
+    alphaIntercept = alphaIntercept
   )
 }
 #' Control parameters for population size estimation

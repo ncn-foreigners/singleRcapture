@@ -22,7 +22,7 @@ ztpoisson <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
@@ -30,7 +30,7 @@ ztpoisson <- function() {
     )
   }
 
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(mu, type = "nontrunc", ...) {
     switch (type,
       "nontrunc" = mu,
       "trunc" = mu.eta(eta = log(mu)) * (1 + mu - mu.eta(eta = log(mu)))
@@ -43,10 +43,10 @@ ztpoisson <- function() {
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
-    eta + (y - mu) / weight
+    (y - mu) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -58,7 +58,7 @@ ztpoisson <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -71,7 +71,7 @@ ztpoisson <- function() {
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -81,10 +81,10 @@ ztpoisson <- function() {
       eml <- exp(-lambda)
       coefficient <- (1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2))
 
-      dmu <- diag(weight * as.numeric(coefficient))
+      dmu <- weight * as.numeric(coefficient) # This was probably the dumbest mistake I've made in last 8 months
       dlam <- as.matrix(X * as.numeric(lambda))
 
-      -((t(as.matrix(X)) %*% dmu) %*% dlam)
+      -((t(as.matrix(X) * dmu)) %*% dlam)
     }
   }
 
@@ -92,7 +92,7 @@ ztpoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, mu, wt, disp = NULL) {
+  dev.resids <- function(y, mu, wt, ...) {
     eta <- log(mu)
     mu1 <- mu.eta(eta = eta)
     #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
@@ -103,7 +103,7 @@ ztpoisson <- function() {
     sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
-  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, lambda, contr = FALSE, ...) {
     N <- pw / (1 - exp(-lambda))
     if(!contr) {
       N <- sum(N)
@@ -111,7 +111,7 @@ ztpoisson <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
+  popVar <- function (pw, lambda, cov, X, ...) {
     X <- as.data.frame(X)
     ml <- (1 - exp(-lambda)) ** 2
 
@@ -141,7 +141,8 @@ ztpoisson <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "ztpoisson"
+      family = "ztpoisson",
+      parNum = 1
     ),
     class = "family"
   )

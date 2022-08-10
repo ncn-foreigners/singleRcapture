@@ -2,16 +2,16 @@
 #'
 #' @param data Data frame for the regression
 #' @param formula Description of model to that is supposed to be fitted
-#' @param model Model for regression and population estimate
+#' @param model Model for regression and population estimate, either a name of the model a function or a family class object returned by appropriate function
 #' @param weights Optional object of prior weights used in fitting the model
 #' @param subset A logical vector indicating which observations should be used in regression and population size estimation
 #' @param na.action TODO
-#' @param method Method for fitting values currently supported robust (IRLS) and MaxLikelihood
+#' @param method Method for fitting values currently supported robust (IRLS) and MaxLikelihood (for now handled by [stats::optim()])
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap
-#' where bootstraped confidence interval may either be based on 2.5%-97.5%
-#' percientiles ("bootstrapPerc") or studentized CI ("bootstrapSD")
+#' where bootstraped confidence interval may be specified in control.pop.var. 
+#' There is also the third possible value of noEst which skips the population size estimate alltogether.
 #' @param control.method A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function
-#' @param control.model ||
+#' @param control.model Not yet implemented
 #' @param control.pop.var A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function
 #' @param modelFrame,x,y logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output
 #' @param contrasts Not yet implemented
@@ -64,15 +64,16 @@
 estimate_popsize <- function(formula,
                              data,
                              model = c("ztpoisson", "ztnegbin",
-                                       "ztgeom", "zotpoisson", 
-                                       "zotnegbin", "zotgeom",
-                                       "zelterman", "chao"),
+                                       "ztgeom", "zotpoisson", "ztoipoisson",
+                                       "zotnegbin", "ztoinegbin", "zotgeom",
+                                       "ztoigeom", "zelterman", "chao"),
                              weights = 1,
                              subset = NULL,
                              na.action = NULL,
                              method = c("mle", "robust"),
                              pop.var = c("analytic",
-                                         "bootstrap"),
+                                         "bootstrap",
+                                         "noEst"),
                              control.method = NULL,
                              control.model = NULL,
                              control.pop.var = NULL,
@@ -87,6 +88,7 @@ estimate_popsize <- function(formula,
   }
   family <- model
   dispersion <- NULL
+  omegaTheta <- NULL
   if (is.character(family)) {
     family <- get(family, mode = "function", envir = parent.frame())
   }
@@ -98,18 +100,18 @@ estimate_popsize <- function(formula,
   m1 <- control.pop.var
   m1 <- m1[sapply(m1, is.null) == FALSE]
   m2 <- control.pop.var(fittingMethod = match.arg(method), 
-                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE, disp.given = TRUE))
+                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE, dispGiven = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.pop.var <- append(m1, m2)
   m1 <- control.method
-  m2 <- control.method(mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B")
+  m2 <- control.method(mleMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.method <- append(m1, m2)
   m1 <- control.model
   m2 <- control.model()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.model <- append(m1, m2)
-  if (grepl(x = family$family, pattern = "negbin") && control.pop.var$covType == "Fisher") {stop("Obtaining covariance martix from fisher information matrix is not yet aviable for negative binomial models")}
+  #if (grepl(x = family$family, pattern = "negbin") && control.pop.var$covType == "Fisher") {stop("Obtaining covariance martix from fisher information matrix is not yet aviable for negative binomial models")}
   
   modelFrame <- stats::model.frame(formula, data,  ...)
   variables <- stats::model.matrix(formula, modelFrame, contrasts = contrasts, ...)
@@ -192,83 +194,114 @@ estimate_popsize <- function(formula,
     colnames(variables)[1] <- "(Intercept)"
   }
   
-  dataRegression <- list(y = observed, x = as.matrix(variables), 
+  dataRegression <- list(y = observed, x = as.matrix(variables, rownames.force = TRUE), 
                          wp = prior.weights, w = weights0)
-
   if (is.null(control.model$start)) {
-    start <- stats::glm.fit(x = variables,
-                            y = observed,
-                            family = stats::poisson())$coefficients
+    start <- stats::glm.fit(
+      x = variables,
+      y = observed,
+      family = stats::poisson()
+    )$coefficients
     if (family$family %in% c("chao", "zelterman")) {
       start[1] <- start[1] + log(1 / 2)
     }
-    if (family$family %in% c("ztnegbin", "zotnegbin")) {
-      #start <- MASS::glm.nb(formula = formula, data = data)
-      #dispersion <- -start$theta
-      #start <- start$coefficients
-      dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))
-    }
   } else {
-    start <- control.model$start
-    dispersion <- control.model$dispersionstart
-    if (is.null(dispersion)) {dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2))}
+    start <- control.method$start
   }
+  if (grepl("negbin", family$family)) {
+    #start <- MASS::glm.nb(formula = formula, data = data)
+    #dispersion <- -start$theta
+    #start <- start$coefficients
+    if (is.null(control.method$dispersionstart)) {
+      if (control.model$alphaIntercept) {
+        dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2 + .25))
+        start <- c(start, "(Intercept):alpha" = dispersion)
+      }
+    } else {
+      #dispersion <- control.method$dispersionstart
+      dispersion <- start # TODO: gosh this is terrible pick a better method
+      nm <- names(start)
+      start <- c(start, dispersion)
+      names(start) <- c(nm, paste0(nm, ":alpha"))
+    }
+  }
+  if (grepl("^ztoi", family$family)) {
+    #omegaTheta <- (sum(observed == 1) / sum(observed != 1)) / (sum(observed == 1) / sum(observed != 1) - 1)
+    if (is.null(control.method$omegaIntercept)) {omegaTheta <- (sum(observed == 1) / sum(observed != 1)) / (sum(observed == 1) / sum(observed != 1) - 1)} else {omegaTheta <- control.method$omegastart / (1 - control.method$omegastart)}
+  }
+  
+  Xvlm <- as.matrix(variables)
+  if (family$parNum > 1) {
+    if (control.model$alphaIntercept) {
+      Xvlm <- matrix(nrow = nrow(as.matrix(variables)) * 2, ncol = ncol(as.matrix(variables)) + 1)
+      Xvlm[1:nrow(variables), 1:ncol(variables)] <- as.matrix(variables)
+      Xvlm[-(1:nrow(variables)), ] <- Xvlm[, ncol(variables) + 1] <- 0
+      Xvlm[-(1:nrow(variables)), ncol(variables) + 1] <- 1
+    } else {
+      Xvlm <- kronecker(Y = variables, X = diag(1, nrow = 2))
+    }
+  }
+  colnames(Xvlm) <- names(start)
   
   FITT <- estimate_popsize.fit(y = observed,
                                X = variables,
+                               Xvlm = Xvlm,
                                family = family,
                                control = control.method,
                                method = method,
                                prior.weights = prior.weights,
-                               start = c(dispersion, start),
+                               start = start,
                                dispersion = dispersion,
+                               omegaTheta = omegaTheta,
                                ...)
   coefficients <- FITT$beta
+  names(coefficients) <- names(start)
   iter <- FITT$iter
 
-  log_like <- family$makeMinusLogLike(y = observed, X = as.matrix(variables),
+  if (grepl("negbin", family$family)) {
+    df.reduced <- 2 * length(observed) - length(coefficients)
+    logLike <- family$makeMinusLogLike(y = observed, X = Xvlm,
                                        weight = prior.weights)
-  grad <- family$makeGradient(y = observed, X = as.matrix(variables),
-                               weight = prior.weights)
-  hessian <- family$makeHessian(y = observed, X = as.matrix(variables),
-                                 weight = prior.weights)
-  hess <- hessian(coefficients)
-
-  df.reduced <- length(observed) - dim(variables)[2]
-  
-  if (family$family %in% c("zotnegbin", "ztnegbin")) {
-    df.reduced <- 2 * df.reduced
-  }
-  
-  weights <- FITT$weights
-
-  if (is.null(dispersion)) {
-    eta <- as.matrix(variables) %*% coefficients
+    grad <- family$makeGradient(y = observed, X = Xvlm, weight = prior.weights, lambdaPredNumber = ncol(variables))
+    hessian <- family$makeHessian(y = observed, X = Xvlm,
+                                  weight = prior.weights,
+                                  lambdaPredNumber = ncol(variables))
+    hess <- hessian(coefficients)
+    eta <- matrix(Xvlm %*% coefficients, ncol = 2)
+    colnames(eta) <- c("log(lambda)", "log(alpha)")
+    #colnames(eta) <- paste0(family$link, c("(lambda)", "(alpha)"))
+    rownames(eta) <- rownames(variables)
   } else {
-    eta <- as.matrix(variables) %*% coefficients[-1]
+    logLike <- family$makeMinusLogLike(y = observed, X = as.matrix(variables),
+                                       weight = prior.weights)
+    grad <- family$makeGradient(y = observed, X = as.matrix(variables),
+                                weight = prior.weights)
+    hessian <- family$makeHessian(y = observed, X = as.matrix(variables),
+                                  weight = prior.weights)
+    hess <- hessian(coefficients)
+    
+    df.reduced <- length(observed) - length(coefficients)
+    
+    eta <- as.matrix(variables) %*% coefficients
+    colnames(eta) <- paste0(family$link, "(lambda)")
+    rownames(eta) <- rownames(variables)
   }
+  weights <- FITT$weights
   
-  lambda <- family$linkinv(eta)
+  lambda <- family$linkinv(eta[, 1])
   
   if (family$family == "zelterman") {
     lambda <- family$linkinv(as.matrix(dataOriginal$x) %*% coefficients)
   }
 
-  fitt <- data.frame("mu" = family$mu.eta(eta, disp = dispersion),
-                     "link" = family$linkinv(eta))
+  fitt <- data.frame("mu" = family$mu.eta(eta = eta),
+                     "link" = family$linkinv(eta[, 1])) # change later link functions in family class to act on matrix eta
+  if ((sum(diag(-solve(hess)) <= 0) != 0) && (control.pop.var$covType == "observedInform")) {
+    stop("fitting error analytic hessian is invalid, try another model")
+  }
   
-
-  if (!is.null(dispersion)) {
-    dispersion <- coefficients[1]
-  }
-
-  if (sum(diag(-solve(hess)) <= 0) != 0) {
-    stop("fitting error analytic hessian is invalid,
-         try another model")
-  }
-
   null.deviance <- as.numeric(NULL)
-  LOG <- -log_like(coefficients)
+  LOG <- -logLike(coefficients)
   resRes <- prior.weights * (observed - fitt)
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
   aic <- 2 * (length(coefficients) - LOG)
@@ -276,20 +309,26 @@ estimate_popsize <- function(formula,
   deviance <- sum(family$dev.resids(y = dataRegression$y, 
                                     mu = fitt$link,
                                     disp = dispersion,
-                                    wt = prior.weights) ** 2)
+                                    wt = prior.weights,
+                                    eta = eta) ** 2)
 
-  POP <- signleRcaptureinternalpopulationEstimate(y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
-                                                  X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
-                                                  grad = grad,
-                                                  hessian = hessian,
-                                                  method = pop.var,
-                                                  weights = prior.weights,
-                                                  weights0 = weights0,
-                                                  lambda = lambda,
-                                                  family = family,
-                                                  dispersion = dispersion,
-                                                  beta = coefficients,
-                                                  control = control.pop.var)
+  POP <- signleRcaptureinternalpopulationEstimate(
+    y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$y else dataOriginal$y,
+    X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) dataRegression$x else dataOriginal$x,
+    grad = grad,
+    hessian = hessian,
+    method = pop.var,
+    weights = prior.weights,
+    weights0 = weights0,
+    lambda = lambda,
+    eta = eta,
+    family = family,
+    dispersion = dispersion,
+    omegaTheta = omegaTheta,
+    beta = coefficients,
+    control = control.pop.var,
+    Xvlm = Xvlm
+  )
                        
   structure(
     list(
@@ -311,6 +350,7 @@ estimate_popsize <- function(formula,
       logL = LOG,
       iter = iter,
       dispersion = dispersion,
+      omegaTheta = omegaTheta,
       df.residual = df.reduced,
       df.null = length(observed) - 1,
       fitt.values = fitt,

@@ -69,7 +69,7 @@ plot.singleR <- function(x,
     bp <- graphics::barplot(
       sqrt(FF),
       offset = sqrt(M$table[-1]) - sqrt(FF),
-      ylab = "sqrt(Frequency)", 
+      ylab = expression(sqrt("Frequency")), # This looks just ever so slightly fancier 
       xlab = "captures",
       ylim = c(min(sqrt(M$table[-1]) - sqrt(FF)) - 1, max(sqrt(M$table[-1]) + 1)),
       ...);

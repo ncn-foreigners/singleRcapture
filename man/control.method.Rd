@@ -11,10 +11,12 @@ control.method(
   verbose = 0,
   start = NULL,
   dispersionstart = NULL,
+  omegastart = NULL,
   mleMethod = "L-BFGS-B",
   silent = FALSE,
   optimPass = FALSE,
-  disp.given = FALSE,
+  dispGiven = FALSE,
+  thetaGiven = FALSE,
   stepsize = 1
 )
 }
@@ -31,13 +33,17 @@ control.method(
 
 \item{dispersionstart}{initial parameters for dispersion parameter if applies}
 
+\item{omegastart}{initial parameters for inflation parameter if applies}
+
 \item{mleMethod}{method of stats::optim used L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used}
 
 \item{silent}{logical indicating whether warnings in robust method should be suppressed}
 
 \item{optimPass}{optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of controlparameters will be infered from other parameters}
 
-\item{disp.given}{logical indicates whether to estimate dispersion parameter or assume the one provided is already correct}
+\item{dispGiven}{logical indicates whether to estimate dispersion parameter or assume the one provided is already correct}
+
+\item{thetaGiven}{TODO}
 
 \item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1}
 }

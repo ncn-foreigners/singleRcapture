@@ -46,8 +46,8 @@ summary(ModelPo)
 #>     model = "ztpoisson", method = "robust", pop.var = "analytic")
 #> 
 #> Standardised Pearson Residuals:
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.490392 -0.486401 -0.300208  0.002051 -0.210901 13.945794 
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#>                                                 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
@@ -90,8 +90,8 @@ summary(ModelZl)
 #>     model = "zelterman", method = "robust", pop.var = "analytic")
 #> 
 #> Standardised Pearson Residuals:
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.476526 -0.432354 -0.274793  0.001439 -0.191085  9.762261 
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#>                                                 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
@@ -142,23 +142,17 @@ summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
 #> Cells with fitted frequencies of < 5 have been grouped
 ```
 
-Here is a plot of marginal frequencies with matplot:
+Should goodness of fit tests prove insufficient in determining the best
+model graphical comparisons may also be made. One such technique is a
+rootogram and it is implemented as a part of singleR method for `plot`
+function:
 
 ``` r
-a1 <- marginalFreq(ModelPo)$table[-1]
-a2 <- marginalFreq(ModelZl)$table[-1]
-a3 <- table(netherlandsimmigrant$capture)
-matplot(y = sqrt(cbind(a1, a2, a3)), x = 1:6, ylab = "Square root of Frequencies",
-        xlab = "Counts", pch = 21:23, type = "o",
-        lty = 1, col = 1:3, main = "Plot of observed and fitted marginal frequencies")
-legend("topright",
-       legend = c("Poisson model",
-                  "Zelterman model",
-                  "Observed data"),
-       col = 1:3, pch = 21:23)
+plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
+plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
-<img src="man/figures/README-plot-1.png" width="100%" />
+<img src="man/figures/README-plot-1.png" width="50%" /><img src="man/figures/README-plot-2.png" width="50%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
 and 1 and non standard confidence levels
@@ -180,8 +174,8 @@ summary(zotgeomBoot)
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
 #> Standardised Pearson Residuals:
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.953664 -0.727750 -0.426863  0.003653  0.322952 16.133747 
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#>                                                 
 #> 
 #> Coefficients:
 #>              Estimate Std. Error z value  P(>|z|)    

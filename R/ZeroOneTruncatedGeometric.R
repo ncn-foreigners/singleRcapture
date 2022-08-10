@@ -21,7 +21,7 @@ zotgeom <- function() {
     1 / lambda
   }
   
-  mu.eta <- function(eta, disp, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
@@ -29,7 +29,7 @@ zotgeom <- function() {
     )
   }
   
-  variance <- function(mu, disp, type = "nontrunc") {
+  variance <- function(mu, disp, type = "nontrunc", ...) {
     switch (type,
       "nontrunc" = mu * (mu - 1),
       "trunc" = mu * (mu + 1)
@@ -42,10 +42,10 @@ zotgeom <- function() {
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
-    eta + ((y - 1) / (1 + exp(eta)) - 1) / weight
+    ((y - 1) / (1 + exp(eta)) - 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -62,7 +62,7 @@ zotgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -82,7 +82,7 @@ zotgeom <- function() {
     }
   }
   
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -107,14 +107,14 @@ zotgeom <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, mu, wt, disp = NULL) {
+  dev.resids <- function (y, mu, wt, ...) {
     eta <- log(mu)
     mu1 <- mu.eta(eta = eta)
     loghm1y <- ifelse(y > 2, log(y - 2), 0)
     sign(y - mu1) * sqrt(-2 * wt * ((y - 2) * eta - (y - 1) * log(1 + mu1) - (y - 2) * loghm1y + (y - 1) * log(y - 1)))
   }
   
-  pointEst <- function (disp, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, lambda, contr = FALSE, ...) {
     S <- 1 / (1 + lambda)
     prob <- 1 - S - lambda * (S ** 2)
     N <- (pw * (1 - lambda * (S ** 2)) / prob)
@@ -124,7 +124,7 @@ zotgeom <- function() {
     N
   }
   
-  popVar <- function (beta, pw, lambda, disp, cov, X) {
+  popVar <- function (pw, lambda, cov, X, ...) {
     alpha <- 1
     z <- 1 / alpha
     M <- 1 + lambda
@@ -163,7 +163,8 @@ zotgeom <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "zotgeom"
+      family = "zotgeom",
+      parNum = 1
     ),
     class = "family"
   )

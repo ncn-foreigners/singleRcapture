@@ -23,7 +23,8 @@ noparBoot <- function(family,
     weights <- rep(1, length(lambda))
   }
   
-  for (k in 1:numboot) {
+  k <- 1
+  while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n)
     ystrap <- as.numeric(y[strap])
     weightsstrap <- as.numeric(weights[strap])
@@ -78,11 +79,14 @@ noparBoot <- function(family,
         method = method,
         prior.weights = weightsstraptemp,
         start = c(dispersion, beta),
-        dispersion = dispersion
+        dispersion = dispersion,
+        omegaTheta = NULL
       )$beta;
       if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
       silent = TRUE
     )
+    
+    k <- k - 1
     
     if (is.null(theta)) {
       k <- k - 1
@@ -174,7 +178,8 @@ parBoot <- function(family,
   weights <- weights[[2]]
   getlambda <- family$linkinv
 
-  for (k in 1:numboot) {
+  k <- 1
+  while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
     weightsstrap <- as.numeric(weights[strap])
     Xstrap <- as.matrix(X[strap, ])
@@ -236,11 +241,14 @@ parBoot <- function(family,
         method = method,
         prior.weights = weightsstraptemp,
         start = c(dispersion, beta),
-        dispersion = dispersion
+        dispersion = dispersion,
+        omegaTheta = NULL
       )$beta;
       if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
       silent = TRUE
     )
+    
+    k <- k + 1
     
     if (is.null(theta)) {
       k <- k - 1
@@ -305,7 +313,8 @@ semparBoot <- function(family,
     sample(rownames(dfPerm[dfPerm$y == val,]), size = num, replace = TRUE)
   }
   
-  for (k in 1:numboot) {
+  k <- 1
+  while (k <= numboot) {
     strap1 <- stats::rmultinom(n = 1, size = N, prob = prob)
     strap <- as.numeric(strap1)
     names(strap) <- rownames(strap1)
@@ -372,11 +381,14 @@ semparBoot <- function(family,
         method = method,
         prior.weights = weightsstraptemp,
         start = c(dispersion, beta),
-        dispersion = dispersion
+        dispersion = dispersion,
+        omegaTheta = NULL
       )$beta;
       if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
       silent = TRUE
     )
+    
+    k <- k + 1
     
     if (is.null(theta)) {
       k <- k - 1

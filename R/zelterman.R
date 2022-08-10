@@ -36,10 +36,10 @@ zelterman <- function() {
   funcZ <- function(eta, weight, y, mu, ...) {
     lambda <- invlink(eta)
     L1 <- lambda / 2
-    eta + (L1 * (y - 1) + y) / (L1 + 1) / weight
+    (L1 * (y - 1) + y) / (L1 + 1) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     z <- y
     z[z == 1] <- 0
@@ -57,7 +57,7 @@ zelterman <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
@@ -72,7 +72,7 @@ zelterman <- function() {
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     z <- y
     z[z == 1] <- 0
@@ -94,14 +94,14 @@ zelterman <- function() {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, mu, wt, disp = NULL) {
+  dev.resids <- function(y, mu, wt, ...) {
     z <- y - 1
     eta <- link(mu)
     mu1 <- mu.eta(eta = eta)
     sign(z - mu1) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
-  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, lambda, contr = FALSE, ...) {
     N <- (pw * (1 / (1 - exp(-lambda))))
     if(!contr) {
       N <- sum(N)
@@ -109,7 +109,7 @@ zelterman <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
+  popVar <- function (pw, lambda, cov, X, ...) {
     X <- as.data.frame(X)
     prob <- 1 - exp(-lambda)
 
@@ -139,7 +139,8 @@ zelterman <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "zelterman"
+      family = "zelterman",
+      parNum = 1
     ),
     class = "family"
   )

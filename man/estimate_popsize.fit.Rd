@@ -13,6 +13,7 @@ estimate_popsize.fit(
   prior.weights,
   start,
   dispersion,
+  omegaTheta,
   ...
 )
 }
@@ -33,6 +34,8 @@ in estimate_popsize}
 \item{start}{start for regression fitting}
 
 \item{dispersion}{start for dispersion}
+
+\item{omegaTheta}{start for theta predictors for omega}
 
 \item{...}{arguments to pass to other methods}
 }
