@@ -147,9 +147,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       ncol = 2)
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol(weight[[x]]) # less computationally demanding
+      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
       #xx <- solve(weight[[x]])
-      chol2inv(xx) %*% uMatrix[x, ]
+      xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
     dimnames(pseudoResid) <- dimnames(eta)
@@ -322,7 +322,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     bigTheta1 <- pw * z * (cp2 * (cp1 * log(cp1) - z * lambda) / ((z ** 2) * cp3)) # w.r to alpha
     bigTheta2 <- -(pw * as.numeric(lambda * cp2 / cp3)) # w.r to lambda
 
-    bigTheta <- c(bigTheta2, bigTheta1) %*% Xvlm
+    bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
 
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     f2 <-  sum(pw * (1 - pr) / (pr ** 2))
