@@ -3,7 +3,7 @@
 #' @return A object of class "family" containing objects \cr
 #' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
 #' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
+#' makeHessian(X) - for creating Hessian \cr
 #' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
 #' linkinv - an inverse function of link \cr
 #' dlink - a 1st derivative of link function \cr
@@ -13,6 +13,7 @@
 #' Where: \cr
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
+#' simulate() -- function to simulate outcomes given the model
 #' @export
 chao <- function() {
   link <- function(x) {log(x / 2)}
@@ -122,6 +123,12 @@ chao <- function() {
 
     f1 + f2
   }
+  
+  simulate <- function(n, lambda, lower=0) {
+    p_u <- stats::runif(n, stats::ppois(lower, lambda), 1)
+    sims <- stats::qpois(p_u, lambda)
+    sims
+  }
 
   structure(
     list(
@@ -141,6 +148,7 @@ chao <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate = simulate,
       family = "chao"
     ),
     class = "family"

@@ -480,3 +480,25 @@ print.summarysingleR <- function(x, ...) {
     ))
   }
 }
+
+#' @importFrom stats simulate
+#' @method simulate singleR
+#' @exportS3Method
+simulate.singleR <- function(object, nsims=1, seed = NULL, ...) {
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+    runif(1)
+  if (is.null(seed))
+    RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+  else {
+    R.seed <- get(".Random.seed", envir = .GlobalEnv)
+    set.seed(seed)
+    RNGstate <- structure(seed, kind = as.list(RNGkind()))
+    on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+  }
+  
+  linpred <- object$linear.predictors[,1]
+  sims <- replicate(nsims, object$model$simulate(length(linpred), exp(linpred)))
+  rownames(sims) <- 1:length(linpred)
+  colnames(sims) <- paste0("sim_", 1:nsims)
+  return(sims)
+}

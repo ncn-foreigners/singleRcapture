@@ -123,6 +123,12 @@ ztpoisson <- function() {
     f1 + f2
   }
   
+  simulate <- function(n, lambda, lower=0) {
+    p_u <- stats::runif(n, stats::ppois(lower, lambda), 1)
+    sims <- stats::qpois(p_u, lambda)
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -141,6 +147,7 @@ ztpoisson <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate = simulate,
       family = "ztpoisson"
     ),
     class = "family"
