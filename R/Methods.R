@@ -481,10 +481,18 @@ print.summarysingleR <- function(x, ...) {
   }
 }
 
+#' @importFrom stats fitted
+#' @method fitted singleR
+#' @exportS3Method 
+fitted.singleR <- function(object,...) {
+  object$linear.predictors[, 1]
+}
+
+
 #' @importFrom stats simulate
 #' @method simulate singleR
 #' @exportS3Method
-simulate.singleR <- function(object, nsims=1, seed = NULL, ...) {
+simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
     runif(1)
   if (is.null(seed))
@@ -496,9 +504,14 @@ simulate.singleR <- function(object, nsims=1, seed = NULL, ...) {
     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
   }
   
-  linpred <- object$linear.predictors[,1]
-  sims <- replicate(nsims, object$model$simulate(length(linpred), exp(linpred)))
+  linpred <- fitted(object)
+  if (grepl("negbin", object$model$family)) {
+    sims <- replicate(nsim, object$model$simulate(length(linpred), exp(linpred), exp(coef(object)[1])))  
+  } else {
+    sims <- replicate(nsim, object$model$simulate(length(linpred), exp(linpred)))  
+  }
+  
   rownames(sims) <- 1:length(linpred)
-  colnames(sims) <- paste0("sim_", 1:nsims)
+  colnames(sims) <- paste0("sim_", 1:nsim)
   return(sims)
 }

@@ -124,12 +124,14 @@ chao <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, lower=0) {
-    p_u <- stats::runif(n, stats::ppois(lower, lambda), 1)
+  simulate <- function(n, lambda, lower=0, upper=2) {
+    lb <- stats::ppois(lower, lambda)
+    ub <- stats::ppois(upper, lambda)
+    p_u <- stats::runif(n, lb, ub)
     sims <- stats::qpois(p_u, lambda)
     sims
   }
-
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
