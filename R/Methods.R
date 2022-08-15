@@ -493,6 +493,10 @@ fitted.singleR <- function(object,...) {
 #' @method simulate singleR
 #' @exportS3Method
 simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
+  if (object$model$family %in% c("zotnegbin", "zotpois", "zotgeom")) {
+    stop("Currently not implemented for zotnegbin, zotpois and zotgeom")
+  }
+  
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
     runif(1)
   if (is.null(seed))
@@ -505,13 +509,15 @@ simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
   }
   
   linpred <- fitted(object)
+  n <- NROW(linpred)
   if (grepl("negbin", object$model$family)) {
-    sims <- replicate(nsim, object$model$simulate(length(linpred), exp(linpred), exp(coef(object)[1])))  
+    val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion))
   } else {
-    sims <- replicate(nsim, object$model$simulate(length(linpred), exp(linpred)))  
+    val <- object$model$simulate(n*nsim, exp(linpred))
   }
   
-  rownames(sims) <- 1:length(linpred)
-  colnames(sims) <- paste0("sim_", 1:nsim)
-  return(sims)
+  dim(val) <- c(n, nsim)
+  val <- as.data.frame(val)
+  names(val) <- paste0("sim_", seq_len(nsim))
+  return(val)
 }
