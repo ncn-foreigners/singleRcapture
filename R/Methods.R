@@ -493,10 +493,6 @@ fitted.singleR <- function(object,...) {
 #' @method simulate singleR
 #' @exportS3Method
 simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
-  if (object$model$family %in% c("zotnegbin", "zotpois", "zotgeom")) {
-    stop("Currently not implemented for zotnegbin, zotpois and zotgeom")
-  }
-  
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
     runif(1)
   if (is.null(seed))
