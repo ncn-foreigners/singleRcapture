@@ -490,7 +490,7 @@ fitted.singleR <- function(object,...) {
 
 #' simulate
 #' 
-#' S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
 #' 
 #' @param object an object representing a fitted model.
 #' @param nsim number of response vectors to simulate. Defaults to \code{1}.
