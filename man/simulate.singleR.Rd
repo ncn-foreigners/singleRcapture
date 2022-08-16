@@ -19,7 +19,7 @@
 a \code{data.frame} with \code{n} rows and \code{nsim} columns.
 }
 \description{
-simulate
+S3class for \code{stats::simulate} to handle \code{singleR} objects.
 }
 \examples{
 set.seed(1)
@@ -30,7 +30,7 @@ counts <- rpois(N, lambda = exp(eta))
 df <- data.frame(gender, eta, counts)
 df2 <- subset(df, counts > 0)
 mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-model = "ztpoisson", method = "mle",pop.var = "analytic")
+model = "ztpoisson", method = "mle", pop.var = "analytic")
 mod1_sims <- simulate(mod1, nsim=10)
 colMeans(mod1_sims) 
 }

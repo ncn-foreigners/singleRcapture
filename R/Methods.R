@@ -490,6 +490,8 @@ fitted.singleR <- function(object,...) {
 
 #' simulate
 #' 
+#' S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' 
 #' @param object an object representing a fitted model.
 #' @param nsim number of response vectors to simulate. Defaults to \code{1}.
 #' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
