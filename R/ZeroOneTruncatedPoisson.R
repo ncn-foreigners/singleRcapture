@@ -133,6 +133,15 @@ zotpoisson <- function() {
     f1 + f2
   }
 
+  ## is this a correct way to simulate data from this distribution?
+  simulate <- function(n, lambda, lower=1, upper=Inf) {
+    lb <- stats::ppois(lower, lambda)
+    ub <- stats::ppois(upper, lambda)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qpois(p_u, lambda)
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -151,6 +160,7 @@ zotpoisson <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate = simulate,
       family = "zotpoisson"
     ),
     class = "family"

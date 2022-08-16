@@ -480,3 +480,65 @@ print.summarysingleR <- function(x, ...) {
     ))
   }
 }
+
+#' @importFrom stats fitted
+#' @method fitted singleR
+#' @exportS3Method 
+fitted.singleR <- function(object,
+                           type = c("mu", 
+                                    "link"), # maybe add marginal frequencies/other options
+                           ...) {
+  if (missing(type)) type <- "mu"
+  object$fitt.values[[type]] # fitted should return either E(Y) or E(Y|Y>0) otherwise we're breaking R conventions
+}
+
+#' simulate
+#' 
+#' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' 
+#' @param object an object representing a fitted model.
+#' @param nsim number of response vectors to simulate. Defaults to \code{1}.
+#' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
+#' @param ... additional optional arguments.
+#' @return a \code{data.frame} with \code{n} rows and \code{nsim} columns.
+#' @seealso [stats::simulate()]
+#' @examples 
+#' set.seed(1)
+#' N <- 10000
+#' gender <- rbinom(N, 1, 0.2)
+#' eta <- -1 + 0.5*gender
+#' counts <- rpois(N, lambda = exp(eta))
+#' df <- data.frame(gender, eta, counts)
+#' df2 <- subset(df, counts > 0)
+#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' mod1_sims <- simulate(mod1, nsim=10)
+#' colMeans(mod1_sims) 
+#' @importFrom stats simulate
+#' @method simulate singleR
+#' @exportS3Method
+simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+    runif(1)
+  if (is.null(seed))
+    RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+  else {
+    R.seed <- get(".Random.seed", envir = .GlobalEnv)
+    set.seed(seed)
+    RNGstate <- structure(seed, kind = as.list(RNGkind()))
+    on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+  }
+  
+  linpred <- object$linear.predictors
+  n <- NROW(linpred)
+  if (grepl("negbin", object$model$family)) {
+    val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion)) # dispersion argument will be removed in next update remember to change that to accomodate that
+  } else {
+    val <- object$model$simulate(n*nsim, exp(linpred))
+  }
+  
+  dim(val) <- c(n, nsim)
+  val <- as.data.frame(val)
+  names(val) <- paste0("sim_", seq_len(nsim))
+  return(val)
+}
