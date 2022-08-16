@@ -484,8 +484,12 @@ print.summarysingleR <- function(x, ...) {
 #' @importFrom stats fitted
 #' @method fitted singleR
 #' @exportS3Method 
-fitted.singleR <- function(object,...) {
-  object$linear.predictors[, 1]
+fitted.singleR <- function(object,
+                           type = c("mu", 
+                                    "link"), # maybe add marginal frequencies/other options
+                           ...) {
+  if (missing(type)) type <- "mu"
+  object$fitt.values[[type]] # fitted should return either E(Y) or E(Y|Y>0) otherwise we're breaking R conventions
 }
 
 #' simulate
@@ -525,10 +529,10 @@ simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
   }
   
-  linpred <- fitted(object)
+  linpred <- object$linear.predictors
   n <- NROW(linpred)
   if (grepl("negbin", object$model$family)) {
-    val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion))
+    val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion)) # dispersion argument will be removed in next update remember to change that to accomodate that
   } else {
     val <- object$model$simulate(n*nsim, exp(linpred))
   }
