@@ -19,7 +19,7 @@
 a \code{data.frame} with \code{n} rows and \code{nsim} columns.
 }
 \description{
-S3class for \code{stats::simulate} to handle \code{singleR} objects.
+An S3class for \code{stats::simulate} to handle \code{singleR} objects.
 }
 \examples{
 set.seed(1)
