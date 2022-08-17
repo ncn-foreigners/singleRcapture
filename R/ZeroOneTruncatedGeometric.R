@@ -145,6 +145,14 @@ zotgeom <- function() {
     f1 + f2
   }
   
+  simulate <- function(n, lambda, theta=1, lower=1, upper=Inf) {
+    lb <- stats::pnbinom(lower, mu=lambda, size = theta)
+    ub <- stats::pnbinom(upper, mu=lambda, size = theta)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -163,6 +171,7 @@ zotgeom <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate=simulate,
       family = "zotgeom"
     ),
     class = "family"
