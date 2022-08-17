@@ -542,3 +542,80 @@ simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
   names(val) <- paste0("sim_", seq_len(nsim))
   return(val)
 }
+
+#' estfun
+#' 
+#' An S3class for \code{sandwich::estfun} to handle \code{singleR} objects. This function was developed based on \code{countreg::estfun.zerotrunc}
+#' 
+#' @param object an object representing a fitted model.
+#' @param ... additional optional arguments.
+#' @return a \code{matrix} with \code{n} rows and \code{k} columns where \code{k} denotes number of variables.
+#' @seealso [sandwich::estfun()]
+#' @examples 
+#' set.seed(1)
+#' N <- 10000
+#' gender <- rbinom(N, 1, 0.2)
+#' eta <- -1 + 0.5*gender
+#' counts <- rpois(N, lambda = exp(eta))
+#' df <- data.frame(gender, eta, counts)
+#' df2 <- subset(df, counts > 0)
+#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' mod1_sims <- sandwich::estfun(mod1)
+#' head(mod1_sims) 
+#' @importFrom sandwich estfun
+#' @method estfun singleR
+#' @exportS3Method
+estfun.singleR <- function(object,...) {
+  if (!object$model$family %in% c("ztpoisson", "ztgeom", "ztnegbin")) {
+    stop("estfun is implemented only for zero-truncated poisson, geometric and negative binomial.")
+  }
+  Y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
+  X <- stats::model.matrix(object)
+  beta <- stats::coef(object)
+  theta <- if (is.null(object$dispersion)) 1 else exp(-object$dispersion)
+  offset <- if (is.null(object$offset)) 0 else object$offset
+  wts <- stats::weights(object)
+  if (is.null(wts)) wts <- 1
+  eta <- as.vector(X %*% beta + offset)
+  mu <- exp(eta)
+  
+  ## working residuals -- should be based on the function that we already have
+  wres <- as.numeric(Y > 0) * switch(
+    object$model$family, 
+    "ztpoisson" = {
+    (Y - mu) - exp(stats::ppois(0, lambda = mu, log.p = TRUE) - 
+                     stats::ppois(0, lambda = mu, lower.tail = FALSE, log.p = TRUE) + 
+                     eta)
+      }, 
+    "ztgeom" = {
+    (Y - mu * (Y + 1)/(mu + 1)) - 
+      exp(stats::pnbinom(0, mu = mu, size = 1, log.p = TRUE) - 
+            stats::pnbinom(0, mu = mu, size = 1, lower.tail = FALSE, log.p = TRUE) - log(mu + 1) + eta)
+      }, 
+    "ztnegbin" = {
+    (Y - mu * (Y + theta)/(mu + theta)) - 
+      exp(stats::pnbinom(0, mu = mu, size = theta, log.p = TRUE) - 
+            stats::pnbinom(0, mu = mu, size = theta, lower.tail = FALSE, log.p = TRUE) + 
+            log(theta) - log(mu + theta) + eta)
+  })
+  rval <- cbind(wres * wts * X)
+  colnames(rval) <- names(beta)
+  rownames(rval) <- rownames(X)
+  return(rval)
+}
+
+#' bread
+#' 
+#' An S3class for \code{sandwich::bread} to handle \code{singleR} objects. This function was developed based on \code{sandwich:::bread.glm}
+#' 
+#' @param object an object representing a fitted model.
+#' @param ... additional optional arguments.
+#' @return a 
+#' @seealso [sandwich::bread()]
+#' @importFrom sandwich bread
+#' @method bread singleR
+#' @exportS3Method
+bread.singleR <- function(object,...) {
+  return(stats::vcov(object) * as.vector(object$df.residual + NROW(object$coefficients)))
+}

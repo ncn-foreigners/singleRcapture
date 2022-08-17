@@ -25,9 +25,10 @@ BugReports: https://github.com/ncn-foreigners/singleRcapture/issues
 Imports: 
     stats,
     MASS,
-    lamW
+    lamW,
+    sandwich
 Suggests: 
     rmarkdown,
     knitr,
-    tinytest,
+    tinytest
 VignetteBuilder: knitr
