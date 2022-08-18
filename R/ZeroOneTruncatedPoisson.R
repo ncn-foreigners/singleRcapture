@@ -37,14 +37,15 @@ zotpoisson <- function() {
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- exp(eta)
-    -lambda * (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
-              ((exp(lambda) - lambda - 1) ** 2))
+    lambda <- invlink(eta)
+    matrix(-lambda * (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
+                     ((exp(lambda) - lambda - 1) ** 2)), 
+           ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    lambda <- exp(eta)
-    eta + (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
+    lambda <- invlink(eta)
+    (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
   }
 
   minusLogLike <- function(y, X, weight = 1, ...) {
@@ -95,8 +96,8 @@ zotpoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, mu, wt, ...) {
-    eta <- log(mu)
+  dev.resids <- function(y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = NULL) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
     loghm1y <- y
@@ -108,7 +109,8 @@ zotpoisson <- function() {
     sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu) - mu * exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
-  pointEst <- function (pw, lambda, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- (pw * (1 - lambda * exp(-lambda)) /
          (1 - exp(-lambda) - lambda * exp(-lambda)))
     if(!contr) {
@@ -117,12 +119,13 @@ zotpoisson <- function() {
     N
   }
 
-  popVar <- function (pw, lambda, cov, X, ...) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
+    Xvlm <- as.data.frame(Xvlm)
     prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
     term <- (1 - lambda * exp(-lambda)) ** 2
     
-    f1 <- t(X) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
+    f1 <- t(Xvlm) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
                                  ((1 + lambda - exp(lambda)) ** 2)))
     
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
@@ -151,7 +154,8 @@ zotpoisson <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "zotpoisson",
-      parNum = 1
+      parNum = 1,
+      etaNames = "lambda"
     ),
     class = "family"
   )

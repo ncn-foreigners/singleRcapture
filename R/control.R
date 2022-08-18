@@ -54,19 +54,14 @@ control.method <- function(epsilon = 1e-8,
 #' @return control.model
 #' @export
 control.model <- function(weightsAsCounts = FALSE,
-                          omegaIntercept = NULL,# ????
-                          alphaIntercept = TRUE # ????
-                          # I suspect no other parameters will be used in the whole package so maybe its better to just specify them in control
-                          # instead of making formula argument in main function a list or something like that.
-                          # In VGAM there is a zero argument when calling vgam family class functions it specifies which argument
-                          # is to be modeled as intercept only eg. in ztnegbin zero is by default on alpha so their fitting is 
-                          # the same as ours. The only other aptions are for lambda or nothing i.e. there is no manual formula specification
+                          omegaFormula = ~ 1,# ????
+                          alphaFormula = ~ 1 # ????
                           ) {
   # TODO
   list(
     weightsAsCounts = weightsAsCounts,
-    omegaIntercept = omegaIntercept,
-    alphaIntercept = alphaIntercept
+    omegaFormula = omegaFormula,
+    alphaFormula = alphaFormula
   )
 }
 #' Control parameters for population size estimation

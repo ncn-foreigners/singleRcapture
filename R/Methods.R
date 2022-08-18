@@ -19,9 +19,11 @@ dfpopsize <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @param ... TODO
 #'
 #' @return TODO
-#' @export
-gridSearch.singleR <- function(object, updateCalculations = TRUE, ...) {
+#' @export 
+gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
   # Make this a method or a function??
+  # TODO possbli use optim
+  # TODO search on all start parameters
   if (isFALSE(grepl("^ztoi", object$model$family))) {
     stop("For now only one iflated models have this method implemented")
   }
@@ -148,41 +150,38 @@ summary.singleRmargin <- function(object, df = NULL,
   )
 }
 #' vcov method for singleR class
-#' @title vcov method for singleR class.
+#' @title Obtain Covariance Matrix from Fitted singleR class Object
 #' @param object object of clas singleRclass.
 #' @param ... variables to pass to solve.
 #' @description Returns a estimated covariance matrix for model coefficients
 #' calculated from analytic hessian or fisher information matrix. 
 #' Covariance type is taken from control parameter that have been provided
 #' on call that created object.
-#' 
+#' @details For now the covariance matrix is calculated 
 #' @method vcov singleR
-#' @return A covariance matrix for fitted coefficients obtained by inverting 
-#' analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
-#' with observed information/fisher information matrix.
+#' @return A covariance matrix for fitted coefficients, rows and columns of which 
+#' correspond to parameters returned by \code{coef} method.
 #' @exportS3Method
 vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  if (grepl(x = object$model$family, pattern = "^zot.*")) {X <- object$X[rownames(object$linear.predictors), ]} else {X <- object$X}
-  if (object$model$parNum == 2) { #TODO Only temporarilly
-    Xvlm <- matrix(nrow = nrow(as.matrix(X)) * 2, ncol = ncol(as.matrix(X)) + 1)
-    Xvlm[1:nrow(X), 1:ncol(X)] <- as.matrix(X)
-    Xvlm[-(1:nrow(X)), ] <- Xvlm[, ncol(X) + 1] <- 0
-    Xvlm[-(1:nrow(X)), ncol(X) + 1] <- 1
-    X <- Xvlm
-  }
+  X <- object$X[object$which$reg, ]
+  X <- singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, 
+                                    formulas = object$formula, parNames = object$model$etaNames)
+  hwm <- X[[2]]
+  X <- X[[1]]
   switch(
     type,
     "observedInform" = solve(
-      -object$model$makeHessian(y = object$y, X = X, lambdaPredNumber = ncol(X) - 1,#TODO
-                                weight = object$prior.weights)(object$coefficients),
+      -object$model$makeHessian(y = object$y[object$which$reg], X = X, lambdaPredNumber = hwm[1],
+                                weight = object$prior.weights[object$which$reg])(object$coefficients),
       ...
     ),
-    "Fisher" = solve(
-      crossprod(x = as.matrix(X) * as.numeric(object$model$Wfun(prior = object$prior.weights, disp = object$dispersion, eta = object$linear.predictors)), 
-                y = as.matrix(X)),
+    "Fisher" = {
+      if (object$call$method == "robust") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
+      solve(
+      singleRinternalMultiplyWeight(X = X, W = W, thick = object$model$parNum, hwm = hwm) %*% X,
       ...
-    )
+    )}
   )
 }
 #' Hat values for singleRclass
@@ -201,27 +200,21 @@ hatvalues.singleR <- function(model, ...) {
   } else {
     X <- model$X
   }
-  if (model$model$parNum == 2) { #TODO Only temporarilly
-    Xvlm <- matrix(nrow = nrow(as.matrix(X)) * 2, ncol = ncol(as.matrix(X)) + 1)
-    Xvlm[1:nrow(X), 1:ncol(X)] <- as.matrix(X)
-    Xvlm[-(1:nrow(X)), ] <- Xvlm[, ncol(X) + 1] <- 0
-    Xvlm[-(1:nrow(X)), ncol(X) + 1] <- 1
-    X <- Xvlm
-  }
+  X <- model$X[model$which$reg, ]
+  X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
+  hwm <- X[[2]]
+  X <- X[[1]]
   if (model$call$method == "robust") {
     W <- model$weights
   } else {
-    W <- model$model$Wfun(prior = model$prior.weights, mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion, theta = model$omegaTheta)[, 1]
+    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = model$linear.predictors[model$which$reg, ])
   }
 
+  mlt <- singleRinternalMultiplyWeight(X = X, W = W, thick = model$model$parNum, hwm = hwm)
   hatvalues <- diag(
-    tcrossprod(
-      x = as.matrix(X) %*% 
-        solve(crossprod(x = as.matrix(X), 
-                        y = as.matrix(X * as.numeric(W)))),
-      y = as.matrix(as.numeric(W) * X))
+    X %*% solve(mlt %*% X) %*% (mlt)
   )
-  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors))
+  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors[model$which$reg, ]))
   hatvalues
 }
 #' dfbeta for singleRclass
@@ -265,15 +258,11 @@ dfbetasingleR <- function(model,
       res <- matrix(nrow = nrow(X), ncol = ncol(X) + !(is.null(model$dispersion)))
       cf <- model$coefficients
       for (k in 1:nrow(X)) {
-        #cat("Iter nr.", k, "\n")
         res[k, ] <- cf - estimate_popsize.fit(
           control = control.method(
             silent = TRUE, 
-            start = cf,             #######################
-            maxiter = maxit.new + 1 ##### TODO: !!!!!!!####
-                                    # THIS IS TERRIBLE ####
-                                    # CHANGE ASAP #########
-                                    #######################
+            start = cf,
+            maxiter = maxit.new + 1 
           ),
           y = y[-k],
           X = X[-k, ],
@@ -308,12 +297,12 @@ confint.singleR <- function(object,
                             parm, 
                             level = 0.95, 
                             ...) {
+  std <- sqrt(diag(vcov.singleR(object)))
   if (missing(parm)) {
     coef <- object$coefficients
-    std <- object$standard_errors
   } else {
     coef <- object$coefficients[parm]
-    std <- object$standard_errors[parm]
+    std <- std[parm]
   }
   sc <- qnorm(p = 1 - (1 - level) / 2)
   res <- data.frame(coef - sc * std, coef + sc * std)
@@ -328,6 +317,7 @@ confint.singleR <- function(object,
 #' @exportS3Method
 residuals.singleR <- function(object,
                               type = c("pearson",
+                                       "pearsonSTD",
                                        "response",
                                        "working",
                                        "deviance",
@@ -340,34 +330,21 @@ residuals.singleR <- function(object,
   wts <- object$prior.weights
   mu <- object$fitt.values
   y <- object$y
-  if (object$model$family %in% c("chao", "zelterman")) {
-    indx <- (y %in% 1:2)
-    #mu <- mu[indx, ]
-    #res <- res[indx, ]
-    #if (length(wts) != 1) {wts <- wts[indx]}
-    y <- y[indx]
-  }
+  if (type = "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
-    working = data.frame("working" = object$model$funcZ(eta = object$linear.predictors,
-                                                       weight = object$weights,
-                                                       y = y, mu = mu$link,
-                                                       disp = object$dispersion, 
-                                                       theta = omegaTheta)),
+    working = data.frame("working" = object$linear.predictors[object$which$reg, ] + object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights, y = y[object$which$reg])),
     response = res,
-    pearson = data.frame("pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc", theta = omegaTheta))),
-    deviance = data.frame("deviance" = object$model$dev.resids(y = y, mu = mu$link, disp = disp, wt = wts, theta = omegaTheta)),
+    pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc"))),
+    pearsonSTD = data.frame("pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc"))),
+    deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors[object$which$reg, ], wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
-      "working" = object$model$funcZ(eta = object$linear.predictors,
-                                    weight = object$weights,
-                                    y = y, mu = mu$link,
-                                    disp = object$dispersion, 
-                                    theta = omegaTheta),
+      "working" = object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg], y = y[object$which$reg]),
       res,
-      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(mu = if (object$model$family %in% c("chao", "zelterman")) {mu$mu} else {mu$link}, disp = object$dispersion, type = "trunc", theta = omegaTheta)),
-      "deviance" = object$model$dev.resids(y = y, mu = mu$mu, disp = disp, wt = wts, theta = omegaTheta),
-      row.names = rownames(object$linear.predictors)
+      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc")),
+      "deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors[object$which$reg, ], wt = wts[object$which$reg]),
+      row.names = rownames(object$linear.predictors[object$which$reg, ])
     )}
   )
   rs
@@ -424,8 +401,13 @@ logLik.singleR <- function(object, ...) {
 #' @method model.matrix singleR
 #' @importFrom stats model.matrix
 #' @exportS3Method model.matrix
-model.matrix.singleR <- function(object, ...) {
-  object$X
+model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
+  if (missing(type)) type <- "lm"
+  X <- object$X
+  switch (type,
+    lm = X,
+    vlm = singleRinternalGetXvlmMatrix(X = X[object$which$reg, ], nPar = object$model$parNum, formulas = object$formula, parNames = dd2$model$etaNames)
+  )
 }
 
 #' @method dfpopsize singleR
@@ -474,11 +456,13 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @importFrom stats pt
 #' @importFrom stats coef
 #' @exportS3Method summary
-summary.singleR <- function(object, test = c("t", "z"), correlation = FALSE, ...) {
+summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, ...) {
+  if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
+  # Maybe add confidence intervals
   if (missing(test)) {test <- "z"}
   df.residual <- object$df.residual
   cov <- vcov.singleR(object, ...)
-  pers <- residuals.singleR(object, type = "pearson", ...)
+  pers <- residuals.singleR(object, type = resType, ...)
   cf <- object$coefficients
   se <- sqrt(diag(cov))
   wValues <- cf / se
@@ -492,7 +476,7 @@ summary.singleR <- function(object, test = c("t", "z"), correlation = FALSE, ...
     list(
       call = object$call,
       coefficients = cf,
-      standard_errors = se,
+      standardErrors = se,
       wValues = wValues,
       pValues = pValues,
       residuals = pers,
@@ -522,7 +506,7 @@ cooks.distance.singleR <- function(model, ...) {
 #' @exportS3Method print
 print.summarysingleR <- function(x, ...) {
   # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
-  signif <- sapply(x$pValues, function(k) {
+  signifCodes <- sapply(x$pValues, function(k) {
     ifelse(k <= 0, "****",
            ifelse(k <= .001, "***",
                   ifelse(k <= .01, "**", 
@@ -530,10 +514,10 @@ print.summarysingleR <- function(x, ...) {
                                 ifelse(k <= .1, ".", "")))))
   })
   ob <- data.frame(round(x$coefficients, digits = 3),
-                   round(x$standard_errors, digits = 3),
+                   round(x$standardErrors, digits = 3),
                    round(x$wValues, digits = 2),
                    signif(x$pValues, digits = 2),
-                   signif)
+                   signifCodes)
   colnames(ob) <- switch(x$test,
                          "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)", ""),
                          "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)", ""))

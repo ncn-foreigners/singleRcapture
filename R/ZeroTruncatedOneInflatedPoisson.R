@@ -192,7 +192,8 @@ ztoipoisson <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "ztoipoisson",
-      parNum = 2
+      parNum = 2,
+      etaNames = c("lambda", "omega")
     ),
     class = "family"
   )

@@ -94,14 +94,15 @@ zelterman <- function() {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, mu, wt, ...) {
+  dev.resids <- function(y, eta, wt, ...) {
+    mu <- invlink(eta)
     z <- y - 1
-    eta <- link(mu)
     mu1 <- mu.eta(eta = eta)
     sign(z - mu1) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
-  pointEst <- function (pw, lambda, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- (pw * (1 / (1 - exp(-lambda))))
     if(!contr) {
       N <- sum(N)
@@ -109,11 +110,12 @@ zelterman <- function() {
     N
   }
 
-  popVar <- function (pw, lambda, cov, X, ...) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
+    Xvlm <- as.data.frame(Xvlm)
     prob <- 1 - exp(-lambda)
 
-    f1 <- colSums(-X * pw * (exp(-lambda) * lambda / (prob ** 2)))
+    f1 <- colSums(-Xvlm * pw * (exp(-lambda) * lambda / (prob ** 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
     f2 <- sum(pw * (1 - prob) / (prob ** 2))
@@ -140,7 +142,8 @@ zelterman <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "zelterman",
-      parNum = 1
+      parNum = 1,
+      etaNames = "lambda"
     ),
     class = "family"
   )

@@ -95,14 +95,15 @@ chao <- function() {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, mu, wt, ...) {
+  dev.resids <- function(y, eta, wt, ...) {
     z <- y - 1
-    eta <- link(mu)
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     ((-1) ** y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
-  pointEst <- function (pw, lambda, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- ((1 + 1 / (lambda + (lambda ** 2) / 2)) * pw)
     if(!contr) {
       N <- sum(N)
@@ -110,11 +111,12 @@ chao <- function() {
     N
   }
 
-  popVar <- function (pw, lambda, cov, X, ...) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
+    Xvlm <- as.data.frame(Xvlm)
     prob <- lambda * exp(-lambda) + (lambda ** 2) * exp(-lambda) / 2
 
-    f1 <- colSums(-X * pw * ((lambda + (lambda ** 2)) /
+    f1 <- colSums(-Xvlm * pw * ((lambda + (lambda ** 2)) /
                   ((lambda + (lambda ** 2) / 2) ** 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
@@ -142,7 +144,8 @@ chao <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "chao",
-      parNum = 1
+      parNum = 1,
+      etaNames = "lambda"
     ),
     class = "family"
   )

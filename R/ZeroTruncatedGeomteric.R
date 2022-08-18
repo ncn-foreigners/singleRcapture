@@ -107,8 +107,8 @@ ztgeom <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, mu, wt, ...) {
-    eta <- log(mu)
+  dev.resids <- function (y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     hm1y <- y - 1 # thats an analytic inverse for geometric
     #log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
@@ -116,7 +116,8 @@ ztgeom <- function() {
     sign(y - mu1) * sqrt(-2 * wt * ((y - 1) * eta - y * log(mu1) - (y - 1) * loghm1y + y * log(y)))
   }
   
-  pointEst <- function (pw, lambda, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     pr <- 1 - 1 / (1 + lambda)
     N <- pw / pr
     if(!contr) {
@@ -125,11 +126,12 @@ ztgeom <- function() {
     N
   }
   
-  popVar <- function (pw, lambda, cov, X, ...) {
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
     pr <- 1 - 1 / (1 + lambda)
     
     bigTheta <- -(pw * as.numeric(lambda / 
-                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(X)
+                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(Xvlm)
     bigTheta <- as.vector(bigTheta)
     
     f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
@@ -158,7 +160,8 @@ ztgeom <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "ztgeom",
-      parNum = 1
+      parNum = 1,
+      etaNames = "lambda"
     ),
     class = "family"
   )

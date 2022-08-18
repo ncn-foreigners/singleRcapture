@@ -17,26 +17,27 @@
 #' @importFrom stats dnbinom
 #' @export
 ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
-  link <- log
-  invlink <- exp
-  dlink <- function(lambda) {
-    1 / lambda
-  }
+  # Fist for lambda second for alpha
+  link <- function (x) {matrix(c(log(x[,1]),log(x[,2])), ncol = 2, dimnames = dimnames(x))}
+  invlink <- function (x) {matrix(c(exp(x[,1]),exp(x[,2])), ncol = 2, dimnames = dimnames(x))}
 
   mu.eta <- function(eta, type = "trunc", ...) {
-    A <- exp(eta[, 2])
-    lambda <- invlink(eta[, 1])
+    A <- invlink(eta)
+    lambda <- A[, 1]
+    A <- A[, 2]
     switch (type,
       nontrunc = lambda,
       trunc = lambda / (1 - (1 + A * lambda) ** (-1 / A))
     )
   }
 
-  variance <- function(mu, disp, type = "nontrunc", ...) {
-    A <- exp(disp)
+  variance <- function(eta, type = "nontrunc", ...) {
+    A <- invlink(eta)
+    lambda <- A[, 1]
+    A <- A[, 2]
     switch (type,
-      nontrunc = mu * (1 + A * mu),
-      trunc = (mu + A * (mu ** 2) - A * (mu ** 2) * ((1 + A * mu) ** (-1 / A))) / ((1 - (1 + A * mu) ** (-1 / A)) ** 2)
+      nontrunc = lambda * (1 + A * lambda),
+      trunc = (lambda + A * (lambda ** 2) - A * (lambda ** 2) * ((1 + A * lambda) ** (-1 / A))) / ((1 - (1 + A * lambda) ** (-1 / A)) ** 2)
     )
   }
   
@@ -53,14 +54,17 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     (alpha ** 2 * (1 - y) + 2 * alpha * digamma(y + 1 / alpha) + trigamma(y + 1 / alpha) - 2 * alpha * digamma(1 + 1 / alpha) - trigamma(1 + 1 / alpha)) / (alpha ** 4)
   }
   
-  compExpect <- function (eta1, eta2) {
-    lambda <- exp(eta1)
-    alpha <- exp(eta2)
+  # Computing the expected value of di/trigamma functions on (y + 1/alpha)
+  
+  compExpect <- function(eta) {
+    alpha <- invlink(matrix(eta, ncol = 2))
+    lambda <- alpha[, 1]
+    alpha <- alpha[, 2]
     res <- res1 <- 0
     k <- 0
     repeat{
       k <- k + 1 # 1 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(size = 1 / alpha, mu = lambda, x = k) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda))
+      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda))
       toAdd <- compdigamma(y = k, alpha = alpha) * prob
       toAdd1 <- comptrigamma(y = k, alpha = alpha) * prob
       res <- res + toAdd
@@ -73,8 +77,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- exp(eta[, 1])
-    alpha <- exp(eta[, 2])
+    alpha <- invlink(eta)
+    lambda <- alpha[, 1]
+    alpha <- alpha[, 2]
     z <- 1 / alpha
     M <- ((1 + lambda / z) ** z) - 1
     S <- 1 / (1 + lambda / z)
@@ -100,30 +105,30 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     C1 <- as.numeric(((cp9 ** z) * (lambda - 1) + 1) *
                        cp6 / ((cp9 ** z - 1) ** 2))
     C2 <- (1 + Ey / z) * cp6
-    Edig <- t(apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x[1], x[2])}))
-    Etrig <- Edig[,2]
-    Edig <- Edig[,1]
-    # The two expressions above approximete E(digamma/trigamma(y + 1 / dispersion parameter))
-    # it's unfortunately necessary
+    Edig <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
+    Etrig <- Edig[2,]
+    Edig <- Edig[1,]
     matrix(
-      c(-lambda * (C1 - C2) * prior,           # log(lambda) derivative without X matrix
-        -((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) + Etrig + # log(alpha) derivative without X matrix
+      c(-lambda * (C1 - C2) * prior,           # lambda predictor derivative without X matrix,
+        -(-T1 + lambda * (T2 + T3)) * prior * alpha, # mixed derivative without X matrix
+        -(-T1 + lambda * (T2 + T3)) * prior * alpha, # mixed derivative without X matrix
+        -((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) + Etrig + # alpha predictor derivative without X matrix
         (Ey + z) * (lambda ** 2) * cp6 + (z ** 3) * 2 * cp8 * cp11 +
         cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
         cp8 / (M ** 2) + cp4 * lambda * log(cp9) * cp11 +
         cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2)+
         (cp1 + Ey * z - (Ey + z) * cp2 + Edig +
-        G * (1 / cp3) * (cp1 - z * cp2)) * alpha) * prior,
-        -(-T1 + lambda * (T2 + T3)) * prior * alpha # mixed derivative without X matrix
+        G * (1 / cp3) * (cp1 - z * cp2)) * alpha) * prior
       ),
-      dimnames = list(rownames(eta), c("lambda", "alpha", "mixed")),
-      ncol = 3
+      dimnames = list(rownames(eta), c("lambda", "mixed", "mixed", "alpha")),
+      ncol = 4
     )
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    lambda <- exp(eta[, 1])
-    alpha <- exp(eta[, 2])
+    alpha <- invlink(eta)
+    lambda <- alpha[, 1]
+    alpha <- alpha[, 2]
     z <- 1 / alpha
     S <- 1 / (1 + lambda / z)
     G <- 1 / (1 - (1 + lambda / z) ** (-z))
@@ -131,14 +136,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     cp2 <- lambda * S
     cp3 <- S ** (-z)
     dig <- compdigamma(y = y, alpha = alpha)
-    # this is probably the only thing left
 
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
-      matrix(c(weight[x, 1], weight[x, 3], weight[x, 3], weight[x, 2]), ncol = 2)
+      matrix(c(weight[x, 1], weight[x, 2], weight[x, 3], weight[x, 4]), ncol = 2)
     })
-    # weight <- t(apply(X = weight, MARGIN = 1, FUN = function (x) {
-    #    solve(matrix(c(x[1], x[3], x[3], x[2]), ncol = 2))
-    #  }))
     
     uMatrix <- matrix(
       c((y + (lambda - y) * cp3) * S / (1 - cp3),
@@ -165,8 +166,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
 
     function(beta) {
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-      lambda <- exp(eta[,1])
-      alpha <- exp(eta[,2])
+      alpha <- invlink(eta)
+      lambda <- alpha[, 1]
+      alpha <- alpha[, 2]
       z <- 1 / alpha
       M <- 1 + lambda / z
 
@@ -186,8 +188,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
 
     function(beta) {
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-      lambda <- exp(eta[,1])
-      alpha <- exp(eta[,2])
+      alpha <- invlink(eta)
+      lambda <- alpha[, 1]
+      alpha <- alpha[, 2]
       # z is inverse of alpha in documentation
       z <- 1 / alpha
       S <- 1 / (1 + lambda / z)
@@ -217,8 +220,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
 
     function(beta) {
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-      lambda <- exp(eta[,1])
-      alpha <- exp(eta[,2])
+      alpha <- invlink(eta)
+      lambda <- alpha[, 1]
+      alpha <- alpha[, 2]
       Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
       Xalpha <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
       # z is inverse of alpha in documentation
@@ -284,14 +288,12 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   dev.resids <- function (y, eta, wt, ...) {
-    disp1 <- exp(eta[, 2])
-    mu <- invlink(eta[, 1])
+    disp1 <- invlink(eta)
+    mu <- disp1[, 1]
+    disp1 <- disp1[, 2]
     mu1 <- mu.eta(eta = eta)
     hm1y <- y
-    hm1y[y == 1] <- -16 # This theoretically outght to be -Inf but that would cause an error this is basically the lowest value that wont cause any
-                        # errors. It approximates mu.eta(eta = hm1y) for its values so well it probably wont cause any incorrect decisions.
-                        # Manually setting the values of to-be logarithms to zero for values with y = 1 also causes errors.
-                        # This is an imperfect solution but it will do for now.
+    hm1y[y == 1] <- -16
     a <- function(n) {stats::uniroot(f = function(x) {mu.eta(matrix(c(x, eta[n, 2]), ncol = 2)) - y[n]}, lower = -log(y[n]), upper = y[n] * 10, tol = .Machine$double.eps)$root}
     hm1y[y > 1] <- sapply(which(y > 1), FUN = a)
     loghm1ytdisp <- log(disp1 * exp(hm1y))
@@ -300,8 +302,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
                                     (y + 1 / disp1) * log(1 + exp(hm1y) * disp1) - y * loghm1ytdisp + logprobhm1y))
   }
 
-  pointEst <- function (pw, lambda, contr = FALSE, disp, ...) {
-    disp <- exp(disp)
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    disp <- invlink(eta)
+    lambda <- disp[, 1]
+    disp <- disp[, 2]
     pr <- 1 - (1 + disp * lambda) ** (- 1 / disp)
     N <- pw / pr
     if(!contr) {
@@ -310,8 +314,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     N
   }
 
-  popVar <- function (pw, lambda, cov, Xvlm, disp, ...) {
-    z <- exp(disp)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    z <- invlink(eta)
+    lambda <- z[, 1]
+    z <- z[, 2]
     pr <- 1 - (1 + z * lambda) ** (- 1 / z)
     S <- 1 / (1 + z * lambda)
 
@@ -329,26 +335,14 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
 
     f1 + f2
   }
-  
-  multiplyWeight <- function (X, W, ...) {
-    XbyW <- matrix(0, nrow = ncol(X), ncol = nrow(X))
-    lAlp <- grepl(pattern = "alpha", (colnames(X)))
-    XbyW[!lAlp, 1:(nrow(X)/2)] <- t(X[1:(nrow(X)/2),!lAlp] * W[, 1])
-    XbyW[!lAlp, -(1:(nrow(X)/2))] <- t(X[1:(nrow(X)/2),!lAlp] * W[, 3])
-    XbyW[lAlp, 1:(nrow(X)/2)] <- t(X[-(1:(nrow(X)/2)),lAlp] * W[, 3])
-    XbyW[lAlp, -(1:(nrow(X)/2))] <- t(X[-(1:(nrow(X)/2)),lAlp] * W[, 2])
-    XbyW
-  }
 
   structure(
     list(
       makeMinusLogLike = minusLogLike,
       makeGradient = gradient,
       makeHessian = hessian,
-      multiplyWeight = multiplyWeight,
       linkfun = link,
       linkinv = invlink,
-      dlink = dlink,
       mu.eta = mu.eta,
       link = "log",
       valideta = function (eta) {TRUE},
@@ -360,7 +354,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       pointEst = pointEst,
       popVar= popVar,
       family = "ztnegbin",
-      parNum = 2
+      parNum = 2,
+      etaNames = c("lambda", "alpha")
     ),
     class = "family"
   )

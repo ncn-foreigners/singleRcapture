@@ -38,12 +38,13 @@ ztpoisson <- function() {
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- exp(eta)
-     -lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2))
+    lambda <- invlink(eta)
+    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2)), 
+           ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
-  funcZ <- function(eta, weight, y, mu, ...) {
-    (y - mu) / weight
+  funcZ <- function(eta, weight, y, ...) {
+    (y - mu.eta(eta)) / weight
   }
 
   minusLogLike <- function(y, X, weight = 1, ...) {
@@ -92,18 +93,18 @@ ztpoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, mu, wt, ...) {
-    eta <- log(mu)
+  dev.resids <- function(y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
     hm1y <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
     log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
     loghm1y <- ifelse(y > 1, log(hm1y), 0)
-    #loghm1y <- ifelse(hm1y > )
     sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
-  pointEst <- function (pw, lambda, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- pw / (1 - exp(-lambda))
     if(!contr) {
       N <- sum(N)
@@ -111,11 +112,12 @@ ztpoisson <- function() {
     N
   }
 
-  popVar <- function (pw, lambda, cov, X, ...) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    Xvlm <- as.data.frame(Xvlm)
+    lambda <- invlink(eta)
     ml <- (1 - exp(-lambda)) ** 2
 
-    f1 <- colSums(-X * pw * (exp(log(lambda) - lambda) / ml))
+    f1 <- colSums(-Xvlm * pw * (exp(log(lambda) - lambda) / ml))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
     f2 <- sum(pw * exp(-lambda) / ml)
@@ -142,7 +144,8 @@ ztpoisson <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "ztpoisson",
-      parNum = 1
+      parNum = 1,
+      etaNames = "lambda"
     ),
     class = "family"
   )

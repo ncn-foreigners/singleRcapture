@@ -8,60 +8,48 @@
 #' @param prior.weights vector of weights its the same argument as weights
 #' in estimate_popsize
 #' @param start start for regression fitting
-#' @param dispersion start for dispersion
-#' @param omegaTheta start for theta predictors for omega
 #' @param ... arguments to pass to other methods
 #' @return
 #' list of object connected to regression
 #' @export
-estimate_popsize.fit <- function(y,
-                                 X,
-                                 Xvlm,
+estimate_popsize.fit <- function(y, X,
                                  family,
+                                 howManyBetas,
                                  control,
                                  method,
                                  prior.weights,
                                  start,
-                                 dispersion,
-                                 omegaTheta,
                                  ...) {
   tbgname <- colnames(X)
   X <- as.matrix(X)
 
   if (grepl("hurdle", family$family)) {
-    FITT <- signleRcaptureinternalIRLS(dependent = y,
+    FITT <- singleRcaptureinternalIRLS(dependent = y,
                                        covariates = X,
                                        eps = control$epsilon,
-                                       epsdisp = control$dispEpsilon,
                                        family = singleRcapture::chao(),
                                        maxiter = control$maxiter,
-                                       disp = dispersion,
                                        weights = prior.weights,
                                        start = start,
                                        silent = control$silent,
-                                       dispGiven = control$dispGiven,
                                        trace = control$verbose,
                                        stepsize = control$stepsize)
     
     gamma <- FITT$coefficients
     
-    FITT <- signleRcaptureinternalIRLS(dependent = y,
+    FITT <- singleRcaptureinternalIRLS(dependent = y,
                                        covariates = X,
                                        eps = control$epsilon,
-                                       epsdisp = control$dispEpsilon,
                                        family = chao(),
                                        maxiter = control$maxiter,
-                                       disp = dispersion,
                                        weights = prior.weights,
                                        start = start,
                                        silent = control$silent,
-                                       dispGiven = control$dispGiven,
                                        trace = control$verbose,
                                        stepsize = control$stepsize)
     
-    dispersion <- FITT$disp
     weights <- FITT$weights
-    beta <- c(dispersion, FITT$coefficients)
+    beta <- FITT$coefficients
   } else {
     if (method == "robust") {
       
@@ -70,38 +58,31 @@ estimate_popsize.fit <- function(y,
       }
       
       if (family$parNum == 1) {
-        FittingFunction <- signleRcaptureinternalIRLS
+        FittingFunction <- singleRcaptureinternalIRLS
       } else {
-        FittingFunction <- signleRcaptureinternalIRLSmultipar
+        FittingFunction <- singleRcaptureinternalIRLSmultipar
       }
       
       FITT <- FittingFunction(
         dependent = y,
         covariates = X,
-        Xvlm = Xvlm,
         eps = control$epsilon,
-        epsdisp = control$dispEpsilon,
         family = family,
         maxiter = control$maxiter,
-        disp = dispersion,
-        omegaTheta = omegaTheta,
         weights = prior.weights,
         start = start,
         silent = control$silent,
-        dispGiven = control$dispGiven,
-        omegaThetaGiven = control$thetaGiven,
         trace = control$verbose,
-        stepsize = control$stepsize
+        stepsize = control$stepsize,
+        hwm = howManyBetas
       )
       
       iter <- FITT$iter
-      dispersion <- FITT$disp
-      omegaTheta <- FITT$omegaTheta
       weights <- FITT$weights
       beta <- FITT$coefficients
     } else if (method == "mle") {
-      logLike <- family$makeMinusLogLike(y = y, X = Xvlm, weight = prior.weights)
-      grad <- family$makeGradient(y = y, X = Xvlm, weight = prior.weights, lambdaPredNumber = length(start) - 1)
+      logLike <- family$makeMinusLogLike(y = y, X = X, weight = prior.weights)
+      grad <- family$makeGradient(y = y, X = X, weight = prior.weights, lambdaPredNumber = length(start) - 1)
       
       weights <- prior.weights
       methodopt <- control$mleMethod

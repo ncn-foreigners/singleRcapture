@@ -107,14 +107,15 @@ zotgeom <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, mu, wt, ...) {
-    eta <- log(mu)
+  dev.resids <- function (y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     loghm1y <- ifelse(y > 2, log(y - 2), 0)
     sign(y - mu1) * sqrt(-2 * wt * ((y - 2) * eta - (y - 1) * log(1 + mu1) - (y - 2) * loghm1y + (y - 1) * log(y - 1)))
   }
   
-  pointEst <- function (pw, lambda, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     S <- 1 / (1 + lambda)
     prob <- 1 - S - lambda * (S ** 2)
     N <- (pw * (1 - lambda * (S ** 2)) / prob)
@@ -124,17 +125,16 @@ zotgeom <- function() {
     N
   }
   
-  popVar <- function (pw, lambda, cov, X, ...) {
-    alpha <- 1
-    z <- 1 / alpha
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
     M <- 1 + lambda
     S <- 1 / M
     prob <- 1 - S - lambda * (S ** 2)
     
-    bigTheta <- t(as.matrix(X)) %*% (pw * as.numeric(lambda *
-                                    (prob * (lambda - 1) * (S ** 3) -
-                                    2 * lambda * (S ** 3) *
-                                    (1 - lambda * (S ** 2))) / (prob ** 2)))
+    bigTheta <- t(Xvlm) %*% (pw * as.numeric(lambda *
+                            (prob * (lambda - 1) * (S ** 3) -
+                            2 * lambda * (S ** 3) *
+                            (1 - lambda * (S ** 2))) / (prob ** 2)))
     
     bigTheta <- as.vector(bigTheta)
     
@@ -164,7 +164,8 @@ zotgeom <- function() {
       pointEst = pointEst,
       popVar= popVar,
       family = "zotgeom",
-      parNum = 1
+      parNum = 1,
+      etaNames = "lambda"
     ),
     class = "family"
   )
