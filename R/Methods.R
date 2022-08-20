@@ -330,7 +330,7 @@ residuals.singleR <- function(object,
   wts <- object$prior.weights
   mu <- object$fitt.values
   y <- object$y
-  if (type = "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
+  if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
     working = data.frame("working" = object$linear.predictors[object$which$reg, ] + object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights, y = y[object$which$reg])),
