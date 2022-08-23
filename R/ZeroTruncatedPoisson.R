@@ -30,10 +30,11 @@ ztpoisson <- function() {
     )
   }
 
-  variance <- function(mu, type = "nontrunc", ...) {
+  variance <- function(eta, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = mu,
-      "trunc" = mu.eta(eta = log(mu)) * (1 + mu - mu.eta(eta = log(mu)))
+      "nontrunc" = lambda,
+      "trunc" = mu.eta(eta = eta) * (1 + lambda - mu.eta(eta = eta))
     )
   }
   

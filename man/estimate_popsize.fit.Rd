@@ -8,12 +8,11 @@ estimate_popsize.fit(
   y,
   X,
   family,
+  hwm,
   control,
   method,
   prior.weights,
   start,
-  dispersion,
-  omegaTheta,
   ...
 )
 }
@@ -24,6 +23,8 @@ estimate_popsize.fit(
 
 \item{family}{same as model in estimate_popsize}
 
+\item{hwm}{a vector containing information on how many columns in X matrix are associated with each linear predictor}
+
 \item{control}{control parameters}
 
 \item{method}{method of estimation same as in estimate_popsize}
@@ -32,10 +33,6 @@ estimate_popsize.fit(
 in estimate_popsize}
 
 \item{start}{start for regression fitting}
-
-\item{dispersion}{start for dispersion}
-
-\item{omegaTheta}{start for theta predictors for omega}
 
 \item{...}{arguments to pass to other methods}
 }

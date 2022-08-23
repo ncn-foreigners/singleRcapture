@@ -1,5 +1,7 @@
 #' Zero truncated Negative Binomial model
 #'
+#' @param nSim TODO
+#' @param epsSim TODO
 #' @return A object of class "family" containing objects \cr
 #' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
 #' makeGradient(y,X) - for creating gradient function \cr
@@ -138,7 +140,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     dig <- compdigamma(y = y, alpha = alpha)
 
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
-      matrix(c(weight[x, 1], weight[x, 2], weight[x, 3], weight[x, 4]), ncol = 2)
+      matrix(as.numeric(weight[x, ]), ncol = 2)
     })
     
     uMatrix <- matrix(
@@ -344,7 +346,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       linkfun = link,
       linkinv = invlink,
       mu.eta = mu.eta,
-      link = "log",
+      link = c("log", "log"),
       valideta = function (eta) {TRUE},
       variance = variance,
       Wfun = Wfun,

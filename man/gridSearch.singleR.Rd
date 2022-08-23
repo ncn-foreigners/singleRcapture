@@ -4,7 +4,7 @@
 \alias{gridSearch.singleR}
 \title{TODO}
 \usage{
-gridSearch.singleR(object, updateCalculations = TRUE, ...)
+gridSearch.singleR(object, useOptim, updateCalculations = TRUE, ...)
 }
 \arguments{
 \item{object}{TODO}

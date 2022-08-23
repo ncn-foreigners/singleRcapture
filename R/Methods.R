@@ -76,7 +76,7 @@ gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...)
                                                    disp = object$dispersion,
                                                    wt = object$prior.weights, 
                                                    theta = opt) ** 2)
-    object$populationSize <- signleRcaptureinternalpopulationEstimate(
+    object$populationSize <- singleRcaptureinternalpopulationEstimate(
       y = object$y,
       X = object$X,
       grad = object$model$makeGradient(y = object$y, X = object$X, weight = object$prior.weights),
@@ -151,7 +151,9 @@ summary.singleRmargin <- function(object, df = NULL,
 }
 #' vcov method for singleR class
 #' @title Obtain Covariance Matrix from Fitted singleR class Object
-#' @param object object of clas singleRclass.
+#' @param object object of class singleRclass.
+#' @param type type of estimate for variance covariance matrix for now either
+#' expected (fisher) information matrix or observed information matrix.
 #' @param ... variables to pass to solve.
 #' @description Returns a estimated covariance matrix for model coefficients
 #' calculated from analytic hessian or fisher information matrix. 
@@ -179,7 +181,7 @@ vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
     "Fisher" = {
       if (object$call$method == "robust") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
       solve(
-      singleRinternalMultiplyWeight(X = X, W = W, thick = object$model$parNum, hwm = hwm) %*% X,
+      singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm) %*% X,
       ...
     )}
   )
@@ -210,10 +212,8 @@ hatvalues.singleR <- function(model, ...) {
     W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = model$linear.predictors[model$which$reg, ])
   }
 
-  mlt <- singleRinternalMultiplyWeight(X = X, W = W, thick = model$model$parNum, hwm = hwm)
-  hatvalues <- diag(
-    X %*% solve(mlt %*% X) %*% (mlt)
-  )
+  mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
+  hatvalues <- diag(X %*% solve(mlt %*% X) %*% (mlt))
   hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors[model$which$reg, ]))
   hatvalues
 }
@@ -366,31 +366,31 @@ print.summarysingleRmargin <- function(x, ...) {
 }
 #' @method AIC singleR
 #' @importFrom stats AIC
-#' @exportS3Method AIC
+#' @exportS3Method 
 AIC.singleR <- function(object, ...) {
   object$aic
 }
 #' @method BIC singleR
 #' @importFrom stats BIC
-#' @exportS3Method BIC
+#' @exportS3Method 
 BIC.singleR <- function(object, ...) {
   object$bic
 }
 #' @method extractAIC singleR
 #' @importFrom stats extractAIC
-#' @exportS3Method extractAIC
+#' @exportS3Method 
 extractAIC.singleR <- function(fit, scale, k = 2, ...) {
   -2 * fit$logL + k * length(fit$coefficients)
 }
 #' @method dfbeta singleR
 #' @importFrom stats dfbeta
-#' @exportS3Method dfbeta
+#' @exportS3Method 
 dfbeta.singleR <- function(model, ...) {
   dfbetasingleR(model, ...)
 }
 #' @method logLik singleR
 #' @importFrom stats logLik
-#' @exportS3Method logLik
+#' @exportS3Method 
 logLik.singleR <- function(object, ...) {
   val <- object$logL
   attr(val, "nobs") <- dim(residuals(object))[1]
@@ -400,18 +400,18 @@ logLik.singleR <- function(object, ...) {
 }
 #' @method model.matrix singleR
 #' @importFrom stats model.matrix
-#' @exportS3Method model.matrix
+#' @exportS3Method 
 model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
   if (missing(type)) type <- "lm"
   X <- object$X
   switch (type,
-    lm = X,
-    vlm = singleRinternalGetXvlmMatrix(X = X[object$which$reg, ], nPar = object$model$parNum, formulas = object$formula, parNames = dd2$model$etaNames)
+    lm = X[object$which$reg, ],
+    vlm = singleRinternalGetXvlmMatrix(X = X[object$which$reg, ], nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames)
   )
 }
 
 #' @method dfpopsize singleR
-#' @exportS3Method dfpopsize
+#' @exportS3Method 
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
@@ -455,7 +455,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @method summary singleR
 #' @importFrom stats pt
 #' @importFrom stats coef
-#' @exportS3Method summary
+#' @exportS3Method 
 summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, ...) {
   if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
   # Maybe add confidence intervals
@@ -496,14 +496,14 @@ summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", cor
 }
 #' @importFrom stats cooks.distance
 #' @method cooks.distance singleR
-#' @exportS3Method cooks.distance
+#' @exportS3Method 
 cooks.distance.singleR <- function(model, ...) {
   res <- ((residuals(model, type = "pearson") ** 2) * (hatvalues(model) / (length(model$coefficients))))$pearson
   names(res) <- rownames(model$linear.predictors)
   res
 }
 #' @method print summarysingleR
-#' @exportS3Method print
+#' @exportS3Method 
 print.summarysingleR <- function(x, ...) {
   # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
   signifCodes <- sapply(x$pValues, function(k) {
@@ -523,7 +523,7 @@ print.summarysingleR <- function(x, ...) {
                          "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)", ""))
   
   print(x$call)
-  cat("\nStandardised Pearson Residuals:\n")
+  cat("\nPearson Residuals:\n")
   print(summary(c(x$residuals[, 1])))
   cat("\nCoefficients:\n")
   print(ob)

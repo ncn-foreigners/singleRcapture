@@ -48,8 +48,8 @@ control.method <- function(epsilon = 1e-8,
 #' control.model
 #' TODO
 #' @param weightsAsCounts TODO
-#' @param omegaIntercept TODO
-#' @param alphaIntercept TODO
+#' @param omegaFormula TODO
+#' @param alphaFormula TODO
 #' for now does nothing
 #' @return control.model
 #' @export

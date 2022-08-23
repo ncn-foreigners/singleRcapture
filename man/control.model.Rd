@@ -5,11 +5,7 @@
 \title{control.model
 TODO}
 \usage{
-control.model(
-  weightsAsCounts = FALSE,
-  omegaFormula = NULL,
-  alphaFormula = NULL
-)
+control.model(weightsAsCounts = FALSE, omegaFormula = ~1, alphaFormula = ~1)
 }
 \arguments{
 \item{weightsAsCounts}{TODO}

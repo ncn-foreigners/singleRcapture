@@ -154,7 +154,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      beta, weights,
                                                      hessian, family,
                                                      eta, pop.var,
-                                                     control,
+                                                     control, hwm,
                                                      Xvlm, W) {
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
@@ -167,7 +167,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, thick = object$model$parNum, hwm = hwm) %*% X)
+      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% X)
     )
     # TODO : add Fisher for negbins
     
@@ -191,17 +191,16 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                       "semiparametric" = semparBoot,
                       "nonparametric" = noparBoot)
     N <- family$pointEst(pw = weights,
-                         lambda = lambda) + trcount
+                         eta = eta) + trcount
     
+    # TODO: verify bootstrap with simulate function in family functions
     strappedStatistic <- funBoot(family = family,
                                  y = y, 
                                  X = X,
-                                 dispersion = dispersion,
                                  beta = beta,
-                                 weights = list(weights, weights0),
+                                 weights = weights,
                                  trcount = trcount,
                                  numboot = numboot,
-                                 lambda = lambda,
                                  trace = control$traceBootstrapSize,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
@@ -264,6 +263,11 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   dg <- 8
   converged <- FALSE
   
+  # Lowering stepsize to about .3 usually helps a great deal in IRLS fitting
+  if (!silent && family$family == "zotnegbin" && stepsize == 1) {
+    cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity, consider lowering stepsize control parameter if fitting fails.")
+  }
+  
   momentumFactor <- 0 # add to control
   mu.eta <- family$mu.eta
   validmu <- family$validmu
@@ -298,7 +302,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     W <- Wfun(prior = prior, eta = eta, y = dependent)
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
 
-    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W, thick = family$parNum, hwm = hwm)
+    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W, hwm = hwm)
 
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
@@ -379,8 +383,16 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
 singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
   if (nPar == 1) {return(list(X, ncol(X)))}
   Xses <- list(X)
+  parentFrame <- X
+  #if (ncol(X) == 1 && )
+  if ("(Intercept)" %in% colnames(parentFrame)) {
+    cl <- colnames(parentFrame)
+    cl <- cl[cl != "(Intercept)"]
+    parentFrame <- as.data.frame(parentFrame[, colnames(parentFrame) != "(Intercept)"])
+    colnames(parentFrame) <- cl
+  }
   for (k in 2:nPar) {
-    Xses[[k]] <- model.matrix(formulas[[k]], data = as.data.frame(X))
+    Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
     colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
   }
   hwm <- sapply(Xses, ncol)
@@ -390,7 +402,7 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
   row <- 0
   col <- 0
   for (k in Xses) {
-    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- k
+    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- as.matrix(k)
     row <- row + nrow(k)
     col <- col + ncol(k)
   }
@@ -426,8 +438,9 @@ singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop
        trr = trr)  # add to trcount
 }
 # TODO:: additional verification
-# This is almost certainly an overkill but is supports arbitrary numer of linear predictors
-singleRinternalMultiplyWeight <- function (X, W, thick, hwm, ...) {
+# This is almost certainly an overkill but is supports arbitrary number of linear predictors
+singleRinternalMultiplyWeight <- function (X, W, hwm, ...) {
+  thick <- sqrt(ncol(W))
   XbyW <- matrix(0, nrow = ncol(X), ncol = nrow(X))
   wch <- c(0, cumsum(hwm))
   whichVector <- t(matrix(1:(thick ** 2), ncol = thick))

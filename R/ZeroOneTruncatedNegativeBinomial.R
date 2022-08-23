@@ -1,5 +1,7 @@
 #' Zero One Truncated Negative Binomial model
 #'
+#' @param nSim TODO
+#' @param epsSim TODO
 #' @return A object of class "family" containing objects \cr
 #' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
 #' makeGradient(y,X) - for creating gradient function \cr
@@ -29,17 +31,23 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     A <- A[, 2]
     switch (type,
             "nontrunc" = lambda,
-            "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - ((1 + A * lambda) ** (-1 / A) + lambda * ((1 + A * lambda) ** (-1 - 1 / A))))
+            "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - (1 + A * lambda) ** (-1 / A) - lambda * ((1 + A * lambda) ** (-1 - 1 / A)))
     )
   }
 
-  variance <- function(eta, disp, type = "nontrunc", ...) {
+  variance <- function(eta, type = "nontrunc", ...) {
     A <- invlink(eta)
     lambda <- A[, 1]
     A <- A[, 2]
     switch (type,
-            "nontrunc" = mu * (1 + A * mu),
-            "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
+            "nontrunc" = lambda * (1 + A * lambda),
+            "trunc" = {
+              EX2 <- lambda * (1 + A * lambda) + lambda ** 2;
+              prob <- (1 - (1 + A * lambda) ** (-1 / A) - lambda * ((1 + A * lambda) ** (-1 - 1 / A)));
+              term <- lambda * ((1 + A * lambda) ** (-1 - 1 / A));
+              EX <- (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - (1 + A * lambda) ** (-1 / A) - lambda * ((1 + A * lambda) ** (-1 - 1 / A)));
+              (EX2 - term) / prob - EX ** 2
+            }
     )
   }
   
@@ -52,7 +60,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     k <- 1
     repeat{
       k <- k + 1 # 2 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(size = 1 / alpha, mu = lambda, x = k) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda) - stats::dnbinom(x = 1, size = 1 / alpha, mu = lambda))
+      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda) - stats::dnbinom(x = 1, size = 1 / alpha, mu = lambda))
       toAdd <- (digamma(k + z) - digamma(z)) * z * prob
       toAdd1 <- (trigamma(k + z) - trigamma(z)) * (z ** 2) * prob
       res <- res + toAdd
@@ -120,14 +128,14 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     cp22 * (cp5 * cp25 + cp15 * cp7) - 2 * cp21 + cp9 * (M ** (cp26 - 1)) +
     cp22 - cp23) / (M * cp18) - z * cp24 * (cp8 * (cp25 * cp5 + cp15 * cp7) - cp9) /
     (M * (cp18 ** 2)) - z * (cp5 * cp10 - cp21 + cp22 - cp23) /
-    (M * cp18) - lambda * cp24 / (cp16 * cp18))
+    (M * cp18) - lambda * cp24 / (cp16 * cp18)) * prior
     
     matrix(
-      c(G11, # lambda predictor derivative without X matrix,
-        G01, # mixed derivative without X matrix
-        G01, # mixed derivative without X matrix
-        G00  # alpha predictor derivative without X matrix
-      ) * (-1),
+      -c(G11, # lambda predictor derivative without X matrix,
+        G01,  # mixed derivative without X matrix
+        G01,  # mixed derivative without X matrix
+        G00   # alpha predictor derivative without X matrix
+      ),
       dimnames = list(rownames(eta), c("lambda", "mixed", "mixed", "alpha")),
       ncol = 4
     )
@@ -146,7 +154,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     cp3 <- alpha * (-1 - z)
     
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
-      matrix(c(weight[x, 1], weight[x, 2], weight[x, 3], weight[x, 4]), ncol = 2)
+      matrix(as.numeric(weight[x, ]), ncol = 2)
     })
     
     uMatrix <- matrix(
@@ -385,7 +393,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       linkfun = link,
       linkinv = invlink,
       mu.eta = mu.eta,
-      link = "log",
+      link = c("log", "log"),
       valideta = function (eta) {TRUE},
       variance = variance,
       Wfun = Wfun,

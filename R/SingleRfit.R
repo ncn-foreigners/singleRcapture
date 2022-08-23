@@ -3,6 +3,7 @@
 #' @param y vector of dependent variables
 #' @param X model matrix
 #' @param family same as model in estimate_popsize
+#' @param hwm a vector containing information on how many columns in X matrix are associated with each linear predictor
 #' @param control control parameters
 #' @param method method of estimation same as in estimate_popsize
 #' @param prior.weights vector of weights its the same argument as weights
@@ -14,7 +15,7 @@
 #' @export
 estimate_popsize.fit <- function(y, X,
                                  family,
-                                 howManyBetas,
+                                 hwm,
                                  control,
                                  method,
                                  prior.weights,
@@ -53,10 +54,6 @@ estimate_popsize.fit <- function(y, X,
   } else {
     if (method == "robust") {
       
-      if (family$family == "ztoipoisson") {
-        stop("Robust not yet implemented for one inflated")
-      }
-      
       if (family$parNum == 1) {
         FittingFunction <- singleRcaptureinternalIRLS
       } else {
@@ -74,7 +71,7 @@ estimate_popsize.fit <- function(y, X,
         silent = control$silent,
         trace = control$verbose,
         stepsize = control$stepsize,
-        hwm = howManyBetas
+        hwm = hwm
       )
       
       iter <- FITT$iter

@@ -4,7 +4,12 @@
 \alias{zotnegbin}
 \title{Zero One Truncated Negative Binomial model}
 \usage{
-zotnegbin()
+zotnegbin(nSim = 1000, epsSim = 1e-08, ...)
+}
+\arguments{
+\item{nSim}{TODO}
+
+\item{epsSim}{TODO}
 }
 \value{
 A object of class "family" containing objects \cr

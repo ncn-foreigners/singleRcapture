@@ -53,6 +53,7 @@
 #'
 #' @importFrom stats glm.fit
 #' @importFrom stats poisson
+#' @importFrom stats binomial
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom stats optim
@@ -150,6 +151,10 @@ estimate_popsize <- function(formula,
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = observed, pop.var = pop.var)
 
   control.pop.var$trcount <- control.pop.var$trcount + wch$trr
+  
+  # TODO::
+  ## move this to family functions
+  
   if (is.null(control.model$start)) {
     start <- stats::glm.fit(
       x = variables[wch$reg, ],
@@ -163,30 +168,47 @@ estimate_popsize <- function(formula,
     start <- control.method$start
   }
   if (grepl("negbin", family$family)) {
-    #start <- MASS::glm.nb(formula = formula, data = data)
-    #dispersion <- -start$theta
-    #start <- start$coefficients
+    #start <- MASS::glm.nb(formula = formula, data = data)$coefficients
+    # dispersion <- -start$theta
+    # start <- c(start$coefficients, -start$theta)
     if (is.null(control.method$dispersionstart)) {
       if (control.model$alphaFormula == ~ 1) {
-        dispersion <- log(abs(mean(observed ** 2) - mean(observed)) / (mean(observed) ** 2 + .25))
-        start <- c(start, "(Intercept):alpha" = dispersion)
+        start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
+      } else {
+        if ((formula[[3]] != control.model$alphaFormula[[2]]) && (control.model$alphaFormula != ~.)) {
+          stop("For now only full and intercept only z(o)tnegbin models have automatic starting poins")
+        }
+        start <- c(start, start) # TODO: gosh this is terrible pick a better method
       }
     } else {
-      #dispersion <- control.method$dispersionstart
-      dispersion <- start # TODO: gosh this is terrible pick a better method
-      nm <- names(start)
-      start <- c(start, dispersion)
-      names(start) <- c(nm, paste0(nm, ":alpha"))
+      start <- c(start, control.method$dispersionstart)
     }
   }
-  if (grepl("^ztoi", family$family)) {
-    stop("Implement this")
-  }
   
-  Xvlm <- singleRinternalGetXvlmMatrix(X = variables[wch$reg, ],nPar = family$parNum, 
-                                       formulas = formulas, parNames = family$etaNames)
+  if (grepl(x = family$family, pattern = "^ztoi")) {
+    if (is.null(control.method$omegastart)) {
+      if (control.model$omegaFormula == ~ 1) {
+        omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(table(observed[wch$reg]) * as.numeric(names(table(observed[wch$reg])))) - length(observed[wch$reg]))
+        #start <- c(start, log(omg / (1 - omg)))
+        start <- c(start, start[1])
+      } else {
+        start <- c(start, stats::glm.fit(
+          x = variables[wch$reg, ],
+          y = as.numeric(observed[wch$reg] == 1),
+          family = stats::binomial()
+        )$coefficients)
+      }
+    } else {
+      start <- c(start, control.method$omegastart)
+    }
+  }
+
+  if (ncol(variables) == 1) {aux <- as.data.frame(variables[wch$reg, ]); colnames(aux) <- colnames(variables)}
+  Xvlm <- singleRinternalGetXvlmMatrix(X = if (ncol(variables) == 1) {aux} else {as.data.frame(variables[wch$reg, ])}, 
+                                       nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
   hwm <- Xvlm[[2]]
   Xvlm <- Xvlm[[1]]
+  names(start) <- colnames(Xvlm)
   FITT <- estimate_popsize.fit(
     y = observed[wch$reg],
     X = Xvlm,
@@ -195,22 +217,22 @@ estimate_popsize <- function(formula,
     method = method,
     prior.weights = prior.weights[wch$reg],
     start = start,
-    howManyBetas = hwm,
+    hwm = hwm,
     ...
   )
   coefficients <- FITT$beta
   names(coefficients) <- names(start)
   iter <- FITT$iter
-
   df.reduced <- nrow(Xvlm) - length(coefficients)
   logLike <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
                                      weight = prior.weights[wch$reg])
   grad <- family$makeGradient(y = observed[wch$reg], X = Xvlm, weight = prior.weights[wch$reg])
   hessian <- family$makeHessian(y = observed[wch$reg], X = Xvlm,
                                 weight = prior.weights[wch$reg],
-                                lambdaPredNumber = sum(attr(terms, "order")) + attr(terms, "intercept"))
+                                lambdaPredNumber = hwm[1])
+
   hess <- hessian(coefficients)
-  eta <- matrix(Xvlm %*% coefficients, ncol = family$parNum)
+  eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = family$parNum)
   colnames(eta) <- family$etaNames
   rownames(eta) <- rownames(variables[wch$reg])
   weights <- FITT$weights
@@ -236,7 +258,6 @@ estimate_popsize <- function(formula,
   deviance <- sum(family$dev.resids(y = observed[wch$reg], 
                                     wt = prior.weights[wch$reg],
                                     eta = if (family$family == "zelterman") eta[wch$reg] else eta) ** 2)
-
   POP <- singleRcaptureinternalpopulationEstimate(
     #y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) observed[wch$reg] else observed,
     y = observed[wch$est],
@@ -253,7 +274,6 @@ estimate_popsize <- function(formula,
     Xvlm = Xvlm,
     W = weights
   )
-                       
   structure(
     list(
       y = observed,
