@@ -2,6 +2,7 @@
 #'
 #' @param nSim TODO
 #' @param epsSim TODO
+#' @param ... TODO
 #' @return A object of class "family" containing objects \cr
 #' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
 #' makeGradient(y,X) - for creating gradient function \cr

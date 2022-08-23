@@ -47,8 +47,8 @@ ztoipoisson <- function() {
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     theta <- exp(eta[, 2])
-    #z <- 1 - exp(-lambda) # expected for I's
-    z <- ifelse(y == 1, y, 0)
+    z <- omega + (1 - omega) * lambda / (exp(lambda) - 1) # expected for I's
+    #z <- ifelse(y == 1, y, 0)
     eml <- exp(-lambda)
     term <- lambda / (exp(lambda) - 1)
     G00 <- -omega * (1 - omega) + z * (theta / (theta + term) - (theta / (theta + term)) ** 2)

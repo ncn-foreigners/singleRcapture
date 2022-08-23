@@ -2,6 +2,7 @@
 #'
 #' @param nSim TODO
 #' @param epsSim TODO
+#' @param ... TODO
 #' @return A object of class "family" containing objects \cr
 #' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
 #' makeGradient(y,X) - for creating gradient function \cr
@@ -17,10 +18,6 @@
 #' X is a matrix / data frame of covariates
 #' @export
 zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
-  # TODO::: VERIFY this one
-  ##################
-  #### Important ###
-  ##################
   # Fist for lambda second for alpha
   link <- function (x) {matrix(c(log(x[,1]),log(x[,2])), ncol = 2, dimnames = dimnames(x))}
   invlink <- function (x) {matrix(c(exp(x[,1]),exp(x[,2])), ncol = 2, dimnames = dimnames(x))}
