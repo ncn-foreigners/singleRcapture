@@ -29,10 +29,11 @@ zotpoisson <- function() {
     )
   }
 
-  variance <- function(mu, type = "nontrunc", ...) {
+  variance <- function(eta, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = mu,
-            "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
+            "nontrunc" = lambda,
+            "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     )
   }
   
@@ -85,10 +86,9 @@ zotpoisson <- function() {
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
 
-      term <- (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
-                ((exp(lambda) - lambda - 1) ** 2))
+      term <- ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
 
-      t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term)))
+      t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term * weight)))
     }
   }
 

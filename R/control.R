@@ -1,48 +1,60 @@
 #' Control parameters for regression
 #'
-#' @param epsilon relative tolerance (absolute for robust method) for fitting algorithms by default 1e-8
-#' @param dispEpsilon tolerance for estimation of dispersion parameter only matters for negbins in robust
-#' @param maxiter Maximal number of iterations
-#' @param verbose Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihhod) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace
-#' @param start initial parameters for regression if NULL they will be derived from simple poisson regression
-#' @param dispersionstart initial parameters for dispersion parameter if applies
-#' @param omegastart initial parameters for inflation parameter if applies
-#' @param mleMethod method of stats::optim used L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used
-#' @param silent logical indicating whether warnings in robust method should be suppressed
-#' @param optimPass optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of controlparameters will be infered from other parameters
-#' @param dispGiven logical indicates whether to estimate dispersion parameter or assume the one provided is already correct
-#' @param thetaGiven TODO
-#' @param stepsize Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1
+#' @param epsilon relative tolerance (absolute for robust method) for fitting algorithms by default 1e-8.
+#' @param maxiter Maximal number of iterations.
+#' @param verbose Value indicating whether to trace steps of fitting algorithm for robust fitting method different values of verbose give the following information:
+#' \itemize{
+#'   \item 1 -- Returns information on the number of current iteration and current log-likelihood.
+#'   \item 2 -- Returns information on vector of regression parameters at current iteration (and all of the above).
+#'   \item 3 -- Returns information on reduction of log-likelihood at current iteration (and all of the above).
+#'   \item 4 -- Returns information on value of log-likelihood function gradient at current iteration (and all of the above).
+#'   \item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
+#' }
+#' if mle method was chosen verbose will be passed to [stats::optim()] as trace.
+#' @param start initial parameters for regression associated with main formula specified in function call if NULL they will be derived from simple poisson regression.
+#' @param alphaStart initial parameters for dispersion parameter if applies.
+#' @param omegaStart initial parameters for inflation parameter if applies.
+#' @param piStart initial parameters for probability parameter if applies.
+#' @param mleMethod method of [stats::optim()] used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.
+#' @param silent logical indicating whether warnings in robust method should be suppressed.
+#' @param optimPass optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
+#' @param stepsize only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.
+#' @param momentumFactor experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
+#' \loadmathjax
+#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
+#' the update will be made as:
+#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}
+#' @param momentumActivation the value of log-likelihood reduction bellow which momentum will apply.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @export
 control.method <- function(epsilon = 1e-8,
-                           dispEpsilon = 1e-5,
                            maxiter = 1000,
                            verbose = 0,
                            start = NULL,
-                           dispersionstart = NULL,
-                           omegastart = NULL,
+                           alphaStart = NULL,
+                           omegaStart = NULL,
+                           piStart = NULL,
                            mleMethod = "L-BFGS-B",
                            silent = FALSE,
                            optimPass = FALSE,
-                           dispGiven = FALSE,
-                           thetaGiven = FALSE,
-                           stepsize = 1) {
+                           stepsize = 1,
+                           momentumFactor = 0,
+                           momentumActivation = 5) {
   list(
     epsilon = epsilon,
-    dispEpsilon = dispEpsilon,
     maxiter = maxiter,
     verbose = verbose,
     start = start,
-    dispersionstart = dispersionstart,
-    omegastart = omegastart,
+    alphaStart = alphaStart,
+    omegaStart = omegaStart,
+    piStart = piStart,
     mleMethod = mleMethod,
     silent = silent,
     optimPass = optimPass,
-    dispGiven = dispGiven,
     stepsize = stepsize,
-    thetaGiven = thetaGiven
+    momentumFactor = momentumFactor,
+    momentumActivation = momentumActivation
   )
 }
 #' control.model
@@ -54,14 +66,16 @@ control.method <- function(epsilon = 1e-8,
 #' @return control.model
 #' @export
 control.model <- function(weightsAsCounts = FALSE,
-                          omegaFormula = ~ 1,# ????
-                          alphaFormula = ~ 1 # ????
+                          omegaFormula = ~ 1,
+                          alphaFormula = ~ 1,
+                          piFormula = ~ .
                           ) {
   # TODO
   list(
     weightsAsCounts = weightsAsCounts,
     omegaFormula = omegaFormula,
-    alphaFormula = alphaFormula
+    alphaFormula = alphaFormula,
+    piFormula = piFormula
   )
 }
 #' Control parameters for population size estimation

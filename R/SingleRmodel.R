@@ -63,9 +63,9 @@
 #' @export
 estimate_popsize <- function(formula,
                              data,
-                             model = c("ztpoisson", "ztnegbin",
-                                       "ztgeom", "zotpoisson", "ztoipoisson",
-                                       "zotnegbin", "ztoinegbin", "zotgeom",
+                             model = c("ztpoisson", "ztnegbin", "ztgeom", 
+                                       "zotpoisson", "ztoipoisson", "ztHurdlepoisson", 
+                                       "zotnegbin",  "ztoinegbin", "zotgeom",
                                        "ztoigeom", "zelterman", "chao"),
                              weights = NULL,
                              subset = NULL,
@@ -98,7 +98,7 @@ estimate_popsize <- function(formula,
   m1 <- control.pop.var
   m1 <- m1[sapply(m1, is.null) == FALSE]
   m2 <- control.pop.var(fittingMethod = match.arg(method), 
-                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
+                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.pop.var <- append(m1, m2)
   m1 <- control.method
@@ -147,6 +147,9 @@ estimate_popsize <- function(formula,
   if ("omega" %in% family$etaNames) {
     formulas <- append(x = formulas, control.model$omegaFormula)
   }
+  if ("pi" %in% family$etaNames) {
+    formulas <- append(x = formulas, control.model$piFormula)
+  }
 
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = observed, pop.var = pop.var)
 
@@ -167,26 +170,9 @@ estimate_popsize <- function(formula,
   } else {
     start <- control.method$start
   }
-  if (grepl("negbin", family$family)) {
-    #start <- MASS::glm.nb(formula = formula, data = data)$coefficients
-    # dispersion <- -start$theta
-    # start <- c(start$coefficients, -start$theta)
-    if (is.null(control.method$dispersionstart)) {
-      if (control.model$alphaFormula == ~ 1) {
-        start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
-      } else {
-        if ((formula[[3]] != control.model$alphaFormula[[2]]) && (control.model$alphaFormula != ~.)) {
-          stop("For now only full and intercept only z(o)tnegbin models have automatic starting poins")
-        }
-        start <- c(start, start) # TODO: gosh this is terrible pick a better method
-      }
-    } else {
-      start <- c(start, control.method$dispersionstart)
-    }
-  }
   
-  if (grepl(x = family$family, pattern = "^ztoi")) {
-    if (is.null(control.method$omegastart)) {
+  if ("omega" %in% family$etaNames) {
+    if (is.null(control.method$omegaStart)) {
       if (control.model$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(table(observed[wch$reg]) * as.numeric(names(table(observed[wch$reg])))) - length(observed[wch$reg]))
         #start <- c(start, log(omg / (1 - omg)))
@@ -199,7 +185,7 @@ estimate_popsize <- function(formula,
         )$coefficients)
       }
     } else {
-      start <- c(start, control.method$omegastart)
+      start <- c(start, control.method$omegaStart)
     }
   }
 
@@ -208,6 +194,33 @@ estimate_popsize <- function(formula,
                                        nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
   hwm <- Xvlm[[2]]
   Xvlm <- Xvlm[[1]]
+  if ("alpha" %in% family$etaNames) {
+    if (is.null(control.method$alphaStart)) {
+      if (control.model$alphaFormula == ~ 1) {
+        start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
+      } else {
+        cc <- colnames(Xvlm)
+        cc <- cc[grepl(x = cc, pattern = "alpha$")]
+        cc <- unlist(strsplit(x = cc, ":"))
+        cc <- cc[cc != "alpha"]
+        start <- c(start, start[cc])  # TODO: gosh this is terrible pick a better method
+      }
+    } else {
+      start <- c(start, control.method$alphaStart)
+    }
+  }
+  if ("pi" %in% family$etaNames) {
+    if (is.null(control.method$piStart)) {
+      # maybe there is a less complicated way
+      cc <- colnames(Xvlm)
+      cc <- cc[grepl(x = cc, pattern = "pi$")]
+      cc <- unlist(strsplit(x = cc, ":"))
+      cc <- cc[cc != "pi"]
+      start <- c(start, start[cc])
+    } else {
+      start <- c(start, control.method$piStart)
+    }
+  }
   names(start) <- colnames(Xvlm)
   FITT <- estimate_popsize.fit(
     y = observed[wch$reg],
@@ -271,6 +284,7 @@ estimate_popsize <- function(formula,
     family = family,
     beta = coefficients,
     control = control.pop.var,
+    hwm = hwm,
     Xvlm = Xvlm,
     W = weights
   )

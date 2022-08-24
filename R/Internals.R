@@ -4,20 +4,18 @@ singleRcaptureinternalIRLS <- function(dependent,
                                        family,
                                        covariates,
                                        start,
-                                       omegaTheta = NULL,
                                        weights = NULL,
                                        maxiter = 10000,
                                        eps = .Machine$double.eps,
-                                       omgeps = .Machine$double.eps,
-                                       omegaThetaGiven = FALSE,
                                        silent = FALSE,
                                        trace = 0,
                                        stepsize = 1,
+                                       momentumFactor,
+                                       momentumActivation,
                                        ...) {
   dg <- 8 # Add to control
   converged <- FALSE
   
-  momentumFactor <- 0 # Add to control
   mu.eta <- family$mu.eta
   validmu <- family$validmu
   variance <- family$variance
@@ -37,13 +35,12 @@ singleRcaptureinternalIRLS <- function(dependent,
   }
   
   iter <- 1
+  step <- NULL
   beta <- start
   
   W <- prior
   L <- -logLike(beta)
-  #dispPrev <- Inf
-  #omegaThetaPrev <- Inf
-  
+
   while (!converged & (iter < maxiter)) {
     # if (famName %in% c("ztnegbin", "zotnegbin") &&
     #     isFALSE(dispGiven) && (abs(disp - dispPrev) > epsdisp)) {
@@ -80,9 +77,10 @@ singleRcaptureinternalIRLS <- function(dependent,
     A <- t(covariates) %*% (covariates * as.numeric(W))
     B <- t(covariates) %*% (Z * as.numeric(W))
     
-    betaPrevPrev <- betaPrev
+    stepPrev <- step
     step <- solve(A,B) - betaPrev
-    beta <- betaPrev + stepsize * (step + if ((is.null(betaPrevPrev) | !momentumFactor)) {0} else {if (L-LPrev < 1) momentumFactor * stepPrev else 0})
+    
+    beta <- betaPrev + stepsize * (step + if ((is.null(stepPrev) | !momentumFactor)) {0} else {if (L-LPrev < 1) momentumFactor * stepPrev else 0})
     
     #beta <- beta - solve(A, B, tol = .Machine$double.eps)
     
@@ -92,7 +90,7 @@ singleRcaptureinternalIRLS <- function(dependent,
     if (trace > 1) {cat(sep = " ", "Parameter vector: ", format(beta, scientific = FALSE, digits = dg), "\n")}
     if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
     if (trace > 3) {cat(sep = " ", "Value of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nat the current step is the increase was:", format(L - LPrev, scientific = FALSE, digits = dg), "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
     
     if (L < LPrev) {
       halfstepsizing <- TRUE
@@ -121,7 +119,7 @@ singleRcaptureinternalIRLS <- function(dependent,
       if (trace > 1) {cat(sep = " ","Parameter vector:", format(beta, scientific = FALSE, digits = dg), "\n")}
       if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
       if (trace > 3) {cat(sep = " ", "Value of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nat the current step is the increase was:", format(L - LPrev, scientific = FALSE, digits = dg), "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
     }
     if (trace > 0) {cat(sep = "", "----\n")}
     converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
@@ -167,7 +165,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% X)
+      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% Xvlm)
     )
     # TODO : add Fisher for negbins
     
@@ -259,6 +257,8 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                trace = 0,
                                                stepsize = 1,
                                                hwm,
+                                               momentumFactor,
+                                               momentumActivation,
                                                ...) {
   dg <- 8
   converged <- FALSE
@@ -268,7 +268,6 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity, consider lowering stepsize control parameter if fitting fails.")
   }
   
-  momentumFactor <- 0 # add to control
   mu.eta <- family$mu.eta
   validmu <- family$validmu
   variance <- family$variance
@@ -279,6 +278,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   prior <- as.numeric(weights)
   
   iter <- 1
+  step <- NULL
   betaPrev <- NULL
   beta <- start
   
@@ -309,12 +309,11 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     A <- XbyW %*% covariates
     B <- XbyW %*% as.numeric(z)
     
-    betaPrevPrev <- betaPrev
     betaPrev <- beta
     stepPrev <- step
     
     step <- solve(A,B) - betaPrev
-    beta <- betaPrev + stepsize * (step + if ((is.null(betaPrevPrev) | !momentumFactor)) {0} else {if (L-LPrev < 1) momentumFactor * stepPrev else 0})
+    beta <- betaPrev + stepsize * (step + if ((is.null(stepPrev) | !momentumFactor)) {0} else {if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0})
 
     eta <- covariates %*% beta
     eta <- matrix(eta, ncol = family$parNum)
@@ -325,16 +324,16 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (trace > 1) {cat(sep = " ", "Parameter vector: ", format(beta, scientific = FALSE, digits = dg), "\n")}
     if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
     if (trace > 3) {cat(sep = " ", "Value of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nat the current step is the increase was:", format(L - LPrev, scientific = FALSE, digits = dg), "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
 
     if (isTRUE(L < LPrev)) {
       halfstepsizing <- TRUE
-      h <- stepsize * (betaPrev - beta)
+      h <- step <- stepsize * (betaPrev - beta)
       if (trace > 0) {
         cat("Taking a modified step....\n")
       }
       repeat {
-        h <- h / 2
+        h <- step <- h / 2
         beta <- betaPrev - h
         L <- -logLike(beta)
         if (isTRUE(L > LPrev)) {
@@ -354,7 +353,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       if (trace > 1) {cat(sep = " ","Parameter vector:", format(beta, scientific = FALSE, digits = dg), "\n")}
       if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
       if (trace > 3) {cat(sep = " ", "Value of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nat the current step is the increase was:", format(L - LPrev, scientific = FALSE, digits = dg), "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
     }
     if (trace > 0) {cat(sep = "", "----\n")}
     converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))

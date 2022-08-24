@@ -71,7 +71,9 @@ estimate_popsize.fit <- function(y, X,
         silent = control$silent,
         trace = control$verbose,
         stepsize = control$stepsize,
-        hwm = hwm
+        hwm = hwm,
+        momentumFactor = control$momentumFactor,
+        momentumActivation = control$momentumActivation,
       )
       
       iter <- FITT$iter

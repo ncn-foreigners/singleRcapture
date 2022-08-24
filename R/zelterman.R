@@ -23,7 +23,8 @@ zelterman <- function() {
     1 / (1 + exp(-eta))
   }
   
-  variance <- function(mu, ...) {
+  variance <- function(eta, ...) {
+    mu <- mu.eta(eta)
     mu * (1 - mu)
   }
   

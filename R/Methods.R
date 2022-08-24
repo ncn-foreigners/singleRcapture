@@ -12,90 +12,86 @@ dfpopsize <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   UseMethod("dfpopsize")
 }
 
-#' TODO
-#'
-#' @param object TODO
-#' @param updateCalculations TODO
-#' @param ... TODO
-#'
-#' @return TODO
-#' @export 
-gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
-  # Make this a method or a function??
-  # TODO possbli use optim
-  # TODO search on all start parameters
-  if (isFALSE(grepl("^ztoi", object$model$family))) {
-    stop("For now only one iflated models have this method implemented")
-  }
-  logL <- object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights)
-  FUN <- function(CHNG) {
-    A <- estimate_popsize.fit(
-      y = object$y,
-      X = object$X,
-      family = object$model,
-      control = object$control$control.method,
-      method = object$call$method,
-      prior.weights = object$prior.weights,
-      start = c(CHNG, object$coefficients[-1]),
-      dispersion = object$dispersion,
-      omegaTheta = CHNG,
-      ...
-    )$beta
-    return(logL(A))
-  }
-  opt <- stats::optim(par = object$omegaTheta,fn = FUN, lower = -.95, upper = 10, method = "Brent", ...)$par
-  if (isTRUE(updateCalculations)) {
-    FITT <- estimate_popsize.fit(
-      y = object$y,
-      X = object$X,
-      family = object$model,
-      control = object$control$control.method,
-      method = object$call$method,
-      prior.weights = object$prior.weights,
-      start = c(opt, object$coefficients[-1]),
-      dispersion = object$dispersion,
-      omegaTheta = opt,
-      ...
-    )
-    object$coefficients <- FITT$beta
-    eta <- as.matrix(object$X) %*% object$coefficients[-1]
-    rownames(eta) <- rownames(object$X)
-    object$iter <- FITT$iter
-    object$weights <- FITT$weights
-    object$linear.predictors <- eta
-    object$fitt.values <- data.frame("mu" = object$model$mu.eta(eta, disp = object$dispersion, theta = opt),
-                                     "link" = object$model$linkinv(eta))
-    object$omegaTheta <- opt
-    LOG <- -logL(FITT$beta)
-    object$logL <- LOG
-    object$resRes <- object$prior.weights * (object$y - object$fitt.values)
-    object$aic <- 2 * (length(FITT$beta) - LOG)
-    object$bic <- length(FITT$beta) * log(length(object$y)) - 2 * LOG
-    object$deviance <- sum(object$model$dev.resids(y = object$y, 
-                                                   mu = object$model$linkinv(eta),
-                                                   disp = object$dispersion,
-                                                   wt = object$prior.weights, 
-                                                   theta = opt) ** 2)
-    object$populationSize <- singleRcaptureinternalpopulationEstimate(
-      y = object$y,
-      X = object$X,
-      grad = object$model$makeGradient(y = object$y, X = object$X, weight = object$prior.weights),
-      hessian = object$model$makeHessian(y = object$y, X = object$X, weight = object$prior.weights),
-      method = object$call$pop.var,
-      weights = object$prior.weights,
-      weights0 = object$prior.weights,
-      lambda = object$fitt.values$link,
-      family = object$model,
-      dispersion = object$dispersion,
-      omegaTheta = object$omegaTheta,
-      beta = object$coefficients,
-      control = object$populationSize$control
-    )
-    return(object)
-  } else {
-    return(opt)
-  }
-}
+# gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
+#   # TODO::
+#   ################
+#   ## Important ###
+#   ################
+#   # check this for new function
+#   # Make this a method or a function??
+#   # TODO search on all start parameters
+#   if (isFALSE(grepl("^ztoi", object$model$family))) {
+#     stop("For now only one iflated models have this method implemented")
+#   }
+#   logL <- object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights)
+#   FUN <- function(CHNG) {
+#     A <- estimate_popsize.fit(
+#       y = object$y,
+#       X = object$X,
+#       family = object$model,
+#       control = object$control$control.method,
+#       method = object$call$method,
+#       prior.weights = object$prior.weights,
+#       start = c(CHNG, object$coefficients[-1]),
+#       dispersion = object$dispersion,
+#       omegaTheta = CHNG,
+#       ...
+#     )$beta
+#     return(logL(A))
+#   }
+#   opt <- stats::optim(par = object$omegaTheta,fn = FUN, lower = -.95, upper = 10, method = "Brent", ...)$par
+#   if (isTRUE(updateCalculations)) {
+#     FITT <- estimate_popsize.fit(
+#       y = object$y,
+#       X = object$X,
+#       family = object$model,
+#       control = object$control$control.method,
+#       method = object$call$method,
+#       prior.weights = object$prior.weights,
+#       start = c(opt, object$coefficients[-1]),
+#       dispersion = object$dispersion,
+#       omegaTheta = opt,
+#       ...
+#     )
+#     object$coefficients <- FITT$beta
+#     eta <- as.matrix(object$X) %*% object$coefficients[-1]
+#     rownames(eta) <- rownames(object$X)
+#     object$iter <- FITT$iter
+#     object$weights <- FITT$weights
+#     object$linear.predictors <- eta
+#     object$fitt.values <- data.frame("mu" = object$model$mu.eta(eta, disp = object$dispersion, theta = opt),
+#                                      "link" = object$model$linkinv(eta))
+#     object$omegaTheta <- opt
+#     LOG <- -logL(FITT$beta)
+#     object$logL <- LOG
+#     object$resRes <- object$prior.weights * (object$y - object$fitt.values)
+#     object$aic <- 2 * (length(FITT$beta) - LOG)
+#     object$bic <- length(FITT$beta) * log(length(object$y)) - 2 * LOG
+#     object$deviance <- sum(object$model$dev.resids(y = object$y, 
+#                                                    mu = object$model$linkinv(eta),
+#                                                    disp = object$dispersion,
+#                                                    wt = object$prior.weights, 
+#                                                    theta = opt) ** 2)
+#     object$populationSize <- singleRcaptureinternalpopulationEstimate(
+#       y = object$y,
+#       X = object$X,
+#       grad = object$model$makeGradient(y = object$y, X = object$X, weight = object$prior.weights),
+#       hessian = object$model$makeHessian(y = object$y, X = object$X, weight = object$prior.weights),
+#       method = object$call$pop.var,
+#       weights = object$prior.weights,
+#       weights0 = object$prior.weights,
+#       lambda = object$fitt.values$link,
+#       family = object$model,
+#       dispersion = object$dispersion,
+#       omegaTheta = object$omegaTheta,
+#       beta = object$coefficients,
+#       control = object$populationSize$control
+#     )
+#     return(object)
+#   } else {
+#     return(opt)
+#   }
+# }
 #' Summary for marginal frequencies
 #'
 #' @param object object of singleRmargin class.
@@ -335,14 +331,14 @@ residuals.singleR <- function(object,
     type,
     working = data.frame("working" = object$linear.predictors[object$which$reg, ] + object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights, y = y[object$which$reg])),
     response = res,
-    pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc"))),
+    pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
     pearsonSTD = data.frame("pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors[object$which$reg, ], wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
       "working" = object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg], y = y[object$which$reg]),
       res,
-      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc")),
+      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc")),
       "deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors[object$which$reg, ], wt = wts[object$which$reg]),
       row.names = rownames(object$linear.predictors[object$which$reg, ])
     )}

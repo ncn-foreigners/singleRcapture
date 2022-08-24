@@ -16,6 +16,7 @@ Description: A package for population size estimation based on single source cap
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: yes
+RdMacros: mathjaxr
 Depends:
     R (>= 3.5.0)
 Roxygen: list(markdown = TRUE)
@@ -25,7 +26,8 @@ BugReports: https://github.com/ncn-foreigners/singleRcapture/issues
 Imports: 
     stats,
     MASS,
-    lamW
+    lamW,
+    mathjaxr
 Suggests: 
     rmarkdown,
     knitr,
