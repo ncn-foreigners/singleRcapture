@@ -29,7 +29,8 @@ ztgeom <- function() {
     )
   }
   
-  variance <- function(mu, type = "nontrunc", ...) {
+  variance <- function(eta, type = "nontrunc", ...) {
+    mu <- mu.eta(eta)
     switch (type,
       nontrunc = mu ** 2 - mu - 1 / mu + 2,
       trunc = (mu + 1) / mu

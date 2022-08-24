@@ -82,6 +82,8 @@ estimate_popsize <- function(formula,
                              y = TRUE,
                              contrasts = NULL,
                              ...) {
+  if (missing(method)) method <- "mle"
+  if (missing(pop.var)) pop.var <- "analytoc"
   subset <- parse(text = deparse(substitute(subset)))
   if (!is.data.frame(data)) {
     data <- data.frame(data)

@@ -116,7 +116,7 @@ zotgeom <- function() {
     lambda <- invlink(eta)
     S <- 1 / (1 + lambda)
     prob <- 1 - S - lambda * (S ** 2)
-    N <- (pw * (1 - lambda * (S ** 2)) / prob)
+    N <- pw * (1 - lambda * (S ** 2)) / prob
     if(!contr) {
       N <- sum(N)
     }
