@@ -256,15 +256,16 @@ estimate_popsize <- function(formula,
     rownames(eta) <- rownames(variables)
   }
 
-  fitt <- data.frame("mu" = family$mu.eta(eta = eta),
-                     "link" = family$mu.eta(eta = eta, type = "nontrunc")) # change later link functions in family class to act on matrix eta
+  fitt <- data.frame(family$mu.eta(eta = eta),
+                     family$mu.eta(eta = eta, type = "nontrunc")) # change later link functions in family class to act on matrix eta
+  colnames(fitt) <- c("mu", "link")
   if ((sum(diag(-solve(hess)) <= 0) != 0) && (control.pop.var$covType == "observedInform")) {
     stop("fitting error analytic hessian is invalid, try another model")
   }
   
   null.deviance <- as.numeric(NULL)
   LOG <- -logLike(coefficients)
-  resRes <- prior.weights * (observed - fitt)
+  resRes <- prior.weights * (observed[wch$reg] - fitt)
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
   aic <- 2 * (length(coefficients) - LOG)
   bic <- length(coefficients) * log(length(observed[wch$reg])) - 2 * LOG

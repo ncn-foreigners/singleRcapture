@@ -29,10 +29,11 @@ zotgeom <- function() {
     )
   }
   
-  variance <- function(mu, disp, type = "nontrunc", ...) {
+  variance <- function(eta, disp, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = mu * (mu - 1),
-      "trunc" = mu * (mu + 1)
+      "nontrunc" = lambda * (lambda - 1),
+      "trunc" = lambda * (lambda + 1)
     )
   }
   
@@ -52,8 +53,7 @@ zotgeom <- function() {
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- as.matrix(X) %*% beta
       lambda <- exp(eta)
       
@@ -69,8 +69,7 @@ zotgeom <- function() {
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- X %*% beta
       lambda <- exp(eta)
       S <- 1 / (1 + lambda)
@@ -89,8 +88,7 @@ zotgeom <- function() {
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- X %*% beta
       lambda <- exp(eta)
       S <- 1 / (1 + lambda)
@@ -139,8 +137,7 @@ zotgeom <- function() {
     bigTheta <- as.vector(bigTheta)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <-  sum(pw * ((1 - lambda * (S ** 2)) ** 2) *
-               (1 - prob) / (prob ** 2))
+    f2 <-  sum(pw * (1 - lambda * S * S) / prob)
     
     f1 + f2
   }

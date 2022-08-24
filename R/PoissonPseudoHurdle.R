@@ -27,7 +27,7 @@ ztHurdlepoisson <- function() {
     lambda <- lambda[, 1]
     switch (type,
             "nontrunc" = (1 - exp(-lambda)) * (PI + lambda - PI * lambda),
-            "trunc" = PI + (1 - PI) * lambda
+            "trunc" = PI + (1 - PI) * (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     )
   }
   
@@ -186,7 +186,7 @@ ztHurdlepoisson <- function() {
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ** 2)))
+    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))))
     
     f1 + f2
   }

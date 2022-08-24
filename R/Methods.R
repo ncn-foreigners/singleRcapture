@@ -205,12 +205,12 @@ hatvalues.singleR <- function(model, ...) {
   if (model$call$method == "robust") {
     W <- model$weights
   } else {
-    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = model$linear.predictors[model$which$reg, ])
+    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = model$linear.predictors)
   }
 
   mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% (mlt))
-  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors[model$which$reg, ]))
+  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors))
   hatvalues
 }
 #' dfbeta for singleRclass
@@ -329,18 +329,19 @@ residuals.singleR <- function(object,
   if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
-    working = data.frame("working" = object$linear.predictors[object$which$reg, ] + object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights, y = y[object$which$reg])),
+    working = data.frame("working" = object$linear.predictors + object$model$funcZ(eta = object$linear.predictors, weight = object$weights, y = y[object$which$reg])),
     response = res,
     pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
-    pearsonSTD = data.frame("pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors[object$which$reg, ], type = "trunc"))),
-    deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors[object$which$reg, ], wt = wts[object$which$reg])),
+    pearsonSTD = data.frame("pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc"))),
+    deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
-      "working" = object$model$funcZ(eta = object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg], y = y[object$which$reg]),
+      "working" = object$model$funcZ(eta = object$linear.predictors, weight = object$weights[object$which$reg], y = y[object$which$reg]),
       res,
-      "pearson" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc")),
-      "deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors[object$which$reg, ], wt = wts[object$which$reg]),
-      row.names = rownames(object$linear.predictors[object$which$reg, ])
+      "pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc")),
+      "pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc")),
+      "deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg]),
+      row.names = rownames(object$linear.predictors)
     )}
   )
   rs
