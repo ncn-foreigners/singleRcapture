@@ -81,7 +81,7 @@ ztpoisson <- function() {
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
       eml <- exp(-lambda)
-      coefficient <- (1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2))
+      coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2)
 
       dmu <- weight * as.numeric(coefficient) # This was probably the dumbest mistake I've made in last 8 months
       dlam <- as.matrix(X * as.numeric(lambda))

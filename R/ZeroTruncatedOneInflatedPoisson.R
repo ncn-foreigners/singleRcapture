@@ -170,10 +170,12 @@ ztoipoisson <- function() {
       G01 <- t(as.data.frame(Xlambda) * xx * weight) %*% as.matrix(Xomega)
       
       # Beta^2 derivative
-      G11 <- (1 - z) * (lambda * eml / ((1 - eml) ** 2) - 1 / (1 - eml))
+      G11 <- -(1 - z) * (1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2))
       wwd <- 1 / (exp(lambda) - 1)
-      G11 <- G11 + z * ((wwd - wwd * term * exp(lambda) - 2 * lambda * wwd * (wwd - wwd * term * exp(lambda))) *
-                        (theta + term) - (term - term ** 2) * (wwd - wwd * term * exp(lambda))) / (term + theta)
+      thetaLambdaTerm <- 1 / (theta + lambda * wwd)
+      G11 <- G11 + z * (-lambda * ((wwd - exp(lambda) * lambda * wwd * wwd) ** 2) * (thetaLambdaTerm ** 2) +
+      thetaLambdaTerm * (wwd - wwd * wwd * lambda * exp(lambda)) + lambda * thetaLambdaTerm *
+      (-wwd * wwd * lambda * exp(lambda) + 2 * lambda * exp(2 * lambda) * wwd * wwd * wwd - 2 * wwd * wwd * exp(lambda)))
       G11 <- lambda * weight * G11
       G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
       res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
