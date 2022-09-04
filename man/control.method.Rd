@@ -11,6 +11,7 @@ control.method(
   start = NULL,
   alphaStart = NULL,
   omegaStart = NULL,
+  piStart = NULL,
   mleMethod = "L-BFGS-B",
   silent = FALSE,
   optimPass = FALSE,
@@ -39,6 +40,8 @@ if mle method was chosen verbose will be passed to \code{\link[stats:optim]{stat
 \item{alphaStart}{initial parameters for dispersion parameter if applies.}
 
 \item{omegaStart}{initial parameters for inflation parameter if applies.}
+
+\item{piStart}{initial parameters for probability parameter if applies.}
 
 \item{mleMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.}
 

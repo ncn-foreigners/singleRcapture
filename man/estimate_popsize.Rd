@@ -7,8 +7,9 @@
 estimate_popsize(
   formula,
   data,
-  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson", "zotnegbin",
-    "ztoinegbin", "zotgeom", "ztoigeom", "zelterman", "chao"),
+  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
+    "ztHurdlepoisson", "zotnegbin", "ztoinegbin", "zotgeom", "ztoigeom", "zelterman",
+    "chao"),
   weights = NULL,
   subset = NULL,
   na.action = NULL,

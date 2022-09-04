@@ -90,13 +90,13 @@ singleRcaptureinternalIRLS <- function(dependent,
     if (trace > 1) {cat(sep = " ", "Parameter vector: ", format(beta, scientific = FALSE, digits = dg), "\n")}
     if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
     if (trace > 3) {cat(sep = " ", "Value of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     
     if (L < LPrev) {
       halfstepsizing <- TRUE
       h <- stepsize * (betaPrev - beta)
       if (trace > 0) {
-        cat("Taking a modified step....\n")
+        cat("\nTaking a modified step....\n")
       }
       repeat {
         h <- h / 2
@@ -115,13 +115,13 @@ singleRcaptureinternalIRLS <- function(dependent,
           break
         }
       }
-      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg), "\n")}
-      if (trace > 1) {cat(sep = " ","Parameter vector:", format(beta, scientific = FALSE, digits = dg), "\n")}
-      if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
-      if (trace > 3) {cat(sep = " ", "Value of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+      if (trace > 1) {cat(sep = " ","\nParameter vector:", format(beta, scientific = FALSE, digits = dg))}
+      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     }
-    if (trace > 0) {cat(sep = "", "----\n")}
+    if (trace > 0) {cat(sep = "", "\n----\n")}
     converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
     
     if (!converged && (iter + 1 <= maxiter)) {
@@ -161,7 +161,6 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
   sc <- qnorm(p = 1 - siglevel / 2)
   if (pop.var == "analytic") {
     strappedStatistic <- "No bootstrap performed"
-    
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
@@ -172,7 +171,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     variation <- as.numeric(family$popVar(eta = eta, 
                                           pw = weights,
                                           cov = cov,
-                                          Xvlm = Xvlm))
+                                          Xvlm = if (family$family == "zelterman") X else Xvlm))
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
     confidenceInterval <- data.frame(t(data.frame(
@@ -180,7 +179,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                          length(y) + trcount), 
                         upperBound = N + sc * sqrt(variation)),
       "Logtransform" = c(lowerBound = max(length(y) + (N - length(y)) / G, 
-                                          (length(y) + trcount)), 
+                                         (length(y) + trcount)), 
                          upperBound = length(y) + (N - length(y)) * G)
     )))
   } else if (grepl("bootstrap", pop.var, fixed = TRUE)) {
@@ -320,17 +319,17 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     LPrev <- L
     L <- -logLike(beta)
     
-    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg), "\n")}
-    if (trace > 1) {cat(sep = " ", "Parameter vector: ", format(beta, scientific = FALSE, digits = dg), "\n")}
-    if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
-    if (trace > 3) {cat(sep = " ", "Value of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+    if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
+    if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+    if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
 
     if (isTRUE(L < LPrev)) {
       halfstepsizing <- TRUE
       h <- step <- stepsize * (betaPrev - beta)
       if (trace > 0) {
-        cat("Taking a modified step....\n")
+        cat("\nTaking a modified step....\n")
       }
       repeat {
         h <- step <- h / 2
@@ -340,7 +339,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
           break
         }
         
-        if (max(abs(h)) < eps) {
+        if (max(abs(h)) < .Machine$double.eps) {
           if (isTRUE(L < LPrev)) {
             halfstepsizing <- FALSE
             L <- LPrev
@@ -349,13 +348,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
           break
         }
       }
-      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg), "\n")}
-      if (trace > 1) {cat(sep = " ","Parameter vector:", format(beta, scientific = FALSE, digits = dg), "\n")}
-      if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
-      if (trace > 3) {cat(sep = " ", "Value of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg), "\n")}
+      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+      if (trace > 1) {cat(sep = " ","\nParameter vector:", format(beta, scientific = FALSE, digits = dg))}
+      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     }
-    if (trace > 0) {cat(sep = "", "----\n")}
+    if (trace > 0) {cat(sep = "", "\n----\n")}
     converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
 
     if (!converged && (iter + 1 <= maxiter)) {
@@ -380,23 +379,18 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
 }
 # make Xvlm matrix
 singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
-  if (nPar == 1) {return(list(X, ncol(X)))}
-  Xses <- list(X)
+  formulas[[1]][[2]] <- NULL
+  Xses <- list()
   parentFrame <- X
-  #if (ncol(X) == 1 && )
-  if ("(Intercept)" %in% colnames(parentFrame)) {
-    cl <- colnames(parentFrame)
-    cl <- cl[cl != "(Intercept)"]
-    parentFrame <- as.data.frame(parentFrame[, colnames(parentFrame) != "(Intercept)"])
-    colnames(parentFrame) <- cl
-  }
-  for (k in 2:nPar) {
+  for (k in 1:nPar) {
     Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
-    colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
+    if (k != 1) {
+      colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
+    }
   }
   hwm <- sapply(Xses, ncol)
   # TODO: sparse matrix, maybe use Matrix
-  Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(sapply(Xses, FUN = ncol)))
+  Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
   colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
   row <- 0
   col <- 0

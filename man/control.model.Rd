@@ -5,14 +5,21 @@
 \title{control.model
 TODO}
 \usage{
-control.model(weightsAsCounts = FALSE, omegaFormula = ~1, alphaFormula = ~1)
+control.model(
+  weightsAsCounts = FALSE,
+  omegaFormula = ~1,
+  alphaFormula = ~1,
+  piFormula = ~.
+)
 }
 \arguments{
 \item{weightsAsCounts}{TODO}
 
 \item{omegaFormula}{TODO}
 
-\item{alphaFormula}{TODO
+\item{alphaFormula}{TODO}
+
+\item{piFormula}{TODO
 for now does nothing}
 }
 \value{

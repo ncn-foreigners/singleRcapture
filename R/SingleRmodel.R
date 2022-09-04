@@ -77,13 +77,13 @@ estimate_popsize <- function(formula,
                              control.method = NULL,
                              control.model = NULL,
                              control.pop.var = NULL,
-                             modelFrame = FALSE,
+                             modelFrame = TRUE,
                              x = TRUE,
                              y = TRUE,
                              contrasts = NULL,
                              ...) {
   if (missing(method)) method <- "mle"
-  if (missing(pop.var)) pop.var <- "analytoc"
+  if (missing(pop.var)) pop.var <- "analytic"
   subset <- parse(text = deparse(substitute(subset)))
   if (!is.data.frame(data)) {
     data <- data.frame(data)
@@ -100,7 +100,7 @@ estimate_popsize <- function(formula,
   m1 <- control.pop.var
   m1 <- m1[sapply(m1, is.null) == FALSE]
   m2 <- control.pop.var(fittingMethod = match.arg(method), 
-                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
+                        bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, mleMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi") || grepl(x = family$family, pattern = "^oizt")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.pop.var <- append(m1, m2)
   m1 <- control.method
@@ -112,25 +112,24 @@ estimate_popsize <- function(formula,
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.model <- append(m1, m2)
   
-  modelFrame <- stats::model.frame(formula, data,  ...)
-  variables <- stats::model.matrix(formula, modelFrame, contrasts = contrasts, ...)
-  terms <- attr(modelFrame, "terms")
+  modelFrame1 <- stats::model.frame(formula, data,  ...)
+  variables <- stats::model.matrix(formula, modelFrame1, contrasts = contrasts, ...)
+  terms <- attr(modelFrame1, "terms")
   contrasts <- attr(variables, "contrasts")
   
-  subset <- eval(subset, modelFrame)
+  subset <- eval(subset, modelFrame1)
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some common packages hence explicit call
-  modelFrame <- base::subset(modelFrame, subset = subset)
-  
+  modelFrame1 <- base::subset(modelFrame1, subset = subset)
   variables <- base::subset(variables, subset = subset)
-  observed <- modelFrame[, 1]
+  observed <- modelFrame1[, 1]
   sizeObserved <- nrow(data) + control.pop.var$trcount
 
   
   if (!is.null(weights)) {
     prior.weights <- as.numeric(weights)
   } else {
-    prior.weights <- rep(1, nrow(modelFrame))
+    prior.weights <- rep(1, nrow(modelFrame1))
   }
   weights <- 1
   
@@ -138,9 +137,9 @@ estimate_popsize <- function(formula,
     stop("Error in function estimate.popsize, data contains zero-counts")
   }
 
-  if (!family$valideta(start) && !is.null(start)) {
-    stop("Invalid start parameter")
-  }
+  # if (!family$valideta(start) && !is.null(start)) {
+  #   stop("Invalid start parameter")
+  # }
   
   formulas <- list(formula)
   if ("alpha" %in% family$etaNames) {
@@ -160,12 +159,25 @@ estimate_popsize <- function(formula,
   # TODO::
   ## move this to family functions
   
-  if (is.null(control.model$start)) {
+  if (is.null(control.method$start)) {
     start <- stats::glm.fit(
       x = variables[wch$reg, ],
       y = observed[wch$reg],
-      family = stats::poisson()
+      family = stats::poisson(),
+      weights = prior.weights
     )$coefficients
+    if (isTRUE(control.method$useZtpoissonAsStart)) {
+      start <- estimate_popsize.fit(
+        y = observed[wch$reg],
+        X = variables[wch$reg, ],
+        family = ztpoisson(),
+        start = start,
+        hwm = ncol(variables),
+        control = control.method(),
+        method = method,
+        prior.weights = prior.weights
+      )$beta
+    }
     if (family$family %in% c("chao", "zelterman")) {
       start[1] <- start[1] + log(1 / 2)
     }
@@ -178,10 +190,10 @@ estimate_popsize <- function(formula,
       if (control.model$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(table(observed[wch$reg]) * as.numeric(names(table(observed[wch$reg])))) - length(observed[wch$reg]))
         #start <- c(start, log(omg / (1 - omg)))
-        start <- c(start, start[1])
+        start <- c(start, log(omg))
       } else {
         start <- c(start, stats::glm.fit(
-          x = variables[wch$reg, ],
+          x = model.matrix(control.model$omegaFormula, modelFrame1[wch$reg, attr(modelFrame1, "names")[-1]]),
           y = as.numeric(observed[wch$reg] == 1),
           family = stats::binomial()
         )$coefficients)
@@ -190,9 +202,7 @@ estimate_popsize <- function(formula,
       start <- c(start, control.method$omegaStart)
     }
   }
-
-  if (ncol(variables) == 1) {aux <- as.data.frame(variables[wch$reg, ]); colnames(aux) <- colnames(variables)}
-  Xvlm <- singleRinternalGetXvlmMatrix(X = if (ncol(variables) == 1) {aux} else {as.data.frame(variables[wch$reg, ])}, 
+  Xvlm <- singleRinternalGetXvlmMatrix(X = modelFrame1[wch$reg, attr(modelFrame1, "names")[-1]],
                                        nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
   hwm <- Xvlm[[2]]
   Xvlm <- Xvlm[[1]]
@@ -262,7 +272,7 @@ estimate_popsize <- function(formula,
                      family$mu.eta(eta = eta, type = "nontrunc")) # change later link functions in family class to act on matrix eta
   colnames(fitt) <- c("mu", "link")
   if ((sum(diag(-solve(hess)) <= 0) != 0) && (control.pop.var$covType == "observedInform")) {
-    stop("fitting error analytic hessian is invalid, try another model")
+    stop("Fitting error observed information matrix obtained from analytic hessian is invalid i.e not positive defined, try another model.")
   }
   
   null.deviance <- as.numeric(NULL)
@@ -289,7 +299,7 @@ estimate_popsize <- function(formula,
     control = control.pop.var,
     hwm = hwm,
     Xvlm = Xvlm,
-    W = weights
+    W = if (method == "robust") weights else family$Wfun(prior = prior.weights, eta = eta)
   )
   structure(
     list(
@@ -314,7 +324,7 @@ estimate_popsize <- function(formula,
       df.null = length(observed) - 1,
       fitt.values = fitt,
       populationSize = POP,
-      modelFrame = if (isTRUE(modelFrame)) modelFrame else NULL,
+      modelFrame = if (isTRUE(modelFrame)) modelFrame1 else NULL,
       linear.predictors = eta,
       trcount = control.pop.var$trcount,
       sizeObserved = sizeObserved,

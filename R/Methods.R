@@ -162,12 +162,11 @@ summary.singleRmargin <- function(object, df = NULL,
 #' @exportS3Method
 vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  X <- object$X[object$which$reg, ]
-  X <- singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, 
+  X <- singleRinternalGetXvlmMatrix(X = object$modelFrame[object$which$reg, attr(object$modelFrame, "names")[-1]], nPar = object$model$parNum, 
                                     formulas = object$formula, parNames = object$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
-  switch(
+  res <- switch(
     type,
     "observedInform" = solve(
       -object$model$makeHessian(y = object$y[object$which$reg], X = X, lambdaPredNumber = hwm[1],
@@ -181,6 +180,8 @@ vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
       ...
     )}
   )
+  dimnames(res) <- list(names(object$coefficients), names(object$coefficients))
+  res
 }
 #' Hat values for singleRclass
 #' @title Hat values for singleRclass
@@ -193,12 +194,7 @@ vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
 #' @return TODO
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  if (grepl("zot", model$model$family) | model$model$family %in% c("chao", "zelterman")) {
-    X <- model$X[rownames(model$linear.predictors), ]
-  } else {
-    X <- model$X
-  }
-  X <- model$X[model$which$reg, ]
+  X <- model$modelFrame[model$which$reg, attr(rr9$modelFrame, "names")[-1]]
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
@@ -400,10 +396,15 @@ logLik.singleR <- function(object, ...) {
 #' @exportS3Method 
 model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
   if (missing(type)) type <- "lm"
-  X <- object$X
   switch (type,
-    lm = X[object$which$reg, ],
-    vlm = singleRinternalGetXvlmMatrix(X = X[object$which$reg, ], nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames)
+    lm = {
+      X <- object$X;
+      X[object$which$reg, ]
+      },
+    vlm = {
+      X <- object$modelFrame[object$which$reg, attr(object$modelFrame, "names")[-1]];
+      singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames);
+      }
   )
 }
 
@@ -453,7 +454,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @importFrom stats pt
 #' @importFrom stats coef
 #' @exportS3Method 
-summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, ...) {
+summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, confint = FALSE, ...) {
   if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
   # Maybe add confidence intervals
   if (missing(test)) {test <- "z"}
@@ -469,6 +470,7 @@ summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", cor
   )
   crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
   if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
+  cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
   structure(
     list(
       call = object$call,
@@ -486,7 +488,8 @@ summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", cor
       df.residual = df.residual,
       sizeObserved = object$sizeObserved,
       correlation = crr,
-      test = test
+      test = test,
+      cnfint = cnfint
     ),
     class = "summarysingleR"
   )
@@ -518,6 +521,12 @@ print.summarysingleR <- function(x, ...) {
   colnames(ob) <- switch(x$test,
                          "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)", ""),
                          "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)", ""))
+  if (!is.null(x$cnfint)) {
+    ob[, 5] <- x$cnfint[, 1]
+    ob[, 6] <- x$cnfint[, 2]
+    ob[, 7] <- signifCodes
+    colnames(ob)[5:7] <- c(colnames(x$cnfint), "")
+  }
   
   print(x$call)
   cat("\nPearson Residuals:\n")

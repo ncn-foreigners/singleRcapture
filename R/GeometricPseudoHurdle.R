@@ -75,18 +75,8 @@ ztHurdlegeom <- function() {
     G1 <- ifelse(z, 0, ((y - 1) * S - 1)  * weight)
     G0 <- (z - PI) # PI derivative
     
-    uMatrix <- matrix(c(G1, G0), ncol = 2)
-    
-    weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
-      matrix(as.numeric(weight[x, ]), ncol = 2)
-    })
-    
-    pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- 1 / diag(weight[[x]]) # in this case matrix is diagonal
-      xx * uMatrix[x, ]
-    })
-    pseudoResid <- t(pseudoResid)
+    pseudoResid <- matrix(c(G1 / weight[, 1], G0 / weight[, 4]), ncol = 2)
+  
     dimnames(pseudoResid) <- dimnames(eta)
     pseudoResid
   }

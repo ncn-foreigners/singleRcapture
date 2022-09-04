@@ -20,6 +20,7 @@
 #' @param optimPass optional parameter allowing for passing list into as stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
 #' @param stepsize only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.
 #' @param momentumFactor experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
+#' @param useZtpoissonAsStart boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models
 #' \loadmathjax
 #' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
 #' the update will be made as:
@@ -40,6 +41,7 @@ control.method <- function(epsilon = 1e-8,
                            optimPass = FALSE,
                            stepsize = 1,
                            momentumFactor = 0,
+                           useZtpoissonAsStart = FALSE,
                            momentumActivation = 5) {
   list(
     epsilon = epsilon,
@@ -54,7 +56,8 @@ control.method <- function(epsilon = 1e-8,
     optimPass = optimPass,
     stepsize = stepsize,
     momentumFactor = momentumFactor,
-    momentumActivation = momentumActivation
+    momentumActivation = momentumActivation,
+    useZtpoissonAsStart = useZtpoissonAsStart
   )
 }
 #' control.model
@@ -62,13 +65,14 @@ control.method <- function(epsilon = 1e-8,
 #' @param weightsAsCounts TODO
 #' @param omegaFormula TODO
 #' @param alphaFormula TODO
+#' @param piFormula TODO
 #' for now does nothing
 #' @return control.model
 #' @export
 control.model <- function(weightsAsCounts = FALSE,
                           omegaFormula = ~ 1,
                           alphaFormula = ~ 1,
-                          piFormula = ~ .
+                          piFormula = ~ 1
                           ) {
   # TODO
   list(
