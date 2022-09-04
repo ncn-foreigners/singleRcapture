@@ -227,6 +227,14 @@ ztoipoisson <- function() {
     f1 + f2
   }
   
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    omega <- lambda[, 2]
+    lambda <- lambda[, 1]
+    ifelse(x == 1, omega + (1 - omega) * lambda / (exp(lambda) - 1),
+           (1 - omega) * (lambda ** x) * exp(-lambda) / factorial(x))
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -246,7 +254,8 @@ ztoipoisson <- function() {
       popVar= popVar,
       family = "ztoipoisson",
       parNum = 2,
-      etaNames = c("lambda", "omega")
+      etaNames = c("lambda", "omega"),
+      densityFunction = dFun
     ),
     class = "family"
   )

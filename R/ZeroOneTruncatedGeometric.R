@@ -142,6 +142,11 @@ zotgeom <- function() {
     f1 + f2
   }
   
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -162,7 +167,8 @@ zotgeom <- function() {
       popVar= popVar,
       family = "zotgeom",
       parNum = 1,
-      etaNames = "lambda"
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

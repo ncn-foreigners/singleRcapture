@@ -126,6 +126,11 @@ ztpoisson <- function() {
     f1 + f2
   }
   
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -146,7 +151,8 @@ ztpoisson <- function() {
       popVar= popVar,
       family = "ztpoisson",
       parNum = 1,
-      etaNames = "lambda"
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

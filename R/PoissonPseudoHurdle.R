@@ -191,6 +191,13 @@ ztHurdlepoisson <- function() {
     f1 + f2
   }
   
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    PI <- lambda[, 2]
+    lambda <- lambda[, 1]
+    ifelse(x == 1, PI, (1 - PI) * (lambda ** x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) -lambda * exp(-lambda))))
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -210,7 +217,8 @@ ztHurdlepoisson <- function() {
       popVar= popVar,
       family = "ztHurdlepoisson",
       parNum = 2,
-      etaNames = c("lambda", "pi")
+      etaNames = c("lambda", "pi"),
+      densityFunction = dFun
     ),
     class = "family"
   )

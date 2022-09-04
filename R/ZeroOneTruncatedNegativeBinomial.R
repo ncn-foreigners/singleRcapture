@@ -381,6 +381,13 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     
     f1 + f2
   }
+  
+  dFun <- function (x, eta, type = "trunc") {
+    alpha <- invlink(eta)
+    lambda <- alpha[, 1]
+    alpha <- alpha[, 2]
+    stats::dnbinom(x = x, mu = lambda, size = exp(-alpha)) / (1 - stats::dnbinom(x = 0, mu = lambda, size = exp(-alpha)) - stats::dnbinom(x = 1, mu = lambda, size = exp(-alpha)))
+  }
 
   structure(
     list(
@@ -401,7 +408,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       popVar= popVar,
       family = "zotnegbin",
       parNum = 2,
-      etaNames = c("lambda", "alpha")
+      etaNames = c("lambda", "alpha"),
+      densityFunction = dFun
     ),
     class = "family"
   )

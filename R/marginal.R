@@ -22,21 +22,15 @@ marginalFreq <- function(object,
   }
   
   # PMF for truncated distributions:
-  probFun <- switch(object$model$family,
-  "ztpoisson"  = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
-  "chao"       = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
-  "zelterman"  = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))},
-  "zotpoisson" = function(x, lambda, disp) {stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda) - stats::dpois(x = 1, lambda = lambda))},
-  "ztnegbin"   = function(x, lambda, disp) {stats::dnbinom(x = x, mu = lambda, size = exp(-disp)) / (1 - stats::dnbinom(x = 0, mu = lambda, size = exp(-disp)))},
-  "zotnegbin"  = function(x, lambda, disp) {stats::dnbinom(x = x, mu = lambda, size = exp(-disp)) / (1 - stats::dnbinom(x = 0, mu = lambda, size = exp(-disp)) - stats::dnbinom(x = 1, mu = lambda, size = exp(-disp)))},
-  "ztgeom"     = function(x, lambda, disp) {stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))},
-  "zotgeom"    = function(x, lambda, disp) {stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))})
-
+  probFun <- object$model$densityFunction
   
-  res <- colSums(t(sapply(object$fitt.values$link,
-          FUN = function(y) {probFun(x = range,
-                                     lambda = y,
-                                     disp = object$dispersion)})))
+  res <- sapply(1:nrow(object$linear.predictors), 
+                FUN = function(x) {object$model$densityFunction(x = range, eta = matrix(object$linear.predictors[x, ], ncol = object$model$parNum))})
+  res <- rowSums(res)
+  # res <- colSums(t(sapply(object$fitt.values$link,
+  #         FUN = function(y) {probFun(x = range,
+  #                                    lambda = y,
+  #                                    disp = object$dispersion)})))
   names(res) <- as.character(range)
   
   if(isTRUE(includeones) & (object$model$family %in% c("zotpoisson",

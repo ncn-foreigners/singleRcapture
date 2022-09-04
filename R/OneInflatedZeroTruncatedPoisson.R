@@ -238,6 +238,14 @@ oiztpoisson <- function() {
     f1 + f2
   }
   
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    omega <- lambda[, 2]
+    lambda <- lambda[, 1]
+    ifelse(x == 1, exp(lambda) * omega + (1 - omega) * lambda,
+           (1 - omega) * (lambda ** x) / factorial(x)) / (exp(lambda) - 1 + omega)
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -257,7 +265,8 @@ oiztpoisson <- function() {
       popVar= popVar,
       family = "oiztpoisson",
       parNum = 2,
-      etaNames = c("lambda", "omega")
+      etaNames = c("lambda", "omega"),
+      densityFunction = dFun
     ),
     class = "family"
   )
