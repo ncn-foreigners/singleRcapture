@@ -195,7 +195,7 @@ ztoipoisson <- function() {
   
   dev.resids <- function(y, mu, wt, theta, ...) {
     #TODO
-    NULL
+    0
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

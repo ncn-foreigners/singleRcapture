@@ -27,10 +27,6 @@ marginalFreq <- function(object,
   res <- sapply(1:nrow(object$linear.predictors), 
                 FUN = function(x) {object$model$densityFunction(x = range, eta = matrix(object$linear.predictors[x, ], ncol = object$model$parNum))})
   res <- rowSums(res)
-  # res <- colSums(t(sapply(object$fitt.values$link,
-  #         FUN = function(y) {probFun(x = range,
-  #                                    lambda = y,
-  #                                    disp = object$dispersion)})))
   names(res) <- as.character(range)
   
   if(isTRUE(includeones) & (object$model$family %in% c("zotpoisson",
@@ -48,7 +44,7 @@ marginalFreq <- function(object,
     names(res)[1] <- "0"
   }
   res <- structure(list(table = res, y = y, 
-                        df = length(y) - length(object$coefficients),
+                        df = length(y) - length(object$coefficients) - 1,
                         name = object$model$family), 
                    class = c("singleRmargin"))
   res

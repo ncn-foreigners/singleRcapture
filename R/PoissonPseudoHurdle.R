@@ -42,7 +42,7 @@ ztHurdlepoisson <- function() {
     )
   }
   
-  Wfun <- function(prior, y, eta, ...) {
+  Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
@@ -161,7 +161,7 @@ ztHurdlepoisson <- function() {
   
   dev.resids <- function(y, mu, wt, theta, ...) {
     #TODO
-    NULL
+    0
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

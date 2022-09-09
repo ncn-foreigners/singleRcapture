@@ -63,10 +63,10 @@ singleRcaptureinternalIRLS <- function(dependent,
     
     eta <- covariates %*% beta
     mu <- mu.eta(eta = eta)
-    if (!validmu(mu)) {
-      stop("Fit error infinite values reached consider another model,
-            mu is too close to zero/infinity")
-    }
+    # if (!validmu(mu)) {
+    #   stop("Fit error infinite values reached consider another model,
+    #         mu is too close to zero/infinity")
+    # }
     
     W <- Wfun(mu = mu, prior = prior, eta = eta)
     Z <- eta + funcZ(mu = mu, y = dependent, eta = eta, weight = W)
@@ -140,6 +140,11 @@ singleRcaptureinternalIRLS <- function(dependent,
   
   if(iter == maxiter && !converged && !silent) {
     warning("Fitting algorithm (IRLS) has not converged")
+  }
+  
+  if (!validmu(mu)) {
+    stop("Fit error infinite values reached consider another model,
+            mu is too close to zero/infinity")
   }
   
   list(coefficients = beta, iter = iter, weights = W)
@@ -292,10 +297,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   while (!converged & (iter < maxiter)) {
     halfstepsizing <- FALSE
     mu <- mu.eta(eta = eta, ...)
-    if (!validmu(mu)) {
-      stop("Fit error infinite values reached consider another model,
-            mu is too close to zero/infinity")
-    }
+    # if (!validmu(mu)) {
+    #   stop("Fit error infinite values reached consider another model,
+    #         mu is too close to zero/infinity")
+    # }
     
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
@@ -373,6 +378,11 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   
   if(iter == maxiter && !converged && !silent) {
     warning("Fitting algorithm (IRLS) has not converged")
+  }
+  
+  if (!validmu(mu)) {
+    stop("Fit error infinite values reached consider another model,
+          mu is too close to zero/infinity")
   }
   
   list(coefficients = beta, iter = iter, weights = W)

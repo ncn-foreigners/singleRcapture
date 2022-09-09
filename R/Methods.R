@@ -107,12 +107,13 @@ summary.singleRmargin <- function(object, df = NULL,
                                              "group", 
                                              "no"), 
                                   ...) {
+  # TODO
   if (missing(dropl5)) {dropl5 <- "drop"}
   y <- object$y
   if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
   A <- object$table[names(y)]
   if ((is.null(df)) && (object$df < 1)) {
-    warning("Degrees of freedom may be inacurate")
+    warning("Degrees of freedom may be inacurate.")
     df <- 1
   } else if (is.null(df)) {
     df <- object$df
@@ -141,7 +142,8 @@ summary.singleRmargin <- function(object, df = NULL,
          l5 = switch(dropl5,
                      drop = "dropped",
                      group = "grouped",
-                     no = "preserved")),
+                     no = "preserved"),
+         y = y),
     class = "summarysingleRmargin"
   )
 }
@@ -194,7 +196,7 @@ vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
 #' @return TODO
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  X <- model$modelFrame[model$which$reg, attr(rr9$modelFrame, "names")[-1]]
+  X <- model$modelFrame[model$which$reg, attr(model$modelFrame, "names")[-1]]
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
@@ -205,7 +207,7 @@ hatvalues.singleR <- function(model, ...) {
   }
 
   mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
-  hatvalues <- diag(X %*% solve(mlt %*% X) %*% (mlt))
+  hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
   hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors))
   hatvalues
 }
@@ -226,6 +228,7 @@ dfbetasingleR <- function(model,
                           method = c("formula", "simulation"),
                           maxit.new = 1,
                           ...) {
+  # TODO
   if (missing(method)) {method = "simulation"}
   switch (method,
     "formula" = {
@@ -325,18 +328,18 @@ residuals.singleR <- function(object,
   if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
-    working = data.frame("working" = object$linear.predictors + object$model$funcZ(eta = object$linear.predictors, weight = object$weights, y = y[object$which$reg])),
+    working = as.data.frame(object$model$funcZ(eta = object$linear.predictors, weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
     response = res,
     pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
     pearsonSTD = data.frame("pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
-      "working" = object$model$funcZ(eta = object$linear.predictors, weight = object$weights[object$which$reg], y = y[object$which$reg]),
+      as.data.frame(object$model$funcZ(eta = object$linear.predictors, weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
       res,
-      "pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc")),
-      "pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc")),
-      "deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg]),
+      "pearson" = as.numeric(res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
+      "pearsonSTD" = if (object$model$parNum == 1) as.numeric(res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc"))) else 0,
+      "deviance" = as.numeric(object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
       row.names = rownames(object$linear.predictors)
     )}
   )
@@ -354,8 +357,8 @@ print.summarysingleRmargin <- function(x, ...) {
   cat("Test for Goodness of fit of a regression model:\n",
       "\n", sep = "")
   print(x$Test)
-  cat("\n--------------------------------------------------------\n",
-      "Cells with fitted frequencies of < 5 have been ", x$l5, "\n", sep = "")
+  cat("\n--------------------------------------------------------------",
+      "\nCells with fitted frequencies of < 5 have been", x$l5, "\nNames of cells used in calculating test(s) statistic:", names(x$y), "\n", sep = " ")
 }
 #' @method AIC singleR
 #' @importFrom stats AIC

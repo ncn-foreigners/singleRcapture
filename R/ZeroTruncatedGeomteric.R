@@ -42,7 +42,8 @@ ztgeom <- function() {
     lambda * (1 + lambda) / ((1 + lambda) ** 2)
   }
   
-  funcZ <- function(eta, weight, y, mu, ...) {
+  funcZ <- function(eta, weight, y, ...) {
+    mu <- 1 + exp(eta)
     (y  / mu - 1) / weight
   }
   
@@ -143,7 +144,7 @@ ztgeom <- function() {
   
   dFun <- function (x, eta, type = "trunc") {
     lambda <- invlink(eta)
-    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
+    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))
   }
   
   structure(

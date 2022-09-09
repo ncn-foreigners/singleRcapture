@@ -343,7 +343,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     alpha <- invlink(eta)
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
-    stats::dnbinom(x = x, mu = lambda, size = exp(-alpha)) / (1 - stats::dnbinom(x = 0, mu = lambda, size = exp(-alpha)))
+    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - stats::dnbinom(x = 0, mu = lambda, size = 1  / alpha))
   }
 
   structure(
