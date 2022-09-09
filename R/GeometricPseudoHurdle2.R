@@ -119,7 +119,7 @@ Hurdleztgeom <- function() {
       lambda <- invlink(eta)
       PI <- lambda[, 2]
       lambda <- lambda[, 1]
-      -sum(z * (log(PI) + log(lambda ** 2 + lambda + 1)) + (1 - z) * (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda)) - log(lambda ** 2 + PI * (lambda + 1)))
+      -sum(weight * (z * (log(PI) + log(lambda ** 2 + lambda + 1)) + (1 - z) * (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda)) - log(lambda ** 2 + PI * (lambda + 1))))
     }
   }
   
@@ -167,8 +167,6 @@ Hurdleztgeom <- function() {
       # PI^2 derivative
       G00 <- -z / (PI ** 2) - (1 - z) / ((1 - PI) ** 2) + ((lambda + 1) ** 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2)
       G00 <- weight * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ** 2))  # second derivative of inverse logistic link
-      # G00 <- -(lambda ** 2) * (lambda ** 2 + lambda + 1) / ((lambda ** 2 + PI * (1 + lambda)) ** 2)
-      # G00 <- G00 * weight * PI * (1 - PI)
       G00 <- t(as.data.frame(XPI * G00)) %*% as.matrix(XPI)
       
       # mixed

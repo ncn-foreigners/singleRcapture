@@ -158,13 +158,12 @@ estimate_popsize <- function(formula,
   
   # TODO::
   ## move this to family functions
-  
   if (is.null(control.method$start)) {
     start <- stats::glm.fit(
       x = variables[wch$reg, ],
       y = observed[wch$reg],
       family = stats::poisson(),
-      weights = prior.weights
+      weights = prior.weights[wch$reg]
     )$coefficients
     if (isTRUE(control.method$useZtpoissonAsStart)) {
       start <- estimate_popsize.fit(

@@ -549,7 +549,7 @@ print.summarysingleR <- function(x, ...) {
       "\nBIC: ", x$bic,
       "\nDeviance: ", x$deviance,
       "\n\nLog-likelihood: ", x$logL, " on ", x$df.residual, " Degrees of freedom ",
-      if (x$call$method == "robust") {
+      if (isTRUE(x$call$method == "robust")) {
         "\nNumber of iterations: "
       } else {
         "\nNumber of calls to log-likelihood function: " # optim does not allow for accesing information
@@ -559,7 +559,7 @@ print.summarysingleR <- function(x, ...) {
       "\nPopulation size estimation results: ",
       "\nPoint estimate ", x$populationSize$pointEstimate, 
       "\nObserved proportion: ", round(100 * x$sizeObserved / x$populationSize$pointEstimate, digits = 1), "% (N obs = ", x$sizeObserved, ")",
-      if (x$call$pop.var == "bootstrap") {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(x$populationSize$variance),
+      if (isTRUE(x$call$pop.var == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(x$populationSize$variance),
       "\n", (1 - x$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(x$populationSize$confidenceInterval)
   cat((1 - x$populationSize$control$alpha) * 100, "% CI for the share of observed population:\n", sep = "")
