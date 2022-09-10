@@ -14,6 +14,7 @@ control.pop.var(
   traceBootstrapSize = FALSE,
   fittingMethod = NULL,
   bootstrapFitcontrol = NULL,
+  sd = c("sqrtVar", "normalMVUE"),
   covType = c("observedInform", "Fisher")
 )
 }
@@ -32,9 +33,15 @@ control.pop.var(
 
 \item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.}
 
-\item{fittingMethod}{method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.}
+\item{fittingMethod}{Method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.}
 
-\item{bootstrapFitcontrol}{control parameters for each regression works exactly like control.method.}
+\item{bootstrapFitcontrol}{Control parameters for each regression works exactly like control.method.}
+
+\item{sd}{Indicates how to compute standard deviation of population size estimator either as:
+\mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
+for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal distribution:
+\mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
+where the ration involving gamma functions is computed by loggamma function.}
 
 \item{covType}{type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.}
 }
@@ -42,5 +49,5 @@ control.pop.var(
 A list with selected parameters, it is also possible to call list directly.
 }
 \description{
-Control parameters for population size estimation
+\loadmathjax
 }

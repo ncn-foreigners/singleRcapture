@@ -9,7 +9,7 @@ control.model(
   weightsAsCounts = FALSE,
   omegaFormula = ~1,
   alphaFormula = ~1,
-  piFormula = ~.
+  piFormula = ~1
 )
 }
 \arguments{

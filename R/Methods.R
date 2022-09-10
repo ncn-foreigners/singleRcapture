@@ -545,6 +545,10 @@ print.summarysingleR <- function(x, ...) {
     print(corr[-1, -dim(corr)[2]], quote = FALSE)
     cat("\n")
   }
+  sd <- sqrt(x$populationSize$variance)
+  if (x$populationSize$control$sd == "normalMVUE") {
+    sd <- sd / (sqrt(2 / (x$sizeObserved - 1)) * exp(lgamma(x$sizeObserved / 2) - lgamma((x$sizeObserved - 1) / 2)))
+  }
   cat("AIC: ", x$aic,
       "\nBIC: ", x$bic,
       "\nDeviance: ", x$deviance,

@@ -18,7 +18,7 @@ estimate_popsize(
   control.method = NULL,
   control.model = NULL,
   control.pop.var = NULL,
-  modelFrame = FALSE,
+  modelFrame = TRUE,
   x = TRUE,
   y = TRUE,
   contrasts = NULL,

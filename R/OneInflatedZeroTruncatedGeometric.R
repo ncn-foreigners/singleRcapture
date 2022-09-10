@@ -21,49 +21,51 @@ oiztgeom <- function() {
   invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    #TODO
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     switch (type,
-            "nontrunc" = 1,
-            "trunc" = 1
+            "nontrunc" = omega + (1 - omega) * lambda / ((1 + lambda) ** 2) + (1 - omega) * (lambda ** 2) * (2 * lambda) / ((1 + lambda) ** 2),
+            "trunc" = ((lambda ** 2) * omega + lambda * omega + lambda + omega) / (lambda ** 2 + lambda * omega + lambda + omega) + (lambda ** 2) * (2 + lambda) * (1 - omega) / ((lambda + omega) * (1 + lambda))
     )
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
-    #TODO
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     switch (type,
-            "nontrunc" = 2,
-            "trunc" = 2
+            "nontrunc" = omega + (1 - omega) * lambda / ((1 + lambda) ** 2) + (1 - omega) * (lambda ** 2) * (2 * (lambda ** 2) + 5 * lambda + 4) / ((1 + lambda) ** 2),
+            "trunc" = ((lambda ** 2) * omega + lambda * omega + lambda + omega) / (lambda ** 2 + lambda * omega + lambda + omega) + (lambda ** 2) * (2 * (lambda ** 2) + 5 * lambda + 4) * (1 - omega) / ((lambda + omega) * (1 + lambda))
     ) - (mu.eta(eta = eta, type = type) ** 2)
   }
   
-  Wfun <- function(prior, y, eta, ...) {
-    #TODO
+  Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    theta <- exp(eta[, 2])
-    z <- omega + (1 - omega) * lambda / (exp(lambda) - 1) # expected for I's
-    #z <- ifelse(y == 1, y, 0)
-    eml <- exp(-lambda)
-    term <- lambda / (exp(lambda) - 1)
-    G00 <- -omega * (1 - omega) + z * (theta / (theta + term) - (theta / (theta + term)) ** 2)
-    G00 <- G00 * prior
+    z <- (lambda ** 2) * omega + lambda * omega + lambda + omega
+    z <- z / (lambda ** 2 + lambda * omega + lambda + omega) # expected for I's
+    Ey <- mu.eta(eta)
+    
+    
+    G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ** 2 + lambda + 1) + lambda))
+    G1 <- G1 + (1 - z) * (Ey / lambda - Ey / (1 + lambda) - 1 / (omega + lambda)) #This one
+    G0 <- z * (lambda + 1) * (lambda ** 2) / ((omega + lambda) * (omega * (lambda ** 2 + lambda + 1) + lambda))
+    G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda))
+    
+    # omega^2 derivative
+    G00 <- 1 / ((lambda + omega) ** 2) - z * ((lambda ** 2 + lambda + 1) ** 2) / ((omega * (lambda ** 2 + lambda + 1) + lambda) ** 2) - (1 - z) / ((1 - omega) ** 2)
+    G00 <- prior * (G0 * (omega * (1 - omega) * (1 - 2 * omega)) + G00 * ((omega * (1 - omega)) ** 2))  # second derivative of inverse logistic link
     
     # mixed derivative
-    G01 <- -z * theta / ((theta + term) ** 2)
-    G01 <- G01 * (term - (term ** 2) * exp(lambda)) * prior
+    G01 <- (1 - z) / ((omega + lambda) ** 2) + z * lambda * (omega * omega * (lambda ** 3 + 2 * (lambda ** 2) + 4 * lambda + 2) + omega * (4 * (lambda ** 2) + 2 * lambda) + lambda ** 3) / (((omega + lambda) * (omega * (lambda ** 2 + lambda + 1) + lambda)) ** 2)
+    G01 <- G01 * lambda * omega * (1 - omega) * prior
     
-    G11 <- (1 - z) * (lambda * eml / ((1 - eml) ** 2) - 1 / (1 - eml))
-    wwd <- 1 / (exp(lambda) - 1)
-    G11 <- G11 + z * ((wwd - wwd * term * exp(lambda) - 2 * lambda * wwd * (wwd - wwd * term * exp(lambda))) *
-                        (theta + term) - (term - term ** 2) * (wwd - wwd * term * exp(lambda))) / (term + theta)
-    G11 <- lambda * prior * G11
+    # Beta^2 derivative
+    G11 <- z * (((omega + 2 * lambda + 1) ** 2) / ((omega * lambda + omega + lambda ** 2 + lambda) ** 2) - 2 / (omega * lambda + omega + lambda ** 2 + lambda) + (2 * omega) / (omega * (lambda ** 2) + omega * lambda + omega + lambda) - ((2 * omega * lambda + omega + 1) ** 2) / ((omega * (lambda ** 2) + omega * lambda + omega + lambda) ** 2))
+    G11 <- G11 + (1 - z) * (Ey / ((1 + lambda) ** 2) - Ey / (lambda ** 2) + 1 / ((omega + lambda) ** 2)) #This one
+    G11 <- (G11 * lambda * lambda + G1 * lambda) * prior # second derivative of log link
     matrix(
       -c(G11, # lambda
          G01, # mixed
@@ -76,18 +78,16 @@ oiztgeom <- function() {
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    #TODO
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    theta <- exp(eta[, 2])
     z <- ifelse(y == 1, y, 0)
-    mm <- exp(lambda) - 1
-    mm <- 1 / mm
-    G1 <- z * (mm - mm * mm * lambda * exp(lambda)) / (theta + lambda * mm)
-    G1 <- G1 + (1 - z) * (y / lambda - mm * exp(lambda))
+    G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ** 2 + lambda + 1) + lambda))
+    G1 <- G1 + (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda))
     G1 <- G1 * lambda
-    G0 <- -omega + z * (theta / (theta + lambda / (exp(lambda) - 1)))
+    G0 <- z * (lambda + 1) * (lambda ** 2) / ((omega + lambda) * (omega * (lambda ** 2 + lambda + 1) + lambda))
+    G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)) # omega derivative
+    G0 <- G0 * omega * (1 - omega)
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -199,7 +199,7 @@ oiztgeom <- function() {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    N <- pw * (1 + lambda) / (lambda - omega)
+    N <- pw * (1 + lambda) / (lambda + omega)
     if(!contr) {
       N <- sum(N)
     }
@@ -207,13 +207,12 @@ oiztgeom <- function() {
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    #TODO
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     
-    bigTheta1 <- pw * (1 + lambda) / ((lambda - omega) ** 2) # w.r to omega
-    bigTheta2 <- -pw * (1 + omega) / ((lambda - omega) ** 2) # w.r to lambda
+    bigTheta1 <- -pw * omega * (1 - omega) * (1 + lambda) / ((lambda + omega) ** 2) # w.r to omega
+    bigTheta2 <- pw * lambda * (omega - 1) / ((lambda + omega) ** 2) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     

@@ -22,9 +22,9 @@
 #' @param momentumFactor experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
 #' @param useZtpoissonAsStart boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models
 #' \loadmathjax
-#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 #' the update will be made as:
-#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + step_a-1)}
 #' @param momentumActivation the value of log-likelihood reduction bellow which momentum will apply.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
@@ -82,7 +82,9 @@ control.model <- function(weightsAsCounts = FALSE,
     piFormula = piFormula
   )
 }
-#' Control parameters for population size estimation
+#' @title  Control parameters for population size estimation
+#'
+#' @description \loadmathjax
 #'
 #' @param alpha Significance level, a number from range (0, 1) 5% by default.
 #' @param trcount Truncated count - a number to be added to point estimator and both sides of confidence intervals.
@@ -91,8 +93,13 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param confType Type of confidence interval for bootstrap confidence interval, percentilic by default.
 #' @param keepbootStat Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large values of B it may significant amount of size.
 #' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.
-#' @param fittingMethod method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.
-#' @param bootstrapFitcontrol control parameters for each regression works exactly like control.method.
+#' @param fittingMethod Method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.
+#' @param bootstrapFitcontrol Control parameters for each regression works exactly like control.method.
+#' @param sd Indicates how to compute standard deviation of population size estimator either as:
+#' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
+#' for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal distribution:
+#' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
+#' where the ration involving gamma functions is computed by loggamma function.
 #' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
@@ -110,6 +117,7 @@ control.pop.var <- function(alpha = .05,
                             traceBootstrapSize = FALSE,
                             fittingMethod = NULL,
                             bootstrapFitcontrol = NULL,
+                            sd = c("sqrtVar", "normalMVUE"),
                             covType = c("observedInform",
                                         "Fisher")
                             ) {
@@ -123,6 +131,7 @@ control.pop.var <- function(alpha = .05,
     traceBootstrapSize = traceBootstrapSize,
     fittingMethod = fittingMethod,
     bootstrapFitcontrol = bootstrapFitcontrol,
+    sd = if(missing(sd)) "sqrtVar" else sd,
     covType = if (missing(covType)) "observedInform" else covType
   )
 }

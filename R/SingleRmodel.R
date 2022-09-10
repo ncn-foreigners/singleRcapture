@@ -270,8 +270,10 @@ estimate_popsize <- function(formula,
   fitt <- data.frame(family$mu.eta(eta = eta),
                      family$mu.eta(eta = eta, type = "nontrunc")) # change later link functions in family class to act on matrix eta
   colnames(fitt) <- c("mu", "link")
-  if ((sum(diag(-solve(hess)) <= 0) != 0) && (control.pop.var$covType == "observedInform")) {
-    stop("Fitting error observed information matrix obtained from analytic hessian is invalid i.e not positive defined, try another model.")
+  if (control.pop.var$covType == "observedInform") {
+    if ((sum(diag(-solve(hess)) <= 0) != 0)) {
+      stop("Fitting error observed information matrix obtained from analytic hessian is invalid i.e not positive defined, try another model.")
+    }
   }
   
   null.deviance <- as.numeric(NULL)

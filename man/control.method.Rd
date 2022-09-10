@@ -17,6 +17,7 @@ control.method(
   optimPass = FALSE,
   stepsize = 1,
   momentumFactor = 0,
+  useZtpoissonAsStart = FALSE,
   momentumActivation = 5
 )
 }
@@ -51,11 +52,13 @@ if mle method was chosen verbose will be passed to \code{\link[stats:optim]{stat
 
 \item{stepsize}{only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.}
 
-\item{momentumFactor}{experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
+\item{momentumFactor}{experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:}
+
+\item{useZtpoissonAsStart}{boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models
 \loadmathjax
-\mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
+\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 the update will be made as:
-\mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}}
+\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + step_a-1)}}
 
 \item{momentumActivation}{the value of log-likelihood reduction bellow which momentum will apply.}
 }
