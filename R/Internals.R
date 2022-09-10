@@ -1,18 +1,19 @@
 # These functions are only used internally in the package so there is no need for documenting them
 #' @importFrom stats optim
-signleRcaptureinternalIRLS <- function(dependent,
+singleRcaptureinternalIRLS <- function(dependent,
                                        family,
                                        covariates,
                                        start,
-                                       disp = NULL,
                                        weights = NULL,
                                        maxiter = 10000,
                                        eps = .Machine$double.eps,
-                                       epsdisp = 1e-5,
-                                       disp.given = FALSE,
                                        silent = FALSE,
                                        trace = 0,
-                                       stepsize = 1) {
+                                       stepsize = 1,
+                                       momentumFactor,
+                                       momentumActivation,
+                                       ...) {
+  dg <- 8 # Add to control
   converged <- FALSE
   
   mu.eta <- family$mu.eta
@@ -22,19 +23,10 @@ signleRcaptureinternalIRLS <- function(dependent,
   linkinv <- family$linkinv
   funcZ <- family$funcZ
   Wfun <- family$Wfun
+  prior <- as.numeric(weights)
   
-  if (!is.null(weights)) {
-    prior <- as.numeric(weights)
-  } else {
-    prior <- 1
-  }
-  
-  loglike <- family$makeMinusLogLike(y = dependent,
-                                      X = covariates,
-                                      weight = prior)
-  grad <- family$makeGradient(y = dependent,
-                               X = covariates,
-                               weight = prior)
+  logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
+  grad <- family$makeGradient(y = dependent, X = covariates, weight = prior)
   
   if (famName %in% c("chao", "zelterman")) {
     dependent <- dependent - 1
@@ -43,87 +35,93 @@ signleRcaptureinternalIRLS <- function(dependent,
   }
   
   iter <- 1
+  step <- NULL
   beta <- start
   
   W <- prior
-  temp <- c(disp, beta)
-  L <- -loglike(temp)
-  dispPrev <- Inf
-  
+  L <- -logLike(beta)
+
   while (!converged & (iter < maxiter)) {
-    if (famName %in% c("ztnegbin", "zotnegbin") &&
-        isFALSE(disp.given) && (abs(disp - dispPrev) > epsdisp)) {
-      dispPrev <- disp
-      ll <- function(alpha) loglike(c(alpha, beta))
-      gr <- function(alpha) -grad(c(alpha, beta))[1]
-      disp <- stats::optim(par = disp,
-                           lower = disp - 5 * abs(disp),
-                           upper = disp + 5 * abs(disp),
-                           fn = ll,
-                           gr = gr,
-                           method = "Brent",
-                           control = list(reltol = .Machine$double.eps))$par
-    }
+    # if (famName %in% c("ztnegbin", "zotnegbin") &&
+    #     isFALSE(dispGiven) && (abs(disp - dispPrev) > epsdisp)) {
+    #   dispPrev <- disp
+    #   ll <- function(a) logLike(c(a, beta))
+    #   gr <- function(a) -grad(c(a, beta))[1]
+    #   disp <- stats::optim(par = disp,
+    #                        lower = disp - 5 * abs(disp),
+    #                        upper = disp + 5 * abs(disp),
+    #                        fn = ll,
+    #                        gr = gr,
+    #                        method = "Brent",
+    #                        control = list(reltol = epsdisp))$par
+    # }
     
     halfstepsizing <- FALSE
     WPrev <- W
-    tempPrev <- temp
     betaPrev <- beta
     LPrev <- L
     
     eta <- covariates %*% beta
-    mu <- mu.eta(eta = eta, disp)
-    if (!validmu(mu)) {
-      stop("Fit error infinite values reached consider another model,
-            mu is too close to zero/infinity")
-    }
+    mu <- mu.eta(eta = eta)
+    # if (!validmu(mu)) {
+    #   stop("Fit error infinite values reached consider another model,
+    #         mu is too close to zero/infinity")
+    # }
     
-    varY <- variance(mu = mu, disp)
-    W <- as.numeric(Wfun(mu = mu, prior = prior, disp = disp, eta = eta))
-    Z <- funcZ(mu = mu, y = dependent, eta = eta, weight = W, disp = disp)
+    W <- Wfun(mu = mu, prior = prior, eta = eta)
+    Z <- eta + funcZ(mu = mu, y = dependent, eta = eta, weight = W)
     # This is equivalent to
     # A <- t(covariates) %*% W %*% covariates
     # B <- t(covariates) %*% W %*% Z
     # But much much faster and less memory heavy
-    A <- t(covariates) %*% (covariates * W)
-    B <- t(covariates) %*% (Z * W)
-    beta <- betaPrev + stepsize * (solve(A, B, tol = .Machine$double.eps) - betaPrev)
+    A <- t(covariates) %*% (covariates * as.numeric(W))
+    B <- t(covariates) %*% (Z * as.numeric(W))
+    
+    stepPrev <- step
+    step <- solve(A,B) - betaPrev
+    
+    beta <- betaPrev + stepsize * (step + if ((is.null(stepPrev) | !momentumFactor)) {0} else {if (L-LPrev < 1) momentumFactor * stepPrev else 0})
     
     #beta <- beta - solve(A, B, tol = .Machine$double.eps)
     
-    temp <- c(disp, beta)
-    L <- -loglike(temp)
+    L <- -logLike(beta)
+    
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg), "\n")}
+    if (trace > 1) {cat(sep = " ", "Parameter vector: ", format(beta, scientific = FALSE, digits = dg), "\n")}
+    if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
+    if (trace > 3) {cat(sep = " ", "Value of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     
     if (L < LPrev) {
       halfstepsizing <- TRUE
       h <- stepsize * (betaPrev - beta)
       if (trace > 0) {
-        cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 12), "\n")
-        if (trace > 1) {cat(sep = "","Parameter vector = ", temp, "\n")}
-        cat("Taking a modified step....\n")
+        cat("\nTaking a modified step....\n")
       }
       repeat {
         h <- h / 2
         beta <- betaPrev - h
-        temp <- c(disp, beta)
-        L <- -loglike(temp)
+        L <- -logLike(beta)
         if (L > LPrev) {
           break
         }
         
-        if (max(abs(h)) < .Machine$double.eps ** (1 / 4)) {
+        if (max(abs(h)) < .Machine$double.eps ** (1 / 8)) {
           if (L < LPrev) {
+            halfstepsizing <- FALSE
             L <- LPrev
             beta <- betaPrev
           }
           break
         }
       }
+      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+      if (trace > 1) {cat(sep = " ","\nParameter vector:", format(beta, scientific = FALSE, digits = dg))}
+      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     }
-
-    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood = ", format(L, scientific = FALSE, digits = 20), "\n")}  
-    if (trace > 1) {cat(sep = " ", "Parameter vector =", temp, "\n")}
-    
+    if (trace > 0) {cat(sep = "", "\n----\n")}
     converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
     
     if (!converged && (iter + 1 <= maxiter)) {
@@ -144,47 +142,41 @@ signleRcaptureinternalIRLS <- function(dependent,
     warning("Fitting algorithm (IRLS) has not converged")
   }
   
-  list(coefficients = beta, iter = iter, weights = W, disp = disp)
+  if (!validmu(mu)) {
+    stop("Fit error infinite values reached consider another model,
+            mu is too close to zero/infinity")
+  }
+  
+  list(coefficients = beta, iter = iter, weights = W)
 }
 #' @importFrom stats runif
 #' @importFrom stats var
 #' @importFrom stats quantile
 #' @importFrom stats qnorm
-signleRcaptureinternalpopulationEstimate <- function(y,
-                                                     X,
-                                                     grad,
-                                                     lambda,
-                                                     beta,
-                                                     weights = 1,
-                                                     weights0 = NULL,
-                                                     hessian,
-                                                     family,
-                                                     dispersion,
-                                                     method = "analytic",
-                                                     control) {
+singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
+                                                     beta, weights,
+                                                     hessian, family,
+                                                     eta, pop.var,
+                                                     control, hwm,
+                                                     Xvlm, W) {
+  if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
   numboot <- control$B
   sc <- qnorm(p = 1 - siglevel / 2)
-  if (method == "analytic") {
+  if (pop.var == "analytic") {
     strappedStatistic <- "No bootstrap performed"
-    
-    N <- family$pointEst(disp = dispersion,
-                         pw = if (family$family == "zelterman") weights0 else weights,
-                         lambda = lambda) + trcount
+    N <- family$pointEst(pw = weights, eta = eta) + trcount
     cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(crossprod(x = as.matrix(X) * as.numeric(family$Wfun(prior = if (family$family == "zelterman") weights0 else weights, disp = dispersion, eta = family$linkfun(lambda))), 
-                                 y = as.matrix(X)))
+      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% Xvlm)
     )
     # TODO : add Fisher for negbins
     
-    variation <- as.numeric(family$popVar(beta = beta, 
-                                          pw = if (family$family == "zelterman") weights0 else weights,
-                                          lambda = lambda,
-                                          disp = dispersion,
-                                          cov = cov, 
-                                          X = X))
+    variation <- as.numeric(family$popVar(eta = eta, 
+                                          pw = weights,
+                                          cov = cov,
+                                          Xvlm = if (family$family == "zelterman") X else Xvlm))
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
     confidenceInterval <- data.frame(t(data.frame(
@@ -192,31 +184,25 @@ signleRcaptureinternalpopulationEstimate <- function(y,
                                          length(y) + trcount), 
                         upperBound = N + sc * sqrt(variation)),
       "Logtransform" = c(lowerBound = max(length(y) + (N - length(y)) / G, 
-                                          (length(y) + trcount)), 
+                                         (length(y) + trcount)), 
                          upperBound = length(y) + (N - length(y)) * G)
     )))
-  } else if (grepl("bootstrap", method, fixed = TRUE)) {
+  } else if (grepl("bootstrap", pop.var, fixed = TRUE)) {
     funBoot <- switch(control$bootType,
                       "parametric" = parBoot,
                       "semiparametric" = semparBoot,
                       "nonparametric" = noparBoot)
-    N <- family$pointEst(disp = dispersion,
-                         pw = if (family$family != "zelterman") {weights} else {weights0},
-                         lambda = lambda) + trcount
+    N <- family$pointEst(pw = weights,
+                         eta = eta) + trcount
     
-    if (!is.null(dispersion)) {
-      beta <- beta[-1]
-    }
-    
+    # TODO: verify bootstrap with simulate function in family functions
     strappedStatistic <- funBoot(family = family,
                                  y = y, 
                                  X = X,
-                                 dispersion = dispersion,
                                  beta = beta,
-                                 weights = list(weights, weights0),
+                                 weights = weights,
                                  trcount = trcount,
                                  numboot = numboot,
-                                 lambda = lambda,
                                  trace = control$traceBootstrapSize,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
@@ -261,4 +247,214 @@ signleRcaptureinternalpopulationEstimate <- function(y,
        confidenceInterval = confidenceInterval,
        boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
        control = control)
+}
+# multiparameter
+singleRcaptureinternalIRLSmultipar <- function(dependent,
+                                               family,
+                                               formulas,
+                                               covariates,
+                                               start,
+                                               weights,
+                                               maxiter = 10000,
+                                               eps = .Machine$double.eps,
+                                               silent = FALSE,
+                                               trace = 0,
+                                               stepsize = 1,
+                                               hwm,
+                                               momentumFactor,
+                                               momentumActivation,
+                                               ...) {
+  dg <- 8
+  converged <- FALSE
+  
+  # Lowering stepsize to about .3 usually helps a great deal in IRLS fitting
+  if (!silent && family$family == "zotnegbin" && stepsize == 1) {
+    cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity, consider lowering stepsize control parameter if fitting fails.")
+  }
+  
+  mu.eta <- family$mu.eta
+  validmu <- family$validmu
+  variance <- family$variance
+  famName <- family$family
+  linkinv <- family$linkinv
+  Zfun <- family$funcZ
+  Wfun <- family$Wfun
+  prior <- as.numeric(weights)
+  
+  iter <- 1
+  step <- NULL
+  betaPrev <- NULL
+  beta <- start
+  
+  logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
+  grad <- family$makeGradient(y = dependent, X = covariates, weight = prior)
+  
+  W <- prior
+  LPrev <- -Inf
+  L <- -logLike(beta)
+  eta <- covariates %*% beta
+  eta <- matrix(eta, ncol = family$parNum)
+  while (!converged & (iter < maxiter)) {
+    halfstepsizing <- FALSE
+    mu <- mu.eta(eta = eta, ...)
+    # if (!validmu(mu)) {
+    #   stop("Fit error infinite values reached consider another model,
+    #         mu is too close to zero/infinity")
+    # }
+    
+    WPrev <- W
+    W <- Wfun(prior = prior, eta = eta, y = dependent)
+    z <- eta + Zfun(eta = eta, weight = W, y = dependent)
+
+    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W, hwm = hwm)
+
+    # A <- t(Xvlm) %*% WW %*% (Xvlm)
+    # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
+    A <- XbyW %*% covariates
+    B <- XbyW %*% as.numeric(z)
+    
+    betaPrev <- beta
+    stepPrev <- step
+    
+    step <- solve(A,B) - betaPrev
+    beta <- betaPrev + stepsize * (step + if ((is.null(stepPrev) | !momentumFactor)) {0} else {if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0})
+
+    eta <- covariates %*% beta
+    eta <- matrix(eta, ncol = family$parNum)
+    LPrev <- L
+    L <- -logLike(beta)
+    
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+    if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
+    if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+    if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+    if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
+
+    if (isTRUE(L < LPrev)) {
+      halfstepsizing <- TRUE
+      h <- step <- stepsize * (betaPrev - beta)
+      if (trace > 0) {
+        cat("\nTaking a modified step....\n")
+      }
+      repeat {
+        h <- step <- h / 2
+        beta <- betaPrev - h
+        L <- -logLike(beta)
+        if (isTRUE(L > LPrev)) {
+          break
+        }
+        
+        if (max(abs(h)) < .Machine$double.eps) {
+          if (isTRUE(L < LPrev)) {
+            halfstepsizing <- FALSE
+            L <- LPrev
+            beta <- betaPrev
+          }
+          break
+        }
+      }
+      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+      if (trace > 1) {cat(sep = " ","\nParameter vector:", format(beta, scientific = FALSE, digits = dg))}
+      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+      if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
+    }
+    if (trace > 0) {cat(sep = "", "\n----\n")}
+    converged <- ((L - LPrev < eps) || (max(abs(beta - betaPrev)) < eps))
+
+    if (!converged && (iter + 1 <= maxiter)) {
+      iter <- iter + 1
+    } else if ((L < LPrev) & converged) {
+      beta <- betaPrev
+      L <- LPrev
+      W <- WPrev
+    }
+    
+    if (converged && halfstepsizing && !silent) {
+      warning("Convergence at halfstepsize")
+    }
+    
+  }
+  
+  if(iter == maxiter && !converged && !silent) {
+    warning("Fitting algorithm (IRLS) has not converged")
+  }
+  
+  if (!validmu(mu)) {
+    stop("Fit error infinite values reached consider another model,
+          mu is too close to zero/infinity")
+  }
+  
+  list(coefficients = beta, iter = iter, weights = W)
+}
+# make Xvlm matrix
+singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
+  formulas[[1]][[2]] <- NULL
+  Xses <- list()
+  parentFrame <- X
+  for (k in 1:nPar) {
+    Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
+    if (k != 1) {
+      colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
+    }
+  }
+  hwm <- sapply(Xses, ncol)
+  # TODO: sparse matrix, maybe use Matrix
+  Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
+  colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
+  row <- 0
+  col <- 0
+  for (k in Xses) {
+    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- as.matrix(k)
+    row <- row + nrow(k)
+    col <- col + ncol(k)
+  }
+  list(Xvlm, hwm)
+}
+# Chosing data for estimation/regression
+singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop.var) {
+  aeq <- TRUE
+  if (grepl("zot", family$family)) {
+    trr <- sum(observed == 1)
+    wch1 <- wch2 <- (observed > 1)
+  } else if (family$family == "chao") {
+    trr <- sum(observed > 2)
+    wch1 <- wch2 <- (observed %in% c(1, 2))
+    if (pop.var != "analytic") {
+      # in bootstrap we need all
+      wch2 <- rep(TRUE, length(observed))
+    }
+  } else if (family$family == "zelterman") {
+    # In zelterman model regression is indeed based only on 1 and 2 counts
+    # but estimation is based on ALL counts
+    wch1 <- (observed %in% c(1, 2))
+    wch2 <- rep(TRUE, length(observed))
+    trr <- 0
+    aeq <- FALSE
+  } else {
+    trr <- 0
+    wch1 <- wch2 <- rep(TRUE, length(observed))
+  }
+  list(reg = wch1, # which rows for regression
+       est = wch2, # which rows for estimation
+       aeq = aeq,  # all equal
+       trr = trr)  # add to trcount
+}
+# TODO:: additional verification
+# This is almost certainly an overkill but is supports arbitrary number of linear predictors
+singleRinternalMultiplyWeight <- function (X, W, hwm, ...) {
+  thick <- sqrt(ncol(W))
+  XbyW <- matrix(0, nrow = ncol(X), ncol = nrow(X))
+  wch <- c(0, cumsum(hwm))
+  whichVector <- t(matrix(1:(thick ** 2), ncol = thick))
+  index1 <- 1:(nrow(X) / thick)
+  for (i in 1:thick) {
+    index <- 1:(nrow(X) / thick)
+    for (j in 1:thick) {
+      XbyW[(wch[i]+1):wch[i+1], index] <- t(X[index1, (wch[i]+1):wch[i+1]] * W[, whichVector[i, j]])
+      index <- index + nrow(X) / thick
+    }
+    index1 <- index1 + nrow(X) / thick
+  }
+  XbyW
 }

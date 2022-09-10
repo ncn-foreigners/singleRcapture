@@ -8,11 +8,11 @@ estimate_popsize.fit(
   y,
   X,
   family,
+  hwm,
   control,
   method,
   prior.weights,
   start,
-  dispersion,
   ...
 )
 }
@@ -24,6 +24,9 @@ estimate_popsize.fit(
 \item{family}{Same as model in \code{estimate_popsize}.}
 
 \item{control}{Control parameters.}
+\item{hwm}{a vector containing information on how many columns in X matrix are associated with each linear predictor}
+
+\item{control}{control parameters}
 
 \item{method}{Method of estimation same as in \code{estimate_popsize}.}
 
@@ -35,6 +38,7 @@ in \code{estimate_popsize}.}
 \item{dispersion}{Start for dispersion.}
 
 \item{...}{Arguments to pass to other methods.}
+\item{...}{arguments to pass to other methods}
 }
 \value{
 list of object connected to regression

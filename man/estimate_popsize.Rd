@@ -7,17 +7,18 @@
 estimate_popsize(
   formula,
   data,
-  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "zotnegbin", "zotgeom",
-    "zelterman", "chao"),
-  weights = 1,
+  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
+    "ztHurdlepoisson", "zotnegbin", "ztoinegbin", "zotgeom", "ztoigeom", "zelterman",
+    "chao"),
+  weights = NULL,
   subset = NULL,
   na.action = NULL,
   method = c("mle", "robust"),
-  pop.var = c("analytic", "bootstrap"),
+  pop.var = c("analytic", "bootstrap", "noEst"),
   control.method = NULL,
   control.model = NULL,
   control.pop.var = NULL,
-  modelFrame = FALSE,
+  modelFrame = TRUE,
   x = TRUE,
   y = TRUE,
   contrasts = NULL,
@@ -30,6 +31,7 @@ estimate_popsize(
 \item{data}{Data frame for the regression.}
 
 \item{model}{Model for regression and population estimate. Possible values are \code{"ztpoisson"}, \code{"ztnegbin"}, \code{"ztgeom"}, \code{"zotpoisson"}, \code{"zotnegbin"}, \code{"zotgeom"}, \code{"zelterman"}, or \code{"chao"}.}
+\item{model}{Model for regression and population estimate, either a name of the model a function or a family class object returned by appropriate function}
 
 \item{weights}{Optional object of a priori weights used in fitting the model.}
 
@@ -42,10 +44,16 @@ estimate_popsize(
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap.
 where bootstraped confidence interval may either be based on 2.5\%-97.5\%
 percientiles (\code{"bootstrapPerc"}) or studentized CI (\code{"bootstrapSD"}).}
+\item{method}{Method for fitting values currently supported robust (IRLS) and MaxLikelihood (for now handled by \code{\link[stats:optim]{stats::optim()}})}
+
+\item{pop.var}{A method of constructing confidence interval either analytic or bootstrap
+where bootstraped confidence interval may be specified in control.pop.var.
+There is also the third possible value of noEst which skips the population size estimate alltogether.}
 
 \item{control.method}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.method} function.}
 
 \item{control.model}{TODO}
+\item{control.model}{Not yet implemented}
 
 \item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.pop.var} function.}
 
@@ -75,7 +83,6 @@ Returns an object of classes inherited from glm containing:\cr
 \item{residuals -- Vector of raw residuals.}
 \item{logL -- Logarithm likelihood obtained at final iteration.}
 \item{iter -- Numbers of iterations performed in fitting or if stats::optim was used number of call to loglikelihhod function.}
-\item{dispersion -- Dispersion parameter if applies.}
 \item{df.residuals -- Residual degrees of freedom.}
 \item{df.null -- Null degrees of freedom.}
 \item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}

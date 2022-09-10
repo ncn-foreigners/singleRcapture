@@ -21,7 +21,7 @@ zotgeom <- function() {
     1 / lambda
   }
   
-  mu.eta <- function(eta, disp, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
@@ -29,10 +29,11 @@ zotgeom <- function() {
     )
   }
   
-  variance <- function(mu, disp, type = "nontrunc") {
+  variance <- function(eta, disp, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = mu * (mu - 1),
-      "trunc" = mu * (mu + 1)
+      "nontrunc" = lambda * (lambda - 1),
+      "trunc" = lambda * (lambda + 1)
     )
   }
   
@@ -42,18 +43,17 @@ zotgeom <- function() {
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
-    eta + ((y - 1) / (1 + exp(eta)) - 1) / weight
+    ((y - 1) / (1 + exp(eta)) - 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- as.matrix(X) %*% beta
       lambda <- exp(eta)
       
@@ -62,15 +62,14 @@ zotgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- X %*% beta
       lambda <- exp(eta)
       S <- 1 / (1 + lambda)
@@ -82,15 +81,14 @@ zotgeom <- function() {
     }
   }
   
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- X %*% beta
       lambda <- exp(eta)
       S <- 1 / (1 + lambda)
@@ -107,40 +105,39 @@ zotgeom <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, mu, wt, disp = NULL) {
-    eta <- log(mu)
+  dev.resids <- function (y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     loghm1y <- ifelse(y > 2, log(y - 2), 0)
     sign(y - mu1) * sqrt(-2 * wt * ((y - 2) * eta - (y - 1) * log(1 + mu1) - (y - 2) * loghm1y + (y - 1) * log(y - 1)))
   }
   
-  pointEst <- function (disp, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     S <- 1 / (1 + lambda)
     prob <- 1 - S - lambda * (S ** 2)
-    N <- (pw * (1 - lambda * (S ** 2)) / prob)
+    N <- pw * (1 - lambda * (S ** 2)) / prob
     if(!contr) {
       N <- sum(N)
     }
     N
   }
   
-  popVar <- function (beta, pw, lambda, disp, cov, X) {
-    alpha <- 1
-    z <- 1 / alpha
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
     M <- 1 + lambda
     S <- 1 / M
     prob <- 1 - S - lambda * (S ** 2)
     
-    bigTheta <- t(as.matrix(X)) %*% (pw * as.numeric(lambda *
-                                    (prob * (lambda - 1) * (S ** 3) -
-                                    2 * lambda * (S ** 3) *
-                                    (1 - lambda * (S ** 2))) / (prob ** 2)))
+    bigTheta <- t(Xvlm) %*% (pw * as.numeric(lambda *
+                            (prob * (lambda - 1) * (S ** 3) -
+                            2 * lambda * (S ** 3) *
+                            (1 - lambda * (S ** 2))) / (prob ** 2)))
     
     bigTheta <- as.vector(bigTheta)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <-  sum(pw * ((1 - lambda * (S ** 2)) ** 2) *
-               (1 - prob) / (prob ** 2))
+    f2 <-  sum(pw * (1 - lambda * S * S) / prob)
     
     f1 + f2
   }
@@ -151,6 +148,10 @@ zotgeom <- function() {
     p_u <- stats::runif(n, lb, ub)
     sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
     sims
+  }
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
   }
   
   structure(
@@ -172,7 +173,10 @@ zotgeom <- function() {
       pointEst = pointEst,
       popVar= popVar,
       simulate=simulate,
-      family = "zotgeom"
+      family = "zotgeom",
+      parNum = 1,
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

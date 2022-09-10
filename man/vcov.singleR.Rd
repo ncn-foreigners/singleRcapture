@@ -2,19 +2,21 @@
 % Please edit documentation in R/Methods.R
 \name{vcov.singleR}
 \alias{vcov.singleR}
-\title{vcov method for singleR class.}
+\title{Obtain Covariance Matrix from Fitted singleR class Object}
 \usage{
-\method{vcov}{singleR}(object, ...)
+\method{vcov}{singleR}(object, type = c("Fisher", "observedInform"), ...)
 }
 \arguments{
-\item{object}{object of clas singleRclass.}
+\item{object}{object of class singleRclass.}
+
+\item{type}{type of estimate for variance covariance matrix for now either
+expected (fisher) information matrix or observed information matrix.}
 
 \item{...}{variables to pass to solve.}
 }
 \value{
-A covariance matrix for fitted coefficients obtained by inverting
-analitical hesian at estimated coefficients, i.e. using Cramér–Rao bound
-with observed information/fisher information matrix.
+A covariance matrix for fitted coefficients, rows and columns of which
+correspond to parameters returned by \code{coef} method.
 }
 \description{
 Returns a estimated covariance matrix for model coefficients
@@ -24,4 +26,6 @@ on call that created object.
 }
 \details{
 vcov method for singleR class
+
+For now the covariance matrix is calculated
 }
