@@ -107,7 +107,7 @@ summary.singleRmargin <- function(object, df = NULL,
                                              "group", 
                                              "no"), 
                                   ...) {
-  # TODO
+  # TODO verify
   if (missing(dropl5)) {dropl5 <- "drop"}
   y <- object$y
   if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
@@ -129,7 +129,7 @@ summary.singleRmargin <- function(object, df = NULL,
     y <- y[!l]
     A <- A[!l]
   }
-
+  
   X2 <- sum(((A - y) ** 2) / A)
   G <- 2 * sum(y * log(y / A))
   pval <- stats::pchisq(q = c(X2, G), df = df, lower.tail = FALSE)
@@ -205,7 +205,6 @@ hatvalues.singleR <- function(model, ...) {
   } else {
     W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = model$linear.predictors)
   }
-
   mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
   hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors))
@@ -229,7 +228,7 @@ dfbetasingleR <- function(model,
                           maxit.new = 1,
                           ...) {
   # TODO
-  if (missing(method)) {method = "simulation"}
+  if (missing(method)) {method <- "simulation"}
   switch (method,
     "formula" = {
       if (model$call$method == "robust") {
@@ -422,7 +421,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
     dfb <- dfbnew
     X <- model$X
   } else {
-    X <- model$X[rownames(model$linear.predictors),]
+    X <- model$X[rownames(model$linear.predictors), ]
   }
   N <- model$populationSize$pointEstimate
   res <- NULL
@@ -435,8 +434,8 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
       cf <- cf[-1]
     }
     res <- c(res, model$trcount + model$model$pointEst(disp = disp,
-             pw = if (length(model$prior.weights) == 1) {model$prior.weights} else {model$prior.weights[-k]},
-             lambda = model$model$linkinv(as.matrix(X[-k, ]) %*% cf)))
+                                                       pw = if (length(model$prior.weights) == 1) {model$prior.weights} else {model$prior.weights[-k]},
+                                                       lambda = model$model$linkinv(as.matrix(X[-k, ]) %*% cf)))
   }
   
   if(isTRUE(observedPop) & (grepl("zot", model$model$family) | model$model$family == "chao")) {
@@ -459,7 +458,6 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @exportS3Method 
 summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, confint = FALSE, ...) {
   if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
-  # Maybe add confidence intervals
   if (missing(test)) {test <- "z"}
   df.residual <- object$df.residual
   cov <- vcov.singleR(object, ...)
@@ -468,8 +466,8 @@ summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", cor
   se <- sqrt(diag(cov))
   wValues <- cf / se
   pValues <- switch (test,
-    "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
-    "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
+                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
+                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
   )
   crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
   if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
@@ -579,4 +577,66 @@ print.summarysingleR <- function(x, ...) {
       row.names = rownames(dd)
     ))
   }
+}
+
+#' @importFrom stats fitted
+#' @method fitted singleR
+#' @exportS3Method 
+fitted.singleR <- function(object,
+                           type = c("mu", 
+                                    "link"), # maybe add marginal frequencies/other options
+                           ...) {
+  if (missing(type)) type <- "mu"
+  object$fitt.values[[type]] # fitted should return either E(Y) or E(Y|Y>0) otherwise we're breaking R conventions
+}
+
+#' simulate
+#' 
+#' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' 
+#' @param object an object representing a fitted model.
+#' @param nsim number of response vectors to simulate. Defaults to \code{1}.
+#' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
+#' @param ... additional optional arguments.
+#' @return a \code{data.frame} with \code{n} rows and \code{nsim} columns.
+#' @seealso [stats::simulate()]
+#' @examples 
+#' set.seed(1)
+#' N <- 10000
+#' gender <- rbinom(N, 1, 0.2)
+#' eta <- -1 + 0.5*gender
+#' counts <- rpois(N, lambda = exp(eta))
+#' df <- data.frame(gender, eta, counts)
+#' df2 <- subset(df, counts > 0)
+#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' mod1_sims <- simulate(mod1, nsim=10)
+#' colMeans(mod1_sims) 
+#' @importFrom stats simulate
+#' @method simulate singleR
+#' @exportS3Method
+simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+    runif(1)
+  if (is.null(seed))
+    RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+  else {
+    R.seed <- get(".Random.seed", envir = .GlobalEnv)
+    set.seed(seed)
+    RNGstate <- structure(seed, kind = as.list(RNGkind()))
+    on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+  }
+  
+  linpred <- object$linear.predictors
+  n <- NROW(linpred)
+  if (grepl("negbin", object$model$family)) {
+    val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion)) # dispersion argument will be removed in next update remember to change that to accomodate that
+  } else {
+    val <- object$model$simulate(n*nsim, exp(linpred))
+  }
+  
+  dim(val) <- c(n, nsim)
+  val <- as.data.frame(val)
+  names(val) <- paste0("sim_", seq_len(nsim))
+  return(val)
 }

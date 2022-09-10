@@ -26,33 +26,40 @@ estimate_popsize(
 )
 }
 \arguments{
-\item{formula}{Description of model to that is supposed to be fitted}
+\item{formula}{Formula for the model to be fitted.}
 
-\item{data}{Data frame for the regression}
+\item{data}{Data frame for the regression.}
 
+\item{model}{Model for regression and population estimate. Possible values are \code{"ztpoisson"}, \code{"ztnegbin"}, \code{"ztgeom"}, \code{"zotpoisson"}, \code{"zotnegbin"}, \code{"zotgeom"}, \code{"zelterman"}, or \code{"chao"}.}
 \item{model}{Model for regression and population estimate, either a name of the model a function or a family class object returned by appropriate function}
 
-\item{weights}{Optional object of prior weights used in fitting the model}
+\item{weights}{Optional object of a priori weights used in fitting the model.}
 
 \item{subset}{A logical vector indicating which observations should be used in regression and population size estimation}
 
 \item{na.action}{TODO}
 
+\item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{robust}) and maximum likelihood (\code{mle}).}
+
+\item{pop.var}{A method of constructing confidence interval either analytic or bootstrap.
+where bootstraped confidence interval may either be based on 2.5\%-97.5\%
+percientiles (\code{"bootstrapPerc"}) or studentized CI (\code{"bootstrapSD"}).}
 \item{method}{Method for fitting values currently supported robust (IRLS) and MaxLikelihood (for now handled by \code{\link[stats:optim]{stats::optim()}})}
 
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap
 where bootstraped confidence interval may be specified in control.pop.var.
 There is also the third possible value of noEst which skips the population size estimate alltogether.}
 
-\item{control.method}{A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.method function}
+\item{control.method}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.method} function.}
 
+\item{control.model}{TODO}
 \item{control.model}{Not yet implemented}
 
-\item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with singleRcapture::control.pop.var function}
+\item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.pop.var} function.}
 
-\item{modelFrame, x, y}{logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output}
+\item{modelFrame, x, y}{Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.}
 
-\item{contrasts}{Not yet implemented}
+\item{contrasts}{Not yet implemented.}
 
 \item{...}{Arguments to be passed to other methods}
 }

@@ -5,7 +5,7 @@
 \alias{farmsubmission}
 \title{All farm submissions}
 \format{
-Data frame with 12036 rows and 4 columns.
+Data frame with 12,036 rows and 4 columns.
 \describe{
 \item{TOTAL_SUB}{Number of submissions}
 \item{log_size}{logarithm of size of farm}
@@ -20,7 +20,7 @@ data("farmsubmission")
 All farm submissions
 }
 \details{
-Data on british animal farms submissions to AHVLA. British farms
+Data on British animal farms submissions to AHVLA. British farms
 are able to submit samples to AHVLA if cause of death of an animal
 cannot be determined and private veterinary surgeon decides to submit them,
 unless there is notifiable disease suspected then it is not required.
@@ -29,6 +29,6 @@ This data set contains farms that have submitted anything at all
 not only carcasses but also blood samples etc.
 }
 \references{
-Bohning et.al (2013) BIOMETRICS 69, 1033-1042
+B{\"o}hning, D., Vidal‐Diez, A., Lerdsuwansri, R., Viwatwongkasem, C., and Arnold, M. (2013). "A generalization of Chao's estimator for covariate information". \emph{Biometrics}, 69(4), 1033-1042. doi:10.1111/biom.12082
 }
 \keyword{datasets}

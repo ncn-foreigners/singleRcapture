@@ -1,12 +1,12 @@
 #' Marginal Frequencies
 #'
-#' @param object object of class singleR
-#' @param includeones Boolean value indicating whether to include estimated number of zero counts
-#' @param includezeros Boolean value indicating whether to include one counts in zero one truncated models
-#' @param onecount a numeric value indicating number of one counts if null trcount from object will be assumed to be a number one counts
-#' @param range optional argument specifying range of selected Y values
+#' @param object Object of class singleR.
+#' @param includeones Boolean value indicating whether to include the estimated number of zero counts.
+#' @param includezeros Boolean value indicating whether to include one counts in the zero-one truncated models.
+#' @param onecount A numeric value indicating number of one counts if null \code{trcount} from object will be assumed to be a number one counts.
+#' @param range Optional argument specifying range of selected Y values.
 #'
-#' @return A table with marginal frequencies predicted by the model
+#' @return A table with marginal frequencies predicted by the model.
 #' @export
 marginalFreq <- function(object,
                          includeones = TRUE, # matters only for one truncated models

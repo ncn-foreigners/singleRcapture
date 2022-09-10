@@ -140,6 +140,15 @@ zotpoisson <- function() {
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda) - stats::dpois(x = 1, lambda = lambda))
   }
 
+  ## is this a correct way to simulate data from this distribution?
+  simulate <- function(n, lambda, lower=1, upper=Inf) {
+    lb <- stats::ppois(lower, lambda)
+    ub <- stats::ppois(upper, lambda)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qpois(p_u, lambda)
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -158,6 +167,7 @@ zotpoisson <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate = simulate,
       family = "zotpoisson",
       parNum = 1,
       etaNames = "lambda",

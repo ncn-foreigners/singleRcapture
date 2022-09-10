@@ -142,6 +142,13 @@ zotgeom <- function() {
     f1 + f2
   }
   
+  simulate <- function(n, lambda, theta=1, lower=1, upper=Inf) {
+    lb <- stats::pnbinom(lower, mu=lambda, size = theta)
+    ub <- stats::pnbinom(upper, mu=lambda, size = theta)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
+    sims
+  }
   dFun <- function (x, eta, type = "trunc") {
     lambda <- invlink(eta)
     stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
@@ -165,6 +172,7 @@ zotgeom <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate=simulate,
       family = "zotgeom",
       parNum = 1,
       etaNames = "lambda",

@@ -126,6 +126,14 @@ ztpoisson <- function() {
     f1 + f2
   }
   
+  simulate <- function(n, lambda, lower=0, upper=Inf) {
+    lb <- stats::ppois(lower, lambda)
+    ub <- stats::ppois(upper, lambda)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qpois(p_u, lambda)
+    sims
+  }
+  
   dFun <- function (x, eta, type = "trunc") {
     lambda <- invlink(eta)
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
@@ -149,6 +157,7 @@ ztpoisson <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate = simulate,
       family = "ztpoisson",
       parNum = 1,
       etaNames = "lambda",

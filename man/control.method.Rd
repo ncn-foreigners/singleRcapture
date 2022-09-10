@@ -22,6 +22,27 @@ control.method(
 )
 }
 \arguments{
+\item{epsilon}{Absolute tolerance for fitting algorithms by default 1e-8.}
+
+\item{dispEpsilon}{Absolute tolerance for estimating dispersion parameter by default 1e-5.}
+
+\item{maxiter}{Maximum number of iterations.}
+
+\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihood) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace.}
+
+\item{start}{Initial parameters for regression coefficients if NULL they will be derived from simple poisson regression.}
+
+\item{dispersionstart}{Initial parameters for dispersion parameter if applicable.}
+
+\item{mleMethod}{Passed to stats::optim. L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used.}
+
+\item{silent}{Logical, indicating whether warnings in robust method should be suppressed.}
+
+\item{optimPass}{Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.}
+
+\item{disp.given}{Logical, indicates whether to estimate dispersion parameter or assume the one provided is already correct.}
+
+\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1.}
 \item{epsilon}{relative tolerance (absolute for robust method) for fitting algorithms by default 1e-8.}
 
 \item{maxiter}{Maximal number of iterations.}
@@ -63,7 +84,7 @@ the update will be made as:
 \item{momentumActivation}{the value of log-likelihood reduction bellow which momentum will apply.}
 }
 \value{
-A list with selected parameters, it is also possible to call list directly.
+List with selected parameters, it is also possible to call list directly.
 }
 \description{
 Control parameters for regression

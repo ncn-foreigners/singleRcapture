@@ -389,6 +389,14 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
   }
 
+  simulate <- function(n, lambda, theta, lower=1, upper=Inf) {
+    lb <- stats::pnbinom(lower, mu=lambda, size = theta)
+    ub <- stats::pnbinom(upper, mu=lambda, size = theta)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -405,7 +413,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,
-      popVar= popVar,
+      popVar = popVar,
+      simulate = simulate,
       family = "zotnegbin",
       parNum = 2,
       etaNames = c("lambda", "alpha"),

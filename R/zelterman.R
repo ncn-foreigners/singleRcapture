@@ -129,6 +129,14 @@ zelterman <- function() {
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
 
+  simulate <- function(n, lambda, lower=0, upper=2) {
+    lb <- stats::ppois(lower, lambda)
+    ub <- stats::ppois(upper, lambda)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- stats::qpois(p_u, lambda)
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -147,6 +155,7 @@ zelterman <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
+      simulate = simulate,
       family = "zelterman",
       parNum = 1,
       etaNames = "lambda",

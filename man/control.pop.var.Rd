@@ -19,20 +19,23 @@ control.pop.var(
 )
 }
 \arguments{
-\item{alpha}{Significance level, a number from range (0, 1) 5\% by default.}
+\item{alpha}{Significance level, 0.05 used by default.}
 
-\item{trcount}{Truncated count - a number to be added to point estimator and both sides of confidence intervals.}
+\item{trcount}{Truncated count -- a number to be added to point estimator and both sides of confidence intervals.}
 
-\item{bootType}{Type of bootstrap performed, by default Parametric, other posible values are: Semiparametric and Nonparametric.}
+\item{bootType}{Bootstrap type. Default is \code{"parametric"}, other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.}
 
-\item{B}{Number of bootstrap samples to be performed.}
+\item{B}{Number of bootstrap samples to be performed (default 500).}
 
-\item{confType}{Type of confidence interval for bootstrap confidence interval, percentilic by default.}
+\item{confType}{Type of confidence interval for bootstrap confidence interval, \code{"percentile"} by default. Other possibility: \code{"studentized"} and \code{"basic"}.}
 
-\item{keepbootStat}{Boolean value indicating whether to keep a vector of statistic produced by bootstrap, for large values of B it may significant amount of size.}
+\item{keepbootStat}{Boolean value indicating whether to keep a vector of statistics produced by bootstrap.}
 
-\item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi and fully parametric boostraps.}
+\item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.}
 
+\item{fittingMethod}{Method used for fitting models from bootstrap samples.}
+
+\item{bootstrapFitcontrol}{Control parameters for each regression works exactly like \code{control.method}}
 \item{fittingMethod}{Method used for fitting models from boostrap samples either "robust" or "mle" is left as NULL will be chosen automatically.}
 
 \item{bootstrapFitcontrol}{Control parameters for each regression works exactly like control.method.}
@@ -43,7 +46,7 @@ for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal
 \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
 where the ration involving gamma functions is computed by loggamma function.}
 
-\item{covType}{type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.}
+\item{covType}{Type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly.
