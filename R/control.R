@@ -94,6 +94,7 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param confType Type of confidence interval for bootstrap confidence interval, \code{"percentile"} by default. Other possibility: \code{"studentized"} and \code{"basic"}.
 #' @param keepbootStat Boolean value indicating whether to keep a vector of statistics produced by bootstrap.
 #' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.
+#' @param bootstrapVisualTrace TODO
 #' @param fittingMethod Method used for fitting models from bootstrap samples.
 #' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{control.method} but for fitting models from bootstrap samples.
 #' @param sd Indicates how to compute standard deviation of population size estimator either as:
@@ -116,6 +117,7 @@ control.pop.var <- function(alpha = .05,
                                          "basic"), # TODO: add all
                             keepbootStat = TRUE,
                             traceBootstrapSize = FALSE,
+                            bootstrapVisualTrace = FALSE,
                             fittingMethod = NULL,
                             bootstrapFitcontrol = NULL,
                             sd = c("sqrtVar", "normalMVUE"),
@@ -130,6 +132,7 @@ control.pop.var <- function(alpha = .05,
     confType = if(missing(confType)) "percentilic" else confType,
     keepbootStat = keepbootStat,
     traceBootstrapSize = traceBootstrapSize,
+    bootstrapVisualTrace = bootstrapVisualTrace,
     fittingMethod = fittingMethod,
     bootstrapFitcontrol = bootstrapFitcontrol,
     sd = if(missing(sd)) "sqrtVar" else sd,

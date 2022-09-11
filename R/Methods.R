@@ -107,7 +107,6 @@ summary.singleRmargin <- function(object, df = NULL,
                                              "group", 
                                              "no"), 
                                   ...) {
-  # TODO verify
   if (missing(dropl5)) {dropl5 <- "drop"}
   y <- object$y
   if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
@@ -227,7 +226,9 @@ dfbetasingleR <- function(model,
                           method = c("formula", "simulation"),
                           maxit.new = 1,
                           ...) {
-  # TODO
+  ###################
+  ### TODO update ###
+  ###################
   if (missing(method)) {method <- "simulation"}
   switch (method,
     "formula" = {
@@ -413,6 +414,9 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
 #' @method dfpopsize singleR
 #' @exportS3Method 
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
+  ###################
+  ### TODO update ###
+  ###################
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
     dfbnew <- matrix(0, ncol = ncol(dfb), nrow = model$sizeObserved)
@@ -499,7 +503,12 @@ summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", cor
 #' @method cooks.distance singleR
 #' @exportS3Method 
 cooks.distance.singleR <- function(model, ...) {
-  res <- ((residuals(model, type = "pearson") ** 2) * (hatvalues(model) / (length(model$coefficients))))$pearson
+  ###################
+  ### TODO update ###
+  ###################
+  res <- residuals(model, type = "pearsonSTD") ** 2
+  res <- res[, 1]
+  res <- (res * (hatvalues(model) / (length(model$coefficients))))
   names(res) <- rownames(model$linear.predictors)
   res
 }
@@ -616,6 +625,9 @@ fitted.singleR <- function(object,
 #' @method simulate singleR
 #' @exportS3Method
 simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
+  ###################
+  ### TODO update ###
+  ###################
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
     runif(1)
   if (is.null(seed))

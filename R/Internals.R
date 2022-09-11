@@ -158,7 +158,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      hessian, family,
                                                      eta, pop.var,
                                                      control, hwm,
-                                                     Xvlm, W) {
+                                                     Xvlm, W, formulas) {
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
@@ -192,18 +192,20 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                       "parametric" = parBoot,
                       "semiparametric" = semparBoot,
                       "nonparametric" = noparBoot)
-    N <- family$pointEst(pw = weights,
+    N <- family$pointEst(pw = if (family$family == "chao") weights[y %in% 1:2] else weights,
                          eta = eta) + trcount
     
-    # TODO: verify bootstrap with simulate function in family functions
     strappedStatistic <- funBoot(family = family,
-                                 y = y, 
-                                 X = X,
+                                 formulas = formulas,
+                                 y = y, X = Xvlm,
+                                 hwm = hwm,
                                  beta = beta,
                                  weights = weights,
                                  trcount = trcount,
                                  numboot = numboot,
+                                 eta = eta,
                                  trace = control$traceBootstrapSize,
+                                 visT = control$bootstrapVisualTrace,
                                  method = control$fittingMethod,
                                  control.bootstrap.method = control$bootstrapFitcontrol)
 
@@ -301,7 +303,6 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     #   stop("Fit error infinite values reached consider another model,
     #         mu is too close to zero/infinity")
     # }
-    
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
@@ -413,10 +414,13 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
 }
 # Chosing data for estimation/regression
 singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop.var) {
-  aeq <- TRUE
   if (grepl("zot", family$family)) {
     trr <- sum(observed == 1)
     wch1 <- wch2 <- (observed > 1)
+    if (pop.var != "analytic") {
+      # in bootstrap we need all
+      wch2 <- rep(TRUE, length(observed))
+    }
   } else if (family$family == "chao") {
     trr <- sum(observed > 2)
     wch1 <- wch2 <- (observed %in% c(1, 2))
@@ -430,14 +434,12 @@ singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop
     wch1 <- (observed %in% c(1, 2))
     wch2 <- rep(TRUE, length(observed))
     trr <- 0
-    aeq <- FALSE
   } else {
     trr <- 0
     wch1 <- wch2 <- rep(TRUE, length(observed))
   }
   list(reg = wch1, # which rows for regression
        est = wch2, # which rows for estimation
-       aeq = aeq,  # all equal
        trr = trr)  # add to trcount
 }
 # TODO:: additional verification

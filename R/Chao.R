@@ -19,13 +19,21 @@ chao <- function() {
   link <- function(x) {log(x / 2)}
   invlink <- function (x) {2 * exp(x)}
   dlink <- function(lambda) {1 / lambda}
-
-  mu.eta <- function(eta, ...) {
-    1 / (1 + exp(-eta))
+  
+  mu.eta <- function(eta, type = "trunc", ...) {
+    lambda <- invlink(eta)
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = 1 / (1 + exp(-eta))
+    )
   }
-
-  variance <- function(mu, ...) {
-    mu * (1 - mu)
+  
+  variance <- function(eta, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = (1 / (1 + exp(-eta))) * (1 / (1 + exp(eta)))
+    )
   }
   
   Wfun <- function(prior, eta, ...) {
@@ -42,9 +50,7 @@ chao <- function() {
 
   minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -59,9 +65,7 @@ chao <- function() {
 
   gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -76,9 +80,7 @@ chao <- function() {
 
   hessian <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -126,7 +128,7 @@ chao <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, lower=0, upper=2) {
+  simulate <- function(n, lambda, lower = 0, upper = 2) {
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)

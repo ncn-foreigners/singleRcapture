@@ -20,7 +20,6 @@ ztHurdlegeom <- function() {
   invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    # TODO
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
@@ -31,7 +30,6 @@ ztHurdlegeom <- function() {
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
-    # TODO
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]

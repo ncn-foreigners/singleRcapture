@@ -289,7 +289,7 @@ estimate_popsize <- function(formula,
     #y = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) observed[wch$reg] else observed,
     y = observed[wch$est],
     #X = if ((grepl(x = family$family, pattern = "^zot.*") || family$family == "chao") && (pop.var == "analytic")) Xvlm else variables,
-    X = variables[wch$est,],
+    X = variables[wch$est, ],
     grad = grad,
     hessian = hessian,
     pop.var = pop.var,
@@ -299,7 +299,7 @@ estimate_popsize <- function(formula,
     beta = coefficients,
     control = control.pop.var,
     hwm = hwm,
-    Xvlm = Xvlm,
+    Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
     W = if (method == "robust") weights else family$Wfun(prior = prior.weights, eta = eta)
   )
   structure(

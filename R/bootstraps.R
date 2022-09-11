@@ -1,103 +1,73 @@
 # These functions are only used internally in the package so there is no need for documenting them
 noparBoot <- function(family,
-                      y,
-                      X,
-                      dispersion,
+                      formulas,
+                      y, X,
                       beta,
                       weights,
                       trcount,
                       numboot,
-                      lambda,
+                      eta,
                       trace,
+                      visT,
+                      hwm,
                       control.bootstrap.method = NULL,
                       method) {
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
-  if (length(weights[[2]]) == 1) {
-    weights[[2]] <- rep(1, n)
-  }
-  weights <- weights[[2]]
   
   if (length(weights) == 1) {
-    weights <- rep(1, length(lambda))
+    weights <- rep(1, n)
   }
   
   k <- 1
+  
+  if (visT) {
+    plot(
+      1, type = "n",
+      xlab = "Bootstrap sample", 
+      ylab = "Value of population size estimator",
+      main = "Points will be added in real time.",
+      xlim = c(0, numboot + 1), ylim = c(0, 5 * n)
+    )
+  }
+  
   while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n)
     ystrap <- as.numeric(y[strap])
-    weightsstrap <- as.numeric(weights[strap])
-    Xstrap <- as.matrix(X[strap, ])
-    
-    weightsstraptemp <- weightsstrap
-    Xstraptemp <- Xstrap
-    
-    if (famName == "zelterman") {
-      df <- data.frame(ystrap,
-                       weightsstrap,
-                       Xstrap)
-
-      df <- df[df[1] == 1 | df[1] == 2, ]
-
-      ystrap <- as.numeric(unlist(df[1]))
-      weightsstraptemp <- as.numeric(unlist(df[2]))
-      Xstraptemp <- as.matrix(df[-c(1, 2)])
-    } else if (grepl(x = famName, pattern = "^zot.*")) {
-      df <- data.frame(ystrap,
-                       weightsstrap,
-                       Xstrap)
-      
-      trcount <- nrow(df[df["ystrap"] == 1, ])
-      df <- df[df["ystrap"] > 1, ]
-      ystrap <- as.numeric(unlist(df[1]))
-      weightsstraptemp <- as.numeric(unlist(df[2]))
-      Xstraptemp <- as.matrix(df[-c(1, 2)])
-      Xstrap <- Xstraptemp
-      weightsstrap <- weightsstraptemp
-    } else if (famName == "chao") {
-      df <- data.frame(ystrap,
-                       weightsstrap,
-                       Xstrap)
-      
-      df <- df[df[1] == 1 | df[1] == 2, ]
-      
-      ystrap <- as.numeric(df[, 1])
-      weightsstraptemp <- as.numeric(unlist(df[, 2]))
-      weightsstrap <- weightsstraptemp
-      Xstraptemp <- as.matrix(df[, -c(1, 2)])
-      Xstrap <- Xstraptemp
+    weightsStrap <- as.numeric(weights[strap])
+    strapXvlm <- NULL
+    for (j in 1:family$parNum) {
+      strapXvlm <- c(strapXvlm, strap + (j - 1) * n)
     }
+    Xstrap <- as.matrix(X[strapXvlm, ]) # Xvlm matrix
     
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     theta <- NULL
     try(
-      {theta <- estimate_popsize.fit(
-        y = ystrap,
-        X = Xstraptemp,
+      theta <- estimate_popsize.fit(
+        y = ystrap[wch$reg],
+        X = Xstrap[rep(wch$reg, family$parNum), ],
         family = family,
         control = control.bootstrap.method,
         method = method,
-        prior.weights = weightsstraptemp,
-        start = c(dispersion, beta),
-        dispersion = dispersion,
-        omegaTheta = NULL
-      )$beta;
-      if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
+        prior.weights = weightsStrap[wch$reg],
+        start = jitter(beta),
+        hwm = hwm
+      )$beta,
       silent = TRUE
     )
-    
-    k <- k - 1
+    k <- k + 1
     
     if (is.null(theta)) {
       k <- k - 1
     } else {
-      theta <- family$linkinv(Xstrap %*% theta)
-      if (isTRUE(trace)) {print(summary(as.numeric(theta)))}
+      theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+      if (isTRUE(trace)) {print(summary(theta))}
+      est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta[wch$est, ]) + wch$trr
+      if (visT) points(k - 1, est, col = ((k - 1) %% 4) + 1, pch = 20)
       
-      strappedStatistic <- c(strappedStatistic,
-                             family$pointEst(disp = dispersion,
-                                             pw = weightsstrap,
-                                             lambda = theta) + trcount)
+      strappedStatistic <- c(strappedStatistic,est)
     }
   }
   
@@ -108,17 +78,22 @@ noparBoot <- function(family,
 #' @importFrom stats rgeom
 #' @importFrom stats optim
 parBoot <- function(family,
-                    y,
-                    X,
-                    dispersion,
+                    formulas,
+                    y, X,
                     beta,
                     weights,
                     trcount,
                     numboot,
-                    lambda,
+                    eta,
                     trace,
+                    visT,
+                    hwm,
                     control.bootstrap.method = NULL,
                     method) {
+  ###################
+  ### TODO update ###
+  ###################
+  stop("Parametric bootstrap not yet updated")
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
@@ -266,36 +241,45 @@ parBoot <- function(family,
   strappedStatistic
 }
 semparBoot <- function(family,
-                       y,
-                       X,
-                       dispersion,
+                       formulas,
+                       y, X,
                        beta,
                        weights,
                        trcount,
                        numboot,
-                       lambda,
+                       eta,
                        trace,
+                       visT,
+                       hwm,
                        control.bootstrap.method = NULL,
                        method) {
+  ###################
+  ### TODO update ###
+  ###################
+  stop("Not yet updated")
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
-  if (length(weights[[1]]) == 1) {
-    weights[[1]] <- rep(1, length(lambda))
+  if (length(weights) == 1) {
+    weights <- rep(1, n)
   }
   
-  if (length(weights[[2]]) == 1) {
-    weights[[2]] <- rep(1, n)
+  if (visT) {
+    plot(
+      1, type = "n",
+      xlab = "Bootstrap sample", 
+      ylab = "Value of population size estimator",
+      main = "Points will be added in real time.",
+      xlim = c(0, numboot + 1), ylim = c(0, 5 * n)
+    )
   }
   
   if (isFALSE(grepl(x = famName, pattern = "^(zot|cha).*"))) {
-    N <- round(family$pointEst(disp = dispersion, 
-                               pw = weights[[2]], 
-                               lambda = lambda))
+    N <- round(family$pointEst(pw = weights[[2]], 
+                               eta = eta) + trcount)
   } else {
-    N <- round(family$pointEst(disp = dispersion, 
-                               pw = weights[[1]], 
-                               lambda = lambda) + trcount)
+    N <- round(family$pointEst(pw = weights[[1]], 
+                               eta = eta) + trcount)
   }
   
   
