@@ -227,7 +227,7 @@ oiztgeom <- function() {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    ifelse(x == 1, ((lambda ** 2) * omega + lambda * omega + omega) / (lambda ** 2 + lambda * omega + omega), 
+    ifelse(x == 1, ((lambda ** 2) * omega + lambda * omega + lambda + omega) / (lambda ** 2 + lambda * omega + lambda + omega), 
            ((lambda / (1 + lambda)) ** x) * (1 - omega) / (lambda + omega))
   }
   

@@ -1,7 +1,6 @@
 #' Control parameters for regression
 #'
 #' @param epsilon Absolute tolerance for fitting algorithms by default 1e-8.
-#' @param dispEpsilon Absolute tolerance for estimating dispersion parameter by default 1e-5.
 #' @param maxiter Maximum number of iterations.
 #' @param verbose Value indicating whether to trace steps of fitting algorithm for robust fitting method different values of verbose give the following information:
 #' \itemize{

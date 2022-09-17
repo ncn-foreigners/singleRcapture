@@ -163,7 +163,12 @@ summary.singleRmargin <- function(object, df = NULL,
 #' @exportS3Method
 vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  X <- singleRinternalGetXvlmMatrix(X = object$modelFrame[object$which$reg, attr(object$modelFrame, "names")[-1]], nPar = object$model$parNum, 
+  aux <- object$modelFrame[object$which$reg, attr(object$modelFrame, "names")[-1]]
+  if (!is.data.frame(aux)) {
+    aux <- as.data.frame(aux, row.names = rownames(object$modelFrame))
+    colnames(aux) <- attr(object$modelFrame, "names")[-1]
+  }
+  X <- singleRinternalGetXvlmMatrix(X = aux, nPar = object$model$parNum, 
                                     formulas = object$formula, parNames = object$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
@@ -202,74 +207,48 @@ hatvalues.singleR <- function(model, ...) {
   if (model$call$method == "robust") {
     W <- model$weights
   } else {
-    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = model$linear.predictors)
+    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors)
   }
   mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
-  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = dimnames(model$linear.predictors))
+  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = list(1:(length(hatvalues) / model$model$parNum), model$model$etaNames))
   hatvalues
 }
 #' dfbeta for singleRclass
 #' @title TODO
 #' @param model Fitted object of singleR class
-#' @param method Method for finding dfbetas, either "formula" where the formula for 
-#' approximate difference will be used or "simulation" where for each observation new 
-#' object will be fitted, with already obtained coefficients as starting values and with 
-#' just 1 iteration (or other number specified in maxit.new parameter), with i'th row 
-#' removed for all observations.
 #' @param maxit.new maximal number of iterations for regression
 #' @param ... Arguments to pass to other methods
 #' @description TODO
 #' 
 #' @return TODO
-dfbetasingleR <- function(model, 
-                          method = c("formula", "simulation"),
+dfbetasingleR <- function(model,
                           maxit.new = 1,
                           ...) {
-  ###################
-  ### TODO update ###
-  ###################
-  if (missing(method)) {method <- "simulation"}
-  switch (method,
-    "formula" = {
-      if (model$call$method == "robust") {
-        W <- model$weights
-      } else {
-        W <- model$model$Wfun(prior = model$prior.weights[rownames(model$linear.predictors), ], mu = model$fitt.values$mu, eta = model$linear.predictors, disp = model$dispersion)
-      }
-      X <- model$X[rownames(model$X) %in% rownames(model$linear.predictors),]
-      hatvector <- hatvalues.singleR(model, ...)
-      rp <- residuals.singleR(object = model, type = "pearson")$pearson
-      res <- t(
-        solve(crossprod(x = X, (X * W))) %*% (t(X) * sqrt(W) * rp / sqrt(1 - hatvector))
-      )},
-    "simulation" = {
-      X <- model$X[rownames(model$X) %in% rownames(model$linear.predictors),]
-      if (model$model$family %in% c("chao", "zelterman")) {
-        y <- model$y[model$y %in% c(1, 2)]
-      } else {
-        y <- model$y
-      }
-      res <- matrix(nrow = nrow(X), ncol = ncol(X) + !(is.null(model$dispersion)))
-      cf <- model$coefficients
-      for (k in 1:nrow(X)) {
-        res[k, ] <- cf - estimate_popsize.fit(
-          control = control.method(
-            silent = TRUE, 
-            start = cf,
-            maxiter = maxit.new + 1 
-          ),
-          y = y[-k],
-          X = X[-k, ],
-          start = cf,
-          dispersion = model$dispersion,
-          family = model$model,
-          prior.weights = if (length(model$prior.weights) == 1) model$prior.weights else model$prior.weights[-k],
-          method = model$call$method
-        )$beta
-      }
-    }
-  )
+  # formula method removed since it doesn't give good results will reimplement if we find better formula
+  X <- model$modelFrame[model$which$reg, attr(model$modelFrame, "names")[-1]]
+  y <- model$y[model$which$reg]
+  cf <- model$coefficients
+  pw <- model$prior.weights[model$which$reg]
+  res <- matrix(nrow = nrow(X), ncol = length(cf))
+  hwm <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[2]]
+  for (k in 1:nrow(X)) {
+    res[k, ] <- cf - estimate_popsize.fit(
+      control = control.method(
+        silent = TRUE, 
+        start = cf,
+        maxiter = maxit.new + 1,
+        ...
+      ),
+      y = y[-k],
+      X = singleRinternalGetXvlmMatrix(X = X[-k, ], nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]],
+      start = cf,
+      family = model$model,
+      prior.weights = pw[-k],
+      method = model$call$method,
+      hwm = hwm
+    )$beta
+  }
   colnames(res) <- names(model$coefficients)
   res
 }
@@ -328,17 +307,17 @@ residuals.singleR <- function(object,
   if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
-    working = as.data.frame(object$model$funcZ(eta = object$linear.predictors, weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
+    working = as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
     response = res,
     pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
-    pearsonSTD = data.frame("pearsonSTD" = res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc"))),
+    pearsonSTD = data.frame("pearsonSTD" = if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
-      as.data.frame(object$model$funcZ(eta = object$linear.predictors, weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
+      as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
       res,
       "pearson" = as.numeric(res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
-      "pearsonSTD" = if (object$model$parNum == 1) as.numeric(res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linear.predictors, type = "trunc"))) else 0,
+      "pearsonSTD" = if (object$model$parNum == 1) as.numeric(if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ], type = "trunc"))) else 0,
       "deviance" = as.numeric(object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
       row.names = rownames(object$linear.predictors)
     )}
@@ -423,30 +402,24 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
     rownames(dfbnew) <- as.character(1:model$sizeObserved)
     dfbnew[rownames(dfb), ] <- dfb
     dfb <- dfbnew
-    X <- model$X
-  } else {
-    X <- model$X[rownames(model$linear.predictors), ]
   }
+  X <- model$modelFrame[model$which$est, attr(model$modelFrame, "names")[-1]]
   N <- model$populationSize$pointEstimate
   res <- NULL
-  range <- if(model$model$family == "zelterman") {1:model$sizeObserved} else {1:nrow(X)}
+  range <- 1:sum(model$which$est)
+  pw <- model$prior.weights[model$which$est]
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
-    disp <- model$dispersion
-    if (grepl("negbin", model$model$family)) {
-      disp <- cf[1]
-      cf <- cf[-1]
-    }
-    res <- c(res, model$trcount + model$model$pointEst(disp = disp,
-                                                       pw = if (length(model$prior.weights) == 1) {model$prior.weights} else {model$prior.weights[-k]},
-                                                       lambda = model$model$linkinv(as.matrix(X[-k, ]) %*% cf)))
+    res <- c(res, model$model$pointEst(
+      eta = matrix(singleRinternalGetXvlmMatrix(X = X[-k, ], nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]] %*% cf, ncol = model$model$parNum),
+      pw = pw[-k]) + model$trcount)
   }
   
   if(isTRUE(observedPop) & (grepl("zot", model$model$family) | model$model$family == "chao")) {
-    res1 <- rep(Inf, model$sizeObserved)
+    res1 <- vector(mode = "numeric", length = model$sizeObserved)
     names(res1) <- 1:model$sizeObserved
-    res1[rownames(model$linear.predictors)] <- N - res
-    res1[is.infinite(res1)] <- -1
+    res1[model$which$est] <- N - res
+    res1[!model$which$est] <- 1
   } else {
     res1 <- N - res
     if (model$model$family != "zelterman") {
@@ -503,9 +476,7 @@ summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", cor
 #' @method cooks.distance singleR
 #' @exportS3Method 
 cooks.distance.singleR <- function(model, ...) {
-  ###################
-  ### TODO update ###
-  ###################
+  if (model$model$parNum > 1) stop("Cooks distance is only implemented for single parameter families.")
   res <- residuals(model, type = "pearsonSTD") ** 2
   res <- res[, 1]
   res <- (res * (hatvalues(model) / (length(model$coefficients))))
@@ -570,7 +541,7 @@ print.summarysingleR <- function(x, ...) {
       "\nPopulation size estimation results: ",
       "\nPoint estimate ", x$populationSize$pointEstimate, 
       "\nObserved proportion: ", round(100 * x$sizeObserved / x$populationSize$pointEstimate, digits = 1), "% (N obs = ", x$sizeObserved, ")",
-      if (isTRUE(x$call$pop.var == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sqrt(x$populationSize$variance),
+      if (isTRUE(x$call$pop.var == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sd,
       "\n", (1 - x$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(x$populationSize$confidenceInterval)
   cat((1 - x$populationSize$control$alpha) * 100, "% CI for the share of observed population:\n", sep = "")
@@ -628,6 +599,7 @@ simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
   ###################
   ### TODO update ###
   ###################
+  stop("Not yet updated")
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
     runif(1)
   if (is.null(seed))

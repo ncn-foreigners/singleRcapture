@@ -86,10 +86,10 @@ singleRcaptureinternalIRLS <- function(dependent,
     
     L <- -logLike(beta)
     
-    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg), "\n")}
-    if (trace > 1) {cat(sep = " ", "Parameter vector: ", format(beta, scientific = FALSE, digits = dg), "\n")}
-    if (trace > 2) {cat(sep = " ", "log-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg), "\n")}
-    if (trace > 3) {cat(sep = " ", "Value of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+    if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
+    if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+    if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
     if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     
     if (L < LPrev) {
@@ -158,7 +158,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      hessian, family,
                                                      eta, pop.var,
                                                      control, hwm,
-                                                     Xvlm, W, formulas) {
+                                                     Xvlm, W, formulas,
+                                                     sizeObserved) {
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
@@ -171,43 +172,44 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       "observedInform" = solve(-hessian(beta)),
       "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% Xvlm)
     )
-    # TODO : add Fisher for negbins
     
     variation <- as.numeric(family$popVar(eta = eta, 
                                           pw = weights,
                                           cov = cov,
                                           Xvlm = if (family$family == "zelterman") X else Xvlm))
     
-    G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
+    sd <- sqrt(variation)
+    if (control$sd == "normalMVUE") {
+      sd <- sd / (sqrt(2 / (sizeObserved - 1)) * exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved - 1) / 2)))
+    }
+    
+    G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ** 2))))
     confidenceInterval <- data.frame(t(data.frame(
-      "Studentized" = c(lowerBound = max(N - sc * sqrt(variation), 
-                                         length(y) + trcount), 
-                        upperBound = N + sc * sqrt(variation)),
-      "Logtransform" = c(lowerBound = max(length(y) + (N - length(y)) / G, 
-                                         (length(y) + trcount)), 
-                         upperBound = length(y) + (N - length(y)) * G)
+      "Studentized" = c(lowerBound = max(N - sc * sd, 
+                                         sizeObserved), 
+                        upperBound = N + sc * sd),
+      "Logtransform" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
+                                          sizeObserved), 
+                         upperBound = sizeObserved + (N - sizeObserved) * G)
     )))
   } else if (grepl("bootstrap", pop.var, fixed = TRUE)) {
     funBoot <- switch(control$bootType,
                       "parametric" = parBoot,
                       "semiparametric" = semparBoot,
                       "nonparametric" = noparBoot)
-    N <- family$pointEst(pw = if (family$family == "chao") weights[y %in% 1:2] else weights,
+    N <- family$pointEst(pw = if (family$family == "chao") weights[y %in% 1:2] else if (grepl(pattern = "^zot", x = family$family)) weights[y > 1] else weights,
                          eta = eta) + trcount
-    
-    strappedStatistic <- funBoot(family = family,
-                                 formulas = formulas,
-                                 y = y, X = Xvlm,
-                                 hwm = hwm,
-                                 beta = beta,
-                                 weights = weights,
-                                 trcount = trcount,
-                                 numboot = numboot,
-                                 eta = eta,
-                                 trace = control$traceBootstrapSize,
-                                 visT = control$bootstrapVisualTrace,
-                                 method = control$fittingMethod,
-                                 control.bootstrap.method = control$bootstrapFitcontrol)
+    strappedStatistic <- funBoot(
+      family = family, formulas = formulas,
+      y = y, X = X, hwm = hwm,
+      beta = beta, weights = weights,
+      trcount = trcount, numboot = numboot,
+      eta = eta, trace = control$traceBootstrapSize,
+      visT = control$bootstrapVisualTrace,
+      method = control$fittingMethod,
+      control.bootstrap.method = control$bootstrapFitcontrol,
+      N = N, Xvlm = Xvlm
+    )
 
     if (N < stats::quantile(strappedStatistic, .05)) {
       warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
@@ -220,21 +222,26 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     
     variation <- stats::var(strappedStatistic)
     
+    sd <- sqrt(variation)
+    if (control$sd == "normalMVUE") {
+      sd <- sd / (sqrt(2 / (sizeObserved - 1)) * exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved- 1) / 2)))
+    }
+    
     if (control$confType == "percentilic") {
       confidenceInterval <- stats::quantile(strappedStatistic,
                                             c(siglevel / 2,
                                               1 - siglevel / 2))
       names(confidenceInterval) <- c("lowerBound", "upperBound")
     } else if (control$confType == "studentized") {
-      G <- exp(sc * sqrt(log(1 + variation / ((N - length(y)) ** 2))))
+      G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ** 2))))
       
       confidenceInterval <- data.frame(t(data.frame(
-        "Studentized" = c(lowerBound = max(N - sc * sqrt(variation), 
-                                           (length(y) + trcount)), 
-                          upperBound = N + sc * sqrt(variation)),
-        "Logtransform" = c(lowerBound = max(length(y) + (N - length(y)) / G, 
-                                            (length(y) + trcount)), 
-                           upperBound = length(y) + (N - length(y)) * G)
+        "Studentized" = c(lowerBound = max(N - sc * sd, 
+                                           sizeObserved), 
+                          upperBound = N + sc * sd),
+        "Logtransform" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
+                                            sizeObserved), 
+                           upperBound = sizeObserved + (N - sizeObserved) * G)
       )))
     } else if (control$confType == "basic") {
       confidenceInterval <- 2 * N - stats::quantile(strappedStatistic,
@@ -393,6 +400,32 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
   formulas[[1]][[2]] <- NULL
   Xses <- list()
   parentFrame <- X
+  for (k in 1:nPar) {
+    Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
+    if (k != 1) {
+      colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
+    }
+  }
+  hwm <- sapply(Xses, ncol)
+  # TODO: sparse matrix, maybe use Matrix
+  Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
+  colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
+  row <- 0
+  col <- 0
+  for (k in Xses) {
+    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- as.matrix(k)
+    row <- row + nrow(k)
+    col <- col + ncol(k)
+  }
+  list(Xvlm, hwm)
+}
+singleRinternalGetXvlmFromX <- function(X, nPar, formulas, parNames) {
+  formulas[[1]][[2]] <- NULL
+  Xses <- list()
+  parentFrame <- as.data.frame(X)
+  if ("(Intercept)" %in% colnames(parentFrame)) {
+     parentFrame <- parentFrame[, -which(colnames(parentFrame) == "(Intercept)")]
+  }
   for (k in 1:nPar) {
     Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
     if (k != 1) {
