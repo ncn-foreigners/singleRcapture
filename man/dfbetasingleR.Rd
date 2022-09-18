@@ -4,16 +4,10 @@
 \alias{dfbetasingleR}
 \title{TODO}
 \usage{
-dfbetasingleR(model, method = c("formula", "simulation"), maxit.new = 1, ...)
+dfbetasingleR(model, maxit.new = 1, ...)
 }
 \arguments{
 \item{model}{Fitted object of singleR class}
-
-\item{method}{Method for finding dfbetas, either "formula" where the formula for
-approximate difference will be used or "simulation" where for each observation new
-object will be fitted, with already obtained coefficients as starting values and with
-just 1 iteration (or other number specified in maxit.new parameter), with i'th row
-removed for all observations.}
 
 \item{maxit.new}{maximal number of iterations for regression}
 

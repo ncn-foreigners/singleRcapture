@@ -142,11 +142,12 @@ ztgeom <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, theta=1, lower=0, upper=Inf) {
-    lb <- stats::pnbinom(lower, mu=lambda, size = theta)
-    ub <- stats::pnbinom(upper, mu=lambda, size = theta)
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
+    lb <- stats::pnbinom(lower, mu=lambda, size = 1)
+    ub <- stats::pnbinom(upper, mu=lambda, size = 1)
     p_u <- stats::runif(n, lb, ub)
-    sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
+    sims <- stats::qnbinom(p_u, mu=lambda, size = 1)
     sims
   }
   

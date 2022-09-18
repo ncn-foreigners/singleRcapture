@@ -2,7 +2,7 @@
 #' @importFrom graphics points
 noparBoot <- function(family,
                       formulas,
-                      y, X, Xvlm,
+                      y, X, modelFrame,
                       beta,
                       weights,
                       trcount,
@@ -13,7 +13,8 @@ noparBoot <- function(family,
                       hwm,
                       control.bootstrap.method = NULL,
                       method,
-                      N) {
+                      N, 
+                      ...) {
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
@@ -36,17 +37,21 @@ noparBoot <- function(family,
   }
   
   while (k <= numboot) {
+    # TODO:: since modelframe is needed maybe revisit it and save some memmory on response
     strap <- sample.int(replace = TRUE, n = n)
     ystrap <- as.numeric(y[strap])
     weightsStrap <- as.numeric(weights[strap])
-    Xstrap <- as.matrix(X[strap, ])
+    Xstrap <- modelFrame[strap, ]
+    if (!is.data.frame(Xstrap)) {
+      Xstrap <- as.data.frame(Xstrap)
+      colnames(Xstrap) <- colnames(modelFrame)
+    }
     
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
-    colnames(Xstrap) <- colnames(X)
     if (famName == "zelterman") {
-      Xstrap1 <- Xstrap
+      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
     }
-    Xstrap <- singleRinternalGetXvlmFromX(X = Xstrap[wch$reg, ], nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
+    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
     theta <- NULL
     try(
       theta <- estimate_popsize.fit(
@@ -85,7 +90,7 @@ noparBoot <- function(family,
 # semi parametric
 semparBoot <- function(family,
                        formulas,
-                       y, X, Xvlm,
+                       y, X,
                        beta,
                        weights,
                        trcount,
@@ -96,7 +101,9 @@ semparBoot <- function(family,
                        hwm,
                        control.bootstrap.method = NULL,
                        method,
-                       N) {
+                       N,
+                       modelFrame, 
+                       ...) {
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
@@ -126,9 +133,8 @@ semparBoot <- function(family,
   prob[!(names(prob) %in% names(yTab))] <- 0
   invLink <- family$linkinv
   yTab <- table(y)
-  dfPerm <- data.frame(y, weights, X)
   getX <- function(val, num) {
-    sample(rownames(dfPerm[dfPerm$y == val, ]), size = num, replace = TRUE)
+    sample(which(y == names(strap)[j]), size = num, replace = TRUE)
   }
 
   k <- 1
@@ -143,18 +149,21 @@ semparBoot <- function(family,
     }
     strap <- rows
     
-    ystrap <- as.numeric(dfPerm[strap, 1])
-    weightsStrap <- as.numeric(dfPerm[strap, 2])
-    Xstrap <- as.matrix(dfPerm[strap, -c(1, 2)])
+    ystrap <- y[as.numeric(strap)]
+    weightsStrap <- weights[as.numeric(strap)]
+    Xstrap <- modelFrame[strap, ]
+    if (!is.data.frame(Xstrap)) {
+      Xstrap <- as.data.frame(Xstrap)
+    }
 
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     theta <- NULL
     if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), "\n", sep = " ")
-    colnames(Xstrap) <- colnames(X)
+    colnames(Xstrap) <- colnames(modelFrame)
     if (famName == "zelterman") {
-      Xstrap1 <- Xstrap
+      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
     }
-    Xstrap <- singleRinternalGetXvlmFromX(X = Xstrap[wch$reg, ], nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
+    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
     try(
       theta <- estimate_popsize.fit(
         y = ystrap[wch$reg],
@@ -166,7 +175,7 @@ semparBoot <- function(family,
         start = jitter(beta),
         hwm = hwm
       )$beta,
-      silent = TRUE
+      silent = FALSE
     )
     
     k <- k + 1
@@ -194,7 +203,7 @@ semparBoot <- function(family,
 #' @importFrom stats optim
 parBoot <- function(family,
                     formulas,
-                    y, X, Xvlm,
+                    y, X,
                     beta,
                     weights,
                     trcount,
@@ -205,20 +214,13 @@ parBoot <- function(family,
                     hwm,
                     control.bootstrap.method = NULL,
                     method,
-                    N) {
-  ###################
-  ### TODO update ###
-  ###################
-  stop("Parametric bootstrap not yet updated")
+                    modelFrame,
+                    ...) {
   strappedStatistic <- NULL
   n <- length(y)
   famName <- family$family
-  if (length(weights[[1]]) == 1) {
-    weights[[1]] <- rep(1, length(lambda))
-  }
-  
-  if (length(weights[[2]]) == 1) {
-    weights[[2]] <- rep(1, n)
+  if (length(weights) == 1) {
+    weights <- rep(1, length(y))
   }
   
   if (family$family %in% c("chao", "zelterman")) {
@@ -226,27 +228,13 @@ parBoot <- function(family,
         "since zelterman and chao models are based on mixture of poisson",
         "distribution semi-parametric bootstrap may be a better choice.", 
         sep = "\n")
-  } else if (family$family %in% c("ztnegbin",
-                                  "zotnegbin")) {
-    cat("Due to many possible computational problems with truncated binomial models",
-        "bootstrap samples will be drawn until specified number of them can be fitted", 
-        "this may significantly contribute to increase in runtime.", 
-        sep = "\n")
   }
-  dataFunc <- switch(famName,
-                     "ztpoisson"  = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
-                     "chao"       = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
-                     "zelterman"  = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
-                     "zotpoisson" = function(lambda, n, disp) {stats::rpois(n = n, lambda = lambda)},
-                     "ztnegbin"   = function(lambda, n, disp) {stats::rnbinom(n = n, mu = lambda, size = exp(-disp))},
-                     "zotnegbin"  = function(lambda, n, disp) {stats::rnbinom(n = n, mu = lambda, size = exp(-disp))},
-                     "ztgeom"     = function(lambda, n, disp) {stats::rgeom(n = n, prob = (1 / (1 + lambda)))},
-                     "zotgeom"    = function(lambda, n, disp) {stats::rgeom(n = n, prob = (1 / (1 + lambda)))})
+  
+  dataFunc <- family$simulate
   
   if (isFALSE(grepl(x = famName, pattern = "^(zot|cha).*"))) {
-    contr <- family$pointEst(disp = dispersion, 
-                             pw = weights[[2]],
-                             lambda = lambda,
+    contr <- family$pointEst(pw = weights,
+                             eta = eta,
                              contr = TRUE)
   } else {
     contr <- vector(mode = "numeric", length = length(y))
@@ -255,9 +243,8 @@ parBoot <- function(family,
       "zot" = (y != 1),
       "cha" = (y < 3)
     )
-    contr[cond] <- family$pointEst(disp = dispersion, 
-                                   pw = weights[[1]], 
-                                   lambda = lambda,
+    contr[cond] <- family$pointEst(pw = weights[cond],
+                                   eta = eta,
                                    contr = TRUE)
     contr[!cond] <- 1
   }
@@ -266,76 +253,56 @@ parBoot <- function(family,
   contr <- floor(contr) + stats::rbinom(n = n, size = 1, prob = prob)
   
   prob <- contr / N
-  weights <- weights[[2]]
-  invLink <- family$linkinv
+  
+  if (visT) {
+    plot(
+      1, type = "n",
+      xlab = "Bootstrap sample", 
+      ylab = "Value of population size estimator",
+      main = expression(paste("Plot of values of ", hat(N), " obtained from bootstrap samples")),
+      sub = "Points will be added in real time",
+      xlim = c(0, numboot + 1), ylim = c(0, 2 * N)
+    )
+  }
   
   k <- 1
   while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
-    weightsstrap <- as.numeric(weights[strap])
-    Xstrap <- as.matrix(X[strap, ])
-    
-    #print(summary(invLink(Xstrap %*% beta)))
-    ystrap <- dataFunc(n = N,
-                       lambda = invLink(Xstrap %*% beta),
-                       disp = dispersion)
-    weightsstraptemp <- weightsstrap
-    Xstraptemp <- Xstrap
-    
-    df <- data.frame(ystrap,
-                     weightsstraptemp,
-                     Xstraptemp)
-    trcount <- 0
-    if (grepl(x = famName, pattern = "^zot.*")) trcount <- nrow(df[df["ystrap"] == 1, ])
-    ifelse(grepl(x = famName, pattern = "^zot.*"),
-           df <- df[df["ystrap"] > 1, ],
-           df <- df[df["ystrap"] > 0, ])
-    
-    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", nrow(df), "\n", sep = " ")
-    ystrap <- as.numeric(unlist(df[, 1]))
-    weightsstrap <- weightsstraptemp <- as.numeric(unlist(df[, 2]))
-    Xstrap <- Xstraptemp <- as.matrix(df[, -c(1, 2)])
-    
-    if (famName == "zelterman") {
-      df <- data.frame(ystrap,
-                       weightsstrap,
-                       Xstrap)
-      
-      df <- df[df[1] == 1 | df[1] == 2, ]
-      
-      ystrap <- as.numeric(df[, 1])
-      weightsstraptemp <- as.numeric(unlist(df[, 2]))
-      Xstraptemp <- as.matrix(df[, -c(1, 2)])
-    } else if (famName == "chao") {
-      df <- data.frame(ystrap,
-                       weightsstrap,
-                       Xstrap)
-      
-      trcount <- nrow(df[df[1] > 2, ])
-      
-      df <- df[df[1] == 1 | df[1] == 2, ]
-      
-      ystrap <- as.numeric(df[, 1])
-      weightsstraptemp <- as.numeric(unlist(df[, 2]))
-      weightsstrap <- weightsstraptemp
-      Xstraptemp <- as.matrix(df[, -c(1, 2)])
-      Xstrap <- Xstraptemp
+    weightsStrap <- as.numeric(weights[strap])
+    Xstrap <- modelFrame[strap, ]
+    if (!is.data.frame(Xstrap)) {
+      Xstrap <- as.data.frame(Xstrap)
     }
+    colnames(Xstrap) <- colnames(modelFrame)
+    
+    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
+    hwm <- Xstrap[[2]]
+    Xstrap <- Xstrap[[1]]
+    ystrap <- dataFunc(n = N,
+                       eta = matrix(Xstrap %*% beta, ncol = family$parNum),
+                       lower = -1, upper = Inf)
+    weightsStrap <- weightsStrap[ystrap > 0]
+    strap <- rep(FALSE, family$parNum * length(ystrap))
+    strap[rep(ystrap > 0, family$parNum)] <- TRUE
+    Xstrap <- subset(Xstrap, subset = strap)
+    ystrap <- ystrap[ystrap > 0]
+    
+    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), "\n", sep = " ")
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
+    
     theta <- NULL
     
     try(
-      {theta <- estimate_popsize.fit(
-        y = ystrap,
-        X = Xstraptemp,
+      theta <- estimate_popsize.fit(
+        y = ystrap[wch$reg],
+        X = subset(Xstrap, subset = rep(wch$reg, family$parNum)),
         family = family,
         control = control.bootstrap.method,
         method = method,
-        prior.weights = weightsstraptemp,
-        start = c(dispersion, beta),
-        dispersion = dispersion,
-        omegaTheta = NULL
-      )$beta;
-      if (grepl(x = family$family, pattern = "negbin")) {theta <- theta[-1]}},
+        prior.weights = weightsStrap[wch$reg],
+        start = jitter(beta),
+        hwm = hwm
+      )$beta,
       silent = TRUE
     )
     
@@ -344,12 +311,12 @@ parBoot <- function(family,
     if (is.null(theta)) {
       k <- k - 1
     } else {
-      theta <- invLink(Xstrap %*% theta)
+      theta <- matrix(Xstrap[rep(wch$est, family$parNum), ] %*% theta, ncol = family$parNum)
+      est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
+      if (visT) graphics::points(k - 1, est, col = ((k - 1) %% 4) + 1, pch = 20)
+      #if (visT) graphics::points(k - 1, est, pch = 1)
       
-      strappedStatistic <- c(strappedStatistic,
-                             family$pointEst(disp = dispersion,
-                                             pw = weightsstrap,
-                                             lambda = theta) + trcount)
+      strappedStatistic <- c(strappedStatistic, est)
     }
     
   }

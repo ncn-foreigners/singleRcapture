@@ -126,7 +126,8 @@ ztpoisson <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, lower=0, upper=Inf) {
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)

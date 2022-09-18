@@ -196,6 +196,29 @@ ztHurdlegeom <- function() {
     ifelse(x == 1, PI, (1 - PI) * (lambda ** (x - 2)) / ((1 + lambda) ** (x - 1)))
   }
   
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
+    PI <- lambda[, 2]
+    lambda <- lambda[, 1]
+    CDF <- function(x) {
+      p <- lambda / (1 + lambda)
+      const <- -p * (lambda * (p ** x - 1) + p ** x) / (1 + lambda)
+      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, (1 + lambda) / (1 + lambda + lambda ** 2), (1 + lambda) / (1 + lambda + lambda ** 2) + PI * (lambda ** 2) / (1 + lambda + lambda ** 2) +  (1 - PI) * ((1 + lambda) ** 2) * const / (lambda ** 2 + lambda + 1))))
+    }
+    lb <- CDF(lower)
+    ub <- CDF(upper)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- NULL
+    for (k in 1:n) {
+      m <- 0
+      while(CDF(m) < p_u[k]) {
+        m <- m + 1
+      }
+      sims <- c(sims, m)
+    }
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -216,7 +239,8 @@ ztHurdlegeom <- function() {
       family = "ztHurdlegeom",
       parNum = 2,
       etaNames = c("lambda", "pi"),
-      densityFunction = dFun
+      densityFunction = dFun,
+      simulate = simulate
     ),
     class = "family"
   )

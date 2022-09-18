@@ -21,7 +21,8 @@
 plot.singleR <- function(x, 
                          plotType = c("QQ", "marginal", "fitresid",
                                       "bootHist", "rootogram", "dfpopContr",
-                                      "dfpopBox", "scaleLoc", "Cooks"), 
+                                      "dfpopBox", "scaleLoc", "Cooks",
+                                      "hatplot"), 
                          ...) {
   if ((plotType == "bootHist") && (!is.numeric(x$populationSize$boot))) {
     stop("Trying to plot bootstrap results with no bootstrap performed")
@@ -107,7 +108,7 @@ plot.singleR <- function(x,
            ...);
       graphics::panel.smooth(y = sqrt(abs(res)), x = x$linear.predictors, iter = 0)
     } else {
-      par <- graphics::par();
+      par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
         plot(y = sqrt(abs(res)), x = x$linear.predictors[, k],
@@ -131,7 +132,7 @@ plot.singleR <- function(x,
       abline(lty = 2, col = "darkgrey", h = 0);
       graphics::panel.smooth(y = res, x = x$linear.predictors, iter = 0)
     } else {
-      par <- graphics::par();
+      par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
         plot(y = res, x = x$linear.predictors[, k],
@@ -154,5 +155,18 @@ plot.singleR <- function(x,
          xlab = "Observation index",
          ylim = c(0, max(A) * 1.1),
          ...)
+  },
+  hatplot = {
+    A <- hatvalues.singleR(x, ...);
+    par <- graphics::par(no.readonly = TRUE);
+    par(mfrow = c(x$model$parNum, 1));
+    for (k in 1:x$model$parNum) {
+      plot(A[, k],
+           xlab = "Observation index",
+           ylab = "Hat values",
+           main = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
+           ...)
+    }
+    graphics::par(par);
   })
 }

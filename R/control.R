@@ -84,7 +84,7 @@ control.model <- function(weightsAsCounts = FALSE,
 }
 #' @title  Control parameters for population size estimation
 #'
-#' @description \loadmathjax
+#' @description Creating control parameters for population size estimation and respective standard error and variance estimation.
 #'
 #' @param alpha Significance level, 0.05 used by default.
 #' @param trcount Truncated count - a number to be added to point estimator and both sides of confidence intervals.

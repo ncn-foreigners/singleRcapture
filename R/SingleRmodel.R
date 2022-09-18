@@ -201,12 +201,8 @@ estimate_popsize <- function(formula,
       start <- c(start, control.method$omegaStart)
     }
   }
-  aux <- modelFrame1[wch$reg, attr(modelFrame1, "names")[-1]]
-  if (!is.data.frame(aux)) {
-    aux <- as.data.frame(aux, row.names = rownames(modelFrame1))
-    colnames(aux) <- attr(modelFrame1, "names")[-1]
-  }
-  Xvlm <- singleRinternalGetXvlmMatrix(X = aux, nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
+  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(modelFrame1, select = attr(modelFrame1, "names")[-1], subset = wch$reg), 
+                                       nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
   hwm <- Xvlm[[2]]
   Xvlm <- Xvlm[[1]]
   if ("alpha" %in% family$etaNames) {
@@ -306,7 +302,8 @@ estimate_popsize <- function(formula,
     hwm = hwm,
     Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
     W = if (method == "robust") weights else family$Wfun(prior = prior.weights, eta = eta),
-    sizeObserved = sizeObserved
+    sizeObserved = sizeObserved,
+    modelFrame = modelFrame1
   )
   structure(
     list(

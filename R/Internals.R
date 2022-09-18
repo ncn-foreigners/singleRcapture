@@ -159,7 +159,9 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      eta, pop.var,
                                                      control, hwm,
                                                      Xvlm, W, formulas,
-                                                     sizeObserved) {
+                                                     sizeObserved,
+                                                     modelFrame) {
+  # TODO:: maybe move this to main function
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
@@ -208,7 +210,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       visT = control$bootstrapVisualTrace,
       method = control$fittingMethod,
       control.bootstrap.method = control$bootstrapFitcontrol,
-      N = N, Xvlm = Xvlm
+      N = N, Xvlm = Xvlm, modelFrame = modelFrame
     )
 
     if (N < stats::quantile(strappedStatistic, .05)) {
@@ -400,32 +402,6 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
   formulas[[1]][[2]] <- NULL
   Xses <- list()
   parentFrame <- X
-  for (k in 1:nPar) {
-    Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
-    if (k != 1) {
-      colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
-    }
-  }
-  hwm <- sapply(Xses, ncol)
-  # TODO: sparse matrix, maybe use Matrix
-  Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
-  colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
-  row <- 0
-  col <- 0
-  for (k in Xses) {
-    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- as.matrix(k)
-    row <- row + nrow(k)
-    col <- col + ncol(k)
-  }
-  list(Xvlm, hwm)
-}
-singleRinternalGetXvlmFromX <- function(X, nPar, formulas, parNames) {
-  formulas[[1]][[2]] <- NULL
-  Xses <- list()
-  parentFrame <- as.data.frame(X)
-  if ("(Intercept)" %in% colnames(parentFrame)) {
-     parentFrame <- parentFrame[, -which(colnames(parentFrame) == "(Intercept)")]
-  }
   for (k in 1:nPar) {
     Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
     if (k != 1) {

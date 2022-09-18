@@ -389,11 +389,14 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
   }
 
-  simulate <- function(n, lambda, theta, lower=1, upper=Inf) {
-    lb <- stats::pnbinom(lower, mu=lambda, size = theta)
-    ub <- stats::pnbinom(upper, mu=lambda, size = theta)
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    alpha <- invlink(eta)
+    lambda <- alpha[, 1]
+    alpha <- alpha[, 2]
+    lb <- stats::pnbinom(lower, mu = lambda, size = 1 / alpha)
+    ub <- stats::pnbinom(upper, mu = lambda, size = 1 / alpha)
     p_u <- stats::runif(n, lb, ub)
-    sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
+    sims <- stats::qnbinom(p_u, mu = lambda, size = 1 / alpha)
     sims
   }
   

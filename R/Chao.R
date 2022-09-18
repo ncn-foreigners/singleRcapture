@@ -128,13 +128,14 @@ chao <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, lower = 0, upper = 2) {
+  simulate <- function(n, eta, lower = 0, upper = 2) {
+    lambda <- invlink(eta)
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)
     sims <- stats::qpois(p_u, lambda)
     sims
-    }
+  }
 
   dFun <- function (x, eta, type = "trunc") {
     lambda <- invlink(eta)

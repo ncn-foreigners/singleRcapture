@@ -246,6 +246,27 @@ oiztpoisson <- function() {
            (1 - omega) * (lambda ** x) / factorial(x)) / (exp(lambda) - 1 + omega)
   }
   
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
+    omega <- lambda[, 2]
+    lambda <- lambda[, 1]
+    CDF <- function(x) {
+      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, (1 - omega) * exp(-lambda), omega +  (1 - omega) * stats::ppois(x, lambda))))
+    }
+    lb <- CDF(lower)
+    ub <- CDF(upper)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- NULL
+    for (k in 1:n) {
+      m <- 0
+      while(CDF(m) < p_u[k]) {
+        m <- m + 1
+      }
+      sims <- c(sims, m)
+    }
+    sims
+  }
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -266,7 +287,8 @@ oiztpoisson <- function() {
       family = "oiztpoisson",
       parNum = 2,
       etaNames = c("lambda", "omega"),
-      densityFunction = dFun
+      densityFunction = dFun,
+      simulate = simulate
     ),
     class = "family"
   )

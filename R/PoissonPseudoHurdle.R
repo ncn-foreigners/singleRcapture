@@ -195,7 +195,28 @@ ztHurdlepoisson <- function() {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    ifelse(x == 1, PI, (1 - PI) * (lambda ** x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) -lambda * exp(-lambda))))
+    ifelse(x == 1, PI, (1 - PI) * (lambda ** x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
+  }
+  
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
+    PI <- lambda[, 2]
+    lambda <- lambda[, 1]
+    CDF <- function(x) {
+      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, exp(-lambda) / (1 - lambda * exp(-lambda)), exp(-lambda) / (1 - lambda * exp(-lambda)) + PI * (1 - exp(-lambda) / (1 - lambda * exp(-lambda))) +  (1 - PI) * (stats::ppois(x, lambda) - lambda * exp(-lambda) - exp(-lambda)) / (1 - lambda * exp(-lambda)))))
+    }
+    lb <- CDF(lower)
+    ub <- CDF(upper)
+    p_u <- stats::runif(n, lb, ub)
+    sims <- NULL
+    for (k in 1:n) {
+      m <- 0
+      while(CDF(m) < p_u[k]) {
+        m <- m + 1
+      }
+      sims <- c(sims, m)
+    }
+    sims
   }
   
   structure(
@@ -218,7 +239,8 @@ ztHurdlepoisson <- function() {
       family = "ztHurdlepoisson",
       parNum = 2,
       etaNames = c("lambda", "pi"),
-      densityFunction = dFun
+      densityFunction = dFun,
+      simulate = simulate
     ),
     class = "family"
   )

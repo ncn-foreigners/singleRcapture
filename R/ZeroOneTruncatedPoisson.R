@@ -141,7 +141,8 @@ zotpoisson <- function() {
   }
 
   ## is this a correct way to simulate data from this distribution?
-  simulate <- function(n, lambda, lower=1, upper=Inf) {
+  simulate <- function(n, eta, lower = 1, upper = Inf) {
+    lambda <- invlink(eta)
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)

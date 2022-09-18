@@ -119,12 +119,10 @@ summary.singleRmargin <- function(object, df = NULL,
   }
   if(dropl5 == "group") {
     l <- (A < 5)
-    if (object$df == df) {df <- df - length(y) + length(y[!l]) + 1}
     y <- c(y[!l], sum(y[l]))
     A <- c(A[!l], sum(A[l]))
   } else if(dropl5 == "drop") {
     l <- (A < 5)
-    if (object$df == df) {df <- df - length(y) + length(y[!l])}
     y <- y[!l]
     A <- A[!l]
   }
@@ -163,12 +161,7 @@ summary.singleRmargin <- function(object, df = NULL,
 #' @exportS3Method
 vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  aux <- object$modelFrame[object$which$reg, attr(object$modelFrame, "names")[-1]]
-  if (!is.data.frame(aux)) {
-    aux <- as.data.frame(aux, row.names = rownames(object$modelFrame))
-    colnames(aux) <- attr(object$modelFrame, "names")[-1]
-  }
-  X <- singleRinternalGetXvlmMatrix(X = aux, nPar = object$model$parNum, 
+  X <- singleRinternalGetXvlmMatrix(X = subset(object$modelFrame, select = attr(object$modelFrame, "names")[-1], subset = object$which$reg), nPar = object$model$parNum, 
                                     formulas = object$formula, parNames = object$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
@@ -207,7 +200,7 @@ hatvalues.singleR <- function(model, ...) {
   if (model$call$method == "robust") {
     W <- model$weights
   } else {
-    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors)
+    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (model$model$family == "zelterman") model$linear.predictors[model$which$reg, ] else model$linear.predictors)
   }
   mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
@@ -226,7 +219,7 @@ dfbetasingleR <- function(model,
                           maxit.new = 1,
                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
-  X <- model$modelFrame[model$which$reg, attr(model$modelFrame, "names")[-1]]
+  X <- subset(model$modelFrame, subset = model$which$reg, select = attr(model$modelFrame, "names")[-1])
   y <- model$y[model$which$reg]
   cf <- model$coefficients
   pw <- model$prior.weights[model$which$reg]
@@ -393,9 +386,7 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
 #' @method dfpopsize singleR
 #' @exportS3Method 
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
-  ###################
-  ### TODO update ###
-  ###################
+  if (isTRUE(model$call$pop.var == "bootstrap")) warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
     dfbnew <- matrix(0, ncol = ncol(dfb), nrow = model$sizeObserved)
@@ -420,11 +411,9 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
     names(res1) <- 1:model$sizeObserved
     res1[model$which$est] <- N - res
     res1[!model$which$est] <- 1
+    
   } else {
     res1 <- N - res
-    if (model$model$family != "zelterman") {
-      names(res1) <- rownames(X)
-    }
   }
   
   res1
@@ -570,57 +559,57 @@ fitted.singleR <- function(object,
   object$fitt.values[[type]] # fitted should return either E(Y) or E(Y|Y>0) otherwise we're breaking R conventions
 }
 
-#' simulate
-#' 
-#' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
-#' 
-#' @param object an object representing a fitted model.
-#' @param nsim number of response vectors to simulate. Defaults to \code{1}.
-#' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
-#' @param ... additional optional arguments.
-#' @return a \code{data.frame} with \code{n} rows and \code{nsim} columns.
-#' @seealso [stats::simulate()]
-#' @examples 
-#' set.seed(1)
-#' N <- 10000
-#' gender <- rbinom(N, 1, 0.2)
-#' eta <- -1 + 0.5*gender
-#' counts <- rpois(N, lambda = exp(eta))
-#' df <- data.frame(gender, eta, counts)
-#' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "mle", pop.var = "analytic")
-#' mod1_sims <- simulate(mod1, nsim=10)
-#' colMeans(mod1_sims) 
-#' @importFrom stats simulate
-#' @method simulate singleR
-#' @exportS3Method
-simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
-  ###################
-  ### TODO update ###
-  ###################
-  stop("Not yet updated")
-  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
-    runif(1)
-  if (is.null(seed))
-    RNGstate <- get(".Random.seed", envir = .GlobalEnv)
-  else {
-    R.seed <- get(".Random.seed", envir = .GlobalEnv)
-    set.seed(seed)
-    RNGstate <- structure(seed, kind = as.list(RNGkind()))
-    on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
-  }
-  
-  linpred <- object$linear.predictors
-  n <- NROW(linpred)
-  if (grepl("negbin", object$model$family)) {
-    val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion)) # dispersion argument will be removed in next update remember to change that to accomodate that
-  } else {
-    val <- object$model$simulate(n*nsim, exp(linpred))
-  }
-  
-  dim(val) <- c(n, nsim)
-  val <- as.data.frame(val)
-  names(val) <- paste0("sim_", seq_len(nsim))
-  return(val)
-}
+#' #' simulate
+#' #' 
+#' #' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' #' 
+#' #' @param object an object representing a fitted model.
+#' #' @param nsim number of response vectors to simulate. Defaults to \code{1}.
+#' #' @param seed an object specifying if and how the random number generator should be initialized (‘seeded’).
+#' #' @param ... additional optional arguments.
+#' #' @return a \code{data.frame} with \code{n} rows and \code{nsim} columns.
+#' #' @seealso [stats::simulate()]
+#' #' @examples 
+#' #' set.seed(1)
+#' #' N <- 10000
+#' #' gender <- rbinom(N, 1, 0.2)
+#' #' eta <- -1 + 0.5*gender
+#' #' counts <- rpois(N, lambda = exp(eta))
+#' #' df <- data.frame(gender, eta, counts)
+#' #' df2 <- subset(df, counts > 0)
+#' #' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' #' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' #' mod1_sims <- simulate(mod1, nsim=10)
+#' #' colMeans(mod1_sims) 
+#' #' @importFrom stats simulate
+#' #' @method simulate singleR
+#' #' @exportS3Method
+#' simulate.singleR <- function(object, nsim=1, seed = NULL, ...) {
+#'   ###################
+#'   ### TODO update ###
+#'   ###################
+#'   stop("Not yet updated")
+#'   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+#'     runif(1)
+#'   if (is.null(seed))
+#'     RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+#'   else {
+#'     R.seed <- get(".Random.seed", envir = .GlobalEnv)
+#'     set.seed(seed)
+#'     RNGstate <- structure(seed, kind = as.list(RNGkind()))
+#'     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+#'   }
+#'   
+#'   linpred <- object$linear.predictors
+#'   n <- NROW(linpred)
+#'   if (grepl("negbin", object$model$family)) {
+#'     val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion)) # dispersion argument will be removed in next update remember to change that to accomodate that
+#'   } else {
+#'     val <- object$model$simulate(n*nsim, exp(linpred))
+#'   }
+#'   
+#'   dim(val) <- c(n, nsim)
+#'   val <- as.data.frame(val)
+#'   names(val) <- paste0("sim_", seq_len(nsim))
+#'   return(val)
+#' }
