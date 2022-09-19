@@ -69,6 +69,7 @@ noparBoot <- function(family,
     k <- k + 1
     
     if (is.null(theta)) {
+      if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
       if (famName == "zelterman") {
@@ -79,7 +80,7 @@ noparBoot <- function(family,
       if (isTRUE(trace)) {print(summary(theta))}
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
-      if (isTRUE(trace)) cat("Estimated population size: ", est,"\n",sep = "")
+      if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
       strappedStatistic <- c(strappedStatistic, est)
@@ -181,6 +182,7 @@ semparBoot <- function(family,
     
     k <- k + 1
     if (is.null(theta)) {
+      if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
       if (famName == "zelterman") {
@@ -311,6 +313,7 @@ parBoot <- function(family,
     k <- k + 1
     
     if (is.null(theta)) {
+      if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
       theta <- matrix(Xstrap[rep(wch$est, family$parNum), ] %*% theta, ncol = family$parNum)

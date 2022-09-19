@@ -207,7 +207,7 @@ Hurdleztpoisson <- function() {
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
     #f2 <- sum(pw * (1 - PI) * exp(-lambda) * (1 - lambda * exp(-lambda)) / (prob ** 2))
-    f2 <- sum(pw * (1 - lambda * exp(-lambda)) / prob)
+    f2 <- sum(pw * (1 - lambda * exp(-lambda)) * (1 - PI) * exp(-lambda) / (prob ** 2))
     
     f1 + f2
   }

@@ -211,7 +211,6 @@ Hurdleztgeom <- function() {
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    #TODO
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]

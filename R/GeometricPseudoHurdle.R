@@ -184,7 +184,7 @@ ztHurdlegeom <- function() {
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ** 2)))
+    f2 <- sum(pw * (1 + lambda) * (1 + lambda + lambda ** 2) / (lambda ** 4))
     
     f1 + f2
   }

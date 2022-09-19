@@ -186,7 +186,7 @@ ztHurdlepoisson <- function() {
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))))
+    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) * exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ** 2)))
     
     f1 + f2
   }

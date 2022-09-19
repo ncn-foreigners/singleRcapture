@@ -298,20 +298,21 @@ residuals.singleR <- function(object,
   wts <- object$prior.weights
   mu <- object$fitt.values
   y <- object$y
-  if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standradised pearson residuals not yet implemented for models with multiple linear predictors")}
+  if (!(all(object$which$reg == object$which$est)) && type == "all") stop("type = all is not aviable for some models")
+  if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standardized pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
-    working = as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
+    working = as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
     response = res,
-    pearson = data.frame("pearson" = res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
-    pearsonSTD = data.frame("pearsonSTD" = if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
+    pearson = data.frame("pearson" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
+    pearsonSTD = data.frame("pearsonSTD" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
     deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
-      as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ], weight = object$weights[object$which$reg, ], y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
+      as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
       res,
-      "pearson" = as.numeric(res$mu / sqrt(object$model$variance(eta = object$linear.predictors, type = "trunc"))),
-      "pearsonSTD" = if (object$model$parNum == 1) as.numeric(if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ], type = "trunc"))) else 0,
+      "pearson" = as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
+      "pearsonSTD" = if (object$model$parNum == 1) as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))) else 0,
       "deviance" = as.numeric(object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
       row.names = rownames(object$linear.predictors)
     )}
@@ -559,7 +560,7 @@ fitted.singleR <- function(object,
   if (missing(type)) type <- "mu"
   object$fitt.values[[type]] # fitted should return either E(Y) or E(Y|Y>0) otherwise we're breaking R conventions
 }
-
+# TODO:: update
 #' #' simulate
 #' #' 
 #' #' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
