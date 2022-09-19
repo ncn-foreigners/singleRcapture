@@ -78,7 +78,8 @@ noparBoot <- function(family,
       }
       if (isTRUE(trace)) {print(summary(theta))}
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
-      if (visT) graphics::points(k - 1, est, col = ((k - 1) %% 4) + 1, pch = 20)
+      if (visT) graphics::points(k - 1, est, pch = 1)
+      if (isTRUE(trace)) cat("Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
       strappedStatistic <- c(strappedStatistic, est)
@@ -158,7 +159,7 @@ semparBoot <- function(family,
 
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     theta <- NULL
-    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), "\n", sep = " ")
+    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), sep = " ")
     colnames(Xstrap) <- colnames(modelFrame)
     if (famName == "zelterman") {
       Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
@@ -188,7 +189,8 @@ semparBoot <- function(family,
         theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
-      if (visT) graphics::points(k - 1, est, col = ((k - 1) %% 4) + 1, pch = 20)
+      if (visT) graphics::points(k - 1, est, pch = 1)
+      if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
       strappedStatistic <- c(strappedStatistic, est)
@@ -287,7 +289,7 @@ parBoot <- function(family,
     Xstrap <- subset(Xstrap, subset = strap)
     ystrap <- ystrap[ystrap > 0]
     
-    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), "\n", sep = " ")
+    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), sep = " ")
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     
     theta <- NULL
@@ -313,7 +315,8 @@ parBoot <- function(family,
     } else {
       theta <- matrix(Xstrap[rep(wch$est, family$parNum), ] %*% theta, ncol = family$parNum)
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
-      if (visT) graphics::points(k - 1, est, col = ((k - 1) %% 4) + 1, pch = 20)
+      if (visT) graphics::points(k - 1, est, pch = 1)
+      if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
       strappedStatistic <- c(strappedStatistic, est)

@@ -193,7 +193,8 @@ vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
 #' @return TODO
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  X <- model$modelFrame[model$which$reg, attr(model$modelFrame, "names")[-1]]
+  X <- subset(model$modelFrame, select = attr(model$modelFrame, "names")[-1], subset = model$which$reg)
+  #X <- model$modelFrame[model$which$reg, attr(model$modelFrame, "names")[-1]]
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
