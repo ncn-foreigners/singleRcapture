@@ -142,7 +142,7 @@ zotgeom <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, eta, lower = 0, upper = Inf) {
+simulate <- function(n, eta, lower = 0, upper = Inf) {
     lambda <- invlink(eta)
     lb <- stats::pnbinom(lower, mu=lambda, size = 1)
     ub <- stats::pnbinom(upper, mu=lambda, size = 1)

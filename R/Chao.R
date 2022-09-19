@@ -130,6 +130,7 @@ chao <- function() {
   
   simulate <- function(n, eta, lower = 0, upper = 2) {
     lambda <- invlink(eta)
+
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)
