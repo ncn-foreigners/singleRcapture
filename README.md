@@ -160,19 +160,53 @@ and 1 and non standard confidence levels
 
 ``` r
 set.seed(123)
-# TODO :: fixbootstrap
-# zotgeomBoot <- estimate_popsize(
-#     formula = TOTAL_SUB ~ .,
-#     data = farmsubmission,
-#     pop.var = "bootstrap",
-#     model = "zotgeom",
-#     method = "robust",
-#     control.pop.var = control.pop.var(B = 1000,
-#                                       alpha = .01)
-#   )
-# summary(zotgeomBoot)
+zotgeomBoot <- estimate_popsize(
+    formula = TOTAL_SUB ~ .,
+    data = farmsubmission,
+    pop.var = "bootstrap",
+    model = "zotgeom",
+    method = "robust",
+    control.pop.var = control.pop.var(B = 1000, alpha = .01)
+)
+summary(zotgeomBoot)
+#> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
+#>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
+#>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
+#> 
+#> Pearson Residuals:
+#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#> -0.952107 -0.727540 -0.426714  0.003655  0.322783 16.127909 
+#> 
+#> Coefficients:
+#>              Estimate Std. Error z value  P(>|z|)    
+#> (Intercept)    -2.608      0.298   -8.76  2.0e-18 ***
+#> log_size        0.585      0.022   26.47 2.2e-154 ***
+#> log_distance   -0.068      0.025   -2.66  7.7e-03  **
+#> C_TYPE          0.611      0.044   13.73  6.6e-43 ***
+#> -----------------------
+#> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
+#> 
+#> AIC: 19483.08
+#> BIC: 19509.67
+#> Deviance: 23179.43
+#> 
+#> Log-likelihood: -9737.539 on 5692 Degrees of freedom 
+#> Number of iterations: 7
+#> -----------------------
+#> Population size estimation results: 
+#> Point estimate 29087.96
+#> Observed proportion: 41.4% (N obs = 12036)
+#> Bootstrap Std. Error 1962.695
+#> 99% CI for the population size:
+#> lowerBound upperBound 
+#>   25228.32   35576.04 
+#> 99% CI for the share of observed population:
+#> lowerBound upperBound 
+#>   33.83176   47.70830
 ```
 
 ``` r
-#plot(zotgeomBoot, plotType = "bootHist")
+plot(zotgeomBoot, plotType = "bootHist", labels = TRUE, ylim = c(0, 425))
 ```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
