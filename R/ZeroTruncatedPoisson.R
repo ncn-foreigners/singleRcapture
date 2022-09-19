@@ -22,7 +22,7 @@ ztpoisson <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
@@ -30,23 +30,25 @@ ztpoisson <- function() {
     )
   }
 
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(eta, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = mu,
-      "trunc" = mu.eta(eta = log(mu)) * (1 + mu - mu.eta(eta = log(mu)))
+      "nontrunc" = lambda,
+      "trunc" = mu.eta(eta = eta) * (1 + lambda - mu.eta(eta = eta))
     )
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- exp(eta)
-     -lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2))
+    lambda <- invlink(eta)
+    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2)), 
+           ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
-  funcZ <- function(eta, weight, y, mu, ...) {
-    eta + (y - mu) / weight
+  funcZ <- function(eta, weight, y, ...) {
+    (y - mu.eta(eta)) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -58,7 +60,7 @@ ztpoisson <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -71,7 +73,7 @@ ztpoisson <- function() {
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -79,12 +81,12 @@ ztpoisson <- function() {
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
       eml <- exp(-lambda)
-      coefficient <- (1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2))
+      coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2)
 
-      dmu <- diag(weight * as.numeric(coefficient))
+      dmu <- weight * as.numeric(coefficient) # This was probably the dumbest mistake I've made in last 8 months
       dlam <- as.matrix(X * as.numeric(lambda))
 
-      -((t(as.matrix(X)) %*% dmu) %*% dlam)
+      -((t(as.matrix(X) * dmu)) %*% dlam)
     }
   }
 
@@ -92,18 +94,18 @@ ztpoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, mu, wt, disp = NULL) {
-    eta <- log(mu)
+  dev.resids <- function(y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
     hm1y <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
     log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
     loghm1y <- ifelse(y > 1, log(hm1y), 0)
-    #loghm1y <- ifelse(hm1y > )
     sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
-  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- pw / (1 - exp(-lambda))
     if(!contr) {
       N <- sum(N)
@@ -111,11 +113,12 @@ ztpoisson <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    Xvlm <- as.data.frame(Xvlm)
+    lambda <- invlink(eta)
     ml <- (1 - exp(-lambda)) ** 2
 
-    f1 <- colSums(-X * pw * (exp(log(lambda) - lambda) / ml))
+    f1 <- colSums(-Xvlm * pw * (exp(log(lambda) - lambda) / ml))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
     f2 <- sum(pw * exp(-lambda) / ml)
@@ -123,12 +126,18 @@ ztpoisson <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, lower=0, upper=Inf) {
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)
     sims <- stats::qpois(p_u, lambda)
     sims
+  }
+  
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
   
   structure(
@@ -150,7 +159,10 @@ ztpoisson <- function() {
       pointEst = pointEst,
       popVar= popVar,
       simulate = simulate,
-      family = "ztpoisson"
+      family = "ztpoisson",
+      parNum = 1,
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

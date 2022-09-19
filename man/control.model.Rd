@@ -7,8 +7,9 @@ TODO}
 \usage{
 control.model(
   weightsAsCounts = FALSE,
-  omegaFormula = NULL,
-  alphaFormula = NULL
+  omegaFormula = ~1,
+  alphaFormula = ~1,
+  piFormula = ~1
 )
 }
 \arguments{
@@ -16,7 +17,9 @@ control.model(
 
 \item{omegaFormula}{TODO}
 
-\item{alphaFormula}{TODO
+\item{alphaFormula}{TODO}
+
+\item{piFormula}{TODO
 for now does nothing}
 }
 \value{

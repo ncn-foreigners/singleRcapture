@@ -21,7 +21,7 @@ ztgeom <- function() {
     1 / lambda
   }
   
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
@@ -29,7 +29,8 @@ ztgeom <- function() {
     )
   }
   
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(eta, type = "nontrunc", ...) {
+    mu <- mu.eta(eta)
     switch (type,
       nontrunc = mu ** 2 - mu - 1 / mu + 2,
       trunc = (mu + 1) / mu
@@ -41,11 +42,12 @@ ztgeom <- function() {
     lambda * (1 + lambda) / ((1 + lambda) ** 2)
   }
   
-  funcZ <- function(eta, weight, y, mu, ...) {
-    eta + (y  / mu - 1) / weight
+  funcZ <- function(eta, weight, y, ...) {
+    mu <- 1 + exp(eta)
+    (y  / mu - 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -62,7 +64,7 @@ ztgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -82,7 +84,7 @@ ztgeom <- function() {
     }
   }
   
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -107,8 +109,8 @@ ztgeom <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, mu, wt, disp = NULL) {
-    eta <- log(mu)
+  dev.resids <- function (y, eta, wt, ...) {
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     hm1y <- y - 1 # thats an analytic inverse for geometric
     #log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
@@ -116,7 +118,8 @@ ztgeom <- function() {
     sign(y - mu1) * sqrt(-2 * wt * ((y - 1) * eta - y * log(mu1) - (y - 1) * loghm1y + y * log(y)))
   }
   
-  pointEst <- function (disp, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     pr <- 1 - 1 / (1 + lambda)
     N <- pw / pr
     if(!contr) {
@@ -125,11 +128,12 @@ ztgeom <- function() {
     N
   }
   
-  popVar <- function (beta, pw, lambda, disp, cov, X) {
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
     pr <- 1 - 1 / (1 + lambda)
     
     bigTheta <- -(pw * as.numeric(lambda / 
-                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(X)
+                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(Xvlm)
     bigTheta <- as.vector(bigTheta)
     
     f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
@@ -138,12 +142,18 @@ ztgeom <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, theta=1, lower=0, upper=Inf) {
-    lb <- stats::pnbinom(lower, mu=lambda, size = theta)
-    ub <- stats::pnbinom(upper, mu=lambda, size = theta)
+simulate <- function(n, eta, lower = 0, upper = Inf) {
+    lambda <- invlink(eta)
+    lb <- stats::pnbinom(lower, mu=lambda, size = 1)
+    ub <- stats::pnbinom(upper, mu=lambda, size = 1)
     p_u <- stats::runif(n, lb, ub)
-    sims <- stats::qnbinom(p_u, mu=lambda, size = theta)
+    sims <- stats::qnbinom(p_u, mu=lambda, size = 1)
     sims
+  }
+  
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))
   }
   
   structure(
@@ -165,7 +175,10 @@ ztgeom <- function() {
       pointEst = pointEst,
       popVar= popVar,
       simulate = simulate,
-      family = "ztgeom"
+      family = "ztgeom",
+      parNum = 1,
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

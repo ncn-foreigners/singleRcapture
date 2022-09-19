@@ -1,5 +1,15 @@
 # singleRcapture 0.2.0
 
+# singleRcapture 0.1.3
+
+* features:
+  * Multiple new models
+  * IRLS generalised for distributions with multiple parameters
+  * bugfixes
+  * QOL improvements
+  * extended bootstrap and most other methods for new models
+
+
 # singleRcapture 0.1.2
 
 * features:
@@ -12,12 +22,12 @@
 
 # singleRcapture 0.1.1
 
-* bug fixes and some of the promised features for 0.2.0 in particullar
+* bug fixes and some of the promised features for 0.2.0 in particular
   * More tiny tests 
   * Some fixes for marginal frequencies
   * Deviance implemented
   * dfbetas and levarage matrix
-  * Parametric bootstraps work corectly for the most part there is just some polishing left to do
+  * Parametric bootstraps work correctly for the most part there is just some polishing left to do
 
 # singleRcapture 0.1.0 
 

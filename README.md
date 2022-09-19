@@ -45,9 +45,9 @@ summary(ModelPo)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
 #>     model = "ztpoisson", method = "robust", pop.var = "analytic")
 #> 
-#> Standardised Pearson Residuals:
+#> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.490392 -0.486401 -0.300208  0.002051 -0.210901 13.945794 
+#> -0.488779 -0.486085 -0.297859  0.002075 -0.210439 13.921578 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
@@ -89,21 +89,21 @@ summary(ModelZl)
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
 #>     model = "zelterman", method = "robust", pop.var = "analytic")
 #> 
-#> Standardised Pearson Residuals:
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.476526 -0.432354 -0.274793  0.001439 -0.191085  9.762261 
+#> Pearson Residuals:
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -0.47496 -0.43206 -0.32340  0.04937 -0.19071  9.54717 
 #> 
 #> Coefficients:
 #>                      Estimate Std. Error z value P(>|z|)    
-#> (Intercept)            -3.359      0.525   -6.40 1.5e-10 ***
-#> gender                  0.535      0.229    2.34 1.9e-02   *
+#> (Intercept)            -3.359      0.528   -6.36 2.0e-10 ***
+#> gender                  0.535      0.232    2.30 2.1e-02   *
 #> age                     0.567      0.434    1.31 1.9e-01    
-#> reason                  0.189      0.217    0.87 3.8e-01    
-#> nationAsia             -1.056      0.442   -2.39 1.7e-02   *
-#> nationNorth Africa      0.579      0.300    1.93 5.3e-02   .
-#> nationRest of Africa   -0.664      0.419   -1.59 1.1e-01    
-#> nationSurinam          -1.720      1.048   -1.64 1.0e-01    
-#> nationTurkey           -1.030      0.654   -1.58 1.2e-01    
+#> reason                  0.189      0.220    0.86 3.9e-01    
+#> nationAsia             -1.056      0.448   -2.36 1.8e-02   *
+#> nationNorth Africa      0.579      0.307    1.89 5.9e-02   .
+#> nationRest of Africa   -0.664      0.425   -1.56 1.2e-01    
+#> nationSurinam          -1.720      1.050   -1.64 1.0e-01    
+#> nationTurkey           -1.030      0.657   -1.57 1.2e-01    
 #> -----------------------
 #> Signif. codes:  0 '****' 0.001 '***' 0.01 '**' 0.05 '*' 0.1 '.' 1 ' '
 #> 
@@ -138,27 +138,22 @@ summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
 #> Chi-squared test           50.06  2 1.4e-11
 #> G-test                     34.31  2 3.6e-08
 #> 
-#> --------------------------------------------------------
-#> Cells with fitted frequencies of < 5 have been grouped
+#> -------------------------------------------------------------- 
+#> Cells with fitted frequencies of < 5 have been grouped 
+#> Names of cells used in calculating test(s) statistic: 1 2 3
 ```
 
-Here is a plot of marginal frequencies with matplot:
+Should goodness of fit tests prove insufficient in determining the best
+model graphical comparisons may also be made. One such technique is a
+rootogram and it is implemented as a part of singleR method for `plot`
+function:
 
 ``` r
-a1 <- marginalFreq(ModelPo)$table[-1]
-a2 <- marginalFreq(ModelZl)$table[-1]
-a3 <- table(netherlandsimmigrant$capture)
-matplot(y = sqrt(cbind(a1, a2, a3)), x = 1:6, ylab = "Square root of Frequencies",
-        xlab = "Counts", pch = 21:23, type = "o",
-        lty = 1, col = 1:3, main = "Plot of observed and fitted marginal frequencies")
-legend("topright",
-       legend = c("Poisson model",
-                  "Zelterman model",
-                  "Observed data"),
-       col = 1:3, pch = 21:23)
+plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
+plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
-<img src="man/figures/README-plot-1.png" width="100%" />
+<img src="man/figures/README-plot-1.png" width="50%" /><img src="man/figures/README-plot-2.png" width="50%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
 and 1 and non standard confidence levels
@@ -171,17 +166,16 @@ zotgeomBoot <- estimate_popsize(
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
-    control.pop.var = control.pop.var(B = 1000,
-                                      alpha = .01)
-  )
+    control.pop.var = control.pop.var(B = 1000, alpha = .01)
+)
 summary(zotgeomBoot)
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
-#> Standardised Pearson Residuals:
+#> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.953664 -0.727750 -0.426863  0.003653  0.322952 16.133747 
+#> -0.952107 -0.727540 -0.426714  0.003655  0.322783 16.127909 
 #> 
 #> Coefficients:
 #>              Estimate Std. Error z value  P(>|z|)    
@@ -202,17 +196,17 @@ summary(zotgeomBoot)
 #> Population size estimation results: 
 #> Point estimate 29087.96
 #> Observed proportion: 41.4% (N obs = 12036)
-#> Bootstrap Std. Error 1982.073
+#> Bootstrap Std. Error 1962.695
 #> 99% CI for the population size:
 #> lowerBound upperBound 
-#>   25461.63   36238.35 
+#>   25228.32   35576.04 
 #> 99% CI for the share of observed population:
 #> lowerBound upperBound 
-#>   33.21343   47.27113
+#>   33.83176   47.70830
 ```
 
 ``` r
-plot(zotgeomBoot, plotType = "bootHist")
+plot(zotgeomBoot, plotType = "bootHist", labels = TRUE, ylim = c(0, 425))
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />

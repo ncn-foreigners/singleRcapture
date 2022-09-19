@@ -21,7 +21,7 @@ zotpoisson <- function() {
     1 / lambda
   }
 
-  mu.eta <- function(disp = NULL, eta, type = "trunc") {
+  mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
             "nontrunc" = lambda,
@@ -29,25 +29,27 @@ zotpoisson <- function() {
     )
   }
 
-  variance <- function(disp = NULL, mu, type = "nontrunc") {
+  variance <- function(eta, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = mu,
-            "trunc" = (mu - mu * exp(-mu)) / (1 - exp(-mu) - mu * exp(-mu))
+            "nontrunc" = lambda,
+            "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     )
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- exp(eta)
-    -lambda * (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
-              ((exp(lambda) - lambda - 1) ** 2))
+    lambda <- invlink(eta)
+    matrix(-lambda * (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
+                     ((exp(lambda) - lambda - 1) ** 2)), 
+           ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    lambda <- exp(eta)
-    eta + (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
+    lambda <- invlink(eta)
+    (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -61,20 +63,19 @@ zotpoisson <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
-      term <- lambda / (exp(lambda) - lambda - 1)
 
-      t(as.matrix(X)) %*% (weight * (y - lambda - lambda * term))
+      t(as.matrix(X)) %*% (weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     X <- as.matrix(X)
     y <- as.numeric(y)
 
@@ -85,10 +86,9 @@ zotpoisson <- function() {
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
 
-      term <- (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
-                ((exp(lambda) - lambda - 1) ** 2))
+      term <- ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
 
-      t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term)))
+      t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term * weight)))
     }
   }
 
@@ -96,9 +96,9 @@ zotpoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, mu, wt, disp = NULL) {
-    eta <- log(mu)
-    mu1 <- mu.eta(eta = eta, disp = disp)
+  dev.resids <- function(y, eta, wt, ...) {
+    mu <- invlink(eta)
+    mu1 <- mu.eta(eta = eta)
     a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = NULL) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
     loghm1y <- y
     loghm1y[y == 2] <- -Inf
@@ -109,7 +109,8 @@ zotpoisson <- function() {
     sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu) - mu * exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
   }
 
-  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- (pw * (1 - lambda * exp(-lambda)) /
          (1 - exp(-lambda) - lambda * exp(-lambda)))
     if(!contr) {
@@ -118,12 +119,13 @@ zotpoisson <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
+    Xvlm <- as.data.frame(Xvlm)
     prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
     term <- (1 - lambda * exp(-lambda)) ** 2
     
-    f1 <- t(X) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
+    f1 <- t(Xvlm) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
                                  ((1 + lambda - exp(lambda)) ** 2)))
     
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
@@ -132,9 +134,14 @@ zotpoisson <- function() {
     
     f1 + f2
   }
+  
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda) - stats::dpois(x = 1, lambda = lambda))
+  }
 
-  ## is this a correct way to simulate data from this distribution?
-  simulate <- function(n, lambda, lower=1, upper=Inf) {
+  simulate <- function(n, eta, lower = 1, upper = Inf) {
+    lambda <- invlink(eta)
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)
@@ -161,7 +168,10 @@ zotpoisson <- function() {
       pointEst = pointEst,
       popVar= popVar,
       simulate = simulate,
-      family = "zotpoisson"
+      family = "zotpoisson",
+      parNum = 1,
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

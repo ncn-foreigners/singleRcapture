@@ -7,17 +7,18 @@
 estimate_popsize(
   formula,
   data,
-  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "zotnegbin", "zotgeom",
-    "zelterman", "chao"),
-  weights = 1,
+  model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
+    "ztHurdlepoisson", "zotnegbin", "ztoinegbin", "zotgeom", "ztoigeom", "zelterman",
+    "chao"),
+  weights = NULL,
   subset = NULL,
   na.action = NULL,
   method = c("mle", "robust"),
-  pop.var = c("analytic", "bootstrap"),
+  pop.var = c("analytic", "bootstrap", "noEst"),
   control.method = NULL,
   control.model = NULL,
   control.pop.var = NULL,
-  modelFrame = FALSE,
+  modelFrame = TRUE,
   x = TRUE,
   y = TRUE,
   contrasts = NULL,
@@ -27,21 +28,21 @@ estimate_popsize(
 \arguments{
 \item{formula}{Formula for the model to be fitted.}
 
-\item{data}{Data frame for the regression.}
+\item{data}{Data frame or object coercible to data.frame class containing data for the regression and population size estimation.}
 
 \item{model}{Model for regression and population estimate. Possible values are \code{"ztpoisson"}, \code{"ztnegbin"}, \code{"ztgeom"}, \code{"zotpoisson"}, \code{"zotnegbin"}, \code{"zotgeom"}, \code{"zelterman"}, or \code{"chao"}.}
 
 \item{weights}{Optional object of a priori weights used in fitting the model.}
 
-\item{subset}{A logical vector indicating which observations should be used in regression and population size estimation}
+\item{subset}{A logical vector indicating which observations should be used in regression and population size estimation.}
 
 \item{na.action}{TODO}
 
 \item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{robust}) and maximum likelihood (\code{mle}).}
 
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap.
-where bootstraped confidence interval may either be based on 2.5\%-97.5\%
-percientiles (\code{"bootstrapPerc"}) or studentized CI (\code{"bootstrapSD"}).}
+Bootstrap confidence interval type may be specified in control.pop.var.
+There is also the third possible value of noEst which skips the population size estimate alltogether.}
 
 \item{control.method}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.method} function.}
 
@@ -75,7 +76,6 @@ Returns an object of classes inherited from glm containing:\cr
 \item{residuals -- Vector of raw residuals.}
 \item{logL -- Logarithm likelihood obtained at final iteration.}
 \item{iter -- Numbers of iterations performed in fitting or if stats::optim was used number of call to loglikelihhod function.}
-\item{dispersion -- Dispersion parameter if applies.}
 \item{df.residuals -- Residual degrees of freedom.}
 \item{df.null -- Null degrees of freedom.}
 \item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}

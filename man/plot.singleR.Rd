@@ -7,7 +7,7 @@
 \method{plot}{singleR}(
   x,
   plotType = c("QQ", "marginal", "fitresid", "bootHist", "rootogram", "dfpopContr",
-    "dfpopBox", "scaleLoc", "Cooks"),
+    "dfpopBox", "scaleLoc", "Cooks", "hatplot"),
   ...
 )
 }

@@ -19,13 +19,21 @@ chao <- function() {
   link <- function(x) {log(x / 2)}
   invlink <- function (x) {2 * exp(x)}
   dlink <- function(lambda) {1 / lambda}
-
-  mu.eta <- function(eta, ...) {
-    1 / (1 + exp(-eta))
+  
+  mu.eta <- function(eta, type = "trunc", ...) {
+    lambda <- invlink(eta)
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = 1 / (1 + exp(-eta))
+    )
   }
-
-  variance <- function(mu, ...) {
-    mu * (1 - mu)
+  
+  variance <- function(eta, type = "nontrunc", ...) {
+    lambda <- invlink(eta)
+    switch (type,
+            "nontrunc" = lambda,
+            "trunc" = (1 / (1 + exp(-eta))) * (1 / (1 + exp(eta)))
+    )
   }
   
   Wfun <- function(prior, eta, ...) {
@@ -37,14 +45,12 @@ chao <- function() {
   funcZ <- function(eta, weight, y, mu, ...) {
     lambda <- invlink(eta)
     L1 <- lambda / 2
-    eta + (L1 * (y - 1) + y) / (L1 + 1) / weight
+    (L1 * (y - 1) + y) / (L1 + 1) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1) {
+  minusLogLike <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -57,11 +63,9 @@ chao <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1) {
+  gradient <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -74,11 +78,9 @@ chao <- function() {
     }
   }
 
-  hessian <- function(y, X, weight = 1) {
+  hessian <- function(y, X, weight = 1, ...) {
     y <- as.numeric(y)
-    z <- y
-    z[z == 1] <- 0
-    z[z == 2] <- 1
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -96,14 +98,15 @@ chao <- function() {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, mu, wt, disp = NULL) {
+  dev.resids <- function(y, eta, wt, ...) {
     z <- y - 1
-    eta <- link(mu)
+    mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     ((-1) ** y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
-  pointEst <- function (disp = NULL, pw, lambda, contr = FALSE) {
+  pointEst <- function (pw, eta, contr = FALSE, ...) {
+    lambda <- invlink(eta)
     N <- ((1 + 1 / (lambda + (lambda ** 2) / 2)) * pw)
     if(!contr) {
       N <- sum(N)
@@ -111,11 +114,12 @@ chao <- function() {
     N
   }
 
-  popVar <- function (beta, pw, lambda, disp = NULL, cov, X) {
-    X <- as.data.frame(X)
+  popVar <- function (pw, eta, cov, Xvlm, ...) {
+    lambda <- invlink(eta)
+    Xvlm <- as.data.frame(Xvlm)
     prob <- lambda * exp(-lambda) + (lambda ** 2) * exp(-lambda) / 2
 
-    f1 <- colSums(-X * pw * ((lambda + (lambda ** 2)) /
+    f1 <- colSums(-Xvlm * pw * ((lambda + (lambda ** 2)) /
                   ((lambda + (lambda ** 2) / 2) ** 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
@@ -124,12 +128,19 @@ chao <- function() {
     f1 + f2
   }
   
-  simulate <- function(n, lambda, lower=0, upper=2) {
+  simulate <- function(n, eta, lower = 0, upper = 2) {
+    lambda <- invlink(eta)
+
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)
     sims <- stats::qpois(p_u, lambda)
     sims
+  }
+
+  dFun <- function (x, eta, type = "trunc") {
+    lambda <- invlink(eta)
+    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
   
   structure(
@@ -151,7 +162,10 @@ chao <- function() {
       pointEst = pointEst,
       popVar= popVar,
       simulate = simulate,
-      family = "chao"
+      family = "chao",
+      parNum = 1,
+      etaNames = "lambda",
+      densityFunction = dFun
     ),
     class = "family"
   )

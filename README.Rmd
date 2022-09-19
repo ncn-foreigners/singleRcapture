@@ -62,20 +62,12 @@ Marginal frequencies and Goodness of fit test:
 summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
 ```
 
-Here is a plot of marginal frequencies with matplot:
+Should goodness of fit tests prove insufficient in determining the best model graphical comparisons may also be made.
+One such technique is a rootogram and it is implemented as a part of singleR method for `plot` function:
 
-```{r plot}
-a1 <- marginalFreq(ModelPo)$table[-1]
-a2 <- marginalFreq(ModelZl)$table[-1]
-a3 <- table(netherlandsimmigrant$capture)
-matplot(y = sqrt(cbind(a1, a2, a3)), x = 1:6, ylab = "Square root of Frequencies",
-        xlab = "Counts", pch = 21:23, type = "o",
-        lty = 1, col = 1:3, main = "Plot of observed and fitted marginal frequencies")
-legend("topright",
-       legend = c("Poisson model",
-                  "Zelterman model",
-                  "Observed data"),
-       col = 1:3, pch = 21:23)
+```{r plot, fig.show="hold", out.width="50%"}
+plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
+plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
 singleRcapture also includes bootstraps and models truncated at values 0 and 1 and non standard confidence levels
@@ -88,12 +80,11 @@ zotgeomBoot <- estimate_popsize(
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "robust",
-    control.pop.var = control.pop.var(B = 1000,
-                                      alpha = .01)
-  )
+    control.pop.var = control.pop.var(B = 1000, alpha = .01)
+)
 summary(zotgeomBoot)
 ```
 
 ```{r}
-plot(zotgeomBoot, plotType = "bootHist")
+plot(zotgeomBoot, plotType = "bootHist", labels = TRUE, ylim = c(0, 425))
 ```

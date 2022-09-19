@@ -6,40 +6,61 @@
 \usage{
 control.method(
   epsilon = 1e-08,
-  dispEpsilon = 1e-05,
   maxiter = 1000,
   verbose = 0,
   start = NULL,
-  dispersionstart = NULL,
+  alphaStart = NULL,
+  omegaStart = NULL,
+  piStart = NULL,
   mleMethod = "L-BFGS-B",
   silent = FALSE,
   optimPass = FALSE,
-  disp.given = FALSE,
-  stepsize = 1
+  stepsize = 1,
+  momentumFactor = 0,
+  useZtpoissonAsStart = FALSE,
+  momentumActivation = 5
 )
 }
 \arguments{
 \item{epsilon}{Absolute tolerance for fitting algorithms by default 1e-8.}
 
-\item{dispEpsilon}{Absolute tolerance for estimating dispersion parameter by default 1e-5.}
-
 \item{maxiter}{Maximum number of iterations.}
 
-\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust its either 0 (for no tracing), 1 (for tracing logarithm likelihood) or 2 (for tracing logarithm likelihood and vector of regression parameters) for mle it is passed to  stats::optim as trace.}
+\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust fitting method different values of verbose give the following information:
+\itemize{
+\item 1 -- Returns information on the number of current iteration and current log-likelihood.
+\item 2 -- Returns information on vector of regression parameters at current iteration (and all of the above).
+\item 3 -- Returns information on reduction of log-likelihood at current iteration (and all of the above).
+\item 4 -- Returns information on value of log-likelihood function gradient at current iteration (and all of the above).
+\item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
+}
+if mle method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
 
-\item{start}{Initial parameters for regression coefficients if NULL they will be derived from simple poisson regression.}
+\item{start}{initial parameters for regression associated with main formula specified in function call if NULL they will be derived from simple poisson regression.}
 
-\item{dispersionstart}{Initial parameters for dispersion parameter if applicable.}
+\item{alphaStart}{initial parameters for dispersion parameter if applies.}
 
-\item{mleMethod}{Passed to stats::optim. L-BFGS-B is the default except for negative binomial models where Nelder-Mead is used.}
+\item{omegaStart}{initial parameters for inflation parameter if applies.}
+
+\item{piStart}{initial parameters for probability parameter if applies.}
+
+\item{mleMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.}
 
 \item{silent}{Logical, indicating whether warnings in robust method should be suppressed.}
 
 \item{optimPass}{Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.}
 
-\item{disp.given}{Logical, indicates whether to estimate dispersion parameter or assume the one provided is already correct.}
+\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.}
 
-\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1.}
+\item{momentumFactor}{experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
+\loadmathjax
+\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
+the update will be made as:
+\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + step_a-1)}}
+
+\item{useZtpoissonAsStart}{boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models.}
+
+\item{momentumActivation}{the value of log-likelihood reduction bellow which momentum will apply.}
 }
 \value{
 List with selected parameters, it is also possible to call list directly.
