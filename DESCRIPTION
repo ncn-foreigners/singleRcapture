@@ -27,7 +27,8 @@ Imports:
     stats,
     MASS,
     lamW,
-    mathjaxr
+    mathjaxr,
+    sandwich
 Suggests: 
     rmarkdown,
     knitr,
