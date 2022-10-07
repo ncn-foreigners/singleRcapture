@@ -235,7 +235,7 @@ dfbetasingleR <- function(model,
         ...
       ),
       y = y[-k],
-      X = singleRinternalGetXvlmMatrix(X = X[-k, ], nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]],
+      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]],
       start = cf,
       family = model$model,
       prior.weights = pw[-k],
@@ -379,7 +379,7 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
       X[object$which$reg, ]
       },
     vlm = {
-      X <- object$modelFrame[object$which$reg, attr(object$modelFrame, "names")[-1]];
+      X <- subset(object$modelFrame, subset = object$which$reg, select = attr(object$modelFrame, "names")[-1]);
       singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames);
       }
   )
@@ -397,6 +397,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
     dfb <- dfbnew
   }
   X <- model$modelFrame[model$which$est, attr(model$modelFrame, "names")[-1]]
+  X <- subset(model$modelFrame, subset = model$which$est, select = attr(model$modelFrame, "names")[-1])
   N <- model$populationSize$pointEstimate
   res <- NULL
   range <- 1:sum(model$which$est)
@@ -404,7 +405,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
     res <- c(res, model$model$pointEst(
-      eta = matrix(singleRinternalGetXvlmMatrix(X = X[-k, ], nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]] %*% cf, ncol = model$model$parNum),
+      eta = matrix(singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]] %*% cf, ncol = model$model$parNum),
       pw = pw[-k]) + model$trcount)
   }
   
