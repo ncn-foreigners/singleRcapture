@@ -126,7 +126,7 @@ oiztpoisson <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -145,6 +145,12 @@ oiztpoisson <- function() {
       G0 <- G0 - (1 - z) / (1 - omega)
       G0 <- G0 - 1 / (exp(lambda) - 1 + omega)
       G0 <- G0 * weight * omega * (1 - omega) # logit link
+      
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
+      
       as.numeric(c(G1, G0) %*% X)
     }
   }

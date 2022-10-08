@@ -195,7 +195,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
 
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -223,6 +223,11 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
             cp1 * z - cp2 * (y + z) + y * z) * alpha * weight)
       # Beta derivative
       G1 <- (weight * (y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob))
+      
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
 
       as.numeric(c(G1, G0) %*% X)
     }

@@ -123,7 +123,7 @@ Hurdleztgeom <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -140,6 +140,10 @@ Hurdleztgeom <- function() {
       G1 <- G1 * weight * lambda # lambda derivative
       G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ** 2 + PI * (1 + lambda))
       G0 <- G0 * weight * PI * (1 - PI) # PI derivative
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
       as.numeric(c(G1, G0) %*% X)
     }
   }

@@ -114,7 +114,7 @@ Hurdleztpoisson <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -131,6 +131,10 @@ Hurdleztpoisson <- function() {
       G1 <- G1 * weight
       G0 <- (z - PI- PI * (1 - PI) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))) # PI derivative
       G0 <- G0 * weight
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
       as.numeric(c(G1, G0) %*% X)
     }
   }

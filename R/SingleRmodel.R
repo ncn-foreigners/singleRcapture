@@ -303,7 +303,8 @@ estimate_popsize <- function(formula,
     Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
     W = if (method == "robust") weights else family$Wfun(prior = prior.weights, eta = eta),
     sizeObserved = sizeObserved,
-    modelFrame = modelFrame1
+    modelFrame = modelFrame1,
+    cov = NULL
   )
   structure(
     list(

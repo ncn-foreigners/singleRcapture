@@ -106,7 +106,7 @@ ztHurdlepoisson <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -120,6 +120,10 @@ ztHurdlepoisson <- function() {
       G1 <- weight * ifelse(z, 0 , (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
       G0 <- (z - PI) # PI derivative
       G0 <- G0 * weight
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
       as.numeric(c(G1, G0) %*% X)
     }
   }

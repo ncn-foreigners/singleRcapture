@@ -160,7 +160,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      control, hwm,
                                                      Xvlm, W, formulas,
                                                      sizeObserved,
-                                                     modelFrame) {
+                                                     modelFrame, cov) {
   # TODO:: maybe move this to main function
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
@@ -170,10 +170,12 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
   if (pop.var == "analytic") {
     strappedStatistic <- "No bootstrap performed"
     N <- family$pointEst(pw = weights, eta = eta) + trcount
-    cov <- switch(control$covType, # Change covariance here by adding more cases
+    if (is.null(cov)) {
+      cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
       "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% Xvlm)
-    )
+      )
+    }
     
     variation <- as.numeric(family$popVar(eta = eta, 
                                           pw = weights,
@@ -253,11 +255,16 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     }
   }
   
-  list(pointEstimate = N,
-       variance = variation,
-       confidenceInterval = confidenceInterval,
-       boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
-       control = control)
+  structure(
+    list(
+      pointEstimate = N,
+      variance = variation,
+      confidenceInterval = confidenceInterval,
+      boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
+      control = control
+    ),
+    class = "popSizeEstResults"
+  )
 }
 # multiparameter
 singleRcaptureinternalIRLSmultipar <- function(dependent,

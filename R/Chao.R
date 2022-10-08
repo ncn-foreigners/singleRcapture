@@ -63,7 +63,7 @@ chao <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
@@ -74,6 +74,9 @@ chao <- function() {
       eta <- as.matrix(X) %*% beta
       lambda <- invlink(eta)
       L1 <- lambda / 2
+      if (NbyK) {
+        return(as.data.frame(X) * (z - L1 / (1 + L1)) * weight)
+      }
       t(X) %*% ((z - L1 / (1 + L1)) * weight)
     }
   }

@@ -121,7 +121,7 @@ ztoigeom <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -137,6 +137,10 @@ ztoigeom <- function() {
       G1 <- G1 * weight * lambda
       G0 <- z * lambda / (1 + lambda * omega) - (1 - z) / (1 - omega) # omega derivative
       G0 <- G0 * weight * omega * (1 - omega)
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
       as.numeric(c(G1, G0) %*% X)
     }
   }
@@ -194,7 +198,6 @@ ztoigeom <- function() {
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    #TODO
     lambda <- invlink(eta)
     lambda <- lambda[, 1]
     N <- pw * (1 + 1 / lambda)
