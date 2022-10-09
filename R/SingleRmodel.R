@@ -192,7 +192,7 @@ estimate_popsize <- function(formula,
         start <- c(start, log(omg))
       } else {
         start <- c(start, stats::glm.fit(
-          x = model.matrix(control.model$omegaFormula, modelFrame1[wch$reg, attr(modelFrame1, "names")[-1]]),
+          x = model.matrix(control.model$omegaFormula, subset(modelFrame1, subset = wch$reg, select = attr(modelFrame1, "names")[-1])),
           y = as.numeric(observed[wch$reg] == 1),
           family = stats::binomial()
         )$coefficients)

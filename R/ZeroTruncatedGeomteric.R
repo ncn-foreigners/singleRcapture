@@ -64,7 +64,7 @@ ztgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1, NbyK, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
