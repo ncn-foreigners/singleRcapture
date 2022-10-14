@@ -64,7 +64,7 @@ ztgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -80,6 +80,9 @@ ztgeom <- function() {
       # Beta derivative
       if (NbyK) {
         return(as.data.frame(X) * (y * S - 1)  * weight)
+      }
+      if (vectorDer) {
+        return(matrix((y * S - 1) * weight, ncol = 1))
       }
       G1 <- t((y * S - 1)  * weight) %*% X
       

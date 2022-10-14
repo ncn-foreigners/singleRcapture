@@ -122,7 +122,7 @@ ztoipoisson <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -145,6 +145,9 @@ ztoipoisson <- function() {
       if (NbyK) {
         XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
         return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
+      if (vectorDer) {
+        return(cbind(G1, G0))
       }
       
       as.numeric(c(G1, G0) %*% X)

@@ -63,7 +63,7 @@ zotpoisson <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -72,6 +72,9 @@ zotpoisson <- function() {
       lambda <- exp(as.matrix(X) %*% beta)
       if (NbyK) {
         return(as.data.frame(X) * weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
+      }
+      if (vectorDer) {
+        return(matrix(weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)), ncol = 1))
       }
 
       t(as.matrix(X)) %*% (weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))

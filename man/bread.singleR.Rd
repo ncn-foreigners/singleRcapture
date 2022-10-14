@@ -12,7 +12,7 @@
 \item{...}{additional optional arguments.}
 }
 \value{
-a
+A bread matrix
 }
 \description{
 An S3class for \code{sandwich::bread} to handle \code{singleR} objects. This function was developed based on \code{sandwich:::bread.glm}

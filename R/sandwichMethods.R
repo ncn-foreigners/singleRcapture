@@ -1,3 +1,8 @@
+# TODO::
+## - HC
+## - boot (bs)
+## - HC in CL
+
 #' estfun
 #' 
 #' An S3class for \code{sandwich::estfun} to handle \code{singleR} objects. This function was developed based on \code{countreg::estfun.zerotrunc}
@@ -41,11 +46,91 @@ estfun.singleR <- function(object,...) {
 #' 
 #' @param object an object representing a fitted model.
 #' @param ... additional optional arguments.
-#' @return a 
+#' @return A bread matrix
 #' @seealso [sandwich::bread()]
 #' @importFrom sandwich bread
 #' @method bread singleR
 #' @exportS3Method
 bread.singleR <- function(object,...) {
   return(stats::vcov(object, ...) * as.vector(object$df.residual + length(object$coefficients)))
+}
+
+#' Title
+#'
+#' @param x TODO
+#' @param type TODO
+#' @param omega TODO
+#' @param sandwich TODO
+#' @param ... TODO
+#'
+#' @return vcov for hc
+#' @importFrom sandwich vcovHC
+#' @method vcovHC singleR
+#' @exportS3Method
+vcovHC.singleR <- function(x, 
+                           type = c("HC3", "const", "HC", 
+                                    "HC0", "HC1", "HC2", 
+                                    "HC4", "HC4m", "HC5"), 
+                           omega = NULL, 
+                           sandwich = TRUE, 
+                           ...) {
+  type <- match.arg(type)
+  estfun <- estfun(x, ...)
+  Y <- x$y
+  beta <- x$coefficients
+  X <- model.matrix(x, "vlm")
+  X <- X[[1]]
+  n <- nrow(X)
+  k <- ncol(X)
+  df <- n - k
+  hat <- as.vector(hatvalues(x))
+  res <- as.vector(x$model$makeGradient(y = Y, X = X, vectorDer = TRUE)(beta))
+  if (is.null(omega)) {
+    if (type == "HC") 
+      type <- "HC0"
+    switch(type, const = {
+      omega <- function(residuals, diaghat, df) rep(1, length(residuals)) * sum(residuals^2)/df
+    }, HC0 = {
+      omega <- function(residuals, diaghat, df) residuals^2
+    }, HC1 = {
+      omega <- function(residuals, diaghat, df) residuals^2 * 
+        length(residuals)/df
+    }, HC2 = {
+      omega <- function(residuals, diaghat, df) residuals^2/(1 - diaghat)
+    }, HC3 = {
+      omega <- function(residuals, diaghat, df) residuals^2/(1 - diaghat)^2
+    }, HC4 = {
+      omega <- function(residuals, diaghat, df) {
+        n <- length(residuals)
+        p <- as.integer(round(sum(diaghat), digits = 0))
+        delta <- pmin(4, n * diaghat/p)
+        residuals^2/(1 - diaghat)^delta
+      }
+    }, HC4m = {
+      omega <- function(residuals, diaghat, df) {
+        gamma <- c(1, 1.5)
+        n <- length(residuals)
+        p <- as.integer(round(sum(diaghat), digits = 0))
+        delta <- pmin(gamma[1], n * diaghat/p) + pmin(gamma[2], 
+                                                      n * diaghat/p)
+        residuals^2/(1 - diaghat)^delta
+      }
+    }, HC5 = {
+      omega <- function(residuals, diaghat, df) {
+        k <- 0.7
+        n <- length(residuals)
+        p <- as.integer(round(sum(diaghat), digits = 0))
+        delta <- pmin(n * diaghat/p, pmax(4, n * k * 
+                                            max(diaghat)/p))
+        residuals^2/sqrt((1 - diaghat)^delta)
+      }
+    })
+  }
+  if (is.function(omega)) 
+    omega <- omega(res, hat, df)
+  rval <- sqrt(omega) * X
+  rval <- crossprod(rval)/n
+  if (sandwich) 
+    rval <- sandwich(x, meat. = rval, ...)
+  return(rval)
 }

@@ -65,7 +65,7 @@ zelterman <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
@@ -78,6 +78,9 @@ zelterman <- function() {
       L1 <- lambda / 2
       if (NbyK) {
         return(as.data.frame(X) * (z - L1 / (1 + L1)) * weight)
+      }
+      if (vectorDer) {
+        return(matrix((z - L1 / (1 + L1)) * weight, ncol = 1))
       }
       t(X) %*% (weight * (L1 * (z - 1) + z) / (L1 + 1))
     }

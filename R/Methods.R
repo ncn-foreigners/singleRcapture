@@ -49,6 +49,21 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
     cov = cov
   )
 }
+#' Title
+#'
+#' @param object TODO
+#' @param ... TODO
+#'
+#' @return TODO
+#' @export
+popSizeEst <- function(object, ...) {
+  UseMethod("popSizeEst")
+}
+#' @method popSizeEst singleR
+#' @exportS3Method
+popSizeEst.singleR <- function(object, ...) {
+  object$populationSize
+}
 
 # gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
 #   # TODO::
