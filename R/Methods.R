@@ -1,3 +1,50 @@
+#' @method summary singleR
+#' @importFrom stats pt
+#' @importFrom stats coef
+#' @exportS3Method 
+summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, confint = FALSE, cov = NULL, popSizeEst = NULL, ...) {
+  if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
+  if (missing(test)) {test <- "z"}
+  df.residual <- object$df.residual
+  if (is.null(cov)) {
+    cov <- vcov.singleR(object, ...)
+  } else if (is.function(cov)) {
+    cov <- cov(object, ...)
+  }
+  pers <- residuals.singleR(object, type = resType, ...)
+  cf <- object$coefficients
+  se <- sqrt(diag(cov))
+  wValues <- cf / se
+  pValues <- switch (test,
+                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
+                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
+  )
+  crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
+  if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
+  cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
+  structure(
+    list(
+      call = object$call,
+      coefficients = cf,
+      standardErrors = se,
+      wValues = wValues,
+      pValues = pValues,
+      residuals = pers,
+      aic = AIC(object, ...),
+      bic = BIC(object, ...),
+      iter = object$iter,
+      logL = object$logL,
+      deviance = object$deviance,
+      populationSize = if (is.null(popSizeEst)) object$populationSize else popSizeEst,
+      df.residual = df.residual,
+      sizeObserved = object$sizeObserved,
+      correlation = crr,
+      test = test,
+      cnfint = cnfint
+    ),
+    class = "summarysingleR"
+  )
+}
 #' dfpopsize
 #'
 #' @param model Model for which leave one out diagnostic of popsize will be done.
@@ -8,46 +55,19 @@
 #'
 #' @return TODO: MAKE BETTER DOCUMENTATION
 #' @export
-dfpopsize <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
+dfpopsize <- function(model, dfbeta = NULL, ...) {
   UseMethod("dfpopsize")
 }
-
 #' Title
 #'
 #' @param object TODO
+#' @param cov TODO
 #' @param ... TODO
 #'
 #' @return TODO
 #' @export
 redoPopEstimation <- function(object, ...) {
   UseMethod("redoPopEstimation")
-}
-
-#' @method redoPopEstimation singleR
-#' @exportS3Method
-redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
-  Xvlm <- model.matrix(object, "vlm")
-  hwm <- Xvlm[[2]]
-  Xvlm <- Xvlm[[1]]
-  singleRcaptureinternalpopulationEstimate(
-    y = object$y[object$which$reg],
-    formulas = object$formula,
-    X = model.matrix(object),
-    grad = object$model$makeGradient(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
-    hessian = object$model$makeHessian(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, lambdaPredNumber = hwm),
-    pop.var = if (is.null(object$call$pop.var)) "analytic" else object$call$pop.var,
-    weights = object$prior.weights[object$which$reg],
-    eta = object$linear.predictors,
-    family = object$model,
-    beta = object$coefficients,
-    control = object$populationSize$control,
-    hwm = hwm,
-    Xvlm = Xvlm,
-    W = if (object$call$method == "robust") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
-    sizeObserved = object$sizeObserved,
-    modelFrame = object$modelFrame,
-    cov = cov
-  )
 }
 #' Title
 #'
@@ -59,12 +79,6 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
 popSizeEst <- function(object, ...) {
   UseMethod("popSizeEst")
 }
-#' @method popSizeEst singleR
-#' @exportS3Method
-popSizeEst.singleR <- function(object, ...) {
-  object$populationSize
-}
-
 # gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
 #   # TODO::
 #   ################
@@ -251,7 +265,7 @@ hatvalues.singleR <- function(model, ...) {
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
   hwm <- X[[2]]
   X <- X[[1]]
-  if (model$call$method == "robust") {
+  if (isTRUE(model$call$method == "robust")) {
     W <- model$weights
   } else {
     W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (model$model$family == "zelterman") model$linear.predictors[model$which$reg, ] else model$linear.predictors)
@@ -391,13 +405,13 @@ print.summarysingleRmargin <- function(x, ...) {
 #' @importFrom stats AIC
 #' @exportS3Method 
 AIC.singleR <- function(object, ...) {
-  object$aic
+  2 * (length(object$coefficients) - object$logL)
 }
 #' @method BIC singleR
 #' @importFrom stats BIC
 #' @exportS3Method 
 BIC.singleR <- function(object, ...) {
-  object$bic
+  length(object$coefficients) * log(sum(object$which$reg)) - 2 * object$logL
 }
 #' @method extractAIC singleR
 #' @importFrom stats extractAIC
@@ -437,8 +451,35 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
       }
   )
 }
-
+#' @method redoPopEstimation singleR
+#' @rdname redoPopEstimation
+#' @exportS3Method
+redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
+  Xvlm <- model.matrix(object, "vlm")
+  hwm <- Xvlm[[2]]
+  Xvlm <- Xvlm[[1]]
+  singleRcaptureinternalpopulationEstimate(
+    y = object$y[object$which$reg],
+    formulas = object$formula,
+    X = model.matrix(object),
+    grad = object$model$makeGradient(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
+    hessian = object$model$makeHessian(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, lambdaPredNumber = hwm),
+    pop.var = if (is.null(object$call$pop.var)) "analytic" else object$call$pop.var,
+    weights = object$prior.weights[object$which$reg],
+    eta = object$linear.predictors,
+    family = object$model,
+    beta = object$coefficients,
+    control = object$populationSize$control,
+    hwm = hwm,
+    Xvlm = Xvlm,
+    W = if (object$call$method == "robust") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
+    sizeObserved = object$sizeObserved,
+    modelFrame = object$modelFrame,
+    cov = cov
+  )
+}
 #' @method dfpopsize singleR
+#' @rdname dfpopsize
 #' @exportS3Method 
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   if (isTRUE(model$call$pop.var == "bootstrap")) warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
@@ -474,52 +515,11 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   
   res1
 }
-#' @method summary singleR
-#' @importFrom stats pt
-#' @importFrom stats coef
-#' @exportS3Method 
-summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, confint = FALSE, cov = NULL, popSizeEst = NULL, ...) {
-  if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
-  if (missing(test)) {test <- "z"}
-  df.residual <- object$df.residual
-  if (is.null(cov)) {
-    cov <- vcov.singleR(object, ...)
-  } else if (is.function(cov)) {
-    cov <- cov(object, ...)
-  }
-  pers <- residuals.singleR(object, type = resType, ...)
-  cf <- object$coefficients
-  se <- sqrt(diag(cov))
-  wValues <- cf / se
-  pValues <- switch (test,
-                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
-                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
-  )
-  crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
-  if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
-  cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
-  structure(
-    list(
-      call = object$call,
-      coefficients = cf,
-      standardErrors = se,
-      wValues = wValues,
-      pValues = pValues,
-      residuals = pers,
-      aic = object$aic,
-      bic = object$bic,
-      iter = object$iter,
-      logL = object$logL,
-      deviance = object$deviance,
-      populationSize = if (is.null(popSizeEst)) object$populationSize else popSizeEst,
-      df.residual = df.residual,
-      sizeObserved = object$sizeObserved,
-      correlation = crr,
-      test = test,
-      cnfint = cnfint
-    ),
-    class = "summarysingleR"
-  )
+#' @method popSizeEst singleR
+#' @rdname popSizeEst
+#' @exportS3Method
+popSizeEst.singleR <- function(object, ...) {
+  object$populationSize
 }
 #' @importFrom stats cooks.distance
 #' @method cooks.distance singleR

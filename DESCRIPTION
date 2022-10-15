@@ -33,4 +33,5 @@ Suggests:
     rmarkdown,
     knitr,
     tinytest,
+    VGAM
 VignetteBuilder: knitr

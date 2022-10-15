@@ -26,7 +26,7 @@ estimate_popsize(
 )
 }
 \arguments{
-\item{formula}{Formula for the model to be fitted.}
+\item{formula}{Formula for the model to be fitted, only applied to the "main" linear predictor. Only single response models are aviable.}
 
 \item{data}{Data frame or object coercible to data.frame class containing data for the regression and population size estimation.}
 
@@ -36,7 +36,7 @@ estimate_popsize(
 
 \item{subset}{A logical vector indicating which observations should be used in regression and population size estimation.}
 
-\item{na.action}{TODO}
+\item{na.action}{Not yet implemented.}
 
 \item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{robust}) and maximum likelihood (\code{mle}).}
 
@@ -44,17 +44,23 @@ estimate_popsize(
 Bootstrap confidence interval type may be specified in control.pop.var.
 There is also the third possible value of noEst which skips the population size estimate alltogether.}
 
-\item{control.method}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.method} function.}
+\item{control.method}{A list indicating parameters to use in fitting the model may be constructed with \code{singleRcapture::control.method} function. More information included in \code{\link[=control.method]{control.method()}}.}
 
-\item{control.model}{TODO}
+\item{control.model}{A list indicating additional formulas for regression (like formula for inflation parameter/dispersion parameter) may be constructed with \code{singleRcapture::control.model} function. More information will eventually be included in More information included in \code{\link[=control.model]{control.model()}}.}
 
-\item{control.pop.var}{A list indicating parameter to use in population size variance estimation may be constructed with \code{singleRcapture::control.pop.var} function.}
+\item{control.pop.var}{A list indicating parameters to use in estimatin variance of population size estimation may be constructed with \code{singleRcapture::control.pop.var} function. More information included in \code{\link[=control.pop.var]{control.pop.var()}}.}
 
 \item{modelFrame, x, y}{Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{Not yet implemented.}
 
-\item{...}{Arguments to be passed to other methods}
+\item{...}{additional optional arguments passed to the following functions:
+\itemize{
+\item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
+\item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
+\item \code{estimate_popsize.fit} -- possibly for picking starting points from zero truncated poisson regression.
+\item \code{stats::glm.fit} -- for picking starting points from simple poisson regression.
+}}
 }
 \value{
 Returns an object of classes inherited from glm containing:\cr
@@ -62,14 +68,12 @@ Returns an object of classes inherited from glm containing:\cr
 \itemize{
 \item{y -- Vector of dependent variable if specified at function call.}
 \item{X -- Model matrix if specified at function call.}
-\item{formula -- Formula provided on call.}
+\item{formula -- A list with formula provided on call and additional formulas specified in control.model.}
 \item{call -- Call matching original input.}
 \item{coefficients -- A vector of fitted coefficients of regression.}
 \item{control -- A list of control parameters for control.method and control.model, control.pop.var is included in populationSize.}
 \item{null.deviance TODO}
 \item{model -- Model which estimation of population size and regression was built, object of class family.}
-\item{aic -- Akaike information criterion.}
-\item{bic -- Bayesian information criterion.}
 \item{deviance -- Deviance for the model.}
 \item{prior.weights -- Prior weight provided on call.}
 \item{weights -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
@@ -79,18 +83,68 @@ Returns an object of classes inherited from glm containing:\cr
 \item{df.residuals -- Residual degrees of freedom.}
 \item{df.null -- Null degrees of freedom.}
 \item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
-\item{populationSize -- a list containing information of population size estimate.}
+\item{populationSize -- A list containing information of population size estimate.}
 \item{modelFrame -- Model frame if specified at call.}
-\item{linear predictors -- vector of fitted linear predictors.}
+\item{linear.predictors -- Vector of fitted linear predictors.}
 \item{trcount -- Number of truncated observations.}
 \item{sizeObserved -- Number of observations in original model frame.}
-\item{terms -- terms object used.}
+\item{terms -- terms attribute of model frame used.}
 \item{contrasts -- contrasts specified in function call.}
 \item{na.aciton -- na.action used.}
+\item{which -- list indicating which observations were used in regression/population size estimation.}
 }
 }
 \description{
-estimate_popsize
+TODO
+}
+\examples{
+# Model from 2003 publication 
+# Point and interval estimation of the
+# population size using the truncated Poisson regression mode
+# Heijden, Peter GM van der et al. (2003)
+model <- estimate_popsize(formula = capture ~ gender + age + nation, 
+data = netherlandsimmigrant, model = ztpoisson)
+summary(model)
+# Graphical presentation of model fit
+plot(model, "rootogram")
+# Statistical test
+summary(marginalFreq(model), df = 1)
+
+modelSingleRcapture <- estimate_popsize(formula = TOTAL_SUB ~ ., 
+data = farmsubmission, model = ztnegbin, method = "robust")
+library(VGAM)
+# comparison with VGAM package, VGAM uses slightly different parametrisation
+# so we use negloglink instead of loglink for size parameter
+# i.e 1 / dispersion parameter
+modelVGAM <- vglm(formula = TOTAL_SUB ~ ., 
+family = posnegbinomial(lsize = negloglink()), 
+data = farmsubmission)
+# Results are comparable
+summary(modelSingleRcapture)
+summary(modelVGAM)
+summary(marginalFreq(modelSingleRcapture))
+
+# More advanced call that specifies additional formula and shows
+# in depth information about fitting procedure
+pseudoHurdleModel <- estimate_popsize(formula = capture ~ nation + age + gender, 
+data = netherlandsimmigrant, model = Hurdleztgeom, 
+method = "robust", control.method = control.method(verbose = 5), 
+control.model = control.model(piFormula = ~ gender))
+summary(pseudoHurdleModel)
+# very good fit may be a little over fitted
+plot(pseudoHurdleModel, "rootogram")
+summary(marginalFreq(pseudoHurdleModel), dropl5 = "group", # Group cells 
+# with low frequencies instead of dropping them.
+df = 1)
+
+
+# A advanced input with additional information for fitting procedure and
+# additional formula specification.
+Model <- estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
+model = oiztgeom, method = "robust", control.method = control.method(
+verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
+silent = TRUE), control.model = control.model(omegaFormula = ~ .))
+summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
 }
 \seealso{
 \code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}

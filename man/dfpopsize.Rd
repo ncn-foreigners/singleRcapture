@@ -2,9 +2,12 @@
 % Please edit documentation in R/Methods.R
 \name{dfpopsize}
 \alias{dfpopsize}
+\alias{dfpopsize.singleR}
 \title{dfpopsize}
 \usage{
-dfpopsize(model, dfbeta = NULL, observedPop = FALSE, ...)
+dfpopsize(model, dfbeta = NULL, ...)
+
+\method{dfpopsize}{singleR}(model, dfbeta = NULL, observedPop = FALSE, ...)
 }
 \arguments{
 \item{model}{Model for which leave one out diagnostic of popsize will be done.}
@@ -12,9 +15,9 @@ dfpopsize(model, dfbeta = NULL, observedPop = FALSE, ...)
 \item{dfbeta}{If dfbeta was already obtained it is possible to pass them into
 function so that they need not be computed for the second time.}
 
-\item{observedPop}{TODO}
-
 \item{...}{Arguments to be passed down to other methods such as dfbeta.}
+
+\item{observedPop}{TODO}
 }
 \value{
 TODO: MAKE BETTER DOCUMENTATION

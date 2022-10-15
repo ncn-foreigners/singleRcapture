@@ -2,7 +2,7 @@
 % Please edit documentation in R/sandwichMethods.R
 \name{estfun.singleR}
 \alias{estfun.singleR}
-\title{estfun}
+\title{Empirical Estimating Functions}
 \usage{
 \method{estfun}{singleR}(object, ...)
 }
@@ -12,10 +12,10 @@
 \item{...}{additional optional arguments.}
 }
 \value{
-a \code{matrix} with \code{n} rows and \code{k} columns where \code{k} denotes number of variables.
+A \code{matrix} with \code{n} rows and \code{k} columns where \code{k} denotes number of variables.
 }
 \description{
-An S3class for \code{sandwich::estfun} to handle \code{singleR} objects. This function was developed based on \code{countreg::estfun.zerotrunc}
+An S3method for \code{sandwich::estfun} to handle \code{singleR} objects.
 }
 \examples{
 set.seed(1)
