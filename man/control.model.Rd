@@ -2,8 +2,7 @@
 % Please edit documentation in R/control.R
 \name{control.model}
 \alias{control.model}
-\title{control.model
-TODO}
+\title{Control parameters specific to some models}
 \usage{
 control.model(
   weightsAsCounts = FALSE,
@@ -13,19 +12,33 @@ control.model(
 )
 }
 \arguments{
-\item{weightsAsCounts}{TODO}
+\item{weightsAsCounts}{For now does nothing. The plan is to have this indicate whether
+\code{prior.weights} are to be treated as counts for sub populations and adjust all
+necessary methods and functionalities, like adjustments in bootstrap or
+decreasing weights in \code{dfbeta} instead or deleting rows from data,
+to accommodate this form of data.}
 
-\item{omegaFormula}{TODO}
+\item{omegaFormula}{Formula for inflation parameter in one inflated zero
+truncated and zero truncated one inflated models.}
 
-\item{alphaFormula}{TODO}
+\item{alphaFormula}{Formula for dispersion parameter in negative binomial
+based models.}
 
-\item{piFormula}{TODO
-for now does nothing}
+\item{piFormula}{Formula for probability parameter in pseudo hurdle zero
+truncated and zero truncated pseudo hurdle models.}
 }
 \value{
-control.model
+A list with selected parameters, it is also possible to call list directly.
 }
 \description{
-control.model
-TODO
+\code{control.model} constructs a list with all necessary control parameters
+in \code{estimate_popsize} that are either specific to selected model or don't fit
+anywhere else.
+
+Specifying additional formulas should be done by using only right hand side of
+the formula also for now all variables from additional formulas should also be
+included in the "main" formula.
+}
+\seealso{
+\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.pop.var]{control.pop.var()}}
 }

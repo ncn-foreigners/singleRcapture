@@ -7,10 +7,10 @@
 \method{vcov}{singleR}(object, type = c("Fisher", "observedInform"), ...)
 }
 \arguments{
-\item{object}{object of class singleRclass.}
+\item{object}{object of singleR class.}
 
 \item{type}{type of estimate for variance covariance matrix for now either
-expected (fisher) information matrix or observed information matrix.}
+expected (Fisher) information matrix or observed information matrix.}
 
 \item{...}{variables to pass to solve.}
 }

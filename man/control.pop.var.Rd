@@ -34,13 +34,14 @@ control.pop.var(
 
 \item{traceBootstrapSize}{Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.}
 
-\item{bootstrapVisualTrace}{TODO}
+\item{bootstrapVisualTrace}{Boolean value indicating whether to plot bootstrap statistics in real time.}
 
 \item{fittingMethod}{Method used for fitting models from bootstrap samples.}
 
 \item{bootstrapFitcontrol}{Control parameters for each regression works exactly like \code{control.method} but for fitting models from bootstrap samples.}
 
 \item{sd}{Indicates how to compute standard deviation of population size estimator either as:
+\loadmathjax
 \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
 for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal distribution:
 \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
@@ -52,5 +53,9 @@ where the ration involving gamma functions is computed by loggamma function.}
 A list with selected parameters, it is also possible to call list directly.
 }
 \description{
-Creating control parameters for population size estimation and respective standard error and variance estimation.
+Creating control parameters for population size estimation and
+respective standard error and variance estimation.
+}
+\seealso{
+\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.pop.var]{control.pop.var()}}
 }

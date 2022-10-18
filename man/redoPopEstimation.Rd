@@ -3,14 +3,14 @@
 \name{redoPopEstimation}
 \alias{redoPopEstimation}
 \alias{redoPopEstimation.singleR}
-\title{Title}
+\title{Updating population size estimation results.}
 \usage{
 redoPopEstimation(object, ...)
 
 \method{redoPopEstimation}{singleR}(object, cov = NULL, ...)
 }
 \arguments{
-\item{object}{TODO}
+\item{object}{Object of singleR class.}
 
 \item{...}{TODO}
 
@@ -20,5 +20,19 @@ redoPopEstimation(object, ...)
 TODO
 }
 \description{
-Title
+A function
+}
+\examples{
+# Create simple model
+Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+data = netherlandsimmigrant, 
+model = ztpoisson, 
+method = "robust")
+# Apply heteroscedasticity consistent covariance matrix estimation
+require(sandwich)
+cov <- vcovHC(Model, type = "HC3")
+summary(Model, cov = cov,
+popSizeEst = redoPopEstimation(Model, cov = cov))
+# Compare to results with usual covariance matrix estimation
+summary(Model)
 }

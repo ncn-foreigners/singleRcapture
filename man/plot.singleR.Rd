@@ -12,11 +12,29 @@
 )
 }
 \arguments{
-\item{x}{TODO}
+\item{x}{object of singleRmargin class.}
 
-\item{plotType}{TODO}
+\item{plotType}{Character parameter specifying type of plot to be made.
+The following list presents and briefly explains possible type of plots:
+\itemize{
+\item \code{QQ} --
+\item \code{marginal} --
+\item \code{fitresid} --
+\item \code{bootHist} --
+\item \code{rootogram} --
+\item \code{dfpopContr} --
+\item \code{dfpopBox} --
+\item \code{scaleLoc} --
+\item \code{Cooks} --
+\item \code{hatplot} --
+}}
 
-\item{...}{TODO}
+\item{...}{\itemize{
+\item
+\item
+\item
+\item
+}}
 }
 \value{
 TODO

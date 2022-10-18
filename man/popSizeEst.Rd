@@ -3,20 +3,20 @@
 \name{popSizeEst}
 \alias{popSizeEst}
 \alias{popSizeEst.singleR}
-\title{Title}
+\title{Extract population size estimation results}
 \usage{
 popSizeEst(object, ...)
 
 \method{popSizeEst}{singleR}(object, ...)
 }
 \arguments{
-\item{object}{TODO}
+\item{object}{Object with population size estimates}
 
 \item{...}{TODO}
 }
 \value{
-TODO
+An object of class \code{popSizeEstResults} containing population size estimation results.
 }
 \description{
-Title
+Extract population size estimation results
 }

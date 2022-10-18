@@ -1,6 +1,15 @@
-#' @title estimate_popsize
+#' @import mathjaxr
+NULL
+#' @title Single source capture-recapture models
 #'
-#' @description TODO
+#' @description \code{estimate_popsize} first fits appropriate (v)glm model and then estimates full (observed and unobserved) population size.
+#' In this types of models it is assumed that the response vector corresponds to number of times given unit was observed.
+#' Population size is then usually estimated by Horwitz-Thompson type estimator:
+#' 
+#' \loadmathjax
+#' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+#'
+#' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, with value 1 if kth unit was observed at least once and 0 otherwise.
 #'
 #' @param data Data frame or object coercible to data.frame class containing data for the regression and population size estimation.
 #' @param formula Formula for the model to be fitted, only applied to the "main" linear predictor. Only single response models are aviable.
@@ -17,7 +26,7 @@
 #' @param control.pop.var A list indicating parameters to use in estimatin variance of population size estimation may be constructed with \code{singleRcapture::control.pop.var} function. More information included in [control.pop.var()].
 #' @param modelFrame,x,y Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.
 #' @param contrasts Not yet implemented.
-#' @param ... additional optional arguments passed to the following functions:
+#' @param ... Additional optional arguments passed to the following functions:
 #' \itemize{
 #'   \item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
 #'   \item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
@@ -25,7 +34,7 @@
 #'   \item \code{stats::glm.fit} -- for picking starting points from simple poisson regression.
 #' } 
 #'
-#' @return Returns an object of classes inherited from glm containing:\cr
+#' @return Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 #' @returns
 #' \itemize{
 #'  \item{y -- Vector of dependent variable if specified at function call.}
@@ -56,7 +65,7 @@
 #'  \item{which -- list indicating which observations were used in regression/population size estimation.}
 #' }
 #' 
-#' @seealso [stats::optim()] [control.method()] [control.pop.var()] [control.model()] [estimate_popsize.fit()]
+#' @seealso [stats::glm()] [stats::optim()] [control.method()] [control.pop.var()] [control.model()] [estimate_popsize.fit()]
 #' @examples 
 #' # Model from 2003 publication 
 #' # Point and interval estimation of the
@@ -72,16 +81,17 @@
 #' 
 #' modelSingleRcapture <- estimate_popsize(formula = TOTAL_SUB ~ ., 
 #' data = farmsubmission, model = ztnegbin, method = "robust")
-#' library(VGAM)
 #' # comparison with VGAM package, VGAM uses slightly different parametrisation
 #' # so we use negloglink instead of loglink for size parameter
 #' # i.e 1 / dispersion parameter
-#' modelVGAM <- vglm(formula = TOTAL_SUB ~ ., 
-#' family = posnegbinomial(lsize = negloglink()), 
-#' data = farmsubmission)
+#' if (require(VGAM)) {
+#'   modelVGAM <- vglm(formula = TOTAL_SUB ~ ., 
+#'   family = posnegbinomial(lsize = negloglink()), 
+#'   data = farmsubmission)
+#'   summary(modelVGAM)
+#' }
 #' # Results are comparable
 #' summary(modelSingleRcapture)
-#' summary(modelVGAM)
 #' summary(marginalFreq(modelSingleRcapture))
 #' 
 #' # More advanced call that specifies additional formula and shows

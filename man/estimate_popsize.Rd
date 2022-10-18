@@ -2,7 +2,7 @@
 % Please edit documentation in R/SingleRmodel.R
 \name{estimate_popsize}
 \alias{estimate_popsize}
-\title{estimate_popsize}
+\title{Single source capture-recapture models}
 \usage{
 estimate_popsize(
   formula,
@@ -54,7 +54,7 @@ There is also the third possible value of noEst which skips the population size 
 
 \item{contrasts}{Not yet implemented.}
 
-\item{...}{additional optional arguments passed to the following functions:
+\item{...}{Additional optional arguments passed to the following functions:
 \itemize{
 \item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
 \item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
@@ -63,7 +63,7 @@ There is also the third possible value of noEst which skips the population size 
 }}
 }
 \value{
-Returns an object of classes inherited from glm containing:\cr
+Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 
 \itemize{
 \item{y -- Vector of dependent variable if specified at function call.}
@@ -95,7 +95,14 @@ Returns an object of classes inherited from glm containing:\cr
 }
 }
 \description{
-TODO
+\code{estimate_popsize} first fits appropriate (v)glm model and then estimates full (observed and unobserved) population size.
+In this types of models it is assumed that the response vector corresponds to number of times given unit was observed.
+Population size is then usually estimated by Horwitz-Thompson type estimator:
+
+\loadmathjax
+\mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+
+where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, with value 1 if kth unit was observed at least once and 0 otherwise.
 }
 \examples{
 # Model from 2003 publication 
@@ -112,16 +119,17 @@ summary(marginalFreq(model), df = 1)
 
 modelSingleRcapture <- estimate_popsize(formula = TOTAL_SUB ~ ., 
 data = farmsubmission, model = ztnegbin, method = "robust")
-library(VGAM)
 # comparison with VGAM package, VGAM uses slightly different parametrisation
 # so we use negloglink instead of loglink for size parameter
 # i.e 1 / dispersion parameter
-modelVGAM <- vglm(formula = TOTAL_SUB ~ ., 
-family = posnegbinomial(lsize = negloglink()), 
-data = farmsubmission)
+if (require(VGAM)) {
+  modelVGAM <- vglm(formula = TOTAL_SUB ~ ., 
+  family = posnegbinomial(lsize = negloglink()), 
+  data = farmsubmission)
+  summary(modelVGAM)
+}
 # Results are comparable
 summary(modelSingleRcapture)
-summary(modelVGAM)
 summary(marginalFreq(modelSingleRcapture))
 
 # More advanced call that specifies additional formula and shows
@@ -147,5 +155,5 @@ silent = TRUE), control.model = control.model(omegaFormula = ~ .))
 summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
 }
 \seealso{
-\code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}
+\code{\link[stats:glm]{stats::glm()}} \code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}
 }

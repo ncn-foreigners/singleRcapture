@@ -1,4 +1,7 @@
-#' Control parameters for regression
+#' @title Control parameters for regression
+#'
+#' @description \code{control.method} constructs a list with all necessary control parameters
+#' for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
 #'
 #' @param epsilon Absolute tolerance for fitting algorithms by default 1e-8.
 #' @param maxiter Maximum number of iterations.
@@ -19,15 +22,16 @@
 #' @param optimPass Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
 #' @param mleMethod method of [stats::optim()] used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.
 #' @param stepsize Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.
-#' @param momentumFactor experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
+#' @param momentumFactor Experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
 #' \loadmathjax
 #' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 #' the update will be made as:
-#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + step_a-1)}
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}
 #' @param useZtpoissonAsStart boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models.
 #' @param momentumActivation the value of log-likelihood reduction bellow which momentum will apply.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
+#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
 #' @export
 control.method <- function(epsilon = 1e-8,
                            maxiter = 1000,
@@ -60,21 +64,36 @@ control.method <- function(epsilon = 1e-8,
     useZtpoissonAsStart = useZtpoissonAsStart
   )
 }
-#' control.model
-#' TODO
-#' @param weightsAsCounts TODO
-#' @param omegaFormula TODO
-#' @param alphaFormula TODO
-#' @param piFormula TODO
-#' for now does nothing
-#' @return control.model
+#' @title Control parameters specific to some models
+#' 
+#' @description \code{control.model} constructs a list with all necessary control parameters
+#' in \code{estimate_popsize} that are either specific to selected model or don't fit
+#' anywhere else.
+#' 
+#' Specifying additional formulas should be done by using only right hand side of
+#' the formula also for now all variables from additional formulas should also be
+#' included in the "main" formula.
+#' 
+#' @param weightsAsCounts For now does nothing. The plan is to have this indicate whether
+#' \code{prior.weights} are to be treated as counts for sub populations and adjust all
+#' necessary methods and functionalities, like adjustments in bootstrap or
+#' decreasing weights in \code{dfbeta} instead or deleting rows from data, 
+#' to accommodate this form of data.
+#' @param omegaFormula Formula for inflation parameter in one inflated zero 
+#' truncated and zero truncated one inflated models.
+#' @param alphaFormula Formula for dispersion parameter in negative binomial
+#' based models.
+#' @param piFormula Formula for probability parameter in pseudo hurdle zero 
+#' truncated and zero truncated pseudo hurdle models.
+#' @return A list with selected parameters, it is also possible to call list directly.
+#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
 #' @export
 control.model <- function(weightsAsCounts = FALSE,
                           omegaFormula = ~ 1,
                           alphaFormula = ~ 1,
                           piFormula = ~ 1
                           ) {
-  # TODO
+  # This is not fully completed yet.
   list(
     weightsAsCounts = weightsAsCounts,
     omegaFormula = omegaFormula,
@@ -84,7 +103,8 @@ control.model <- function(weightsAsCounts = FALSE,
 }
 #' @title  Control parameters for population size estimation
 #'
-#' @description Creating control parameters for population size estimation and respective standard error and variance estimation.
+#' @description Creating control parameters for population size estimation and 
+#' respective standard error and variance estimation.
 #'
 #' @param alpha Significance level, 0.05 used by default.
 #' @param trcount Truncated count - a number to be added to point estimator and both sides of confidence intervals.
@@ -93,10 +113,11 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param confType Type of confidence interval for bootstrap confidence interval, \code{"percentile"} by default. Other possibility: \code{"studentized"} and \code{"basic"}.
 #' @param keepbootStat Boolean value indicating whether to keep a vector of statistics produced by bootstrap.
 #' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.
-#' @param bootstrapVisualTrace TODO
+#' @param bootstrapVisualTrace Boolean value indicating whether to plot bootstrap statistics in real time.
 #' @param fittingMethod Method used for fitting models from bootstrap samples.
 #' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{control.method} but for fitting models from bootstrap samples.
 #' @param sd Indicates how to compute standard deviation of population size estimator either as:
+#' \loadmathjax
 #' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
 #' for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal distribution:
 #' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
@@ -104,6 +125,7 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
+#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
 #' @export
 control.pop.var <- function(alpha = .05,
                             trcount = 0,

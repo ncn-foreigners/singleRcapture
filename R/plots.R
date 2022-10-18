@@ -1,8 +1,27 @@
 #' @title Diagnostic plots singleR regression
 #'
-#' @param x TODO
-#' @param plotType TODO
-#' @param ... TODO
+#' @param x object of singleRmargin class.
+#' @param plotType Character parameter specifying type of plot to be made.
+#' The following list presents and briefly explains possible type of plots:
+#' \itemize{
+#'   \item \code{QQ} --
+#'   \item \code{marginal} --
+#'   \item \code{fitresid} --
+#'   \item \code{bootHist} --
+#'   \item \code{rootogram} --
+#'   \item \code{dfpopContr} --
+#'   \item \code{dfpopBox} --
+#'   \item \code{scaleLoc} --
+#'   \item \code{Cooks} --
+#'   \item \code{hatplot} --
+#' }
+#' @param ... 
+#' \itemize{
+#'   \item 
+#'   \item
+#'   \item
+#'   \item
+#' }
 #' 
 #' @method plot singleR
 #' @return TODO
