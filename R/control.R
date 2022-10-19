@@ -86,7 +86,7 @@ control.method <- function(epsilon = 1e-8,
 #' @param piFormula Formula for probability parameter in pseudo hurdle zero 
 #' truncated and zero truncated pseudo hurdle models.
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
+#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.method()] [singleRcapture::control.pop.var()]
 #' @export
 control.model <- function(weightsAsCounts = FALSE,
                           omegaFormula = ~ 1,
@@ -125,7 +125,7 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
+#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.method()]
 #' @export
 control.pop.var <- function(alpha = .05,
                             trcount = 0,

@@ -50,6 +50,8 @@ summary(ModelPo)
 #> -0.488779 -0.486085 -0.297859  0.002075 -0.210439 13.921578 
 #> 
 #> Coefficients:
+#> -----------------------
+#> For linear predictors associated with: lambda 
 #>                      Estimate Std. Error z value P(>|z|)    
 #> (Intercept)            -2.317      0.449   -5.16 2.5e-07 ***
 #> gender                  0.397      0.163    2.44 1.5e-02   *
@@ -65,7 +67,7 @@ summary(ModelPo)
 #> 
 #> AIC: 1714.896
 #> BIC: 1764.747
-#> Deviance: 1128.549
+#> Residual deviance: 1128.549
 #> 
 #> Log-likelihood: -848.4481 on 1871 Degrees of freedom 
 #> Number of iterations: 8
@@ -91,9 +93,11 @@ summary(ModelZl)
 #> 
 #> Pearson Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.47496 -0.43206 -0.32340  0.04937 -0.19071  9.54717 
+#> -0.47496 -0.43206 -0.32340  0.04906 -0.19071  9.54717 
 #> 
 #> Coefficients:
+#> -----------------------
+#> For linear predictors associated with: lambda 
 #>                      Estimate Std. Error z value P(>|z|)    
 #> (Intercept)            -3.359      0.528   -6.36 2.0e-10 ***
 #> gender                  0.535      0.232    2.30 2.1e-02   *
@@ -109,7 +113,7 @@ summary(ModelZl)
 #> 
 #> AIC: 1133.029
 #> BIC: 1182.627
-#> Deviance: 1115.029
+#> Residual deviance: 1115.029
 #> 
 #> Log-likelihood: -557.5143 on 1819 Degrees of freedom 
 #> Number of iterations: 7
@@ -153,7 +157,7 @@ plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
 plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
-<img src="man/figures/README-plot-1.png" width="50%" /><img src="man/figures/README-plot-2.png" width="50%" />
+<img src="man/figures/README-plot-1.png" width="51%" /><img src="man/figures/README-plot-2.png" width="51%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
 and 1 and non standard confidence levels
@@ -178,6 +182,8 @@ summary(zotgeomBoot)
 #> -0.952107 -0.727540 -0.426714  0.003655  0.322783 16.127909 
 #> 
 #> Coefficients:
+#> -----------------------
+#> For linear predictors associated with: lambda 
 #>              Estimate Std. Error z value  P(>|z|)    
 #> (Intercept)    -2.608      0.298   -8.76  2.0e-18 ***
 #> log_size        0.585      0.022   26.47 2.2e-154 ***
@@ -188,7 +194,7 @@ summary(zotgeomBoot)
 #> 
 #> AIC: 19483.08
 #> BIC: 19509.67
-#> Deviance: 23179.43
+#> Residual deviance: 23179.43
 #> 
 #> Log-likelihood: -9737.539 on 5692 Degrees of freedom 
 #> Number of iterations: 7

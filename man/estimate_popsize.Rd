@@ -68,18 +68,17 @@ Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 \itemize{
 \item{y -- Vector of dependent variable if specified at function call.}
 \item{X -- Model matrix if specified at function call.}
-\item{formula -- A list with formula provided on call and additional formulas specified in control.model.}
+\item{formula -- A list with formula provided on call and additional formulas specified in \code{control.model}.}
 \item{call -- Call matching original input.}
 \item{coefficients -- A vector of fitted coefficients of regression.}
-\item{control -- A list of control parameters for control.method and control.model, control.pop.var is included in populationSize.}
-\item{null.deviance TODO}
+\item{control -- A list of control parameters for \code{control.method} and \code{control.model}, \code{control.pop.var} is included in populationSize.}
 \item{model -- Model which estimation of population size and regression was built, object of class family.}
 \item{deviance -- Deviance for the model.}
 \item{prior.weights -- Prior weight provided on call.}
 \item{weights -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
 \item{residuals -- Vector of raw residuals.}
 \item{logL -- Logarithm likelihood obtained at final iteration.}
-\item{iter -- Numbers of iterations performed in fitting or if stats::optim was used number of call to loglikelihhod function.}
+\item{iter -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
 \item{df.residuals -- Residual degrees of freedom.}
 \item{df.null -- Null degrees of freedom.}
 \item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
@@ -103,6 +102,150 @@ Population size is then usually estimated by Horwitz-Thompson type estimator:
 \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
 
 where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, with value 1 if kth unit was observed at least once and 0 otherwise.
+}
+\details{
+The generalized linear model is characterised by equation
+\mjdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}{eta=X*beta}
+where \mjeqn{\boldsymbol{X}}{X} is the (lm) model matrix. The vector
+generalized linear model is similarly characterised by equations
+\mjdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}{eta_k=X_k*beta_k}
+where \mjeqn{\boldsymbol{X}_{k}}{X_k} is a (lm) model matrix constructed
+from appropriate formula (specified in \code{control.model} parameter).
+The \mjeqn{\boldsymbol{\eta}}{eta} is then a matrix constructed as:
+\mjdeqn{\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1} & \boldsymbol{\eta}_{2} & \dotso & \boldsymbol{\eta}_{p}\end{pmatrix}}{eta = (eta_1, eta_2, ..., eta_p)}
+and the (vlm) model matrix is constructed as a block matrix:
+\mjdeqn{\boldsymbol{X}_{vlm}=
+\begin{pmatrix}
+\boldsymbol{X}_{1} & \boldsymbol{0} &\dotso &\boldsymbol{0}\cr
+\boldsymbol{0} & \boldsymbol{X}_{2} &\dotso &\boldsymbol{0}\cr
+\vdots & \vdots & \ddots & \vdots\cr
+\boldsymbol{0} & \boldsymbol{0} &\dotso &\boldsymbol{X}_{p}
+\end{pmatrix}}{X_vlm = matrix(
+X_1, 0, ..., 0
+0, X_2, ..., 0
+...........
+0, 0, ..., X_p)}
+this differs from convention in \code{VGAM} package but this is just a
+convention and does not affect the model, this convention is taken
+because it makes fitting with IRLS (explanation of algorithm in
+\code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}) algorithm easier.
+In this package we use observed likelihood to fit regression models.
+
+As mentioned aboce usually the population size estimation is done via:
+\mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+
+where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables,
+with value 1 if k'th unit was observed at least once and 0 otherwise.
+The \mjeqn{\mathbb{P}(Y_{k}>0)}{P(Y_k > 0)} are estimated by maximum likelihood.
+
+There are two ways of estimating variance of estimate \mjeqn{\hat{N}}{N},
+the first being \code{"analytic"} usually done by application of
+law of total variance to \mjeqn{\hat{N}}{N}:
+\mjdeqn{\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
+\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
+\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}{
+var(N)=E(var(N|I_1,...,I_N))+var(E(N|I_1,...,I_N))}
+and then by \mjeqn{\delta}{delta} method to
+\mjeqn{\hat{N}|I_{1},\dotso I_{N}}{N|I_1,...,I_N}:
+\mjdeqn{\mathbb{E}\left(\text{var}
+\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
+\left.\left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
+\text{cov}\left(\boldsymbol{\beta}\right)
+\left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)
+\right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}{E(var(N|I_1,...,I_N))=
+(d(N|I_1,...,I_N)/d.beta)'cov(beta)(d(N|I_1,...,I_N)/d.beta)}
+and the
+\mjeqn{\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}{var(E(N|I_1,...,I_N))}
+term may be derived analytically (if we assume independence of
+observations) since
+\mjeqn{\hat{N}|I_{1},\dots,I_{n}}{N|I_1,...,I_N} is just a constant.
+In general this gives us:
+\mjdeqn{
+\begin{aligned}
+\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)&=
+\text{var}\left(\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}\right)\cr
+&=\sum_{k=1}^{N}\text{var}\left(\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}\right)\cr
+&=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}>0)^{2}}\text{var}(I_{k})\cr
+&=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}>0)^{2}}\mathbb{P}(Y_{k}>0)(1-\mathbb{P}(Y_{k}>0))\cr
+&=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}>0)}(1-\mathbb{P}(Y_{k}>0))\cr
+&\approx\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)^{2}}(1-\mathbb{P}(Y_{k}>0))\cr
+&=\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}>0)}{\mathbb{P}(Y_{k}>0)^{2}}
+\end{aligned}
+}{(var(E(N|I_1,...,I_N)) = var(sum_k=1^N I_k / P(Y_k > 0))
+= sum_k=1^N var(I_k / P(Y_k > 0))
+= sum_k=1^N var(I_k) / P(Y_k > 0)^2
+= sum_k=1^N P(Y_k > 0)(1-P(Y_k > 0)) / P(Y_k > 0)^2
+= sum_k=1^N (1-P(Y_k > 0)) / P(Y_k > 0)
+~~ sum_k=1^N (1-P(Y_k > 0)) I_k / P(Y_k > 0)^2
+= sum_k=1^N_obs (1-P(Y_k > 0)) / P(Y_k > 0)^2)}
+Where the approximation on 6th line appears because in 5th line we sum over all
+units, that includes unobserved units, since \mjeqn{I_{k}}{I_k} are independent
+and \mjeqn{I_{k}\sim b(\mathbb{P}(Y_{k}>0))}{
+I_k follows bernoulli distribution with p = \mathbb{P}(Y_{k}>0)} the 6th line
+is an unbiased estimator of the 5th line.
+
+The other method for estimating variance is \code{"bootstrap"}, but since
+\mjeqn{N_{obs}=\sum_{k=1}^{N}I_{k}}{N_obs = sum_k=1^N I_k} is also a random
+variable bootstrap will not be as simple as just drawing \mjeqn{N_{obs}}{N_obs}
+units from data with replacement and just computing \mjeqn{\hat{N}}{N}.
+
+Method described above is refered to in literature as \code{"nonparametric"}
+bootstrap (see \code{\link[=control.pop.var]{control.pop.var()}}), due to ignoring variability in observed
+sample size it is likely to underestimate variance.
+
+A more sophisticated bootstrap procedure may be described as follows:
+\enumerate{
+\item Compute the probability distribution as: \mjdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, \frac{\boldsymbol{f}_{1}}{\hat{N}}, \dotso, \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{f_0 / N, f_1 / N, ..., f_max(y) / N}
+where \mjeqn{\boldsymbol{f}_{n}}{f_n} denotes observed marginal frequency of
+units being observed exactly n times.
+\item Draw \mjeqn{\hat{N}}{N} units from the distribution above (if \mjeqn{\hat{N}}{N} is not an integer than draw \mjeqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{floor(N) + b(N-floor(N))})
+\item Truncated units with \mjeqn{y=0}{y=0}
+\item If there are covariates draw them from original data with replacement from
+uniform distribution. Eg if unit drawn to new data has \mjeqn{y=2}{y=2}
+choose one of covariate vectors from original data that was associated with
+unit for which was observed 2 times
+\item Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
+and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} use them to compute
+\mjeqn{\hat{N}_{new}}{N_new}.
+\item Repeat 2-5 unit there are at least \code{B} statistics are obtained.
+\item Compute confidence intervals based on \code{alpha} and \code{confType}
+specified in \code{\link[=control.pop.var]{control.pop.var()}}
+}
+
+This procedure is known in literature as \code{"semiparametric"} bootstrap
+it is necessary to assume that the have a correct estimate \mjeqn{\hat{N}}{N}
+in order to use this type of bootstrap.
+
+Lastly there is \code{"paramteric"} bootstrap where we assume that the
+probabilistic model used to obtain \mjeqn{\hat{N}}{N} is correct the
+bootstrap procedure may then be described as:
+\enumerate{
+\item Draw \mjeqn{\hat{N}}{N} covariate information vectors with replacement.
+\item Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate \mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
+\item Generate \mjeqn{\boldsymbol{y}}{y} (dependent variable) vector using
+\mjeqn{\boldsymbol{\eta}}{eta} and probability mass function associated with
+chosen model.
+\item Truncated units with \mjeqn{y=0}{y=0} and construct \mjeqn{\boldsymbol{y}_{new}}{y_new} and \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
+\item Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
+and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} use them to compute
+\mjeqn{\hat{N}_{new}}{N_new}.
+\item Repeat 1-5 unit there are at least \code{B} statistics are obtained.
+\item Compute confidence intervals based on \code{alpha} and \code{confType}
+specified in \code{\link[=control.pop.var]{control.pop.var()}}
+}
+
+It is also worth noting that in the \code{"analytic"} method \code{estimate_popsize}
+only uses "standard" covariance matrix estimation. It is possible that improper
+covariance matrix estimate is the only part of estimation that has its assumptions
+violated. In such cases post-hoc procedures are implemented in this package
+to address this issue.
+
+Lastly confidence intervals for \mjeqn{\hat{N}}{N} are computed (in analytic case)
+either by assuming that it follows a normal distribution or that variable
+\mjeqn{\ln(N-\hat{N})}{log_e(N_true - N_estimate)} follows a normal
+distribution. These estimates may be found using either \code{summary.singleR}
+method or \code{popSizeEst.singleR} function. They're labelled as
+\code{Studentized} and \code{Logtransform} respectively.
 }
 \examples{
 # Model from 2003 publication 
@@ -155,5 +298,5 @@ silent = TRUE), control.model = control.model(omegaFormula = ~ .))
 summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
 }
 \seealso{
-\code{\link[stats:glm]{stats::glm()}} \code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}
+\code{\link[stats:glm]{stats::glm()}} \code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}} \code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=summary.singleR]{summary.singleR()}}
 }

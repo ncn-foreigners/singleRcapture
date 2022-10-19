@@ -10,17 +10,20 @@ redoPopEstimation(object, ...)
 \method{redoPopEstimation}{singleR}(object, cov = NULL, ...)
 }
 \arguments{
-\item{object}{Object of singleR class.}
+\item{object}{Object for which update of population size estimation results will be done.}
 
-\item{...}{TODO}
+\item{...}{Additional optional arguments, currently not used in \code{singleR} class method.}
 
-\item{cov}{TODO}
+\item{cov}{An updated covariance matrix estimate.}
 }
 \value{
-TODO
+An object of class \code{popSizeEstResults} containing updated
+population size estimation results.
 }
 \description{
-A function
+A function that applies all post-hoc procedures that were taken
+(such as heteroscedastic consistent covariance matrix estimation or bias
+reduction) to population size estimation and standard error estimation.
 }
 \examples{
 # Create simple model

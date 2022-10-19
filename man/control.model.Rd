@@ -40,5 +40,5 @@ the formula also for now all variables from additional formulas should also be
 included in the "main" formula.
 }
 \seealso{
-\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.pop.var]{control.pop.var()}}
+\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}}
 }

@@ -2,22 +2,46 @@
 % Please edit documentation in R/Methods.R
 \name{summary.singleRmargin}
 \alias{summary.singleRmargin}
-\title{Summary for marginal frequencies}
+\title{Statistical tests of goodness of fit.}
 \usage{
-\method{summary}{singleRmargin}(object, df = NULL, dropl5 = c("drop", "group", "no"), ...)
+\method{summary}{singleRmargin}(object, df, dropl5 = c("drop", "group", "no"), ...)
 }
 \arguments{
-\item{object}{object of singleRmargin class.}
+\item{object}{Object of singleRmargin class.}
 
-\item{df}{degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object.}
+\item{df}{Degrees of freedom if not provided the function will try and manually
+but it is not always possible.}
 
-\item{dropl5}{a character indicating treatment of cells with frequencies < 5 either grouping them, droping or leaving them as is. Defaults to drop.}
+\item{dropl5}{A character indicating treatment of cells with frequencies < 5
+either grouping them, droping or leaving them as is. Defaults to drop.}
 
-\item{...}{Currently does nothing}
+\item{...}{Currently does nothing.}
 }
 \value{
-A chi squared test for comparison between fitted and observed marginal frequencies
+A chi squared test and G test for comparison between fitted and observed marginal frequencies.
 }
 \description{
-Summary for marginal frequencies
+Performs two statistical test on observed and fitted
+marginal frequencies. For G test the test statistic is computed as:
+\loadmathjax
+\mjdeqn{G = 2\sum_{k}O_{k}\ln{\left(\frac{O_{k}}{E_{k}}\right)}}{G = 2 * Sum O_k ln (O_k/E_k)}
+and for \mjeqn{\chi^{2}}{X2} the test statistic is computed as:
+\mjdeqn{\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}{X2 = Sum (O_k - E_k)^2/E_k}
+where \mjeqn{O_{k},E_{k}}{O_k,E_k} denoted observed and fitted frequencies respectively.
+Both of these statistics converge to \mjeqn{\chi^2}{X2} distribution asymptotically
+with the same degrees of freedom.
+
+The convergence of \mjeqn{G, \chi^2}{G, X2} statistics to \mjeqn{\chi^2}{X2}
+distribution may be violated if expected counts in cells are too low,
+say < 5, so it is customary to either censor or omit these cells.
+}
+\examples{
+# Create a simple model
+Model <- estimate_popsize(formula = capture ~ ., 
+data = netherlandsimmigrant, 
+model = ztpoisson, 
+method = "robust")
+plot(Model, "rootogram")
+# We see a considerable lack of fit
+summary(marginalFreq(Model), df = 1, dropl5 = "group")
 }

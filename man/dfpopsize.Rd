@@ -37,3 +37,18 @@ unit from the data set.
 \description{
 \code{dfpopsize} does for population size estimation.
 }
+\examples{
+# For singleR class
+# Get simple model
+Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+data = netherlandsimmigrant, 
+model = ztpoisson, 
+method = "robust")
+# Get df beta
+dfb <- dfbeta(Model)
+# The results
+dfpopsize(Model, dfbeta = dfb)
+# It is also possible to not probide dfbeta then they will be
+# computed manually
+dfpopsize(Model)
+}

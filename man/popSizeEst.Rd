@@ -3,20 +3,21 @@
 \name{popSizeEst}
 \alias{popSizeEst}
 \alias{popSizeEst.singleR}
-\title{Extract population size estimation results}
+\title{Extract population size estimation results.}
 \usage{
 popSizeEst(object, ...)
 
 \method{popSizeEst}{singleR}(object, ...)
 }
 \arguments{
-\item{object}{Object with population size estimates}
+\item{object}{Object with population size estimates.}
 
-\item{...}{TODO}
+\item{...}{Additional optional arguments, currently not used in \code{singleR} class method.}
 }
 \value{
 An object of class \code{popSizeEstResults} containing population size estimation results.
 }
 \description{
-Extract population size estimation results
+An extractor function with \code{singleR} method for extracting
+important information regarding pop size estimate.
 }

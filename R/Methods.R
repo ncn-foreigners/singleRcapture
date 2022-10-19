@@ -134,20 +134,36 @@ summary.singleR <- function(object,
 #' point estimate of population size estimation on full data set and 
 #' point estimate of population size estimation after the removal of k'th
 #' unit from the data set.
+#' @examples 
+#' # For singleR class
+#' # Get simple model
+#' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+#' data = netherlandsimmigrant, 
+#' model = ztpoisson, 
+#' method = "robust")
+#' # Get df beta
+#' dfb <- dfbeta(Model)
+#' # The results
+#' dfpopsize(Model, dfbeta = dfb)
+#' # It is also possible to not probide dfbeta then they will be
+#' # computed manually
+#' dfpopsize(Model)
 #' @export
 dfpopsize <- function(model, ...) {
   UseMethod("dfpopsize")
 }
-##### TODO: You've stopped here
 #' @title Updating population size estimation results.
 #'
-#' @description A function
+#' @description A function that applies all post-hoc procedures that were taken
+#' (such as heteroscedastic consistent covariance matrix estimation or bias
+#' reduction) to population size estimation and standard error estimation.
 #' 
-#' @param object Object of singleR class.
-#' @param cov TODO
-#' @param ... TODO
+#' @param object Object for which update of population size estimation results will be done.
+#' @param cov An updated covariance matrix estimate.
+#' @param ... Additional optional arguments, currently not used in \code{singleR} class method.
 #'
-#' @return TODO
+#' @return An object of class \code{popSizeEstResults} containing updated 
+#' population size estimation results.
 #' @examples
 #' # Create simple model
 #' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
@@ -165,10 +181,13 @@ dfpopsize <- function(model, ...) {
 redoPopEstimation <- function(object, ...) {
   UseMethod("redoPopEstimation")
 }
-#' @title Extract population size estimation results
+#' @title Extract population size estimation results.
+#' 
+#' @description An extractor function with \code{singleR} method for extracting
+#' important information regarding pop size estimate.
 #'
-#' @param object Object with population size estimates
-#' @param ... TODO
+#' @param object Object with population size estimates.
+#' @param ... Additional optional arguments, currently not used in \code{singleR} class method. 
 #'
 #' @return An object of class \code{popSizeEstResults} containing population size estimation results.
 #' @export
@@ -255,17 +274,42 @@ popSizeEst <- function(object, ...) {
 #     return(opt)
 #   }
 # }
-#' Summary for marginal frequencies
+#' @title Statistical tests of goodness of fit.
 #'
-#' @param object object of singleRmargin class.
-#' @param df degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object.
-#' @param dropl5 a character indicating treatment of cells with frequencies < 5 either grouping them, droping or leaving them as is. Defaults to drop.
-#' @param ... Currently does nothing
+#' @description Performs two statistical test on observed and fitted
+#' marginal frequencies. For G test the test statistic is computed as:
+#' \loadmathjax
+#' \mjdeqn{G = 2\sum_{k}O_{k}\ln{\left(\frac{O_{k}}{E_{k}}\right)}}{G = 2 * Sum O_k ln (O_k/E_k)}
+#' and for \mjeqn{\chi^{2}}{X2} the test statistic is computed as:
+#' \mjdeqn{\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}{X2 = Sum (O_k - E_k)^2/E_k}
+#' where \mjeqn{O_{k},E_{k}}{O_k,E_k} denoted observed and fitted frequencies respectively.
+#' Both of these statistics converge to \mjeqn{\chi^2}{X2} distribution asymptotically 
+#' with the same degrees of freedom.
+#' 
+#' The convergence of \mjeqn{G, \chi^2}{G, X2} statistics to \mjeqn{\chi^2}{X2}
+#' distribution may be violated if expected counts in cells are too low, 
+#' say < 5, so it is customary to either censor or omit these cells.
+#' 
+#' @param object Object of singleRmargin class.
+#' @param df Degrees of freedom if not provided the function will try and manually
+#' but it is not always possible.
+#' @param dropl5 A character indicating treatment of cells with frequencies < 5 
+#' either grouping them, droping or leaving them as is. Defaults to drop.
+#' @param ... Currently does nothing.
 #'
 #' @method summary singleRmargin
-#' @return A chi squared test for comparison between fitted and observed marginal frequencies
+#' @return A chi squared test and G test for comparison between fitted and observed marginal frequencies.
+#' @examples 
+#' # Create a simple model
+#' Model <- estimate_popsize(formula = capture ~ ., 
+#' data = netherlandsimmigrant, 
+#' model = ztpoisson, 
+#' method = "robust")
+#' plot(Model, "rootogram")
+#' # We see a considerable lack of fit
+#' summary(marginalFreq(Model), df = 1, dropl5 = "group")
 #' @exportS3Method
-summary.singleRmargin <- function(object, df = NULL,
+summary.singleRmargin <- function(object, df,
                                   dropl5 = c("drop", 
                                              "group", 
                                              "no"), 
@@ -274,10 +318,10 @@ summary.singleRmargin <- function(object, df = NULL,
   y <- object$y
   if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
   A <- object$table[names(y)]
-  if ((is.null(df)) && (object$df < 1)) {
+  if ((missing(df)) && (object$df < 1)) {
     warning("Degrees of freedom may be inacurate.")
     df <- 1
-  } else if (is.null(df)) {
+  } else if (missing(df)) {
     df <- object$df
   }
   if(dropl5 == "group") {
@@ -307,25 +351,40 @@ summary.singleRmargin <- function(object, df = NULL,
     class = "summarysingleRmargin"
   )
 }
-#' vcov method for singleR class
-#' @title Obtain Covariance Matrix from Fitted singleR class Object
-#' @param object object of singleR class.
-#' @param type type of estimate for variance covariance matrix for now either
+#' @title Obtain Covariance Matrix estimation.
+#' 
+#' @description A \code{vcov} method for \code{singleR} class.
+#' 
+#' @param object Object of singleR class.
+#' @param type Type of estimate for covariance matrix for now either
 #' expected (Fisher) information matrix or observed information matrix.
-#' @param ... variables to pass to solve.
-#' @description Returns a estimated covariance matrix for model coefficients
-#' calculated from analytic hessian or fisher information matrix. 
+#' @param ... Additional optional arguments passed to following functions:
+#' \itemize{
+#' \item \code{solve} -- for inverting information matrixes.
+#' }
+#' @details  Returns a estimated covariance matrix for model coefficients
+#' calculated from analytic hessian or Fisher information matrix. 
 #' Covariance type is taken from control parameter that have been provided
-#' on call that created object.
-#' @details For now the covariance matrix is calculated 
+#' on call that created \code{object} if argumetns \code{type} was not specified.
+#' 
 #' @method vcov singleR
 #' @return A covariance matrix for fitted coefficients, rows and columns of which 
 #' correspond to parameters returned by \code{coef} method.
+#' @seealso [vcovHC.singleR()] [sandwich::sandwich()]
 #' @exportS3Method
-vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
+vcov.singleR <- function(object, 
+                         type = c("Fisher", 
+                                  "observedInform"), 
+                         ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  X <- singleRinternalGetXvlmMatrix(X = subset(object$modelFrame, select = attr(object$modelFrame, "names")[-1], subset = object$which$reg), nPar = object$model$parNum, 
-                                    formulas = object$formula, parNames = object$model$etaNames)
+  X <- singleRinternalGetXvlmMatrix(
+    X = subset(object$modelFrame, 
+               select = attr(object$modelFrame, "names")[-1], 
+               subset = object$which$reg), 
+    nPar = object$model$parNum, 
+    formulas = object$formula, 
+    parNames = object$model$etaNames
+  )
   hwm <- X[[2]]
   X <- X[[1]]
   res <- switch(
@@ -345,15 +404,51 @@ vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
   dimnames(res) <- list(names(object$coefficients), names(object$coefficients))
   res
 }
-#' Hat values for singleRclass
-#' @title Hat values for singleRclass
-#' @param model object of clas singleRclass
-#' @param ... additional parameters to pass to other methods
-#' @description TODO
+#' @title Diagonal elements of the projection matrix
 #' 
+#' @description A method for \code{singleR} class for extracting diagonal 
+#' elementrs of projection matrix.
+#' 
+#' @param model Object of singleR class.
+#' @param ... Currently does nothing.
+#' 
+#' \loadmathjax
+#' @details Since \code{singleRcapture} contains not only regular glm's but also
+#' vglm's the hatvalues returns a matrix with number of columns corresponding to
+#' number of linear predictors in a model, where kth column corresponds
+#' to elements of the diagonal of projection matrix associated with kth linear 
+#' predictor. For glm's  
+#' \mjdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}{sqrt(W)X(X'WX)^-1X'sqrt(W)}
+#' where \mjeqn{\boldsymbol{W}=\mathbb{E}\left(\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}\partial\boldsymbol{\eta}}\right)\right)}{W = E(diag(d^2.ln(L)/d.eta^2))} and \mjeqn{\boldsymbol{X}}{X} is a model (lm) matrix. 
+#' For vglm's it is instead :
+#' \mjdeqn{\boldsymbol{X}_{vlm}\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}{X_vlm(X_vlm'WX_vlm)^-1X_vlm'W}
+#' where 
+#' \mjdeqn{
+#' \boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}) &
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}) &
+#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}})\cr
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}) &
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}) &
+#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}})\cr
+#' \vdots & \vdots & \ddots & \vdots\cr
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}) &
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}) &
+#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}})
+#' \end{bmatrix}\right)}{W = E(matrix(
+#' diag(d^2.ln(L)/d.eta_1^2), diag(d^2.ln(L)/d.eta_1 d.eta_2), ..., diag(d^2.ln(L)/d.eta_1 d.eta_p)
+#' diag(d^2.ln(L)/d.eta_2 d.eta_1), diag(d^2.ln(L)/d.eta_2^2), ..., diag(d^2.ln(L)/d.eta_2 d.eta_p)
+#' .............................................................................................
+#' diag(d^2.ln(L)/d.eta_p d.eta_1), diag(d^2.ln(L)/d.eta_p d.eta_2), ..., diag(d^2.ln(L)/d.eta_p^2)))}
+#' is a block matrix constructed by taking the expected  value from diagonal 
+#' matrixes corresponding to second derivatives with respect to each linear 
+#' predictor (and mixed derivatives) and 
+#' \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} is a model (vlm) matrix constructed using 
+#' "main" formula and additional formulas specified in \code{control.model}. 
 #' @method hatvalues singleR
 #' @importFrom stats hatvalues
-#' @return TODO
+#' @return A matrix with n rows and p columns where n is a number of observations
+#' in the data and k is number of regression parameters.
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
   X <- subset(model$modelFrame, select = attr(model$modelFrame, "names")[-1], subset = model$which$reg)
@@ -370,14 +465,26 @@ hatvalues.singleR <- function(model, ...) {
   hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = list(1:(length(hatvalues) / model$model$parNum), model$model$etaNames))
   hatvalues
 }
-#' dfbeta for singleRclass
-#' @title TODO
-#' @param model Fitted object of singleR class
-#' @param maxit.new maximal number of iterations for regression
-#' @param ... Arguments to pass to other methods
-#' @description TODO
+#' @title Regression deletion diagnostics.
+#' \loadmathjax
+#' @description A \code{dfbeta} method for \code{singleR} class.
 #' 
-#' @return TODO
+#' @param model Fitted object of singleR class
+#' @param maxit.new Maximal number of iterations for regressions with starting points
+#' \mjeqn{\hat{\boldsymbol{\beta}}}{beta} on data specified at call for \code{model}
+#' after the romoval of kth row. By default 1.
+#' @param ... Additional optional arguments passed to the following functions:
+#' \itemize{
+#' \item \code{control.method} -- For controlling the simulation of dfbeta.
+#' }
+#' 
+#' @return A matrix with n rows and p observations where p is a number of
+#' units in data and p is the number of regression parameters.
+#' 
+#' K'th row of this matrix corresponds to 
+#' \mjeqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}{beta-beta_(-k)}
+#' where \mjeqn{\hat{\boldsymbol{\beta}}_{-k}}{beta_(-k)} is a vector of estimates
+#' for regression parameters after the removal of k'th row from the data.
 dfbetasingleR <- function(model,
                           maxit.new = 1,
                           ...) {
@@ -411,17 +518,17 @@ dfbetasingleR <- function(model,
 #' @title Confidence Intervals for Model Parameters
 #' 
 #' @description A function that computes studentized confidence intervals
-#' for model coefficients
+#' for model coefficients.
 #' 
-#' @param object a fitted model object.
-#' @param parm names of parameters for which confidence intervals are to be 
-#' computed, if missing all parameters will be considered
-#' @param level confidence level for intervals.
-#' @param ... additional argument(s) for methods.
+#' @param object Object of singleR class.
+#' @param parm Names of parameters for which confidence intervals are to be 
+#' computed, if missing all parameters will be considered.
+#' @param level Confidence level for intervals.
+#' @param ... Currently does nothing.
 #' 
 #' @method confint singleR
 #' @return An object with named columns that include upper and 
-#' lower limit of confidence intervals
+#' lower limit of confidence intervals.
 #' @exportS3Method
 confint.singleR <- function(object,
                             parm, 

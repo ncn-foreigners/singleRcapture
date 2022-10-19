@@ -57,5 +57,5 @@ Creating control parameters for population size estimation and
 respective standard error and variance estimation.
 }
 \seealso{
-\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.pop.var]{control.pop.var()}}
+\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.method]{control.method()}}
 }
