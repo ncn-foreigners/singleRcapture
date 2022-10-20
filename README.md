@@ -157,7 +157,7 @@ plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
 plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
-<img src="man/figures/README-plot-1.png" width="51%" /><img src="man/figures/README-plot-2.png" width="51%" />
+<img src="man/figures/README-plot-1.png" width="45%" /><img src="man/figures/README-plot-2.png" width="45%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
 and 1 and non standard confidence levels

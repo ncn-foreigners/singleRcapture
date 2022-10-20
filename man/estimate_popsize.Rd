@@ -66,31 +66,31 @@ There is also the third possible value of noEst which skips the population size 
 Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 
 \itemize{
-\item{y -- Vector of dependent variable if specified at function call.}
-\item{X -- Model matrix if specified at function call.}
-\item{formula -- A list with formula provided on call and additional formulas specified in \code{control.model}.}
-\item{call -- Call matching original input.}
-\item{coefficients -- A vector of fitted coefficients of regression.}
-\item{control -- A list of control parameters for \code{control.method} and \code{control.model}, \code{control.pop.var} is included in populationSize.}
-\item{model -- Model which estimation of population size and regression was built, object of class family.}
-\item{deviance -- Deviance for the model.}
-\item{prior.weights -- Prior weight provided on call.}
-\item{weights -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
-\item{residuals -- Vector of raw residuals.}
-\item{logL -- Logarithm likelihood obtained at final iteration.}
-\item{iter -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
-\item{df.residuals -- Residual degrees of freedom.}
-\item{df.null -- Null degrees of freedom.}
-\item{fitt.values -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
-\item{populationSize -- A list containing information of population size estimate.}
-\item{modelFrame -- Model frame if specified at call.}
-\item{linear.predictors -- Vector of fitted linear predictors.}
-\item{trcount -- Number of truncated observations.}
-\item{sizeObserved -- Number of observations in original model frame.}
-\item{terms -- terms attribute of model frame used.}
-\item{contrasts -- contrasts specified in function call.}
-\item{na.aciton -- na.action used.}
-\item{which -- list indicating which observations were used in regression/population size estimation.}
+\item{\code{y} -- Vector of dependent variable if specified at function call.}
+\item{\code{X} -- Model matrix if specified at function call.}
+\item{\code{formula} -- A list with formula provided on call and additional formulas specified in \code{control.model}.}
+\item{\code{call} -- Call matching original input.}
+\item{\code{coefficients} -- A vector of fitted coefficients of regression.}
+\item{\code{control} -- A list of control parameters for \code{control.method} and \code{control.model}, \code{control.pop.var} is included in populationSize.}
+\item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
+\item{\code{deviance} -- Deviance for the model.}
+\item{\code{prior.weights} -- Prior weight provided on call.}
+\item{\code{weights} -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
+\item{\code{residuals} -- Vector of raw residuals.}
+\item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
+\item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
+\item{\code{df.residuals} -- Residual degrees of freedom.}
+\item{\code{df.null} -- Null degrees of freedom.}
+\item{\code{fitt.values} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
+\item{\code{populationSize} -- A list containing information of population size estimate.}
+\item{\code{modelFrame} -- Model frame if specified at call.}
+\item{\code{linear.predictors} -- Vector of fitted linear predictors.}
+\item{\code{trcount} -- Number of truncated observations.}
+\item{\code{sizeObserved} -- Number of observations in original model frame.}
+\item{\code{terms} -- terms attribute of model frame used.}
+\item{\code{contrasts} -- contrasts specified in function call.}
+\item{\code{na.aciton} -- na.action used.}
+\item{\code{which} -- list indicating which observations were used in regression/population size estimation.}
 }
 }
 \description{

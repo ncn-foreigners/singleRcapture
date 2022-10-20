@@ -326,8 +326,10 @@ summary.singleRmargin <- function(object, df,
   }
   if(dropl5 == "group") {
     l <- (A < 5)
-    y <- c(y[!l], sum(y[l]))
-    A <- c(A[!l], sum(A[l]))
+    if(!all(l == FALSE)) {
+      y <- c(y[!l], sum(y[l]))
+      A <- c(A[!l], sum(A[l]))
+    }
   } else if(dropl5 == "drop") {
     l <- (A < 5)
     y <- y[!l]
