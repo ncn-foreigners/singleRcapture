@@ -71,8 +71,7 @@ ztgeom <- function() {
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- X %*% beta
       lambda <- exp(eta)
       S <- 1 / (1 + lambda)
@@ -97,8 +96,7 @@ ztgeom <- function() {
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
+    function(beta) {
       eta <- X %*% beta
       lambda <- exp(eta)
       S <- 1 / (1 + lambda)

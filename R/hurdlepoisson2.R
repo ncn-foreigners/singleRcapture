@@ -142,12 +142,13 @@ Hurdleztpoisson <- function() {
     }
   }
   
-  hessian <- function(y, X, weight = 1, lambdaPredNumber, ...) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     z <- as.numeric(y == 1)
     function (beta) {
+      lambdaPredNumber <- attr(X, "hwm")[1]
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
       lambda <- invlink(eta)
       PI <- lambda[, 2]

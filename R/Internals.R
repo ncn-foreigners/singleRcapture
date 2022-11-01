@@ -157,11 +157,11 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      beta, weights,
                                                      hessian, family,
                                                      eta, pop.var,
-                                                     control, hwm,
+                                                     control,
                                                      Xvlm, W, formulas,
                                                      sizeObserved,
                                                      modelFrame, cov) {
-  # TODO:: maybe move this to main function
+  hwm <- attr(Xvlm, "hwm")
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
@@ -173,7 +173,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     if (is.null(cov)) {
       cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% Xvlm)
+      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
       )
     }
     
@@ -278,7 +278,6 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                silent = FALSE,
                                                trace = 0,
                                                stepsize = 1,
-                                               hwm,
                                                momentumFactor,
                                                momentumActivation,
                                                ...) {
@@ -323,7 +322,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     W <- Wfun(prior = prior, eta = eta, y = dependent)
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
 
-    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W, hwm = hwm)
+    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
 
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
@@ -426,7 +425,8 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
     row <- row + nrow(k)
     col <- col + ncol(k)
   }
-  list(Xvlm, hwm)
+  attr(Xvlm, "hwm") <- hwm
+  Xvlm
 }
 # Chosing data for estimation/regression
 singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop.var) {
@@ -460,7 +460,8 @@ singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop
 }
 # TODO:: additional verification
 # This is almost certainly an overkill but is supports arbitrary number of linear predictors
-singleRinternalMultiplyWeight <- function (X, W, hwm, ...) {
+singleRinternalMultiplyWeight <- function (X, W, ...) {
+  hwm <- attr(X, "hwm")
   thick <- sqrt(ncol(W))
   XbyW <- matrix(0, nrow = ncol(X), ncol = nrow(X))
   wch <- c(0, cumsum(hwm))

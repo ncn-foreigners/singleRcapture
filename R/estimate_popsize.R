@@ -2,14 +2,18 @@
 NULL
 #' @title Single source capture-recapture models
 #'
-#' @description \code{estimate_popsize} first fits appropriate (v)glm model and then estimates full (observed and unobserved) population size.
-#' In this types of models it is assumed that the response vector corresponds to number of times given unit was observed.
-#' Population size is then usually estimated by Horwitz-Thompson type estimator:
+#' @description \code{estimate_popsize} first fits appropriate (v)glm model and 
+#' then estimates full (observed and unobserved) population size.
+#' In this types of models it is assumed that the response vector 
+#' (i.e. the dependent variable) corresponds to the number of times a given unit 
+#' was observed in the source.
+#' Population size is then usually estimated by Horvitz-Thompson type estimator:
 #' 
 #' \loadmathjax
 #' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
 #'
-#' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, with value 1 if kth unit was observed at least once and 0 otherwise.
+#' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, 
+#' with value 1 if kth unit was observed at least once and 0 otherwise.
 #'
 #' @param data Data frame or object coercible to data.frame class containing data for the regression and population size estimation.
 #' @param formula Formula for the model to be fitted, only applied to the "main" linear predictor. Only single response models are available.
@@ -173,6 +177,63 @@ NULL
 #' method or \code{popSizeEst.singleR} function. They're labelled as 
 #' \code{Studentized} and \code{Logtransform} respectively.
 #'
+#' @references General single source capture recapture literature:
+#' 
+#' 
+#' Zelterman, Daniel (1988). ‘Robust estimation in truncated discrete distributions
+#' with application to capture-recapture experiments’. In: Journal of statistical
+#' planning and inference 18.2, pp. 225–237.
+#' 
+#' Heijden, Peter GM van der et al. (2003). ‘Point and interval estimation of the
+#' population size using the truncated Poisson regression model’. 
+#' In: Statistical Modelling 3.4, pp. 305–322. doi: 10.1191/1471082X03st057oa.
+#' 
+#' Cruyff, Maarten J. L. F. and Peter G. M. van der Heijden (2008). ‘Point and 
+#' Interval Estimation of the Population Size Using a Zero-Truncated Negative 
+#' Binomial Regression Model’. In: Biometrical Journal 50.6, pp. 1035–1050. 
+#' doi: 10.1002/bimj.200810455
+#' 
+#' Böhning, Dankmar and Peter G. M. van der Heijden (2009). ‘A covariate adjustment 
+#' for zero-truncated approaches to estimating the size of hidden and 
+#' elusive populations’. In: The Annals of Applied Statistics 3.2, pp. 595–610. 
+#' doi: 10.1214/08-AOAS214.
+#' 
+#' Böhning, Dankmar, Alberto Vidal-Diez et al. (2013). ‘A Generalization of 
+#' Chao’s Estimator for Covariate Information’. In: Biometrics 69.4, pp. 1033– 
+#' 1042. doi: 10.1111/biom.12082
+#' 
+#' Böhning, Dankmar and Peter G. M. van der Heijden (2019). ‘The identity of the 
+#' zero-truncated, one-inflated likelihood and the zero-one-truncated likelihood 
+#' for general count densities with an application to drink-driving in Britain’. 
+#' In: The Annals of Applied Statistics 13.2, pp. 1198–1211. 
+#' doi: 10.1214/18-AOAS1232.
+#' 
+#' Navaratna WC, Del Rio Vilas VJ, Böhning D. Extending Zelterman's approach for 
+#' robust estimation of population size to zero-truncated clustered Data. 
+#' Biom J. 2008 Aug;50(4):584-96. doi: 10.1002/bimj.200710441.
+#' 
+#' Böhning D. On the equivalence of one-inflated zero-truncated and zero-truncated 
+#' one-inflated count data likelihoods. Biom J. 2022 Aug 15. doi: 10.1002/bimj.202100343.
+#' 
+#' Böhning, D., Friedl, H. Population size estimation based upon zero-truncated, 
+#' one-inflated and sparse count data. Stat Methods Appl 30, 1197–1217 (2021). 
+#' doi: 10.1007/s10260-021-00556-8
+#' 
+#' Bootstrap:
+#' 
+#' 
+#' Zwane, PGM EN and Van der Heijden, Implementing the parametric bootstrap in capture-recapture 
+#' models with continuous covariates 2003 Statistics & probability letters 65.2 pp 121-125
+#' 
+#' Norris, James L and Pollock, Kenneth H Including model uncertainty in estimating variances 
+#' in multiple capture studies 1996 in Environmental and Ecological Statistics 3.3 pp 235-244
+#' 
+#' Vector generalised linear models: 
+#' 
+#' 
+#' Yee, T. W. (2015). Vector Generalized Linear and Additive Models: 
+#' With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
+#'
 #' @return Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 #' @returns
 #' \itemize{
@@ -324,7 +385,7 @@ estimate_popsize <- function(formula,
   # subset is often in conflict with some common packages hence explicit call
   modelFrame1 <- base::subset(modelFrame1, subset = subset)
   variables <- base::subset(variables, subset = subset)
-  observed <- modelFrame1[, 1]
+  observed <- modelFrame1[, attr(terms, "response")]
   sizeObserved <- nrow(data) + control.pop.var$trcount
 
   
@@ -354,7 +415,9 @@ estimate_popsize <- function(formula,
     formulas <- append(x = formulas, control.model$piFormula)
   }
 
-  wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = observed, pop.var = pop.var)
+  wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
+                                                       observed = observed, 
+                                                       pop.var = pop.var)
 
   control.pop.var$trcount <- control.pop.var$trcount + wch$trr
   
@@ -396,7 +459,7 @@ estimate_popsize <- function(formula,
         start <- c(start, log(omg))
       } else {
         start <- c(start, stats::glm.fit(
-          x = model.matrix(control.model$omegaFormula, subset(modelFrame1, subset = wch$reg, select = attr(modelFrame1, "names")[-1])),
+          x = model.matrix(control.model$omegaFormula, subset(modelFrame1, subset = wch$reg, select = attr(terms, "term.labels"))),
           y = as.numeric(observed[wch$reg] == 1),
           family = stats::binomial(),
           ...
@@ -406,10 +469,10 @@ estimate_popsize <- function(formula,
       start <- c(start, control.method$omegaStart)
     }
   }
-  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(modelFrame1, select = attr(modelFrame1, "names")[-1], subset = wch$reg), 
+  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(modelFrame1, 
+                                                  select = colnames(modelFrame1)[-(attr(terms, "response"))], 
+                                                  subset = wch$reg), 
   nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
-  hwm <- Xvlm[[2]]
-  Xvlm <- Xvlm[[1]]
   if ("alpha" %in% family$etaNames) {
     if (is.null(control.method$alphaStart)) {
       if (control.model$alphaFormula == ~ 1) {
@@ -445,8 +508,7 @@ estimate_popsize <- function(formula,
     control = control.method,
     method = method,
     prior.weights = prior.weights[wch$reg],
-    start = start,
-    hwm = hwm
+    start = start
   )
   coefficients <- FITT$beta
   names(coefficients) <- names(start)
@@ -456,7 +518,7 @@ estimate_popsize <- function(formula,
   weight = prior.weights[wch$reg])
   grad <- family$makeGradient(y = observed[wch$reg], X = Xvlm, weight = prior.weights[wch$reg])
   hessian <- family$makeHessian(y = observed[wch$reg], X = Xvlm,
-  weight = prior.weights[wch$reg], lambdaPredNumber = hwm[1])
+  weight = prior.weights[wch$reg])
 
   hess <- hessian(coefficients)
   eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = family$parNum)
@@ -499,7 +561,6 @@ estimate_popsize <- function(formula,
     family = family,
     beta = coefficients,
     control = control.pop.var,
-    hwm = hwm,
     Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
     W = if (method == "robust") weights else family$Wfun(prior = prior.weights, eta = eta),
     sizeObserved = sizeObserved,

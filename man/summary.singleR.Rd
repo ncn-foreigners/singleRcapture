@@ -10,8 +10,8 @@
   resType = "pearson",
   correlation = FALSE,
   confint = FALSE,
-  cov = NULL,
-  popSizeEst = NULL,
+  cov,
+  popSizeEst,
   ...
 )
 }
@@ -33,24 +33,23 @@ be computed from covariance matrix by default \code{FALSE}.}
 \item{confint}{Logical value indicating whether confidence intervals for
 regression parameters should be constructed. By default \code{FALSE}.}
 
-\item{cov}{Either \code{NULL} or covariance matrix corresponding to
-regression parameters. It is possible to give \code{cov} argument as
-a function of \code{object}.}
+\item{cov}{Covariance matrix corresponding to regression parameters.
+It is possible to give \code{cov} argument as a function of \code{object}.
+If not specified it will be constructed using \code{vcov.singleR} method.
+(i.e using Cramer-Rao lower bound)}
 
-\item{popSizeEst}{A \code{popSizeEstResults} class object or \code{NULL}.
-If set to \code{NULL} population size estimation results will be drawn from
+\item{popSizeEst}{A \code{popSizeEstResults} class object.
+If not specified population size estimation results will be drawn from
 \code{object}. If any post-hoc procedures, such as sandwich covariance matrix
 estimation or bias reduction, were taken it is possible to include them in
 population size estimation results by calling \code{redoPopEstimation}.}
 
 \item{...}{Additional optional arguments passed to the following functions:
 \itemize{
-\item \code{vcov.singleR} -- if no \code{cov} argument was provided (i.e. it was left as \code{NULL}).
+\item \code{vcov.singleR} -- if no \code{cov} argument was provided.
 \item \code{cov} -- if \code{cov} parameter specified at call was a function.
 \item \code{confint.singleR} -- if \code{confint} parameter was set to \code{TRUE} at function call.
 In particular it is possible to set confidence level in \code{...}.
-\item \code{AIC} -- for Akaike's information criterion.
-\item \code{BIC} -- for Bayesian (Schwarz's) information criterion.
 }}
 }
 \value{
@@ -79,7 +78,8 @@ An object of summarysingleR class containing:
 \description{
 A \code{summary} method for \code{singleR} class, works
 analogically to \code{summary.glm} but includes population size estimation
-results.
+results. If any additional statistics, such as confidence intervals for
+coefficients or coefficient correlation, are specified they will be printed.
 }
 \seealso{
 \code{\link[=redoPopEstimation]{redoPopEstimation()}} \code{\link[stats:summary.glm]{stats::summary.glm()}}

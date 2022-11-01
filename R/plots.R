@@ -174,12 +174,16 @@ plot.singleR <- function(x,
   },
   scaleLoc = {
     if (x$model$parNum == 1) {
-      plot(y = sqrt(abs(res)), x = x$linear.predictors,
+      lp <- x$linear.predictors
+      if (x$model$family == "zelterman") {
+        lp <- lp[x$which$reg]
+      }
+      plot(y = sqrt(abs(res)), x = lp,
            xlab = "Linear predictors",
            ylab = expression(sqrt("Std. Pearson resid.")),
            main = "Scale-Location plot",
            ...);
-      graphics::panel.smooth(y = sqrt(abs(res)), x = x$linear.predictors, iter = 0)
+      graphics::panel.smooth(y = sqrt(abs(res)), x = lp, iter = 0)
     } else {
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
@@ -197,13 +201,17 @@ plot.singleR <- function(x,
   },
   fitresid = {
     if (x$model$parNum == 1) {
-      plot(y = res, x = x$linear.predictors,
+      lp <- x$linear.predictors
+      if (x$model$family == "zelterman") {
+        lp <- lp[x$which$reg]
+      }
+      plot(y = res, x = lp,
            xlab = "Linear predictors",
            ylab = "Std. Pearson resid.",
            main = "Residuals vs Fitted",
            ...);
       abline(lty = 2, col = "darkgrey", h = 0);
-      graphics::panel.smooth(y = res, x = x$linear.predictors, iter = 0)
+      graphics::panel.smooth(y = res, x = lp, iter = 0)
     } else {
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));

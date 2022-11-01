@@ -1,6 +1,3 @@
-# TODO::
-## - boot (bs)
-## - HC in CL
 #' Empirical Estimating Functions
 #' 
 #' An S3method for \code{sandwich::estfun} to handle \code{singleR} objects.
@@ -27,7 +24,7 @@
 estfun.singleR <- function(object,...) {
   Y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
   Y <- Y[object$which$reg]
-  X <- stats::model.matrix(object, type = "vlm")[[1]]
+  X <- stats::model.matrix(object, type = "vlm")
   beta <- stats::coef(object)
   wts <- stats::weights(object)
   if (is.null(wts)) wts <- rep(1, length(Y))
@@ -124,7 +121,9 @@ vcovHC.singleR <- function(x,
   Y <- x$y
   beta <- x$coefficients
   X <- model.matrix(x, "vlm")
-  X <- X[[1]]
+  if(x$model$family == "zelterman" || x$model$family == "chao") {
+    Y <- Y[x$which$reg]
+  }
   n <- nrow(X)
   k <- ncol(X)
   df <- n - k

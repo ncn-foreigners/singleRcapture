@@ -236,14 +236,14 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     }
   }
 
-  hessian <- function(y, X, weight = 1, lambdaPredNumber) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
-    X <- as.matrix(X)
 
     function(beta) {
+      lambdaPredNumber <- attr(X, "hwm")[1]
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
       alpha <- invlink(eta)
       lambda <- alpha[, 1]

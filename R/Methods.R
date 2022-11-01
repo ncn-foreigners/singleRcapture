@@ -2,7 +2,8 @@
 #' 
 #' @description A \code{summary} method for \code{singleR} class, works 
 #' analogically to \code{summary.glm} but includes population size estimation 
-#' results.
+#' results. If any additional statistics, such as confidence intervals for
+#' coefficients or coefficient correlation, are specified they will be printed.
 #' 
 #' @param object Object of singleR class.
 #' @param test Type of test for significance of parameters \code{"t"} for t-test 
@@ -16,22 +17,21 @@
 #' be computed from covariance matrix by default \code{FALSE}.
 #' @param confint Logical value indicating whether confidence intervals for
 #' regression parameters should be constructed. By default \code{FALSE}.
-#' @param cov Either \code{NULL} or covariance matrix corresponding to 
-#' regression parameters. It is possible to give \code{cov} argument as
-#' a function of \code{object}.
-#' @param popSizeEst A \code{popSizeEstResults} class object or \code{NULL}.
-#' If set to \code{NULL} population size estimation results will be drawn from
+#' @param cov Covariance matrix corresponding to regression parameters. 
+#' It is possible to give \code{cov} argument as a function of \code{object}.
+#' If not specified it will be constructed using \code{vcov.singleR} method.
+#' (i.e using Cramer-Rao lower bound)
+#' @param popSizeEst A \code{popSizeEstResults} class object.
+#' If not specified population size estimation results will be drawn from
 #' \code{object}. If any post-hoc procedures, such as sandwich covariance matrix 
 #' estimation or bias reduction, were taken it is possible to include them in 
 #' population size estimation results by calling \code{redoPopEstimation}.
 #' @param ... Additional optional arguments passed to the following functions:
 #' \itemize{
-#' \item \code{vcov.singleR} -- if no \code{cov} argument was provided (i.e. it was left as \code{NULL}).
+#' \item \code{vcov.singleR} -- if no \code{cov} argument was provided.
 #' \item \code{cov} -- if \code{cov} parameter specified at call was a function.
 #' \item \code{confint.singleR} -- if \code{confint} parameter was set to \code{TRUE} at function call.
 #' In particular it is possible to set confidence level in \code{...}.
-#' \item \code{AIC} -- for Akaike's information criterion.
-#' \item \code{BIC} -- for Bayesian (Schwarz's) information criterion.
 #' }
 #' 
 #' @return An object of summarysingleR class containing:
@@ -65,13 +65,13 @@ summary.singleR <- function(object,
                             resType = "pearson", 
                             correlation = FALSE, 
                             confint = FALSE, 
-                            cov = NULL, 
-                            popSizeEst = NULL, 
+                            cov, 
+                            popSizeEst, 
                             ...) {
   if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
   df.residual <- object$df.residual
   if (missing(test)) {if (df.residual > 30) test <- "z" else test <- "t"}
-  if (is.null(cov)) {
+  if (missing(cov)) {
     cov <- vcov.singleR(object, ...)
   } else if (is.function(cov)) {
     cov <- cov(object, ...)
@@ -100,7 +100,7 @@ summary.singleR <- function(object,
       iter = object$iter,
       logL = object$logL,
       deviance = object$deviance,
-      populationSize = if (is.null(popSizeEst)) object$populationSize else popSizeEst,
+      populationSize = if (missing(popSizeEst)) object$populationSize else popSizeEst,
       df.residual = df.residual,
       sizeObserved = object$sizeObserved,
       correlation = crr,
@@ -363,6 +363,7 @@ summary.singleRmargin <- function(object, df,
 #' @param ... Additional optional arguments passed to following functions:
 #' \itemize{
 #' \item \code{solve} -- for inverting information matrixes.
+#' \item \code{model.frame.singleR} -- forcreation of Xvlm matrix.
 #' }
 #' @details  Returns a estimated covariance matrix for model coefficients
 #' calculated from analytic hessian or Fisher information matrix. 
@@ -379,27 +380,25 @@ vcov.singleR <- function(object,
                                   "observedInform"), 
                          ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
+  X <- model.frame.singleR(object, ...)
+  X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg)
   X <- singleRinternalGetXvlmMatrix(
-    X = subset(object$modelFrame, 
-               select = attr(object$modelFrame, "names")[-1], 
-               subset = object$which$reg), 
+    X = X, 
     nPar = object$model$parNum, 
     formulas = object$formula, 
     parNames = object$model$etaNames
   )
-  hwm <- X[[2]]
-  X <- X[[1]]
   res <- switch(
     type,
     "observedInform" = solve(
-      -object$model$makeHessian(y = object$y[object$which$reg], X = X, lambdaPredNumber = hwm[1],
+      -object$model$makeHessian(y = object$y[object$which$reg], X = X,
                                 weight = object$prior.weights[object$which$reg])(object$coefficients),
       ...
     ),
     "Fisher" = {
       if (object$call$method == "robust") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
       solve(
-      singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm) %*% X,
+      singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
     )}
   )
@@ -453,16 +452,15 @@ vcov.singleR <- function(object,
 #' in the data and k is number of regression parameters.
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  X <- subset(model$modelFrame, select = attr(model$modelFrame, "names")[-1], subset = model$which$reg)
+  X <- model.frame.singleR(model, ...)
+  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
-  hwm <- X[[2]]
-  X <- X[[1]]
   if (isTRUE(model$call$method == "robust")) {
     W <- model$weights
   } else {
     W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (model$model$family == "zelterman") model$linear.predictors[model$which$reg, ] else model$linear.predictors)
   }
-  mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
+  mlt <- singleRinternalMultiplyWeight(X = X, W = W)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
   hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = list(1:(length(hatvalues) / model$model$parNum), model$model$etaNames))
   hatvalues
@@ -491,7 +489,8 @@ dfbetasingleR <- function(model,
                           maxit.new = 1,
                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
-  X <- subset(model$modelFrame, subset = model$which$reg, select = attr(model$modelFrame, "names")[-1])
+  X <- model.frame.singleR(model, ...)
+  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
   y <- model$y[model$which$reg]
   cf <- model$coefficients
   pw <- model$prior.weights[model$which$reg]
@@ -506,7 +505,7 @@ dfbetasingleR <- function(model,
         ...
       ),
       y = y[-k],
-      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]],
+      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames),
       start = cf,
       family = model$model,
       prior.weights = pw[-k],
@@ -639,6 +638,26 @@ logLik.singleR <- function(object, ...) {
   class(val) <- "logLik"
   val
 }
+#' @method model.frame singleR
+#' @importFrom stats glm
+#' @importFrom stats model.frame
+#' @exportS3Method 
+model.frame.singleR <- function(formula, ...) {
+  dots <- list(...)
+  nargs <- dots[match(c("data", "na.action", "subset"), 
+                      names(dots), 
+                      0L)]
+  if (length(nargs) || is.null(formula$modelFrame)) {
+    fcall <- formula$call
+    fcall$method <- "model.frame"
+    fcall[[1L]] <- quote(stats::glm)
+    fcall[names(nargs)] <- nargs
+    env <- environment(formula$terms)
+    eval(fcall, env)
+  }
+  else formula$modelFrame
+}
+
 #' @method model.matrix singleR
 #' @importFrom stats model.matrix
 #' @exportS3Method 
@@ -646,11 +665,17 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
   if (missing(type)) type <- "lm"
   switch (type,
     lm = {
-      X <- object$X;
-      X[object$which$reg, ]
+      if (is.null(object$X)) {
+        X <- model.frame(object);
+        X <- model.matrix(object$terms, X)
+      } else {
+        X <- object$X
+      }
+      subset(X, subset = object$which$reg)
       },
     vlm = {
-      X <- subset(object$modelFrame, subset = object$which$reg, select = attr(object$modelFrame, "names")[-1]);
+      X <- model.frame.singleR(object, ...);
+      X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg);
       singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames);
       }
   )
@@ -660,25 +685,22 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
 #' @exportS3Method
 redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
   Xvlm <- model.matrix(object, "vlm")
-  hwm <- Xvlm[[2]]
-  Xvlm <- Xvlm[[1]]
   singleRcaptureinternalpopulationEstimate(
     y = object$y[object$which$reg],
     formulas = object$formula,
     X = model.matrix(object),
     grad = object$model$makeGradient(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
-    hessian = object$model$makeHessian(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, lambdaPredNumber = hwm),
+    hessian = object$model$makeHessian(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
     pop.var = if (is.null(object$call$pop.var)) "analytic" else object$call$pop.var,
     weights = object$prior.weights[object$which$reg],
     eta = object$linear.predictors,
     family = object$model,
     beta = object$coefficients,
     control = object$populationSize$control,
-    hwm = hwm,
     Xvlm = Xvlm,
     W = if (object$call$method == "robust") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
     sizeObserved = object$sizeObserved,
-    modelFrame = object$modelFrame,
+    modelFrame = model.frame.singleR(object, ...),
     cov = cov
   )
 }
@@ -689,21 +711,21 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   if (isTRUE(model$call$pop.var == "bootstrap")) warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
-    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = model$sizeObserved)
-    rownames(dfbnew) <- as.character(1:model$sizeObserved)
-    dfbnew[rownames(dfb), ] <- dfb
+    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = NROW(model$prior.weights))
+    rownames(dfbnew) <- as.character(1:NROW(dfbnew))
+    dfbnew[model$which$reg, ] <- dfb
     dfb <- dfbnew
   }
-  X <- model$modelFrame[model$which$est, attr(model$modelFrame, "names")[-1]]
-  X <- subset(model$modelFrame, subset = model$which$est, select = attr(model$modelFrame, "names")[-1])
+  X <- model.frame.singleR(model, ...)
+  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$est)
   N <- model$populationSize$pointEstimate
   res <- NULL
-  range <- 1:sum(model$which$est)
+  range <- 1:NROW(dfb)
   pw <- model$prior.weights[model$which$est]
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
     res <- c(res, model$model$pointEst(
-      eta = matrix(singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]] %*% cf, ncol = model$model$parNum),
+      eta = matrix(singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames) %*% cf, ncol = model$model$parNum),
       pw = pw[-k]) + model$trcount)
   }
   
@@ -732,8 +754,9 @@ cooks.distance.singleR <- function(model, ...) {
   if (model$model$parNum > 1) stop("Cooks distance is only implemented for single parameter families.")
   res <- residuals(model, type = "pearsonSTD") ** 2
   res <- res[, 1]
-  res <- (res * (hatvalues(model) / (length(model$coefficients))))
-  names(res) <- rownames(model$linear.predictors)
+  ht <- hatvalues(model)
+  res <- (res * (ht / (length(model$coefficients))))
+  names(res) <- rownames(ht)
   res
 }
 #' @method print popSizeEstResults
@@ -744,33 +767,36 @@ print.popSizeEstResults <- function(x, ...) {
   invisible(x)
 }
 #' @method print summarysingleR
+#' @importFrom stats printCoefmat
 #' @exportS3Method 
-print.summarysingleR <- function(x, ...) {
+print.summarysingleR <- function(x, 
+                                 signif.stars = getOption("show.signif.stars"), 
+                                 digits = max(3L, getOption("digits") - 3L), ...) {
   # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
-  signifCodes <- sapply(x$pValues, function(k) {
-    ifelse(k <= 0, "****",
-           ifelse(k <= .001, "***",
-                  ifelse(k <= .01, "**", 
-                         ifelse(k <= .05, "*",
-                                ifelse(k <= .1, ".", "")))))
-  })
-  ob <- data.frame(round(x$coefficients, digits = 3),
-                   round(x$standardErrors, digits = 3),
-                   round(x$wValues, digits = 2),
-                   signif(x$pValues, digits = 2),
-                   signifCodes)
+  # signifCodes <- sapply(x$pValues, function(k) {
+  #   ifelse(k <= 0, "****",
+  #          ifelse(k <= .001, "***",
+  #                 ifelse(k <= .01, "**", 
+  #                        ifelse(k <= .05, "*",
+  #                               ifelse(k <= .1, ".", "")))))
+  # })
+  ob <- data.frame(x$coefficients,
+                   x$standardErrors,
+                   x$wValues,
+                   x$pValues)
   colnames(ob) <- switch(x$test,
-                         "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)", ""),
-                         "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)", ""))
+                         "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
+                         "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
   if (!is.null(x$cnfint)) {
-    ob[, 5] <- x$cnfint[, 1]
-    ob[, 6] <- x$cnfint[, 2]
-    ob[, 7] <- signifCodes
-    colnames(ob)[5:7] <- c(colnames(x$cnfint), "")
+    ob[, 4] <- x$cnfint[, 1]
+    ob[, 5] <- x$cnfint[, 2]
+    ob[, 6] <- x$pValues
+    colnames(ob)[4:6] <- c(colnames(x$cnfint), colnames(ob)[4])
   }
   
-  print(x$call)
-  cat("\nPearson Residuals:\n")
+  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
+      "\n\n", sep = "")
+  cat("Pearson Residuals:\n")
   print(summary(c(x$residuals[, 1])))
   cat("\nCoefficients:\n")
   #print(ob)
@@ -783,16 +809,25 @@ print.summarysingleR <- function(x, ...) {
       lengths <- sapply(rownames(toPrint), function(x) {length(strsplit(x, split = "")[[1]])})
       lK <- length(unlist(strsplit(k, split = "")))
       rownames(toPrint) <- sapply(1:nrow(toPrint), function(x) {substr(x = rownames(toPrint)[x], start = 1, stop = lengths[[x]] - (1 + lK))})
-      print(toPrint)
+      #print(toPrint)
+      printCoefmat(toPrint, digits = digits, 
+                   signif.stars = signif.stars, 
+                   signif.legend = if (k == x$model$etaNames[length(x$model$etaNames)]) signif.stars else FALSE, 
+                   P.values = TRUE, has.Pvalue = TRUE, 
+                   na.print = "NA", ...)
     } else {
       cat("-----------------------\nFor linear predictors associated with:", k, "\n")
-      print(subset(ob, rowSums(cond) == 0))
+      #print(subset(ob, rowSums(cond) == 0))
+      printCoefmat(subset(ob, rowSums(cond) == 0), 
+                   digits = digits, 
+                   signif.stars = signif.stars, 
+                   signif.legend = if (k == x$model$etaNames[length(x$model$etaNames)]) signif.stars else FALSE, 
+                   P.values = TRUE, has.Pvalue = TRUE, 
+                   na.print = "NA", ...)
     }
   }
   
-  cat("-----------------------",
-      "Signif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'\n",
-      sep = "\n")
+  cat("\n")
   if (!is.null(x$correlation)) {
     corr <- round(x$correlation, digits = 2)
     corr[!lower.tri(corr)] <- ""

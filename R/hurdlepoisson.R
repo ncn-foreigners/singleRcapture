@@ -1,4 +1,4 @@
-#' Zero truncated hurdle geometric model
+#' Zero truncated hurdle poisson model
 #'
 #' @return A object of class "family" containing objects \cr
 #' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
@@ -13,23 +13,26 @@
 #' Where: \cr
 #' y is a vector of observed values \cr
 #' X is a matrix / data frame of covariates
+#' @importFrom lamW lambertW0
 #' @export
-ztHurdlegeom <- function() {
+ztHurdlepoisson <- function() {
   # Fist for lambda second for PI
   link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
   invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
   
   mu.eta <- function(eta, type = "trunc", ...) {
+    # TODO
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     switch (type,
             "nontrunc" = (1 - exp(-lambda)) * (PI + lambda - PI * lambda),
-            "trunc" = PI + (1 - PI) * (2 + lambda)
+            "trunc" = PI + (1 - PI) * (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     )
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
+    # TODO
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
@@ -39,25 +42,23 @@ ztHurdlegeom <- function() {
     )
   }
   
-  Wfun <- function(prior, y, eta, ...) {
+  Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     z <- PI
-    Ey <- mu.eta(eta = eta)
     #z <- ifelse(y == 1, y, 0)
     term <- -(PI * (1 - PI))
     G00 <- term * prior
-    S <- 1 / (1 + lambda)
-    term <- (1 - z) * lambda * (Ey - 1) * (S ** 2)
-    G11 <- -term * prior
+    term <- (1 - z) * ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
+    G11 <- lambda * term * prior
     G01 <- rep(0, nrow (eta))
     
     matrix(
       -c(G11, # lambda
-        G01, # mixed
-        G01, # mixed
-        G00  # pi
+         G01, # mixed
+         G01, # mixed
+         G00  # pi
       ),
       dimnames = list(rownames(eta), c("lambda", "mixed", "mixed", "pi")),
       ncol = 4
@@ -69,12 +70,21 @@ ztHurdlegeom <- function() {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     z <- ifelse(y == 1, y, 0)
-    S <- 1 / (1 + lambda)
-    G1 <- ifelse(z, 0, ((y - 1) * S - 1)  * weight)
+    G1 <- ifelse(z, 0 , (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
     G0 <- (z - PI) # PI derivative
     
-    pseudoResid <- matrix(c(G1 / weight[, 1], G0 / weight[, 4]), ncol = 2)
-  
+    uMatrix <- matrix(c(G1, G0), ncol = 2)
+    
+    weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
+      matrix(as.numeric(weight[x, ]), ncol = 2)
+    })
+    
+    pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
+      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      xx <- 1 / diag(weight[[x]]) # in this case matrix is diagonal
+      xx * uMatrix[x, ]
+    })
+    pseudoResid <- t(pseudoResid)
     dimnames(pseudoResid) <- dimnames(eta)
     pseudoResid
   }
@@ -91,7 +101,7 @@ ztHurdlegeom <- function() {
       PI <- lambda[, 2]
       lambda <- lambda[, 1]
       logistic <- -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI)))
-      zot <- -sum(ifelse(z, 0, weight * ((y - 2) * log(lambda) - (y - 1) * log(1 + lambda))))
+      zot <- -sum(ifelse(z, 0, weight * (y * log(lambda) - lambda - log(factorial(y)) - log(1 - exp(-lambda) - lambda * exp(-lambda)))))
       zot + logistic
     }
   }
@@ -107,8 +117,7 @@ ztHurdlegeom <- function() {
       lambda <- invlink(eta)
       PI <- lambda[, 2]
       lambda <- lambda[, 1]
-      S <- 1 / (1 + lambda)
-      G1 <- weight * ifelse(z, 0, ((y - 1) * S - 1))
+      G1 <- weight * ifelse(z, 0 , (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
       G0 <- (z - PI) # PI derivative
       G0 <- G0 * weight
       if (NbyK) {
@@ -122,12 +131,13 @@ ztHurdlegeom <- function() {
     }
   }
   
-  hessian <- function(y, X, weight = 1, lambdaPredNumber, ...) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     z <- as.numeric(y == 1)
     function (beta) {
+      lambdaPredNumber <- attr(X, "hwm")[1]
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
       lambda <- invlink(eta)
       PI <- lambda[, 2]
@@ -135,15 +145,14 @@ ztHurdlegeom <- function() {
       Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
       XPI <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
       res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
-      
+    
       # PI^2 derivative
       term <- -(PI * (1 - PI))
       G00 <- t(as.data.frame(XPI * term * weight)) %*% as.matrix(XPI)
       
       # Beta^2 derivative
-      S <- 1 / (1 + lambda)
-      term <- ifelse(z, 0, lambda * (y - 1) * (S ** 2))
-      G11 <- -term * weight
+      term <- ifelse(z, 0, ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2))
+      G11 <- lambda * term * weight
       G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
       res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
       res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
@@ -166,9 +175,7 @@ ztHurdlegeom <- function() {
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- invlink(eta)
     lambda <- lambda[, 1]
-    S <- 1 / (1 + lambda)
-    prob <- 1 - S - lambda * (S ** 2)
-    N <- pw * (1 - lambda * (S ** 2)) / prob
+    N <- pw * (1 - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     if(!contr) {
       N <- sum(N)
     }
@@ -179,19 +186,15 @@ ztHurdlegeom <- function() {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    M <- 1 + lambda
-    S <- 1 / M
-    prob <- 1 - S - lambda * (S ** 2)
     
     bigTheta1 <- rep(0, nrow(eta)) # w.r to PI
-    bigTheta2 <- pw * as.numeric(lambda * (prob * (lambda - 1) * (S ** 3) - 
-    2 * lambda * (S ** 3) * (1 - lambda * (S ** 2))) / (prob ** 2)) # w.r to lambda
+    bigTheta2 <-as.numeric(pw * lambda * (1 - exp(lambda)) / ((1 + lambda - exp(lambda)) ** 2)) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (1 + lambda) * (1 + lambda + lambda ** 2) / (lambda ** 4))
+    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) * exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ** 2)))
     
     f1 + f2
   }
@@ -200,7 +203,7 @@ ztHurdlegeom <- function() {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    ifelse(x == 1, PI, (1 - PI) * (lambda ** (x - 2)) / ((1 + lambda) ** (x - 1)))
+    ifelse(x == 1, PI, (1 - PI) * (lambda ** x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -208,9 +211,7 @@ ztHurdlegeom <- function() {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     CDF <- function(x) {
-      p <- lambda / (1 + lambda)
-      const <- -p * (lambda * (p ** x - 1) + p ** x) / (1 + lambda)
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, (1 + lambda) / (1 + lambda + lambda ** 2), (1 + lambda) / (1 + lambda + lambda ** 2) + PI * (lambda ** 2) / (1 + lambda + lambda ** 2) +  (1 - PI) * ((1 + lambda) ** 2) * const / (lambda ** 2 + lambda + 1))))
+      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, exp(-lambda) / (1 - lambda * exp(-lambda)), exp(-lambda) / (1 - lambda * exp(-lambda)) + PI * (1 - exp(-lambda) / (1 - lambda * exp(-lambda))) +  (1 - PI) * (stats::ppois(x, lambda) - lambda * exp(-lambda) - exp(-lambda)) / (1 - lambda * exp(-lambda)))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)
@@ -243,7 +244,7 @@ ztHurdlegeom <- function() {
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
-      family = "ztHurdlegeom",
+      family = "ztHurdlepoisson",
       parNum = 2,
       etaNames = c("lambda", "pi"),
       densityFunction = dFun,
