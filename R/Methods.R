@@ -495,7 +495,6 @@ dfbetasingleR <- function(model,
   cf <- model$coefficients
   pw <- model$prior.weights[model$which$reg]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
-  hwm <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[2]]
   for (k in 1:nrow(X)) {
     res[k, ] <- cf - estimate_popsize.fit(
       control = control.method(
@@ -509,8 +508,7 @@ dfbetasingleR <- function(model,
       start = cf,
       family = model$model,
       prior.weights = pw[-k],
-      method = model$call$method,
-      hwm = hwm
+      method = model$call$method
     )$beta
   }
   colnames(res) <- names(model$coefficients)

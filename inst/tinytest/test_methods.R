@@ -54,6 +54,27 @@ expect_silent(
   )
 )
 
+expect_silent(
+  Model4 <- estimate_popsize(
+    formula = TOTAL_SUB ~ ., 
+    data = farmsubmission, 
+    model = ztnegbin,
+    method = "robust"
+  )
+)
+
+expect_silent(
+  Model5 <- estimate_popsize(
+    formula = TOTAL_SUB ~ ., 
+    data = farmsubmission, 
+    model = ztoigeom, 
+    method = "robust",
+    control.pop.var = control.pop.var(covType = "Fisher"),
+    control.model = control.model(omegaFormula = ~ log_distance),
+    control.method = control.method(stepsize = .45)
+  )
+)
+
 # dfbetas and dfpopsize
 
 expect_silent(
@@ -123,6 +144,18 @@ expect_equivalent(
 )
 
 expect_equivalent(
+  AIC(Model4),
+  34538.73,
+  tolerance = .1
+)
+
+expect_equivalent(
+  AIC(Model5),
+  34580.82,
+  tolerance = .1
+)
+
+expect_equivalent(
   BIC(Model),
   1757.213,
   tolerance = .1
@@ -146,6 +179,18 @@ expect_equivalent(
   tolerance = .1
 )
 
+expect_equivalent(
+  BIC(Model4),
+  34575.71,
+  tolerance = .1
+)
+
+expect_equivalent(
+  BIC(Model5),
+  34625.2,
+  tolerance = .1
+)
+
 expect_silent(
   extractAIC(Model)
 )
@@ -160,6 +205,14 @@ expect_silent(
 
 expect_silent(
   extractAIC(Model3)
+)
+
+expect_silent(
+  extractAIC(Model4)
+)
+
+expect_silent(
+  extractAIC(Model5)
 )
 
 # Sandwich
@@ -183,6 +236,14 @@ expect_silent(
 )
 
 expect_silent(
+  bread(Model4)
+)
+
+expect_silent(
+  bread(Model5)
+)
+
+expect_silent(
   bread(Model, type = "Fisher")
 )
 
@@ -198,12 +259,28 @@ expect_silent(
   bread(Model3, type = "Fisher")
 )
 
+expect_silent(
+  bread(Model4, type = "Fisher")
+)
+
+expect_silent(
+  bread(Model5, type = "Fisher")
+)
+
 expect_false(
   all(vcov(Model, type = "observedInform") == vcov(Model, type = "Fisher"))
 )
 
 expect_false(
   all(vcov(Model1, type = "observedInform") == vcov(Model1, type = "Fisher"))
+)
+
+expect_false(
+  all(vcov(Model4, type = "observedInform") == vcov(Model4, type = "Fisher"))
+)
+
+expect_false(
+  all(vcov(Model5, type = "observedInform") == vcov(Model5, type = "Fisher"))
 )
 
 # For logistic regression fisher matrix and observed information matrix
@@ -232,6 +309,14 @@ expect_true(
   all(bread(Model3, type = "observedInform") == bread(Model3, type = "Fisher"))
 )
 
+expect_false(
+  all(bread(Model4, type = "observedInform") == bread(Model4, type = "Fisher"))
+)
+
+expect_false(
+  all(bread(Model5, type = "observedInform") == bread(Model5, type = "Fisher"))
+)
+
 expect_silent(
   sandwich(Model)
 )
@@ -246,6 +331,14 @@ expect_silent(
 
 expect_silent(
   sandwich(Model3)
+)
+
+expect_silent(
+  sandwich(Model4)
+)
+
+expect_silent(
+  sandwich(Model5)
 )
 
 expect_silent(
@@ -265,6 +358,14 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model4)
+)
+
+expect_silent(
+  vcovHC(Model5)
+)
+
+expect_silent(
   vcovHC(Model, type = "HC")
 )
 
@@ -280,6 +381,13 @@ expect_silent(
   vcovHC(Model3, type = "HC")
 )
 
+expect_silent(
+  vcovHC(Model4, type = "HC")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC")
+)
 
 expect_silent(
   vcovHC(Model, type = "HC0")
@@ -295,6 +403,14 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model3, type = "HC0")
+)
+
+expect_silent(
+  vcovHC(Model4, type = "HC0")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC0")
 )
 
 expect_silent(
@@ -314,6 +430,14 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model4, type = "HC1")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC1")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC2")
 )
 
@@ -327,6 +451,14 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model3, type = "HC2")
+)
+
+expect_silent(
+  vcovHC(Model4, type = "HC2")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC2")
 )
 
 expect_silent(
@@ -346,6 +478,14 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model4, type = "HC3")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC3")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC4")
 )
 
@@ -359,6 +499,14 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model3, type = "HC4")
+)
+
+expect_silent(
+  vcovHC(Model4, type = "HC4")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC4")
 )
 
 expect_silent(
@@ -378,6 +526,14 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model4, type = "HC4m")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC4m")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC5")
 )
 
@@ -394,6 +550,14 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model4, type = "HC5")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC5")
+)
+
+expect_silent(
   vcovHC(Model, type = "const")
 )
 
@@ -407,6 +571,14 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model3, type = "const")
+)
+
+expect_silent(
+  vcovHC(Model4, type = "const")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "const")
 )
 
 # confint
@@ -428,6 +600,14 @@ expect_silent(
 )
 
 expect_silent(
+  confint(Model4)
+)
+
+expect_silent(
+  confint(Model5)
+)
+
+expect_silent(
   cooks.distance(Model)
 )
 
@@ -441,6 +621,14 @@ expect_silent(
 
 expect_silent(
   cooks.distance(Model3)
+)
+
+expect_error(
+  cooks.distance(Model4)
+)
+
+expect_error(
+  cooks.distance(Model5)
 )
 
 expect_identical(
@@ -480,6 +668,14 @@ expect_silent(
 )
 
 expect_silent(
+  model.frame(Model4)
+)
+
+expect_silent(
+  model.frame(Model5)
+)
+
+expect_silent(
   model.matrix(Model)
 )
 
@@ -493,6 +689,14 @@ expect_silent(
 
 expect_silent(
   model.matrix(Model3)
+)
+
+expect_silent(
+  model.matrix(Model4)
+)
+
+expect_silent(
+  model.matrix(Model5)
 )
 
 expect_true(
@@ -509,6 +713,22 @@ expect_true(
 
 expect_true(
   all(dim(model.matrix(Model3)) == c(1828, 8))
+)
+
+expect_true(
+  all(dim(model.matrix(Model4)) == c(12036, 4))
+)
+
+expect_true(
+  all(dim(model.matrix(Model5)) == c(12036, 4))
+)
+
+expect_true(
+  all(dim(model.matrix(Model4, "vlm")) == c(2 * 12036, 5))
+)
+
+expect_true(
+  all(dim(model.matrix(Model5, "vlm")) == c(2 * 12036, 6))
 )
 
 temp <- Model
@@ -552,52 +772,84 @@ expect_silent(
   popSizeEst(Model3)
 )
 
+expect_silent(
+  popSizeEst(Model4)
+)
+
+expect_silent(
+  popSizeEst(Model5)
+)
+
 expect_equal(
   popSizeEst(Model)$pointEstimate,
   12690,
-  tolerance = 1
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model1)$pointEstimate,
   7080,
-  tolerance = 1
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model2)$pointEstimate,
   15816.14,
-  tolerance = 1
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model3)$pointEstimate,
   15713.14,
-  tolerance = 1
+  tolerance = .5
+)
+
+expect_equal(
+  popSizeEst(Model4)$pointEstimate,
+  41020.3,
+  tolerance = .5
+)
+
+expect_equal(
+  popSizeEst(Model5)$pointEstimate,
+  29478.72,
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model)$variance,
   7885812,
-  tolerance = 10
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model1)$variance,
   133774.1,
-  tolerance = 10
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model2)$variance,
   9093464,
-  tolerance = 10
+  tolerance = .5
 )
 
 expect_equal(
   popSizeEst(Model3)$variance,
   9096077,
-  tolerance = 10
+  tolerance = .5
+)
+
+expect_equal(
+  popSizeEst(Model4)$variance,
+  3563463,
+  tolerance = .5
+)
+
+expect_equal(
+  popSizeEst(Model5)$variance,
+  431426.9,
+  tolerance = .5
 )
 
 expect_silent(
@@ -761,6 +1013,70 @@ expect_silent(
 )
 
 expect_silent(
+  plot(Model4, "QQ")
+)
+
+expect_silent(
+  plot(Model4, "marginal")
+)
+
+expect_silent(
+  plot(Model4, "fitresid")
+)
+
+expect_error(
+  plot(Model4, "bootHist")
+)
+
+expect_silent(
+  plot(Model4, "rootogram")
+)
+
+expect_silent(
+  plot(Model4, "scaleLoc")
+)
+
+expect_error(
+  plot(Model4, "Cooks")
+)
+
+expect_silent(
+  plot(Model4, "hatplot")
+)
+
+expect_silent(
+  plot(Model5, "QQ")
+)
+
+expect_silent(
+  plot(Model5, "marginal")
+)
+
+expect_silent(
+  plot(Model5, "fitresid")
+)
+
+expect_error(
+  plot(Model5, "bootHist")
+)
+
+expect_silent(
+  plot(Model5, "rootogram")
+)
+
+expect_silent(
+  plot(Model5, "scaleLoc")
+)
+
+expect_error(
+  plot(Model5, "Cooks")
+)
+
+expect_silent(
+  plot(Model5, "hatplot")
+)
+
+expect_silent(
   up <- redoPopEstimation(Model, cov = vcovHC(Model, "HC4m"))
 )
 
@@ -772,5 +1088,5 @@ expect_silent(
 expect_equivalent(
   up$confidenceInterval[1, ],
   data.frame(6611.906, 18768.8),
-  tolerance = 1
+  tolerance = .5
 )
