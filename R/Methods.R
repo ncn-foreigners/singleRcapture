@@ -135,6 +135,7 @@ summary.singleR <- function(object,
 #' point estimate of population size estimation after the removal of k'th
 #' unit from the data set.
 #' @examples 
+#' \dontrun{
 #' # For singleR class
 #' # Get simple model
 #' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
@@ -145,9 +146,10 @@ summary.singleR <- function(object,
 #' dfb <- dfbeta(Model)
 #' # The results
 #' dfpopsize(Model, dfbeta = dfb)
-#' # It is also possible to not probide dfbeta then they will be
+#' # It is also possible to not provide dfbeta then they will be
 #' # computed manually
 #' dfpopsize(Model)
+#' }
 #' @export
 dfpopsize <- function(model, ...) {
   UseMethod("dfpopsize")
@@ -490,8 +492,9 @@ dfbetasingleR <- function(model,
                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
+  y <- if (is.null(model$y)) stats::model.response(X) else model$y
   X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
-  y <- model$y[model$which$reg]
+  y <- y[model$which$reg]
   cf <- model$coefficients
   pw <- model$prior.weights[model$which$reg]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
@@ -565,7 +568,7 @@ residuals.singleR <- function(object,
   omegaTheta <- object$omegaTheta
   wts <- object$prior.weights
   mu <- object$fitt.values
-  y <- object$y
+  y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
   if (!(all(object$which$reg == object$which$est)) && type == "all") stop("type = all is not aviable for some models")
   if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standardized pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(

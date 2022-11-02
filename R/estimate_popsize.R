@@ -266,6 +266,7 @@ NULL
 #' 
 #' @seealso [stats::glm()] [stats::optim()] [control.method()] [control.pop.var()] [control.model()] [estimate_popsize.fit()] [popSizeEst()] [summary.singleR()]
 #' @examples 
+#' \dontrun{
 #' # Model from 2003 publication 
 #' # Point and interval estimation of the
 #' # population size using the truncated Poisson regression mode
@@ -314,6 +315,7 @@ NULL
 #' verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
 #' silent = TRUE), control.model = control.model(omegaFormula = ~ .))
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
+#' }
 #' @importFrom stats glm.fit
 #' @importFrom stats poisson
 #' @importFrom stats binomial
@@ -326,9 +328,12 @@ NULL
 estimate_popsize <- function(formula,
                              data,
                              model = c("ztpoisson", "ztnegbin", "ztgeom", 
-                                       "zotpoisson", "ztoipoisson", "ztHurdlepoisson", 
-                                       "zotnegbin",  "ztoinegbin", "zotgeom",
-                                       "ztoigeom", "zelterman", "chao"),
+                                       "zotpoisson", "ztoipoisson", "oiztpoisson", 
+                                       "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",  
+                                       "ztoinegbin", "oiztnegbin", "ztHurdlenegbin", 
+                                       "Hurdleztnegbin", "zotgeom", "ztoigeom",
+                                       "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
+                                       "zelterman", "chao"),
                              weights = NULL,
                              subset = NULL,
                              na.action = NULL,
@@ -340,7 +345,7 @@ estimate_popsize <- function(formula,
                              control.model = NULL,
                              control.pop.var = NULL,
                              modelFrame = TRUE,
-                             x = TRUE,
+                             x = FALSE,
                              y = TRUE,
                              contrasts = NULL,
                              ...) {
@@ -357,6 +362,8 @@ estimate_popsize <- function(formula,
   if (is.function(family)) {
     family <- family()
   }
+  
+  returnElements <- list(y, x, modelFrame)
   # adding control parameters that may possibly be missing
   # since passing simple lists as control arguments is allowed
   m1 <- control.pop.var
@@ -384,6 +391,7 @@ estimate_popsize <- function(formula,
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some common packages hence explicit call
   modelFrame1 <- base::subset(modelFrame1, subset = subset)
+  attributes(modelFrame1)$terms <- terms # subset deletes terms attribute for some reason
   variables <- base::subset(variables, subset = subset)
   observed <- modelFrame1[, attr(terms, "response")]
   sizeObserved <- nrow(data) + control.pop.var$trcount
@@ -569,8 +577,8 @@ estimate_popsize <- function(formula,
   )
   structure(
     list(
-      y = observed,
-      X = variables,
+      y = if(isTRUE(returnElements[[1]])) observed else NULL,
+      X = if(isTRUE(returnElements[[2]])) variables else NULL,
       formula = formulas,
       call = match.call(),
       coefficients = coefficients,
@@ -588,7 +596,7 @@ estimate_popsize <- function(formula,
       df.null = length(observed) - 1,
       fitt.values = fitt,
       populationSize = POP,
-      modelFrame = if (isTRUE(modelFrame)) modelFrame1 else NULL,
+      modelFrame = if (isTRUE(returnElements[[3]])) modelFrame1 else NULL,
       linear.predictors = eta,
       trcount = control.pop.var$trcount,
       sizeObserved = sizeObserved,

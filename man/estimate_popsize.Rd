@@ -8,8 +8,9 @@ estimate_popsize(
   formula,
   data,
   model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
-    "ztHurdlepoisson", "zotnegbin", "ztoinegbin", "zotgeom", "ztoigeom", "zelterman",
-    "chao"),
+    "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
+    "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
+    "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
   weights = NULL,
   subset = NULL,
   na.action = NULL,
@@ -19,7 +20,7 @@ estimate_popsize(
   control.model = NULL,
   control.pop.var = NULL,
   modelFrame = TRUE,
-  x = TRUE,
+  x = FALSE,
   y = TRUE,
   contrasts = NULL,
   ...
@@ -252,6 +253,7 @@ method or \code{popSizeEst.singleR} function. They're labelled as
 \code{Studentized} and \code{Logtransform} respectively.
 }
 \examples{
+\dontrun{
 # Model from 2003 publication 
 # Point and interval estimation of the
 # population size using the truncated Poisson regression mode
@@ -300,6 +302,7 @@ model = oiztgeom, method = "robust", control.method = control.method(
 verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
 silent = TRUE), control.model = control.model(omegaFormula = ~ .))
 summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
+}
 }
 \references{
 General single source capture recapture literature:

@@ -4,7 +4,7 @@
 #' computed marginal frequencies by as sum of probability density functions
 #' for each unit in data at each point i.e. kth element of marginal frequency
 #' table is given by \mjeqn{\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|
-#' \boldsymbol{\eta}_{j})}{sum_j=1^N_obs P(Y_j=k|eta_{j})}. For k=0 only 
+#' \eta_{j})}{sum_j=1^N_obs P(Y_j=k|eta_{j})}. For k=0 only 
 #' (if specified at call) they are computed as \mjeqn{\hat{N}-N_{obs}}{N-N_obs} 
 #' because \mjeqn{\boldsymbol{f}_{0}}{f_0} is assumed to the unobserved part of the 
 #' studied population.
@@ -25,8 +25,9 @@ marginalFreq <- function(object,
                          includezeros = TRUE,
                          onecount = NULL,
                          range) {
-  if (missing(range)) {range <- (min(object$y):max(object$y))}
-  y <- table(object$y)[names(table(object$y)) %in% as.character(range)]
+  y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
+  if (missing(range)) {range <- (min(y):max(y))}
+  y <- table(y)[names(table(y)) %in% as.character(range)]
   y <- y[!is.na(y)]
   trcount <- object$trcount
   if(!is.null(onecount)) {
@@ -36,14 +37,18 @@ marginalFreq <- function(object,
   # PMF for truncated distributions:
   probFun <- object$model$densityFunction
   
-  res <- sapply(1:nrow(object$linear.predictors), 
-                FUN = function(x) {object$model$densityFunction(x = range, eta = matrix(object$linear.predictors[x, ], ncol = object$model$parNum))})
+  res <- sapply(
+    1:nrow(object$linear.predictors), 
+    FUN = function(x) {object$model$densityFunction(
+      x = range, 
+      eta = matrix(object$linear.predictors[x, ], 
+                   ncol = object$model$parNum)
+    )}
+  )
   res <- rowSums(res)
   names(res) <- as.character(range)
   
-  if(isTRUE(includeones) & (object$model$family %in% c("zotpoisson",
-                                                       "zotnegbin",
-                                                       "zotgeom"))) {
+  if(isTRUE(includeones) & grepl(object$model$family, pattern = "^zot")) {
     res <- c(trcount, res)
     names(res)[1] <- "1"
     y <- c(trcount, y)

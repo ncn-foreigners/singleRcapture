@@ -63,7 +63,7 @@ estfun.singleR <- function(object,...) {
 #' @method bread singleR
 #' @exportS3Method
 bread.singleR <- function(object,...) {
-  return(stats::vcov(object, ...) * as.vector(object$df.residual + length(object$coefficients)))
+  stats::vcov(object, ...) * as.vector(object$df.residual + length(object$coefficients))
 }
 
 #' Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
@@ -118,16 +118,14 @@ vcovHC.singleR <- function(x,
                            ...) {
   type <- match.arg(type)
   estfun <- estfun(x, ...)
-  Y <- x$y
   beta <- x$coefficients
   X <- model.matrix(x, "vlm")
-  if(x$model$family == "zelterman" || x$model$family == "chao") {
-    Y <- Y[x$which$reg]
-  }
   n <- nrow(X)
   k <- ncol(X)
   df <- n - k
   hat <- as.vector(hatvalues(x, ...))
+  Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
+  Y <- Y[x$which$reg] # only choose units which appear in regression
   res <- as.vector(x$model$makeGradient(y = Y, X = X, vectorDer = TRUE)(beta))
   if (is.null(omega)) {
     if (type == "HC") 
@@ -175,5 +173,5 @@ vcovHC.singleR <- function(x,
   rval <- crossprod(rval)/n
   if (sandwich) 
     rval <- sandwich(x, meat. = rval, ...)
-  return(rval)
+  rval
 }

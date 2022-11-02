@@ -32,7 +32,7 @@ A function that given a fitted \code{singleR} class object
 computed marginal frequencies by as sum of probability density functions
 for each unit in data at each point i.e. kth element of marginal frequency
 table is given by \mjeqn{\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|
-\boldsymbol{\eta}_{j})}{sum_j=1^N_obs P(Y_j=k|eta_{j})}. For k=0 only
+\eta_{j})}{sum_j=1^N_obs P(Y_j=k|eta_{j})}. For k=0 only
 (if specified at call) they are computed as \mjeqn{\hat{N}-N_{obs}}{N-N_obs}
 because \mjeqn{\boldsymbol{f}_{0}}{f_0} is assumed to the unobserved part of the
 studied population.

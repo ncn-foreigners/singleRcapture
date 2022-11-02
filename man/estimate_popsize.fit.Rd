@@ -72,7 +72,7 @@ where \mjeqn{\ell_{i}}{l_i} is the ith component of log likelihood function,
 \mjeqn{\eta_{i}}{eta_i} is the vector of linear predictors associated with
 ith row and  \mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)}{E(d^2l_i/deta_i^Tdeta_i)}
 corresponds to weights associated with ith row and \mjeqn{\boldsymbol{W}}{W}
-is a block matrix.
+is a block matrix, made of diagonal matrixes \mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{E(d^2l/deta_j^Tdeta_i)}.
 \item Regress \mjeqn{\boldsymbol{Z}}{Z} on \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm}
 to obtain \mjeqn{\boldsymbol{\beta}}{beta} as:
 \mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}
