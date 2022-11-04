@@ -1,21 +1,6 @@
-#' Chao model for the population size estimation
-#'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating Hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' dlink - a 1st derivative of link function \cr
-#' mu.eta,variance - Expected Value and variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
-#' simulate() -- function to simulate outcomes given the model
+#' @rdname ztoipoisson
 #' @export
-chao <- function() {
+chao <- function(...) {
   link <- function(x) {log(x / 2)}
   invlink <- function (x) {2 * exp(x)}
   dlink <- function(lambda) {1 / lambda}

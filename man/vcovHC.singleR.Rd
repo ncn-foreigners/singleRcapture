@@ -61,3 +61,6 @@ popSizeEst = redoPopEstimation(mod1, cov = HC))
 \seealso{
 \code{\link[sandwich:vcovHC]{sandwich::vcovHC()}} \code{\link[=redoPopEstimation]{redoPopEstimation()}}
 }
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
+}

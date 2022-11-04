@@ -18,7 +18,7 @@
 A bread matrix, i.e. a hessian based estimation of variance-covariance matrix scaled by degrees of freedom.
 }
 \description{
-An S3class for \code{sandwich::bread} to handle \code{singleR} objects. This function was developed based on \code{sandwich:::bread.glm}
+Extracting bread matrix for singleR class
 }
 \examples{
 Model <- estimate_popsize(
@@ -37,4 +37,9 @@ all(vcov(Model, "Fisher") * nrow(netherlandsimmigrant) == sandwich::bread(Model,
 }
 \seealso{
 \code{\link[sandwich:bread]{sandwich::bread()}} \code{\link[=control.pop.var]{control.pop.var()}}
+}
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
+
+An S3class for \code{sandwich::bread} to handle \code{singleR} objects. This function was developed based on \code{sandwich:::bread.glm}
 }

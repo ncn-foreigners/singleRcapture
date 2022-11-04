@@ -360,5 +360,10 @@ Yee, T. W. (2015). Vector Generalized Linear and Additive Models:
 With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 }
 \seealso{
-\code{\link[stats:glm]{stats::glm()}} \code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}} \code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}} \code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=summary.singleR]{summary.singleR()}}
+\code{\link[stats:glm]{stats::glm()}} \code{\link[stats:optim]{stats::optim()}} \code{\link[=control.method]{control.method()}}
+\code{\link[=control.pop.var]{control.pop.var()}} \code{\link[=control.model]{control.model()}} \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}}
+\code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=summary.singleR]{summary.singleR()}} \code{\link[VGAM:vglm]{VGAM::vglm()}}
+}
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
 }

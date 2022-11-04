@@ -59,3 +59,6 @@ respective standard error and variance estimation.
 \seealso{
 \code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.method]{control.method()}}
 }
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
+}

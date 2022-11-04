@@ -1,21 +1,7 @@
-#' Zero truncated hurdle poisson model
-#'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' Dlink - a 1st derivative of link function \cr
-#' mu.eta,Variance - Expected Value and Variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
+#' @rdname ztoipoisson
 #' @importFrom lamW lambertW0
 #' @export
-ztHurdlepoisson <- function() {
+ztHurdlepoisson <- function(...) {
   # Fist for lambda second for PI
   link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
   invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}

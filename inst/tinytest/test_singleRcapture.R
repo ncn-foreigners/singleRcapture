@@ -594,6 +594,7 @@ expect_silent(
     control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )
+
 expect_silent(
   estimate_popsize(
     formula = capture ~ .,
@@ -603,4 +604,9 @@ expect_silent(
     method = "robust",
     control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps))
   )
+)
+
+expect_error(
+  estimate_popsize(formula = cbind(TOTAL_SUB, log_size) ~ log_distance, 
+                   data = farmsubmission, model = ztpoisson)
 )

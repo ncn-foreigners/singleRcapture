@@ -1,6 +1,7 @@
 #' @import mathjaxr
 NULL
 #' @title Single source capture-recapture models
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
 #' @description \code{estimate_popsize} first fits appropriate (v)glm model and 
 #' then estimates full (observed and unobserved) population size.
@@ -264,7 +265,9 @@ NULL
 #'  \item{\code{which} -- list indicating which observations were used in regression/population size estimation.}
 #' }
 #' 
-#' @seealso [stats::glm()] [stats::optim()] [control.method()] [control.pop.var()] [control.model()] [estimate_popsize.fit()] [popSizeEst()] [summary.singleR()]
+#' @seealso [stats::glm()] [stats::optim()] [control.method()] 
+#' [control.pop.var()] [control.model()] [estimate_popsize.fit()] 
+#' [popSizeEst()] [summary.singleR()] [VGAM::vglm()]
 #' @examples 
 #' \dontrun{
 #' # Model from 2003 publication 
@@ -394,6 +397,7 @@ estimate_popsize <- function(formula,
   attributes(modelFrame1)$terms <- terms # subset deletes terms attribute for some reason
   variables <- base::subset(variables, subset = subset)
   observed <- modelFrame1[, attr(terms, "response")]
+  if (NCOL(observed) > 1) stop("Single source capture-recapture models support only single dependent variable")
   sizeObserved <- nrow(data) + control.pop.var$trcount
 
   

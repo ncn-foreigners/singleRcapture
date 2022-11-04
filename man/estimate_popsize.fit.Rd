@@ -43,9 +43,10 @@ More information about how to modify \code{optim} fitting is included in
 \code{\link[=control.method]{control.method()}}.
 
 If \code{method} argument was set to \code{"robust"} the iteratively reweighted
-least squares. The algorithm is well know in simple generalised linear models.
+least squares. The algorithm is well know in generalised linear models.
 Thomas W. Yee later extended this algorithm to vector generalised linear models
-and in more general terms it can roughly be described as:
+and in more general terms it can roughly be described as
+(this is Yee's description after changing some conventions):
 \loadmathjax
 \enumerate{
 \item Initialise with:
@@ -56,7 +57,7 @@ and in more general terms it can roughly be described as:
 \item \mjeqn{\boldsymbol{W}}{W}\code{ <- prior}
 \item \mjeqn{\ell}{l}\code{ <- }\mjeqn{\ell(\boldsymbol{\beta})}{l(beta)}
 }
-\item If \code{converged} or \code{iter > Maxiter} move to step 7
+\item If \code{converged} or \code{iter > Maxiter} move to step 7.
 \item Store values from previous algorithm step:
 \itemize{
 \item \mjeqn{\boldsymbol{W}_{-}}{W_-}\code{ <- }\mjeqn{\boldsymbol{W}}{W}
@@ -75,7 +76,7 @@ corresponds to weights associated with ith row and \mjeqn{\boldsymbol{W}}{W}
 is a block matrix, made of diagonal matrixes \mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{E(d^2l/deta_j^Tdeta_i)}.
 \item Regress \mjeqn{\boldsymbol{Z}}{Z} on \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm}
 to obtain \mjeqn{\boldsymbol{\beta}}{beta} as:
-\mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}
+\mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}.
 \item Assign:
 \itemize{
 \item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} < \ell_{-}\cdot\varepsilon}{l(beta)-l_-<l_- * epsilon} \code{or}
@@ -83,9 +84,13 @@ to obtain \mjeqn{\boldsymbol{\beta}}{beta} as:
 \item\code{iter <- iter + 1}
 }
 where \mjeqn{\varepsilon}{epsilon} is the relative tolerance level, by default \code{1e-8}.
-\item Return to step 2
-\item Return \mjeqn{\boldsymbol{\beta}, \boldsymbol{W}}{beta, W}, \code{iter}
+\item Return to step 2.
+\item Return \mjeqn{\boldsymbol{\beta}, \boldsymbol{W}}{beta, W}, \code{iter}.
 }
+
+In this package we use different conventions for \mjeqn{\boldsymbol{X}_vlm}{X_vlm}
+matrix hence slight differences are present in algorithm description but
+results are identical.
 }
 \references{
 Yee, T. W. (2015). Vector Generalized Linear and Additive Models:
@@ -93,4 +98,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 }
 \seealso{
 \code{\link[stats:glm]{stats::glm()}} \code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.method]{control.method()}} \code{\link[stats:optim]{stats::optim()}}
+}
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
 }

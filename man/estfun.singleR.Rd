@@ -15,7 +15,7 @@
 A \code{matrix} with \code{n} rows and \code{k} columns where \code{k} denotes number of variables.
 }
 \description{
-An S3method for \code{sandwich::estfun} to handle \code{singleR} objects.
+Empirical Estimating Functions
 }
 \examples{
 set.seed(1)
@@ -32,4 +32,9 @@ head(mod1_sims)
 }
 \seealso{
 \code{\link[sandwich:estfun]{sandwich::estfun()}}
+}
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
+
+An S3method for \code{sandwich::estfun} to handle \code{singleR} objects.
 }

@@ -22,7 +22,7 @@ control.method(
 )
 }
 \arguments{
-\item{epsilon}{Absolute tolerance for fitting algorithms by default 1e-8.}
+\item{epsilon}{Relative tolerance for fitting algorithms by default 1e-8.}
 
 \item{maxiter}{Maximum number of iterations.}
 
@@ -71,4 +71,7 @@ for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize
 }
 \seealso{
 \code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.pop.var]{control.pop.var()}}
+}
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
 }

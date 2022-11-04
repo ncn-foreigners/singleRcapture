@@ -2,8 +2,7 @@
 % Please edit documentation in R/marginal.R
 \name{marginalFreq}
 \alias{marginalFreq}
-\title{Observed and fitted marginal Frequencies
-\loadmathjax}
+\title{Observed and fitted marginal Frequencies}
 \usage{
 marginalFreq(
   object,
@@ -39,4 +38,8 @@ studied population.
 
 These frequencies are useful in diagnostics for count data regression, such
 as assessment of fit.
+}
+\author{
+Piotr Chlebicki
+\loadmathjax
 }

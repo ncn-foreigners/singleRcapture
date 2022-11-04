@@ -1,4 +1,5 @@
-#' Empirical Estimating Functions
+#' @title Empirical Estimating Functions
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
 #' An S3method for \code{sandwich::estfun} to handle \code{singleR} objects.
 #' 
@@ -34,7 +35,8 @@ estfun.singleR <- function(object,...) {
   res
 }
 
-#' Extracting bread matrix for singleR class
+#' @title Extracting bread matrix for singleR class
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
 #' An S3class for \code{sandwich::bread} to handle \code{singleR} objects. This function was developed based on \code{sandwich:::bread.glm}
 #' 
@@ -66,7 +68,8 @@ bread.singleR <- function(object,...) {
   stats::vcov(object, ...) * as.vector(object$df.residual + length(object$coefficients))
 }
 
-#' Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
+#' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
 #' @description S3 method for \code{vcovHC} to handle \code{singleR} class objects. 
 #' Works exactly like \code{vcov.default} the only difference being that this method handles vector generalised linear models.

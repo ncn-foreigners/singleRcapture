@@ -97,3 +97,6 @@ Simple diagnostic plots for \code{singleR} class objects.
 \seealso{
 \code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=dfpopsize]{dfpopsize()}} \code{\link[=marginalFreq]{marginalFreq()}} \code{\link[stats:plot.lm]{stats::plot.lm()}} \code{\link[stats:influence.measures]{stats::cooks.distance()}} \code{\link[=hatvalues.singleR]{hatvalues.singleR()}}
 }
+\author{
+Piotr Chlebicki
+}

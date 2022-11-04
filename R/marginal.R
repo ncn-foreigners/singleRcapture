@@ -1,4 +1,5 @@
 #' @title Observed and fitted marginal Frequencies
+#' @author Piotr Chlebicki
 #' \loadmathjax
 #' @description A function that given a fitted \code{singleR} class object 
 #' computed marginal frequencies by as sum of probability density functions

@@ -1,21 +1,66 @@
-#' Zero truncated One Inflated Poisson Model
+#' \loadmathjax
+#' @title Family functions in singleRcapture package
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' Dlink - a 1st derivative of link function \cr
-#' mu.eta,Variance - Expected Value and Variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
+#' @description Package \code{singleRcapture} utilises various family type
+#' functions that specify variable parts of population size estimation,
+#' regression, diagnostics and other necessary information that depends
+#' on the model. These functions are used as \code{model} argument in
+#' \code{estimate_popsize} function.
+#' 
+#' @param nSim If working weights cannot be computed analytically this argument
+#' specifies maximum number of simulations allowed to find them numerically. 
+#' @param epsSim f working weights cannot be computed analytically this argument
+#' specifies precision level for finding them numerically.
+#' @param ... Additional arguments, not used for now.
+#' 
+#' @details TODO important describe everything.
+#' 
+#' @seealso [estimate_popsize()]
+#'
+#' @return A object of class \code{family} containing objects:
+#' \itemize{
+#' \item \code{makeMinusLogLike, makeGradient, makeHessian} -- A factory functions for creating 
+#' \mjeqn{\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
+#' \frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}}^{T}\partial\boldsymbol{\beta}
+#' }{l(beta), dl/dbeta, d^2l/dbeta^Tdbeta} functions respectively from 
+#' \mjeqn{\boldsymbol{y}}{y} vector and \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} 
+#' (or just \mjeqn{\boldsymbol{X}}{X} if applied to model with single linear predictor).
+#' \item \code{linkfun, linkinv} -- A link function and its inverse.
+#' \item \code{mu.eta, variance} -- Functions of linear predictors that
+#' return expected value and variance. There is a \code{type} argument with
+#' 2 possible values \code{"trunc"} and \code{"nontrunc"} that specifies whether
+#' to return \mjeqn{\mathbb{E}(Y|Y>0), \text{var}(Y|Y>0}{E(Y|Y>0), var(Y|Y>0)} 
+#' or \mjeqn{\mathbb{E}Y, \text{var}(Y)}{E(Y), var(Y)} respectively.
+#' \item \code{link, family} -- Character specifying link functions used for the 
+#' model and the internally used name of the model.
+#' \item \code{valideta, validmu} -- For now only returns true. In near future 
+#' will be used to check whether applied linear predictors are valid (i.e. are 
+#' transormed into some elements of parameter space the subjected to inverse
+#' link function).
+#' \item \code{funcZ, Wfun} -- Functions that create pseudo residuals and
+#' working weights used in IRLS algorithm.
+#' \item \code{dev.resids} -- Function that given the linear predictors
+#' prior weights vector and response vector returns deviance residuals.
+#' Not all family functions have these functions implemented yet.
+#' \item \code{pointEst, popVar} -- Functions that given prior weights
+#' linear predictors and in the later case also estimation of 
+#' \mjeqn{\text{cov}(\hat{\boldsymbol{\beta}})}{cov(beta)}
+#' and \mjeqn{\boldsymbol{X_vlm}}{X_vlm} matrix return point estimate 
+#' for population size and analytic estimation of its variance.
+#' There is a additional boolean parameter \code{contr} in the former
+#' function that if set to true returns contribution of each unit.
+#' \item \code{etaNames, parNum} -- Names and number of linear predictors.
+#' \item \code{densityFunction} -- A function that given linear predictors 
+#' returns value of PMF at values \code{x}. Additional argument \code{type}
+#' spedifies whether to return \mjeqn{\mathbb{P}(Y|Y>0)}{P(Y|Y>0)} or
+#' \mjeqn{\mathbb{P}(Y)}{P(Y)}.
+#' \item \code{simulate} -- A function that generates values of dependent 
+#' vector given linear predictors.
+#' }
 #' @importFrom lamW lambertW0
 #' @export
-ztoipoisson <- function() {
+ztoipoisson <- function(...) {
   # Fist for lambda second for omega
   link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
   invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
@@ -97,7 +142,7 @@ ztoipoisson <- function() {
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]])
+      xx <- solve(weight[[x]], tol = 1e-30)
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -203,7 +248,7 @@ ztoipoisson <- function() {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function(y, mu, wt, theta, ...) {
+  dev.resids <- function(y, eta, wt, ...) {
     #TODO
     0
   }
@@ -282,7 +327,7 @@ ztoipoisson <- function() {
       dev.resids = dev.resids,
       validmu = validmu,
       pointEst = pointEst,
-      popVar= popVar,
+      popVar = popVar,
       family = "ztoipoisson",
       parNum = 2,
       etaNames = c("lambda", "omega"),

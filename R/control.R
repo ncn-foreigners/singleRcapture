@@ -1,9 +1,10 @@
 #' @title Control parameters for regression
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
 #' @description \code{control.method} constructs a list with all necessary control parameters
 #' for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
 #'
-#' @param epsilon Absolute tolerance for fitting algorithms by default 1e-8.
+#' @param epsilon Relative tolerance for fitting algorithms by default 1e-8.
 #' @param maxiter Maximum number of iterations.
 #' @param verbose Value indicating whether to trace steps of fitting algorithm for robust fitting method different values of verbose give the following information:
 #' \itemize{
@@ -65,6 +66,7 @@ control.method <- function(epsilon = 1e-8,
   )
 }
 #' @title Control parameters specific to some models
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
 #' @description \code{control.model} constructs a list with all necessary control parameters
 #' in \code{estimate_popsize} that are either specific to selected model or don't fit
@@ -102,6 +104,7 @@ control.model <- function(weightsAsCounts = FALSE,
   )
 }
 #' @title  Control parameters for population size estimation
+#' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
 #' @description Creating control parameters for population size estimation and 
 #' respective standard error and variance estimation.
