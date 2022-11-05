@@ -164,7 +164,7 @@ plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterma
 <img src="man/figures/README-plot-1.png" width="47%" /><img src="man/figures/README-plot-2.png" width="47%" />
 
 singleRcapture also includes bootstraps and models truncated at values 0
-and 1 and non standard confidence levels
+and 1 and non standard confidence levels (i.e. different from usual 95%)
 
 ``` r
 set.seed(123)
@@ -208,6 +208,9 @@ summary(zotgeomBoot)
 #> Population size estimation results: 
 #> Point estimate 29087.96
 #> Observed proportion: 41.4% (N obs = 12036)
+#> Boostrap sample skewness: 0.7788564
+#> 0 skewness is expected for normally distributed vairable
+#> 
 #> Bootstrap Std. Error 1962.695
 #> 99% CI for the population size:
 #> lowerBound upperBound 

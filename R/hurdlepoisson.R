@@ -1,4 +1,4 @@
-#' @rdname ztoipoisson
+#' @rdname singleRmodels
 #' @importFrom lamW lambertW0
 #' @export
 ztHurdlepoisson <- function(...) {

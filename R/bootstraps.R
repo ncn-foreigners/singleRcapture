@@ -173,7 +173,7 @@ semparBoot <- function(family,
         prior.weights = weightsStrap[wch$reg],
         start = jitter(beta)
       )$beta,
-      silent = FALSE
+      silent = TRUE
     )
     
     k <- k + 1
@@ -283,6 +283,7 @@ parBoot <- function(family,
     weightsStrap <- weightsStrap[ystrap > 0]
     strap <- rep(FALSE, family$parNum * length(ystrap))
     strap[rep(ystrap > 0, family$parNum)] <- TRUE
+    hwm <- attr(Xstrap, "hwm")
     Xstrap <- subset(Xstrap, subset = strap)
     ystrap <- ystrap[ystrap > 0]
 
@@ -290,11 +291,13 @@ parBoot <- function(family,
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     
     theta <- NULL
+    Xstrap <- subset(Xstrap, subset = rep(wch$reg, family$parNum))
+    attr(Xstrap, "hwm") <- hwm
     
     try(
       theta <- estimate_popsize.fit(
         y = ystrap[wch$reg],
-        X = subset(Xstrap, subset = rep(wch$reg, family$parNum)),
+        X = Xstrap,
         family = family,
         control = control.bootstrap.method,
         method = method,
@@ -310,7 +313,7 @@ parBoot <- function(family,
       if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
-      theta <- matrix(Xstrap[rep(wch$est, family$parNum), ] %*% theta, ncol = family$parNum)
+      theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")

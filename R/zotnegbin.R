@@ -1,4 +1,4 @@
-#' @rdname ztoipoisson
+#' @rdname singleRmodels
 #' @export
 zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   # Fist for lambda second for alpha

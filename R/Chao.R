@@ -1,4 +1,4 @@
-#' @rdname ztoipoisson
+#' @rdname singleRmodels
 #' @export
 chao <- function(...) {
   link <- function(x) {log(x / 2)}

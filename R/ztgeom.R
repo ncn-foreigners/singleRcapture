@@ -1,4 +1,4 @@
-#' @rdname ztoipoisson
+#' @rdname singleRmodels
 #' @export
 ztgeom <- function(...) {
   link <- log

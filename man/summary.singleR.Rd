@@ -53,26 +53,27 @@ In particular it is possible to set confidence level in \code{...}.
 }}
 }
 \value{
-An object of summarysingleR class containing:
+An object of \code{summarysingleR} class containing:
 \itemize{
-\item call -- A call which created \code{object}.
-\item coefficients -- Regression parameters in \code{object}.
-\item standardErrors -- Square roots of diagonal elements of covariance matrix.
-\item wValues -- Test statistics for Wald's tests.
-\item pValues -- P values for corresponding tests.
-\item residuals -- A vector of residuals of type specified at call.
-\item aic -- Akaike's informsation criterion.
-\item bic -- Bayesian (Schwarz's) information criterion.
-\item iter -- Number of iterations taken in fitting regression.
-\item logL -- Logarithm of likelihood function evaluated at coefficients.
-\item deviance -- Residual deviance.
-\item populationSize -- Object with population size estimation results.
-\item df.residual -- Residual degrees of freedom.
-\item sizeObserved -- Size of observed population.
-\item correlation -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
-\item test -- Type of statistical test performed.
-\item cnfint -- Data frame with confidence intervals.
-\item model -- Family class object specified in call for \code{object}.
+\item \code{call} -- A call which created \code{object}.
+\item \code{coefficients} -- Regression parameters in \code{object}.
+\item \code{standardErrors} -- Square roots of diagonal elements of covariance matrix.
+\item \code{wValues} -- Test statistics for Wald's tests.
+\item \code{pValues} -- P values for corresponding tests.
+\item \code{residuals} -- A vector of residuals of type specified at call.
+\item \code{aic} -- Akaike's informsation criterion.
+\item \code{bic} -- Bayesian (Schwarz's) information criterion.
+\item \code{iter} -- Number of iterations taken in fitting regression.
+\item \code{logL} -- Logarithm of likelihood function evaluated at coefficients.
+\item \code{deviance} -- Residual deviance.
+\item \code{populationSize} -- Object with population size estimation results.
+\item \code{df.residual} -- Residual degrees of freedom.
+\item \code{sizeObserved} -- Size of observed population.
+\item \code{correlation} -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
+\item \code{test} -- Type of statistical test performed.
+\item \code{cnfint} -- Data frame with confidence intervals.
+\item \code{model} -- Family class object specified in call for \code{object}.
+\item \code{skew} -- If bootstrap sample was saved contains estimate of skewness.
 }
 }
 \description{

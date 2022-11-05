@@ -1,4 +1,4 @@
-#' @rdname ztoipoisson
+#' @rdname singleRmodels
 #' @importFrom stats uniroot
 #' @importFrom stats dnbinom
 #' @export

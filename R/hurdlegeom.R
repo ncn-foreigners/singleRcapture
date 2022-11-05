@@ -1,4 +1,4 @@
-#' @rdname ztoipoisson
+#' @rdname singleRmodels
 #' @export
 ztHurdlegeom <- function(...) {
   # Fist for lambda second for PI
