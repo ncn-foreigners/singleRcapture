@@ -1,5 +1,21 @@
 # singleRcapture 0.2.0
 
+# singleRcapture 0.1.3.1
+* features:
+  * Basically all of documentation was redone and now features most of important 
+  theory on SSCR methods and some information on (v)glms
+  * Added checks on positivity of working weights matrixes to stabilise \code{IRLS} algorithm
+  * Added most of sandwich capabilities to the package, in particular:
+    * S3 method for \code{vcovHC} was implemented
+    * \code{vcovCL} should work on \code{singleR} class objects 
+    should work with \code{"HC0"} and \code{"HC1"} \code{type} argument values
+  * Basic version of function \code{redoPopEstimation} for updating the
+  population size estimation after post-hoc procedures was implemented
+  * \code{popSizeEst} function for extracting population size estimation
+  results was implemented
+  * Minor improvements to memory usage were made and 
+  computation was speed up a little
+
 # singleRcapture 0.1.3
 
 * features:

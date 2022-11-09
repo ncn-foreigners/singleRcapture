@@ -12,6 +12,8 @@ singleRcaptureinternalIRLS <- function(dependent,
                                        stepsize = 1,
                                        momentumFactor,
                                        momentumActivation,
+                                       check,
+                                       epsWeights,
                                        ...) {
   dg <- 8 # Add to control
   converged <- FALSE
@@ -69,6 +71,9 @@ singleRcaptureinternalIRLS <- function(dependent,
     # }
     
     W <- Wfun(mu = mu, prior = prior, eta = eta)
+    if (check) {
+      W[, (1:family$parNum) ** 2] <- ifelse(W[, (1:family$parNum) ** 2] < epsWeights, epsWeights, W[, (1:family$parNum) ** 2])
+    }
     Z <- eta + funcZ(mu = mu, y = dependent, eta = eta, weight = W)
     # This is equivalent to
     # A <- t(covariates) %*% W %*% covariates
@@ -220,7 +225,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     } else if (N > stats::quantile(strappedStatistic, .95)) {
       warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
     }
-    if (max(strappedStatistic) > N ** 1.375) {
+    if (max(strappedStatistic) > N ** 1.5) {
       warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
     }
     
@@ -280,6 +285,8 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                stepsize = 1,
                                                momentumFactor,
                                                momentumActivation,
+                                               check,
+                                               epsWeights,
                                                ...) {
   dg <- 8
   converged <- FALSE
@@ -320,6 +327,9 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     # }
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
+    if (check) {
+      W[, (1:family$parNum) ** 2] <- ifelse(W[, (1:family$parNum) ** 2] < epsWeights, epsWeights, W[, (1:family$parNum) ** 2])
+    }
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
 
     XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)

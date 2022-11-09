@@ -291,6 +291,9 @@ parBoot <- function(family,
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     
     theta <- NULL
+    if (famName == "zelterman") {
+      Xstrap1 <- Xstrap
+    }
     Xstrap <- subset(Xstrap, subset = rep(wch$reg, family$parNum))
     attr(Xstrap, "hwm") <- hwm
     
@@ -313,7 +316,11 @@ parBoot <- function(family,
       if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
-      theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+      if (famName != "zelterman") {
+        theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+      } else {
+        theta <- matrix(Xstrap1 %*% theta, ncol = family$parNum)
+      }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")

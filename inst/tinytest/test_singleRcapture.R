@@ -597,7 +597,7 @@ expect_silent(
 
 expect_silent(
   estimate_popsize(
-    formula = capture ~ .,
+    formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "ztpoisson",
     pop.var = "bootstrap",

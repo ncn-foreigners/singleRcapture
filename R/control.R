@@ -1,6 +1,6 @@
 #' @title Control parameters for regression
 #' @author Piotr Chlebicki, Maciej Beręsewicz
-#'
+#' \loadmathjax
 #' @description \code{control.method} constructs a list with all necessary control parameters
 #' for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
 #'
@@ -23,8 +23,9 @@
 #' @param optimPass Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
 #' @param mleMethod method of [stats::optim()] used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.
 #' @param stepsize Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.
+#' @param checkDiagWeights Logical value indicating whether to check if diagonal elements of working weights matrixes in \code{IRLS} are sufficiently positive so that these matrixes are positive defined. By default \code{TRUE}.
+#' @param weightsEpsilon Small number to ensure positivity of weights matrixes. Only matters if \code{checkDiagWeights} is set to \code{TRUE}. By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}
 #' @param momentumFactor Experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
-#' \loadmathjax
 #' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 #' the update will be made as:
 #' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}
@@ -45,6 +46,8 @@ control.method <- function(epsilon = 1e-8,
                            silent = FALSE,
                            optimPass = FALSE,
                            stepsize = 1,
+                           checkDiagWeights = TRUE,
+                           weightsEpsilon = .Machine$double.eps^.75,
                            momentumFactor = 0,
                            useZtpoissonAsStart = FALSE,
                            momentumActivation = 5) {
@@ -60,6 +63,8 @@ control.method <- function(epsilon = 1e-8,
     silent = silent,
     optimPass = optimPass,
     stepsize = stepsize,
+    checkDiagWeights = checkDiagWeights,
+    weightsEpsilon = weightsEpsilon,
     momentumFactor = momentumFactor,
     momentumActivation = momentumActivation,
     useZtpoissonAsStart = useZtpoissonAsStart

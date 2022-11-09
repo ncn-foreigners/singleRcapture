@@ -90,33 +90,8 @@ estimate_popsize.fit <- function(y, X,
   tbgname <- colnames(X)
   X <- as.matrix(X)
 
-  if (grepl("hurdle", family$family)) {
-    FITT <- singleRcaptureinternalIRLS(dependent = y,
-                                       covariates = X,
-                                       eps = control$epsilon,
-                                       family = singleRcapture::chao(),
-                                       maxiter = control$maxiter,
-                                       weights = prior.weights,
-                                       start = start,
-                                       silent = control$silent,
-                                       trace = control$verbose,
-                                       stepsize = control$stepsize)
-    
-    gamma <- FITT$coefficients
-    
-    FITT <- singleRcaptureinternalIRLS(dependent = y,
-                                       covariates = X,
-                                       eps = control$epsilon,
-                                       family = chao(),
-                                       maxiter = control$maxiter,
-                                       weights = prior.weights,
-                                       start = start,
-                                       silent = control$silent,
-                                       trace = control$verbose,
-                                       stepsize = control$stepsize)
-    
-    weights <- FITT$weights
-    beta <- FITT$coefficients
+  if (FALSE) {
+    # maybe implement
   } else {
     if (method == "robust") {
       
@@ -140,6 +115,8 @@ estimate_popsize.fit <- function(y, X,
         hwm = hwm,
         momentumFactor = control$momentumFactor,
         momentumActivation = control$momentumActivation,
+        check = control$checkDiagWeights,
+        epsWeights = control$weightsEpsilon
       )
       
       iter <- FITT$iter

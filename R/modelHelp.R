@@ -125,11 +125,61 @@
 #' \end{aligned}
 #' }{}
 #' 
-#' Zero one truncated.
+#' **Zero one truncated** models ignore one counts instead of accommodating
+#' one inflation by utilising the identity
+#' \mjdeqn{
+#' \ell_{\text{ztoi}}=\boldsymbol{f}_{1}\ln{\frac{\boldsymbol{f}_{1}}{N_{obs}}}
+#' +(N_{obs}-\boldsymbol{f}_{1})\ln{\left(1-\frac{\boldsymbol{f}_{1}}{N_{obs}}
+#' \right)} + \ell_{\text{zot}}
+#' }{} 
+#' where \mjeqn{\ell_{\text{zot}}}{} is the log likelihood of zero one truncated
+#' distribution characterised by probability mass function:
+#' \mjdeqn{\mathbb{P}(Y=y|Y>1)=\left\lbrace
+#' \begin{array}{cc}
+#' \frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)-\mathbb{P}(Y=1)} & \text{when }y > 1 \cr
+#' 0 & \text{when }y\in\lbrace 0, 1\rbrace
+#' \end{array}\right.}{}
+#' where \mjeqn{\mathbb{P}(Y)}{} is the probability mass function of the "base"
+#' distribution. The identity above justifies use of zero one truncated,
+#' unfortunately it was only proven for intercept only models, however
+#' numerical simulations seem to indicate that even if the theorem cannot be
+#' extended for (non trivial) regression population size estimation is still
+#' possible. 
+#' 
+#' For *zero one truncated models* population size estimates are expressed by:
+#' \mjdeqn{
+#' \begin{aligned}
+#' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}\frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} &\text{ For base poisson distribution} \cr
+#' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}\frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} &\text{ For base negative binomial distribution} \cr
+#' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}\frac{\lambda_{k}^{2}+\lambda_{k}+1}{\lambda_{k}^{2}} &\text{ For base geometric distribution}
+#' \end{aligned}
+#' }{}
 #' 
 #' Pseudo hurdle models are experimental and not yet described in literature.
 #' 
-#' Lastly there are chao and zelterman estimators.
+#' Lastly there are **chao** and **zelterman** models which are based on 
+#' logistic regression on the dummy variable
+#' \mjdeqn{
+#' Z = \left\lbrace\begin{array}{cc}
+#' 0     & \text{if }Y = 1  \cr
+#' 1     & \text{if }Y = 2
+#' \end{array}\right.}{}
+#' based on the equation:
+#' \mjdeqn{
+#' \text{logit}(p_{k})=
+#' \ln\left(\frac{\lambda_{k}}{2}\right)=
+#' \boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}}{}
+#' where \mjeqn{\lambda_{k}}{} is the poisson parameter.
+#' 
+#' The *zelterman* estimator of population size is expressed as:
+#' \mjdeqn{
+#' \hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}
+#' }{}
+#' and *chao* estimator has the form:
+#' \mjdeqn{
+#' \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
+#' \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
+#' }{}
 #' 
 #' @seealso [estimate_popsize()]
 #'

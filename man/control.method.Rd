@@ -16,6 +16,8 @@ control.method(
   silent = FALSE,
   optimPass = FALSE,
   stepsize = 1,
+  checkDiagWeights = TRUE,
+  weightsEpsilon = .Machine$double.eps^0.75,
   momentumFactor = 0,
   useZtpoissonAsStart = FALSE,
   momentumActivation = 5
@@ -52,8 +54,11 @@ if mle method was chosen verbose will be passed to \code{\link[stats:optim]{stat
 
 \item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.}
 
+\item{checkDiagWeights}{Logical value indicating whether to check if diagonal elements of working weights matrixes in \code{IRLS} are sufficiently positive so that these matrixes are positive defined. By default \code{TRUE}.}
+
+\item{weightsEpsilon}{Small number to ensure positivity of weights matrixes. Only matters if \code{checkDiagWeights} is set to \code{TRUE}. By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}}
+
 \item{momentumFactor}{Experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
-\loadmathjax
 \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 the update will be made as:
 \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}}
@@ -74,4 +79,5 @@ for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz
+\loadmathjax
 }
