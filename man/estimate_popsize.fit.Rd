@@ -76,7 +76,7 @@ corresponds to weights associated with ith row and \mjeqn{\boldsymbol{W}}{W}
 is a block matrix, made of diagonal matrixes \mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{E(d^2l/deta_j^Tdeta_i)}.
 \item Regress \mjeqn{\boldsymbol{Z}}{Z} on \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm}
 to obtain \mjeqn{\boldsymbol{\beta}}{beta} as:
-\mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}.
+\mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}
 \item Assign:
 \itemize{
 \item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} < \ell_{-}\cdot\varepsilon}{l(beta)-l_-<l_- * epsilon} \code{or}

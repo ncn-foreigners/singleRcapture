@@ -374,20 +374,30 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 }
 \seealso{
 \code{\link[stats:glm]{stats::glm()}} -- For more information on generalised linear models.
+
 \code{\link[stats:optim]{stats::optim()}} -- For more information on \code{optim} function used in
 \code{mle} method of fitting regression.
+
 \code{\link[=control.method]{control.method()}} -- For control parameters related to regression.
+
 \code{\link[=control.pop.var]{control.pop.var()}} -- For control parameters related to population size estimation.
+
 \code{\link[=control.model]{control.model()}} -- For control parameters related to model specification.
+
 \code{\link[=estimate_popsize.fit]{estimate_popsize.fit()}} -- For more information on fitting procedure in
 \code{esitmate_popsize}.
+
 \code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=redoPopEstimation]{redoPopEstimation()}} -- For extracting population size
 estimation results are applying post-hoc procedures.
+
 \code{\link[=summary.singleR]{summary.singleR()}} -- For summarising important information about the
 model and population size estimation results.
+
 \code{\link[=marginalFreq]{marginalFreq()}} -- For information on marginal frequencies and comparison
 between observed and fitted quantities.
+
 \code{\link[VGAM:vglm]{VGAM::vglm()}} -- For more information on vector generalised linear models.
+
 \code{\link[=singleRmodels]{singleRmodels()}} -- For description of various models.
 }
 \author{

@@ -278,20 +278,30 @@ NULL
 #' 
 #' @seealso 
 #' [stats::glm()] -- For more information on generalised linear models.
+#' 
 #' [stats::optim()] -- For more information on \code{optim} function used in 
 #' \code{mle} method of fitting regression.
+#' 
 #' [control.method()] -- For control parameters related to regression.
+#' 
 #' [control.pop.var()] -- For control parameters related to population size estimation.
+#' 
 #' [control.model()] -- For control parameters related to model specification.
+#' 
 #' [estimate_popsize.fit()] -- For more information on fitting procedure in
 #' \code{esitmate_popsize}.
+#' 
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
 #' estimation results are applying post-hoc procedures.
+#' 
 #' [summary.singleR()] -- For summarising important information about the
 #' model and population size estimation results.
+#' 
 #' [marginalFreq()] -- For information on marginal frequencies and comparison
 #' between observed and fitted quantities.
+#' 
 #' [VGAM::vglm()] -- For more information on vector generalised linear models.
+#' 
 #' [singleRmodels()] -- For description of various models.
 #' @examples 
 #' \dontrun{
