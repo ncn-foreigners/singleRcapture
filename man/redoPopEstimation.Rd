@@ -30,7 +30,7 @@ reduction) to population size estimation and standard error estimation.
 Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
-method = "robust")
+method = "IRLS")
 # Apply heteroscedasticity consistent covariance matrix estimation
 require(sandwich)
 cov <- vcovHC(Model, type = "HC3")

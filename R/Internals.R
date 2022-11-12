@@ -97,7 +97,7 @@ singleRcaptureinternalIRLS <- function(dependent,
     if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
     if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     
-    if (L < LPrev) {
+    if (isTRUE(L < LPrev) || is.infinite(L)) {
       halfstepsizing <- TRUE
       h <- stepsize * (betaPrev - beta)
       if (trace > 0) {
@@ -107,12 +107,13 @@ singleRcaptureinternalIRLS <- function(dependent,
         h <- h / 2
         beta <- betaPrev - h
         L <- -logLike(beta)
-        if (L > LPrev) {
+        if (isTRUE(L > LPrev) && is.finite(L)) {
           break
         }
         
         if (max(abs(h)) < .Machine$double.eps ** (1 / 8)) {
           if (L < LPrev) {
+            warning("IRLS half-stepping terminated because the step is too small.")
             halfstepsizing <- FALSE
             L <- LPrev
             beta <- betaPrev
@@ -356,7 +357,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
     if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
 
-    if (isTRUE(L < LPrev)) {
+    if (isTRUE(L < LPrev) || is.infinite(L)) {
       halfstepsizing <- TRUE
       h <- step <- stepsize * (betaPrev - beta)
       if (trace > 0) {
@@ -366,12 +367,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         h <- step <- h / 2
         beta <- betaPrev - h
         L <- -logLike(beta)
-        if (isTRUE(L > LPrev)) {
+        if (isTRUE(L > LPrev) && is.finite(L)) {
           break
         }
         
         if (max(abs(h)) < .Machine$double.eps) {
           if (isTRUE(L < LPrev)) {
+            warning("IRLS half-stepping terminated because the step is too small.")
             halfstepsizing <- FALSE
             L <- LPrev
             beta <- betaPrev

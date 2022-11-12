@@ -25,7 +25,7 @@ Model <- estimate_popsize(
 formula = capture ~ ., 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
-method = "robust")
+method = "IRLS")
 sandwich::bread(Model)
 vcov(Model)
 # This function just scales.

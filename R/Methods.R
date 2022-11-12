@@ -152,7 +152,7 @@ summary.singleR <- function(object,
 #' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
-#' method = "robust")
+#' method = "IRLS")
 #' # Get df beta
 #' dfb <- dfbeta(Model)
 #' # The results
@@ -182,7 +182,7 @@ dfpopsize <- function(model, ...) {
 #' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
-#' method = "robust")
+#' method = "IRLS")
 #' # Apply heteroscedasticity consistent covariance matrix estimation
 #' require(sandwich)
 #' cov <- vcovHC(Model, type = "HC3")
@@ -317,7 +317,7 @@ popSizeEst <- function(object, ...) {
 #' Model <- estimate_popsize(formula = capture ~ ., 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
-#' method = "robust")
+#' method = "IRLS")
 #' plot(Model, "rootogram")
 #' # We see a considerable lack of fit
 #' summary(marginalFreq(Model), df = 1, dropl5 = "group")
@@ -409,7 +409,7 @@ vcov.singleR <- function(object,
       ...
     ),
     "Fisher" = {
-      if (object$call$method == "robust") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
+      if (object$call$method == "IRLS") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
       solve(
       singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
@@ -468,7 +468,7 @@ hatvalues.singleR <- function(model, ...) {
   X <- model.frame.singleR(model, ...)
   X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
-  if (isTRUE(model$call$method == "robust")) {
+  if (isTRUE(model$call$method == "IRLS")) {
     W <- model$weights
   } else {
     W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (model$model$family == "zelterman") model$linear.predictors[model$which$reg, ] else model$linear.predictors)
@@ -710,7 +710,7 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
     beta = object$coefficients,
     control = object$populationSize$control,
     Xvlm = Xvlm,
-    W = if (object$call$method == "robust") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
+    W = if (object$call$method == "IRLS") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
     sizeObserved = object$sizeObserved,
     modelFrame = model.frame.singleR(object, ...),
     cov = cov
@@ -846,10 +846,10 @@ print.summarysingleR <- function(x,
       "\nBIC: ", x$bic,
       "\nResidual deviance: ", x$deviance,
       "\n\nLog-likelihood: ", x$logL, " on ", x$df.residual, " Degrees of freedom ",
-      if (isTRUE(x$call$method == "robust")) {
+      if (isTRUE(x$call$method == "IRLS")) {
         "\nNumber of iterations: "
       } else {
-        "\nNumber of calls to log-likelihood function: " # optim does not allow for accesing information
+        "\nNumber of calls to log-likelihood function: " # optim does not allow for accessing information
         # on number of iterations performed only a number of calls for gradient and objective function
       }, x$iter[1], 
       "\n-----------------------",
@@ -920,7 +920,7 @@ fitted.singleR <- function(object,
 #' #' df <- data.frame(gender, eta, counts)
 #' #' df2 <- subset(df, counts > 0)
 #' #' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' #' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' #' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' #' mod1_sims <- simulate(mod1, nsim=10)
 #' #' colMeans(mod1_sims) 
 #' #' @importFrom stats simulate

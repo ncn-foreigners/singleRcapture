@@ -45,7 +45,7 @@ counts <- rpois(N, lambda = exp(eta))
 df <- data.frame(gender, eta, counts)
 df2 <- subset(df, counts > 0)
 mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-model = "ztpoisson", method = "mle", pop.var = "analytic")
+model = "ztpoisson", method = "optim", pop.var = "analytic")
 require(sandwich)
 HC <- sandwich::vcovHC(mod1, type = "HC4")
 Fisher <- vcov(mod1, "Fisher") # variance covariance matrix obtained from 

@@ -1,3 +1,5 @@
+# ALL CODE IN THIS FILE WAS DEVELOPED BASED ON CODE IN sandwich PACKAGE
+
 #' @title Empirical Estimating Functions
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
@@ -16,7 +18,7 @@
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
 #' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' mod1_sims <- sandwich::estfun(mod1)
 #' head(mod1_sims) 
 #' @importFrom sandwich estfun
@@ -52,7 +54,7 @@ estfun.singleR <- function(object,...) {
 #' formula = capture ~ ., 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
-#' method = "robust")
+#' method = "IRLS")
 #' sandwich::bread(Model)
 #' vcov(Model)
 #' # This function just scales.
@@ -97,7 +99,7 @@ bread.singleR <- function(object,...) {
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
 #' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' require(sandwich)
 #' HC <- sandwich::vcovHC(mod1, type = "HC4")
 #' Fisher <- vcov(mod1, "Fisher") # variance covariance matrix obtained from 

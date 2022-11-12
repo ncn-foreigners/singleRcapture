@@ -16,7 +16,7 @@
 #' @param start initial value of regression parameters.
 #' @param ... arguments to pass to other methods.
 #' 
-#' @details If \code{method} argument was set to \code{"mle"} the \code{stats::optim}
+#' @details If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
 #' function will be used to fit regression with analyticly computed gradient and 
 #' (minus) log likelihood functions as \code{gr} and \code{fn} arguments. 
 #' Unfortunately \code{optim} does not allow for hessian to be specified.
@@ -24,7 +24,7 @@
 #' [control.method()].
 #' 
 #' 
-#' If \code{method} argument was set to \code{"robust"} the iteratively reweighted 
+#' If \code{method} argument was set to \code{"IRLS"} the iteratively reweighted 
 #' least squares. The algorithm is well know in generalised linear models.
 #' Thomas W. Yee later extended this algorithm to vector generalised linear models 
 #' and in more general terms it can roughly be described as 
@@ -93,7 +93,7 @@ estimate_popsize.fit <- function(y, X,
   if (FALSE) {
     # maybe implement
   } else {
-    if (method == "robust") {
+    if (method == "IRLS") {
       
       if (family$parNum == 1) {
         FittingFunction <- singleRcaptureinternalIRLS
@@ -122,12 +122,12 @@ estimate_popsize.fit <- function(y, X,
       iter <- FITT$iter
       weights <- FITT$weights
       beta <- FITT$coefficients
-    } else if (method == "mle") {
+    } else if (method == "optim") {
       logLike <- family$makeMinusLogLike(y = y, X = X, weight = prior.weights)
       grad <- family$makeGradient(y = y, X = X, weight = prior.weights, lambdaPredNumber = length(start) - 1)
       
       weights <- prior.weights
-      methodopt <- control$mleMethod
+      methodopt <- control$optimMethod
       
       if (!isFALSE(control$optimPass)) {
         ctrl <- control$optimPass
@@ -160,7 +160,7 @@ estimate_popsize.fit <- function(y, X,
       # Commented lines of code are used in verification of computed analytic hessian
       iter <- FITT$counts
       if (FITT$convergence == 1 && !control$silent) {
-        warning("Convergence not obtained in ", control$maxiter, " iterations of mle fitting algorithm", sep = "")
+        warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")
       }
     } else {
       stop("Method not implemented")

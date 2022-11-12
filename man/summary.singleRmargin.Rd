@@ -40,7 +40,7 @@ say < 5, so it is customary to either censor or omit these cells.
 Model <- estimate_popsize(formula = capture ~ ., 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
-method = "robust")
+method = "IRLS")
 plot(Model, "rootogram")
 # We see a considerable lack of fit
 summary(marginalFreq(Model), df = 1, dropl5 = "group")

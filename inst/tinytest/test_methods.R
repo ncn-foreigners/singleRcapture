@@ -11,7 +11,7 @@
 #    mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, 
 #                              data = df2,
 #                              model = "ztnegbin", 
-#                              method = "mle",
+#                              method = "optim",
 #                              pop.var = "analytic")
 #    mid1_sim <- simulate(mod1, 10)
 #    dim(mid1_sim)
@@ -23,7 +23,7 @@ expect_silent(
     formula = capture ~ nation + age + gender, 
     data = netherlandsimmigrant, 
     model = ztpoisson, 
-    method = "robust"
+    method = "IRLS"
   )
 )
 
@@ -32,25 +32,25 @@ expect_silent(
     formula = capture ~ 1, 
     data = netherlandsimmigrant, 
     model = ztpoisson, 
-    method = "robust"
+    method = "IRLS"
   )
 )
 
-expect_silent(
+expect_warning(
   Model2 <- estimate_popsize(
     formula = capture ~ . - age - reason, 
     data = netherlandsimmigrant, 
     model = zelterman, 
-    method = "robust"
+    method = "IRLS"
   )
 )
 
-expect_silent(
+expect_warning(
   Model3 <- estimate_popsize(
     formula = capture ~ . - age, 
     data = netherlandsimmigrant, 
     model = chao, 
-    method = "robust"
+    method = "IRLS"
   )
 )
 
@@ -59,7 +59,7 @@ expect_silent(
     formula = TOTAL_SUB ~ ., 
     data = farmsubmission, 
     model = ztnegbin,
-    method = "robust"
+    method = "IRLS"
   )
 )
 
@@ -68,7 +68,7 @@ expect_silent(
     formula = TOTAL_SUB ~ ., 
     data = farmsubmission, 
     model = ztoigeom, 
-    method = "robust",
+    method = "IRLS",
     control.pop.var = control.pop.var(covType = "Fisher"),
     control.model = control.model(omegaFormula = ~ log_distance),
     control.method = control.method(stepsize = .45)

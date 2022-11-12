@@ -44,7 +44,7 @@ unit from the data set.
 Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
-method = "robust")
+method = "IRLS")
 # Get df beta
 dfb <- dfbeta(Model)
 # The results

@@ -35,14 +35,14 @@ List with regression parameters, working weights
 just regression fitting \code{estimate_popsize.fit} is much faster.
 }
 \details{
-If \code{method} argument was set to \code{"mle"} the \code{stats::optim}
+If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
 function will be used to fit regression with analyticly computed gradient and
 (minus) log likelihood functions as \code{gr} and \code{fn} arguments.
 Unfortunately \code{optim} does not allow for hessian to be specified.
 More information about how to modify \code{optim} fitting is included in
 \code{\link[=control.method]{control.method()}}.
 
-If \code{method} argument was set to \code{"robust"} the iteratively reweighted
+If \code{method} argument was set to \code{"IRLS"} the iteratively reweighted
 least squares. The algorithm is well know in generalised linear models.
 Thomas W. Yee later extended this algorithm to vector generalised linear models
 and in more general terms it can roughly be described as

@@ -14,7 +14,7 @@ estimate_popsize(
   weights = NULL,
   subset = NULL,
   na.action = NULL,
-  method = c("mle", "robust"),
+  method = c("optim", "IRLS"),
   pop.var = c("analytic", "bootstrap", "noEst"),
   control.method = NULL,
   control.model = NULL,
@@ -39,7 +39,7 @@ estimate_popsize(
 
 \item{na.action}{Not yet implemented.}
 
-\item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{robust}) and maximum likelihood (\code{mle}).}
+\item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).}
 
 \item{pop.var}{A method of constructing confidence interval either analytic or bootstrap.
 Bootstrap confidence interval type may be specified in \code{control.pop.var.}
@@ -76,7 +76,7 @@ Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 \item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
 \item{\code{deviance} -- Deviance for the model.}
 \item{\code{prior.weights} -- Prior weight provided on call.}
-\item{\code{weights} -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
+\item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as prior.weights.}
 \item{\code{residuals} -- Vector of raw residuals.}
 \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
 \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
@@ -280,7 +280,7 @@ plot(model, "rootogram")
 summary(marginalFreq(model), df = 1)
 
 modelSingleRcapture <- estimate_popsize(formula = TOTAL_SUB ~ ., 
-data = farmsubmission, model = ztnegbin, method = "robust")
+data = farmsubmission, model = ztnegbin, method = "IRLS")
 # comparison with VGAM package, VGAM uses slightly different parametrisation
 # so we use negloglink instead of loglink for size parameter
 # i.e 1 / dispersion parameter
@@ -298,7 +298,7 @@ summary(marginalFreq(modelSingleRcapture))
 # in depth information about fitting procedure
 pseudoHurdleModel <- estimate_popsize(formula = capture ~ nation + age + gender, 
 data = netherlandsimmigrant, model = Hurdleztgeom, 
-method = "robust", control.method = control.method(verbose = 5), 
+method = "IRLS", control.method = control.method(verbose = 5), 
 control.model = control.model(piFormula = ~ gender))
 summary(pseudoHurdleModel)
 # very good fit may be a little over fitted
@@ -311,7 +311,7 @@ df = 1)
 # A advanced input with additional information for fitting procedure and
 # additional formula specification.
 Model <- estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-model = oiztgeom, method = "robust", control.method = control.method(
+model = oiztgeom, method = "IRLS", control.method = control.method(
 verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
 silent = TRUE), control.model = control.model(omegaFormula = ~ .))
 summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
@@ -376,7 +376,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 \code{\link[stats:glm]{stats::glm()}} -- For more information on generalised linear models.
 
 \code{\link[stats:optim]{stats::optim()}} -- For more information on \code{optim} function used in
-\code{mle} method of fitting regression.
+\code{optim} method of fitting regression.
 
 \code{\link[=control.method]{control.method()}} -- For control parameters related to regression.
 

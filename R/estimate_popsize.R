@@ -22,7 +22,7 @@ NULL
 #' @param weights Optional object of a priori weights used in fitting the model.
 #' @param subset A logical vector indicating which observations should be used in regression and population size estimation.
 #' @param na.action Not yet implemented.
-#' @param method Method for fitting values currently supported: iteratively reweighted least squares (\code{robust}) and maximum likelihood (\code{mle}).
+#' @param method Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap.
 #' Bootstrap confidence interval type may be specified in \code{control.pop.var.} 
 #' There is also the third possible value of \code{noEst} which skips the population size estimate all together.
@@ -258,7 +258,7 @@ NULL
 #'  \item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
 #'  \item{\code{deviance} -- Deviance for the model.}
 #'  \item{\code{prior.weights} -- Prior weight provided on call.}
-#'  \item{\code{weights} -- If robust method of estimation was chosen weights returned by IRLS, otherwise same as prior.weights.}
+#'  \item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as prior.weights.}
 #'  \item{\code{residuals} -- Vector of raw residuals.}
 #'  \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
 #'  \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
@@ -280,7 +280,7 @@ NULL
 #' [stats::glm()] -- For more information on generalised linear models.
 #' 
 #' [stats::optim()] -- For more information on \code{optim} function used in 
-#' \code{mle} method of fitting regression.
+#' \code{optim} method of fitting regression.
 #' 
 #' [control.method()] -- For control parameters related to regression.
 #' 
@@ -318,7 +318,7 @@ NULL
 #' summary(marginalFreq(model), df = 1)
 #' 
 #' modelSingleRcapture <- estimate_popsize(formula = TOTAL_SUB ~ ., 
-#' data = farmsubmission, model = ztnegbin, method = "robust")
+#' data = farmsubmission, model = ztnegbin, method = "IRLS")
 #' # comparison with VGAM package, VGAM uses slightly different parametrisation
 #' # so we use negloglink instead of loglink for size parameter
 #' # i.e 1 / dispersion parameter
@@ -336,7 +336,7 @@ NULL
 #' # in depth information about fitting procedure
 #' pseudoHurdleModel <- estimate_popsize(formula = capture ~ nation + age + gender, 
 #' data = netherlandsimmigrant, model = Hurdleztgeom, 
-#' method = "robust", control.method = control.method(verbose = 5), 
+#' method = "IRLS", control.method = control.method(verbose = 5), 
 #' control.model = control.model(piFormula = ~ gender))
 #' summary(pseudoHurdleModel)
 #' # very good fit may be a little over fitted
@@ -349,7 +349,7 @@ NULL
 #' # A advanced input with additional information for fitting procedure and
 #' # additional formula specification.
 #' Model <- estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-#' model = oiztgeom, method = "robust", control.method = control.method(
+#' model = oiztgeom, method = "IRLS", control.method = control.method(
 #' verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
 #' silent = TRUE), control.model = control.model(omegaFormula = ~ .))
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
@@ -375,7 +375,7 @@ estimate_popsize <- function(formula,
                              weights = NULL,
                              subset = NULL,
                              na.action = NULL,
-                             method = c("mle", "robust"),
+                             method = c("optim", "IRLS"),
                              pop.var = c("analytic",
                                          "bootstrap",
                                          "noEst"),
@@ -387,7 +387,7 @@ estimate_popsize <- function(formula,
                              y = TRUE,
                              contrasts = NULL,
                              ...) {
-  if (missing(method)) method <- "mle"
+  if (missing(method)) method <- "optim"
   if (missing(pop.var)) pop.var <- "analytic"
   subset <- parse(text = deparse(substitute(subset)))
   if (!is.data.frame(data)) {
@@ -408,11 +408,11 @@ estimate_popsize <- function(formula,
   m1 <- m1[sapply(m1, is.null) == FALSE]
   m2 <- control.pop.var(fittingMethod = match.arg(method), 
   bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, 
-  mleMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi") || grepl(x = family$family, pattern = "^oizt")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
+  optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi") || grepl(x = family$family, pattern = "^oizt")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.pop.var <- append(m1, m2)
   m1 <- control.method
-  m2 <- control.method(mleMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
+  m2 <- control.method(optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   control.method <- append(m1, m2)
   m1 <- control.model
@@ -609,7 +609,7 @@ estimate_popsize <- function(formula,
     beta = coefficients,
     control = control.pop.var,
     Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
-    W = if (method == "robust") weights else family$Wfun(prior = prior.weights, eta = eta),
+    W = if (method == "IRLS") weights else family$Wfun(prior = prior.weights, eta = eta),
     sizeObserved = sizeObserved,
     modelFrame = modelFrame1,
     cov = NULL

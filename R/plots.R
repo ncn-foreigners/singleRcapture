@@ -102,9 +102,15 @@ plot.singleR <- function(x,
     stop("Trying to plot bootstrap results with no bootstrap performed")
   } 
   plotType <- match.arg(plotType)
+  # TODO
   # move this to particular plots
   if (x$model$parNum == 1) type <- "pearsonSTD" else type <- "pearson"
-  res <- residuals.singleR(x, type = type)[, 1]
+  if (plotType == "fitresid") {
+    res <- residuals.singleR(x, type = "response")[, 1] # fitted vs residuals
+    # plot should have just normal response residuals
+  } else {
+    res <- residuals.singleR(x, type = type)[, 1]
+  }
   switch(plotType,
   QQ = {
     stats::qqnorm(res);
@@ -205,10 +211,11 @@ plot.singleR <- function(x,
       lp <- x$linear.predictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
+        res <- res[x$which$reg]
       }
       plot(y = res, x = lp,
            xlab = "Linear predictors",
-           ylab = "Std. Pearson resid.",
+           ylab = "Response residuals",
            main = "Residuals vs Fitted",
            ...);
       abline(lty = 2, col = "darkgrey", h = 0);
@@ -219,7 +226,7 @@ plot.singleR <- function(x,
       for (k in 1:x$model$parNum) {
         plot(y = res, x = x$linear.predictors[, k],
              xlab = "Linear predictors",
-             ylab = "Pearson resid.",
+             ylab = "Response residuals",
              main = "Residuals vs Fitted",
              sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
              ...);
