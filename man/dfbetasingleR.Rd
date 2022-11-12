@@ -2,23 +2,32 @@
 % Please edit documentation in R/Methods.R
 \name{dfbetasingleR}
 \alias{dfbetasingleR}
-\title{TODO}
+\title{Regression deletion diagnostics.
+\loadmathjax}
 \usage{
 dfbetasingleR(model, maxit.new = 1, ...)
 }
 \arguments{
 \item{model}{Fitted object of singleR class}
 
-\item{maxit.new}{maximal number of iterations for regression}
+\item{maxit.new}{Maximal number of iterations for regressions with starting points
+\mjeqn{\hat{\boldsymbol{\beta}}}{beta} on data specified at call for \code{model}
+after the romoval of kth row. By default 1.}
 
-\item{...}{Arguments to pass to other methods}
+\item{...}{Additional optional arguments passed to the following functions:
+\itemize{
+\item \code{control.method} -- For controlling the simulation of dfbeta.
+}}
 }
 \value{
-TODO
+A matrix with n rows and p observations where p is a number of
+units in data and p is the number of regression parameters.
+
+K'th row of this matrix corresponds to
+\mjeqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}{beta-beta_(-k)}
+where \mjeqn{\hat{\boldsymbol{\beta}}_{-k}}{beta_(-k)} is a vector of estimates
+for regression parameters after the removal of k'th row from the data.
 }
 \description{
-TODO
-}
-\details{
-dfbeta for singleRclass
+A \code{dfbeta} method for \code{singleR} class.
 }

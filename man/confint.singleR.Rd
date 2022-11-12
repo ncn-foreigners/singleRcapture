@@ -7,20 +7,20 @@
 \method{confint}{singleR}(object, parm, level = 0.95, ...)
 }
 \arguments{
-\item{object}{a fitted model object.}
+\item{object}{Object of singleR class.}
 
-\item{parm}{names of parameters for which confidence intervals are to be
-computed, if missing all parameters will be considered}
+\item{parm}{Names of parameters for which confidence intervals are to be
+computed, if missing all parameters will be considered.}
 
-\item{level}{confidence level for intervals.}
+\item{level}{Confidence level for intervals.}
 
-\item{...}{additional argument(s) for methods.}
+\item{...}{Currently does nothing.}
 }
 \value{
 An object with named columns that include upper and
-lower limit of confidence intervals
+lower limit of confidence intervals.
 }
 \description{
 A function that computes studentized confidence intervals
-for model coefficients
+for model coefficients.
 }

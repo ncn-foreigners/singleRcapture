@@ -1,11 +1,84 @@
-#' @title Diagnostic plots singleR regression
+#' @title Diagnostic plots for regression and population size estimation.
+#' @author Piotr Chlebicki
 #'
-#' @param x TODO
-#' @param plotType TODO
-#' @param ... TODO
+#' @description Simple diagnostic plots for \code{singleR} class objects.
+#'
+#' @param x Object of \code{singleR} class.
+#' @param plotType Character parameter specifying type of plot to be made.
+#' The following list presents and briefly explains possible type of plots:
+#' \itemize{
+#'   \item \code{QQ} -- The quantile-quantile plot for pearson residuals 
+#'   (or standardised pearson residuals if these are available for the model) i.e. 
+#'   empirical quantiles from residuals are plotted against theoretical quantiles 
+#'   from standard distribution.
+#'   \item \code{marginal} -- A plot made by \code{matplot} with fitted and 
+#'   observed marginal frequencies with labels.
+#'   \item \code{fitresid} -- Plot of fitted linear predictors against 
+#'   (standardised) pearson residuals.
+#'   \item \code{bootHist} -- Simple histogram for statistics obtained from 
+#'   bootstraping (if one was performed and the statistics were saved).
+#'   \item \code{rootogram} -- Rootogram, for full explanation see: 
+#'   Kleiber and Zeileis Visualizing Count Data Regressions Using Rootograms (2016), 
+#'   in short it is a \code{barplot} where height is the square root of observed marginal 
+#'   frequencies adjusted by difference between square root of observed and fitted marginal 
+#'   frequencies connected by line representing fitted marginal frequencies. 
+#'   The less of a difference there is between the 0 line and beginning of a bar 
+#'   the more accurate fitt was produced by the model.
+#'   \item \code{dfpopContr} -- Plot of \code{dfpopsize} against unit contribution.
+#'   On the plot is y = x line i.e. what deletion effect would be if removing the
+#'   unit from the model didn't effect regression coefficients. The further away
+#'   the observation is from this line the more influential it is.
+#'   \item \code{dfpopBox} -- Boxplot of \code{dfpopsize} for getting the general 
+#'   idea about the distribution of the "influence" of each unit on
+#'   population size estimate.
+#'   \item \code{scaleLoc} -- The scale - location plot i.e. square root of 
+#'   absolute values of (standardised) pearson residuals against linear predictors
+#'   for each column of linear predictors.
+#'   \item \code{Cooks} -- Plot of cooks distance for detecting influential observations.
+#'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
+#' }
+#' @param ... Additional optional arguments passed to the following functions:
+#' \itemize{
+#'   \item For \code{plotType = "bootHist"}
+#'   \itemize{
+#'   \item \code{graphics::hist} -- with \code{x, main, xlab, ylab} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "rootogram"} 
+#'   \itemize{
+#'   \item \code{graphics::barplot} -- with \code{height, offset, ylab, xlab, ylim} parameters fixed.
+#'   \item \code{graphics::lines} -- with \code{x, y, pch, type, lwd, col} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "dfpopContr"}
+#'   \itemize{
+#'   \item \code{dfpopsize} -- with \code{model, observedPop} parameters fixed.
+#'   \item \code{plot.default} -- with \code{x, y, xlab, main} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "dfpopBox"}
+#'   \itemize{
+#'   \item \code{dfpopsize} -- with \code{model, observedPop} parameters fixed.
+#'   \item \code{graphics::boxplot} -- with \code{x, ylab, main} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "scaleLoc"}
+#'   \itemize{
+#'   \item \code{plot.default} -- with \code{x, y, xlab, ylab, main, sub} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "fitresid"}
+#'   \itemize{
+#'   \item \code{plot.default} -- with \code{x, y, xlab, ylab, main, sub} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "Cooks"}
+#'   \itemize{
+#'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
+#'   }
+#'   \item For \code{plotType = "hatplot"} 
+#'   \itemize{
+#'   \item \code{hatvalues.singleR}
+#'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
+#'   }
+#' }
 #' 
 #' @method plot singleR
-#' @return TODO
+#' @return No return value only the plot being made.
 #' @importFrom stats ppoints
 #' @importFrom graphics abline
 #' @importFrom graphics barplot
@@ -17,6 +90,7 @@
 #' @importFrom stats qqnorm
 #' @importFrom graphics boxplot
 #' @importFrom graphics panel.smooth
+#' @seealso [estimate_popsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
 #' @export
 plot.singleR <- function(x, 
                          plotType = c("QQ", "marginal", "fitresid",
@@ -28,9 +102,15 @@ plot.singleR <- function(x,
     stop("Trying to plot bootstrap results with no bootstrap performed")
   } 
   plotType <- match.arg(plotType)
+  # TODO
   # move this to particular plots
   if (x$model$parNum == 1) type <- "pearsonSTD" else type <- "pearson"
-  res <- residuals.singleR(x, type = type)[, 1]
+  if (plotType == "fitresid") {
+    res <- residuals.singleR(x, type = "response")[, 1] # fitted vs residuals
+    # plot should have just normal response residuals
+  } else {
+    res <- residuals.singleR(x, type = type)[, 1]
+  }
   switch(plotType,
   QQ = {
     stats::qqnorm(res);
@@ -101,12 +181,16 @@ plot.singleR <- function(x,
   },
   scaleLoc = {
     if (x$model$parNum == 1) {
-      plot(y = sqrt(abs(res)), x = x$linear.predictors,
+      lp <- x$linear.predictors
+      if (x$model$family == "zelterman") {
+        lp <- lp[x$which$reg]
+      }
+      plot(y = sqrt(abs(res)), x = lp,
            xlab = "Linear predictors",
            ylab = expression(sqrt("Std. Pearson resid.")),
            main = "Scale-Location plot",
            ...);
-      graphics::panel.smooth(y = sqrt(abs(res)), x = x$linear.predictors, iter = 0)
+      graphics::panel.smooth(y = sqrt(abs(res)), x = lp, iter = 0)
     } else {
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
@@ -124,20 +208,25 @@ plot.singleR <- function(x,
   },
   fitresid = {
     if (x$model$parNum == 1) {
-      plot(y = res, x = x$linear.predictors,
+      lp <- x$linear.predictors
+      if (x$model$family == "zelterman") {
+        lp <- lp[x$which$reg]
+        res <- res[x$which$reg]
+      }
+      plot(y = res, x = lp,
            xlab = "Linear predictors",
-           ylab = "Std. Pearson resid.",
+           ylab = "Response residuals",
            main = "Residuals vs Fitted",
            ...);
       abline(lty = 2, col = "darkgrey", h = 0);
-      graphics::panel.smooth(y = res, x = x$linear.predictors, iter = 0)
+      graphics::panel.smooth(y = res, x = lp, iter = 0)
     } else {
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
         plot(y = res, x = x$linear.predictors[, k],
              xlab = "Linear predictors",
-             ylab = "Pearson resid.",
+             ylab = "Response residuals",
              main = "Residuals vs Fitted",
              sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
              ...);
@@ -169,4 +258,5 @@ plot.singleR <- function(x,
     }
     graphics::par(par);
   })
+  invisible()
 }

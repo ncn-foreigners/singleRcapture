@@ -1,21 +1,7 @@
-#' Zero truncated One Inflated Geometric Model
-#'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' Dlink - a 1st derivative of link function \cr
-#' mu.eta,Variance - Expected Value and Variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
+#' @rdname singleRmodels
 #' @importFrom lamW lambertW0
 #' @export
-ztoigeom <- function() {
+ztoigeom <- function(...) {
   # Fist for lambda second for omega
   link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
   invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
@@ -121,7 +107,7 @@ ztoigeom <- function() {
     }
   }
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
@@ -137,16 +123,24 @@ ztoigeom <- function() {
       G1 <- G1 * weight * lambda
       G0 <- z * lambda / (1 + lambda * omega) - (1 - z) / (1 - omega) # omega derivative
       G0 <- G0 * weight * omega * (1 - omega)
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
+      if (vectorDer) {
+        return(cbind(G1, G0))
+      }
       as.numeric(c(G1, G0) %*% X)
     }
   }
   
-  hessian <- function(y, X, weight = 1, lambdaPredNumber, ...) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     z <- as.numeric(y == 1)
     function (beta) {
+      lambdaPredNumber <- attr(X, "hwm")[1]
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
       lambda <- invlink(eta)
       omega <- lambda[, 2]
@@ -194,7 +188,6 @@ ztoigeom <- function() {
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    #TODO
     lambda <- invlink(eta)
     lambda <- lambda[, 1]
     N <- pw * (1 + 1 / lambda)

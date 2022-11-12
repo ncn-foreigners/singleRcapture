@@ -2,23 +2,55 @@
 % Please edit documentation in R/Methods.R
 \name{dfpopsize}
 \alias{dfpopsize}
-\title{dfpopsize}
+\alias{dfpopsize.singleR}
+\title{Regression deletion diagnostics for Population size estimation.}
 \usage{
-dfpopsize(model, dfbeta = NULL, observedPop = FALSE, ...)
+dfpopsize(model, ...)
+
+\method{dfpopsize}{singleR}(model, dfbeta = NULL, observedPop = FALSE, ...)
 }
 \arguments{
 \item{model}{Model for which leave one out diagnostic of popsize will be done.}
 
+\item{...}{Additional optional arguments passed to the following functions
+(for \code{singleR} class):
+\itemize{
+\item dfbetas -- if \code{dfbeta} parameter was not provided.
+}}
+
 \item{dfbeta}{If dfbeta was already obtained it is possible to pass them into
 function so that they need not be computed for the second time.}
 
-\item{observedPop}{TODO}
-
-\item{...}{Arguments to be passed down to other methods such as dfbeta.}
+\item{observedPop}{Logical. For \code{singleR} class object if set to
+\code{TRUE} indicates that 1 will be returned for units which do not
+take part in population size estimation (e.g. 1's in zero one truncated
+models or units with count => 3 for \code{zelterman} of basic \code{chao}
+model) if set to \code{FALSE} (default) these units will not be included
+in results.}
 }
 \value{
-TODO: MAKE BETTER DOCUMENTATION
+A vector for which k'th element corresponds to the difference between
+point estimate of population size estimation on full data set and
+point estimate of population size estimation after the removal of k'th
+unit from the data set.
 }
 \description{
-dfpopsize
+\code{dfpopsize} does for population size estimation.
+}
+\examples{
+\dontrun{
+# For singleR class
+# Get simple model
+Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+data = netherlandsimmigrant, 
+model = ztpoisson, 
+method = "IRLS")
+# Get df beta
+dfb <- dfbeta(Model)
+# The results
+dfpopsize(Model, dfbeta = dfb)
+# It is also possible to not provide dfbeta then they will be
+# computed manually
+dfpopsize(Model)
+}
 }

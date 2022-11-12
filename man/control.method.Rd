@@ -12,21 +12,23 @@ control.method(
   alphaStart = NULL,
   omegaStart = NULL,
   piStart = NULL,
-  mleMethod = "L-BFGS-B",
+  optimMethod = "L-BFGS-B",
   silent = FALSE,
   optimPass = FALSE,
   stepsize = 1,
+  checkDiagWeights = TRUE,
+  weightsEpsilon = .Machine$double.eps^0.75,
   momentumFactor = 0,
   useZtpoissonAsStart = FALSE,
   momentumActivation = 5
 )
 }
 \arguments{
-\item{epsilon}{Absolute tolerance for fitting algorithms by default 1e-8.}
+\item{epsilon}{Relative tolerance for fitting algorithms by default 1e-8.}
 
 \item{maxiter}{Maximum number of iterations.}
 
-\item{verbose}{Value indicating whether to trace steps of fitting algorithm for robust fitting method different values of verbose give the following information:
+\item{verbose}{Value indicating whether to trace steps of fitting algorithm for \code{IRLS} fitting method different values of verbose give the following information:
 \itemize{
 \item 1 -- Returns information on the number of current iteration and current log-likelihood.
 \item 2 -- Returns information on vector of regression parameters at current iteration (and all of the above).
@@ -34,7 +36,7 @@ control.method(
 \item 4 -- Returns information on value of log-likelihood function gradient at current iteration (and all of the above).
 \item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
 }
-if mle method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
+if \code{optim} method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
 
 \item{start}{initial parameters for regression associated with main formula specified in function call if NULL they will be derived from simple poisson regression.}
 
@@ -44,19 +46,22 @@ if mle method was chosen verbose will be passed to \code{\link[stats:optim]{stat
 
 \item{piStart}{initial parameters for probability parameter if applies.}
 
-\item{mleMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.}
+\item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.}
 
-\item{silent}{Logical, indicating whether warnings in robust method should be suppressed.}
+\item{silent}{Logical, indicating whether warnings in \code{IRLS} method should be suppressed.}
 
 \item{optimPass}{Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.}
 
-\item{stepsize}{Only for robust, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.}
+\item{stepsize}{Only for \code{IRLS}, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.}
 
-\item{momentumFactor}{experimental parameter in robust only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
-\loadmathjax
+\item{checkDiagWeights}{Logical value indicating whether to check if diagonal elements of working weights matrixes in \code{IRLS} are sufficiently positive so that these matrixes are positive defined. By default \code{TRUE}.}
+
+\item{weightsEpsilon}{Small number to ensure positivity of weights matrixes. Only matters if \code{checkDiagWeights} is set to \code{TRUE}. By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}}
+
+\item{momentumFactor}{Experimental parameter in \code{IRLS} only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
 \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 the update will be made as:
-\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + step_a-1)}}
+\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}}
 
 \item{useZtpoissonAsStart}{boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models.}
 
@@ -66,5 +71,13 @@ the update will be made as:
 List with selected parameters, it is also possible to call list directly.
 }
 \description{
-Control parameters for regression
+\code{control.method} constructs a list with all necessary control parameters
+for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
+}
+\seealso{
+\code{\link[=estimate_popsize]{estimate_popsize()}} \code{\link[=control.model]{control.model()}} \code{\link[=control.pop.var]{control.pop.var()}}
+}
+\author{
+Piotr Chlebicki, Maciej Beręsewicz
+\loadmathjax
 }

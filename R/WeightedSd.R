@@ -1,3 +1,5 @@
+# Why is this even here??
+
 #' Weighted_sd
 #'
 #' @param x A vector of values from which standard deviation is to be calculated.

@@ -65,12 +65,13 @@ summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
 Should goodness of fit tests prove insufficient in determining the best model graphical comparisons may also be made.
 One such technique is a rootogram and it is implemented as a part of singleR method for `plot` function:
 
-```{r plot, fig.show="hold", out.width="50%"}
+```{r plot, fig.show="hold", out.width="47%"}
 plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
 plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
-singleRcapture also includes bootstraps and models truncated at values 0 and 1 and non standard confidence levels
+singleRcapture also includes bootstraps and models truncated at values 0 and 1 
+and non standard confidence levels (i.e. different from usual 95%)
 
 ```{r boot}
 set.seed(123)

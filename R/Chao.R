@@ -1,21 +1,6 @@
-#' Chao model for the population size estimation
-#'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating Hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' dlink - a 1st derivative of link function \cr
-#' mu.eta,variance - Expected Value and variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
-#' simulate() -- function to simulate outcomes given the model
+#' @rdname singleRmodels
 #' @export
-chao <- function() {
+chao <- function(...) {
   link <- function(x) {log(x / 2)}
   invlink <- function (x) {2 * exp(x)}
   dlink <- function(lambda) {1 / lambda}
@@ -63,7 +48,7 @@ chao <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
@@ -74,6 +59,12 @@ chao <- function() {
       eta <- as.matrix(X) %*% beta
       lambda <- invlink(eta)
       L1 <- lambda / 2
+      if (NbyK) {
+        return(as.data.frame(X) * (z - L1 / (1 + L1)) * weight)
+      }
+      if (vectorDer) {
+        return(matrix((z - L1 / (1 + L1)) * weight, ncol = 1))
+      }
       t(X) %*% ((z - L1 / (1 + L1)) * weight)
     }
   }

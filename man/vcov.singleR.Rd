@@ -2,30 +2,35 @@
 % Please edit documentation in R/Methods.R
 \name{vcov.singleR}
 \alias{vcov.singleR}
-\title{Obtain Covariance Matrix from Fitted singleR class Object}
+\title{Obtain Covariance Matrix estimation.}
 \usage{
 \method{vcov}{singleR}(object, type = c("Fisher", "observedInform"), ...)
 }
 \arguments{
-\item{object}{object of class singleRclass.}
+\item{object}{Object of singleR class.}
 
-\item{type}{type of estimate for variance covariance matrix for now either
-expected (fisher) information matrix or observed information matrix.}
+\item{type}{Type of estimate for covariance matrix for now either
+expected (Fisher) information matrix or observed information matrix.}
 
-\item{...}{variables to pass to solve.}
+\item{...}{Additional optional arguments passed to following functions:
+\itemize{
+\item \code{solve} -- for inverting information matrixes.
+\item \code{model.frame.singleR} -- forcreation of Xvlm matrix.
+}}
 }
 \value{
 A covariance matrix for fitted coefficients, rows and columns of which
 correspond to parameters returned by \code{coef} method.
 }
 \description{
-Returns a estimated covariance matrix for model coefficients
-calculated from analytic hessian or fisher information matrix.
-Covariance type is taken from control parameter that have been provided
-on call that created object.
+A \code{vcov} method for \code{singleR} class.
 }
 \details{
-vcov method for singleR class
-
-For now the covariance matrix is calculated
+Returns a estimated covariance matrix for model coefficients
+calculated from analytic hessian or Fisher information matrix.
+Covariance type is taken from control parameter that have been provided
+on call that created \code{object} if argumetns \code{type} was not specified.
+}
+\seealso{
+\code{\link[=vcovHC.singleR]{vcovHC.singleR()}} \code{\link[sandwich:sandwich]{sandwich::sandwich()}}
 }

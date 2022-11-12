@@ -10,7 +10,6 @@ noparBoot <- function(family,
                       eta,
                       trace,
                       visT,
-                      hwm,
                       control.bootstrap.method = NULL,
                       method,
                       N, 
@@ -49,9 +48,9 @@ noparBoot <- function(family,
     
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     if (famName == "zelterman") {
-      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
+      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
     }
-    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
+    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)
     theta <- NULL
     try(
       theta <- estimate_popsize.fit(
@@ -61,8 +60,7 @@ noparBoot <- function(family,
         control = control.bootstrap.method,
         method = method,
         prior.weights = weightsStrap[wch$reg],
-        start = jitter(beta),
-        hwm = hwm
+        start = jitter(beta)
       )$beta,
       silent = TRUE
     )
@@ -100,7 +98,6 @@ semparBoot <- function(family,
                        eta,
                        trace,
                        visT,
-                       hwm,
                        control.bootstrap.method = NULL,
                        method,
                        N,
@@ -163,9 +160,9 @@ semparBoot <- function(family,
     if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), sep = " ")
     colnames(Xstrap) <- colnames(modelFrame)
     if (famName == "zelterman") {
-      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
+      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
     }
-    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)[[1]]
+    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)
     try(
       theta <- estimate_popsize.fit(
         y = ystrap[wch$reg],
@@ -174,10 +171,9 @@ semparBoot <- function(family,
         control = control.bootstrap.method,
         method = method,
         prior.weights = weightsStrap[wch$reg],
-        start = jitter(beta),
-        hwm = hwm
+        start = jitter(beta)
       )$beta,
-      silent = FALSE
+      silent = TRUE
     )
     
     k <- k + 1
@@ -215,7 +211,6 @@ parBoot <- function(family,
                     eta,
                     trace,
                     visT,
-                    hwm,
                     control.bootstrap.method = NULL,
                     method,
                     modelFrame,
@@ -235,6 +230,7 @@ parBoot <- function(family,
   }
   
   dataFunc <- family$simulate
+  
   
   if (isFALSE(grepl(x = famName, pattern = "^(zot|cha).*"))) {
     contr <- family$pointEst(pw = weights,
@@ -280,32 +276,36 @@ parBoot <- function(family,
     colnames(Xstrap) <- colnames(modelFrame)
     
     Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
-    hwm <- Xstrap[[2]]
-    Xstrap <- Xstrap[[1]]
+
     ystrap <- dataFunc(n = N,
                        eta = matrix(Xstrap %*% beta, ncol = family$parNum),
                        lower = -1, upper = Inf)
     weightsStrap <- weightsStrap[ystrap > 0]
     strap <- rep(FALSE, family$parNum * length(ystrap))
     strap[rep(ystrap > 0, family$parNum)] <- TRUE
+    hwm <- attr(Xstrap, "hwm")
     Xstrap <- subset(Xstrap, subset = strap)
     ystrap <- ystrap[ystrap > 0]
-    
+
     if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), sep = " ")
     wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
     
     theta <- NULL
+    if (famName == "zelterman") {
+      Xstrap1 <- Xstrap
+    }
+    Xstrap <- subset(Xstrap, subset = rep(wch$reg, family$parNum))
+    attr(Xstrap, "hwm") <- hwm
     
     try(
       theta <- estimate_popsize.fit(
         y = ystrap[wch$reg],
-        X = subset(Xstrap, subset = rep(wch$reg, family$parNum)),
+        X = Xstrap,
         family = family,
         control = control.bootstrap.method,
         method = method,
         prior.weights = weightsStrap[wch$reg],
-        start = jitter(beta),
-        hwm = hwm
+        start = jitter(beta)
       )$beta,
       silent = TRUE
     )
@@ -316,7 +316,11 @@ parBoot <- function(family,
       if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
-      theta <- matrix(Xstrap[rep(wch$est, family$parNum), ] %*% theta, ncol = family$parNum)
+      if (famName != "zelterman") {
+        theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+      } else {
+        theta <- matrix(Xstrap1 %*% theta, ncol = family$parNum)
+      }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")

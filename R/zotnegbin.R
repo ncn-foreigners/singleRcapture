@@ -1,21 +1,4 @@
-#' Zero One Truncated Negative Binomial model
-#'
-#' @param nSim TODO
-#' @param epsSim TODO
-#' @param ... TODO
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' Dlink - a 1st derivative of link function \cr
-#' mu.eta,Variance - Expected Value and Variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
+#' @rdname singleRmodels
 #' @export
 zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   # Fist for lambda second for alpha
@@ -195,7 +178,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
 
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -223,19 +206,27 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
             cp1 * z - cp2 * (y + z) + y * z) * alpha * weight)
       # Beta derivative
       G1 <- (weight * (y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob))
+      
+      if (NbyK) {
+        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+      }
+      if (vectorDer) {
+        return(cbind(G1, G0))
+      }
 
       as.numeric(c(G1, G0) %*% X)
     }
   }
 
-  hessian <- function(y, X, weight = 1, lambdaPredNumber) {
+  hessian <- function(y, X, weight = 1, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
-    X <- as.matrix(X)
 
     function(beta) {
+      lambdaPredNumber <- attr(X, "hwm")[1]
       eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
       alpha <- invlink(eta)
       lambda <- alpha[, 1]

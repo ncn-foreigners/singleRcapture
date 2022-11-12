@@ -12,6 +12,8 @@ singleRcaptureinternalIRLS <- function(dependent,
                                        stepsize = 1,
                                        momentumFactor,
                                        momentumActivation,
+                                       check,
+                                       epsWeights,
                                        ...) {
   dg <- 8 # Add to control
   converged <- FALSE
@@ -69,6 +71,9 @@ singleRcaptureinternalIRLS <- function(dependent,
     # }
     
     W <- Wfun(mu = mu, prior = prior, eta = eta)
+    if (check) {
+      W[, (1:family$parNum) ** 2] <- ifelse(W[, (1:family$parNum) ** 2] < epsWeights, epsWeights, W[, (1:family$parNum) ** 2])
+    }
     Z <- eta + funcZ(mu = mu, y = dependent, eta = eta, weight = W)
     # This is equivalent to
     # A <- t(covariates) %*% W %*% covariates
@@ -92,7 +97,7 @@ singleRcaptureinternalIRLS <- function(dependent,
     if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
     if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
     
-    if (L < LPrev) {
+    if (isTRUE(L < LPrev) || is.infinite(L)) {
       halfstepsizing <- TRUE
       h <- stepsize * (betaPrev - beta)
       if (trace > 0) {
@@ -102,12 +107,13 @@ singleRcaptureinternalIRLS <- function(dependent,
         h <- h / 2
         beta <- betaPrev - h
         L <- -logLike(beta)
-        if (L > LPrev) {
+        if (isTRUE(L > LPrev) && is.finite(L)) {
           break
         }
         
         if (max(abs(h)) < .Machine$double.eps ** (1 / 8)) {
           if (L < LPrev) {
+            warning("IRLS half-stepping terminated because the step is too small.")
             halfstepsizing <- FALSE
             L <- LPrev
             beta <- betaPrev
@@ -157,11 +163,11 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      beta, weights,
                                                      hessian, family,
                                                      eta, pop.var,
-                                                     control, hwm,
+                                                     control,
                                                      Xvlm, W, formulas,
                                                      sizeObserved,
-                                                     modelFrame) {
-  # TODO:: maybe move this to main function
+                                                     modelFrame, cov) {
+  hwm <- attr(Xvlm, "hwm")
   if (pop.var == "noEst") {return(NULL)}
   siglevel <- control$alpha
   trcount <- control$trcount
@@ -170,10 +176,12 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
   if (pop.var == "analytic") {
     strappedStatistic <- "No bootstrap performed"
     N <- family$pointEst(pw = weights, eta = eta) + trcount
-    cov <- switch(control$covType, # Change covariance here by adding more cases
+    if (is.null(cov)) {
+      cov <- switch(control$covType, # Change covariance here by adding more cases
       "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W, hwm = hwm) %*% Xvlm)
-    )
+      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
+      )
+    }
     
     variation <- as.numeric(family$popVar(eta = eta, 
                                           pw = weights,
@@ -218,7 +226,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     } else if (N > stats::quantile(strappedStatistic, .95)) {
       warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
     }
-    if (max(strappedStatistic) > N ** 1.375) {
+    if (max(strappedStatistic) > N ** 1.5) {
       warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
     }
     
@@ -253,11 +261,16 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     }
   }
   
-  list(pointEstimate = N,
-       variance = variation,
-       confidenceInterval = confidenceInterval,
-       boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
-       control = control)
+  structure(
+    list(
+      pointEstimate = N,
+      variance = variation,
+      confidenceInterval = confidenceInterval,
+      boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
+      control = control
+    ),
+    class = "popSizeEstResults"
+  )
 }
 # multiparameter
 singleRcaptureinternalIRLSmultipar <- function(dependent,
@@ -271,9 +284,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                silent = FALSE,
                                                trace = 0,
                                                stepsize = 1,
-                                               hwm,
                                                momentumFactor,
                                                momentumActivation,
+                                               check,
+                                               epsWeights,
                                                ...) {
   dg <- 8
   converged <- FALSE
@@ -314,9 +328,12 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     # }
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
+    if (check) {
+      W[, (1:family$parNum) ** 2] <- ifelse(W[, (1:family$parNum) ** 2] < epsWeights, epsWeights, W[, (1:family$parNum) ** 2])
+    }
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
 
-    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W, hwm = hwm)
+    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
 
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
@@ -340,7 +357,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
     if (trace > 4) {cat(sep = " ", "\nAlgorithm will terminate if the increase to log-likelihood will be bellow chosen value of epsilon", eps, "\nor when the maximum change to the vector of regression parameters will be bellow the chosen value of epsilon,\nat current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))}
 
-    if (isTRUE(L < LPrev)) {
+    if (isTRUE(L < LPrev) || is.infinite(L)) {
       halfstepsizing <- TRUE
       h <- step <- stepsize * (betaPrev - beta)
       if (trace > 0) {
@@ -350,12 +367,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         h <- step <- h / 2
         beta <- betaPrev - h
         L <- -logLike(beta)
-        if (isTRUE(L > LPrev)) {
+        if (isTRUE(L > LPrev) && is.finite(L)) {
           break
         }
         
         if (max(abs(h)) < .Machine$double.eps) {
           if (isTRUE(L < LPrev)) {
+            warning("IRLS half-stepping terminated because the step is too small.")
             halfstepsizing <- FALSE
             L <- LPrev
             beta <- betaPrev
@@ -419,7 +437,8 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
     row <- row + nrow(k)
     col <- col + ncol(k)
   }
-  list(Xvlm, hwm)
+  attr(Xvlm, "hwm") <- hwm
+  Xvlm
 }
 # Chosing data for estimation/regression
 singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop.var) {
@@ -453,7 +472,8 @@ singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop
 }
 # TODO:: additional verification
 # This is almost certainly an overkill but is supports arbitrary number of linear predictors
-singleRinternalMultiplyWeight <- function (X, W, hwm, ...) {
+singleRinternalMultiplyWeight <- function (X, W, ...) {
+  hwm <- attr(X, "hwm")
   thick <- sqrt(ncol(W))
   XbyW <- matrix(0, nrow = ncol(X), ncol = nrow(X))
   wch <- c(0, cumsum(hwm))

@@ -1,17 +1,212 @@
-#' dfpopsize
+#' @title Summary statistics for model of singleR class.
+#' 
+#' @description A \code{summary} method for \code{singleR} class, works 
+#' analogically to \code{summary.glm} but includes population size estimation 
+#' results. If any additional statistics, such as confidence intervals for
+#' coefficients or coefficient correlation, are specified they will be printed.
+#' 
+#' @param object Object of singleR class.
+#' @param test Type of test for significance of parameters \code{"t"} for t-test 
+#' and \code{"z"} for normal approximation of students t distribution, by 
+#' default \code{"z"} is used if there are more than 30 degrees of freedom
+#' and \code{"t"} is used in other cases.
+#' @param resType Type of residuals to summarise any value that is allowed in
+#' \code{residuals.signleR} except for \code{"all"} is allowed. By default 
+#' pearson residuals are used.
+#' @param correlation Logical value indicating whether correlation matrix should
+#' be computed from covariance matrix by default \code{FALSE}.
+#' @param confint Logical value indicating whether confidence intervals for
+#' regression parameters should be constructed. By default \code{FALSE}.
+#' @param cov Covariance matrix corresponding to regression parameters. 
+#' It is possible to give \code{cov} argument as a function of \code{object}.
+#' If not specified it will be constructed using \code{vcov.singleR} method.
+#' (i.e using Cramer-Rao lower bound)
+#' @param popSizeEst A \code{popSizeEstResults} class object.
+#' If not specified population size estimation results will be drawn from
+#' \code{object}. If any post-hoc procedures, such as sandwich covariance matrix 
+#' estimation or bias reduction, were taken it is possible to include them in 
+#' population size estimation results by calling \code{redoPopEstimation}.
+#' @param ... Additional optional arguments passed to the following functions:
+#' \itemize{
+#' \item \code{vcov.singleR} -- if no \code{cov} argument was provided.
+#' \item \code{cov} -- if \code{cov} parameter specified at call was a function.
+#' \item \code{confint.singleR} -- if \code{confint} parameter was set to \code{TRUE} at function call.
+#' In particular it is possible to set confidence level in \code{...}.
+#' }
+#' 
+#' @return An object of \code{summarysingleR} class containing:
+#' \itemize{
+#' \item \code{call} -- A call which created \code{object}.
+#' \item \code{coefficients} -- Regression parameters in \code{object}.
+#' \item \code{standardErrors} -- Square roots of diagonal elements of covariance matrix.
+#' \item \code{wValues} -- Test statistics for Wald's tests.
+#' \item \code{pValues} -- P values for corresponding tests.
+#' \item \code{residuals} -- A vector of residuals of type specified at call.
+#' \item \code{aic} -- Akaike's informsation criterion.
+#' \item \code{bic} -- Bayesian (Schwarz's) information criterion.
+#' \item \code{iter} -- Number of iterations taken in fitting regression.
+#' \item \code{logL} -- Logarithm of likelihood function evaluated at coefficients.
+#' \item \code{deviance} -- Residual deviance.
+#' \item \code{populationSize} -- Object with population size estimation results.
+#' \item \code{df.residual} -- Residual degrees of freedom.
+#' \item \code{sizeObserved} -- Size of observed population.
+#' \item \code{correlation} -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
+#' \item \code{test} -- Type of statistical test performed.
+#' \item \code{cnfint} -- Data frame with confidence intervals.
+#' \item \code{model} -- Family class object specified in call for \code{object}.
+#' \item \code{skew} -- If bootstrap sample was saved contains estimate of skewness.
+#' }
+#' @method summary singleR
+#' @importFrom stats pt
+#' @importFrom stats coef
+#' @importFrom stats sd
+#' @seealso [redoPopEstimation()] [stats::summary.glm()]
+#' @exportS3Method 
+summary.singleR <- function(object, 
+                            test = c("t", "z"), 
+                            resType = "pearson", 
+                            correlation = FALSE, 
+                            confint = FALSE, 
+                            cov, 
+                            popSizeEst, 
+                            ...) {
+  if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
+  df.residual <- object$df.residual
+  if (missing(test)) {if (df.residual > 30) test <- "z" else test <- "t"}
+  if (missing(cov)) {
+    cov <- vcov.singleR(object, ...)
+  } else if (is.function(cov)) {
+    cov <- cov(object, ...)
+  }
+  pers <- residuals.singleR(object, type = resType)
+  cf <- object$coefficients
+  se <- sqrt(diag(cov))
+  wValues <- cf / se
+  pValues <- switch (test,
+                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
+                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
+  )
+  crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
+  if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
+  cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
+  if (is.numeric(object$populationSize$boot)) {
+    n <- length(object$populationSize$boot)
+    m <- sum((object$populationSize$boot - mean(object$populationSize$boot)) ** 3) / n
+    s <- sd(object$populationSize$boot)
+    skew <- m / (s ** 3)
+  } else {
+    skew <- NULL
+  }
+  structure(
+    list(
+      call = object$call,
+      coefficients = cf,
+      standardErrors = se,
+      wValues = wValues,
+      pValues = pValues,
+      residuals = pers,
+      aic = AIC(object, ...),
+      bic = BIC(object, ...),
+      iter = object$iter,
+      logL = object$logL,
+      deviance = object$deviance,
+      populationSize = if (missing(popSizeEst)) object$populationSize else popSizeEst,
+      df.residual = df.residual,
+      sizeObserved = object$sizeObserved,
+      correlation = crr,
+      test = test,
+      cnfint = cnfint,
+      model = object$model,
+      skew = skew
+    ),
+    class = "summarysingleR"
+  )
+}
+#' @title Regression deletion diagnostics for Population size estimation.
+#'
+#' @description \code{dfpopsize} does for population size estimation.
 #'
 #' @param model Model for which leave one out diagnostic of popsize will be done.
 #' @param dfbeta If dfbeta was already obtained it is possible to pass them into 
 #' function so that they need not be computed for the second time.
-#' @param observedPop TODO
-#' @param ... Arguments to be passed down to other methods such as dfbeta.
+#' @param observedPop Logical. For \code{singleR} class object if set to 
+#' \code{TRUE} indicates that 1 will be returned for units which do not
+#' take part in population size estimation (e.g. 1's in zero one truncated
+#' models or units with count => 3 for \code{zelterman} of basic \code{chao}
+#' model) if set to \code{FALSE} (default) these units will not be included
+#' in results.
+#' @param ... Additional optional arguments passed to the following functions 
+#' (for \code{singleR} class):
+#' \itemize{
+#' \item dfbetas -- if \code{dfbeta} parameter was not provided.
+#' }
 #'
-#' @return TODO: MAKE BETTER DOCUMENTATION
+#' @return A vector for which k'th element corresponds to the difference between
+#' point estimate of population size estimation on full data set and 
+#' point estimate of population size estimation after the removal of k'th
+#' unit from the data set.
+#' @examples 
+#' \dontrun{
+#' # For singleR class
+#' # Get simple model
+#' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+#' data = netherlandsimmigrant, 
+#' model = ztpoisson, 
+#' method = "IRLS")
+#' # Get df beta
+#' dfb <- dfbeta(Model)
+#' # The results
+#' dfpopsize(Model, dfbeta = dfb)
+#' # It is also possible to not provide dfbeta then they will be
+#' # computed manually
+#' dfpopsize(Model)
+#' }
 #' @export
-dfpopsize <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
+dfpopsize <- function(model, ...) {
   UseMethod("dfpopsize")
 }
-
+#' @title Updating population size estimation results.
+#'
+#' @description A function that applies all post-hoc procedures that were taken
+#' (such as heteroscedastic consistent covariance matrix estimation or bias
+#' reduction) to population size estimation and standard error estimation.
+#' 
+#' @param object Object for which update of population size estimation results will be done.
+#' @param cov An updated covariance matrix estimate.
+#' @param ... Additional optional arguments, currently not used in \code{singleR} class method.
+#'
+#' @return An object of class \code{popSizeEstResults} containing updated 
+#' population size estimation results.
+#' @examples
+#' # Create simple model
+#' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+#' data = netherlandsimmigrant, 
+#' model = ztpoisson, 
+#' method = "IRLS")
+#' # Apply heteroscedasticity consistent covariance matrix estimation
+#' require(sandwich)
+#' cov <- vcovHC(Model, type = "HC3")
+#' summary(Model, cov = cov,
+#' popSizeEst = redoPopEstimation(Model, cov = cov))
+#' # Compare to results with usual covariance matrix estimation
+#' summary(Model)
+#' @export
+redoPopEstimation <- function(object, ...) {
+  UseMethod("redoPopEstimation")
+}
+#' @title Extract population size estimation results.
+#' 
+#' @description An extractor function with \code{singleR} method for extracting
+#' important information regarding pop size estimate.
+#'
+#' @param object Object with population size estimates.
+#' @param ... Additional optional arguments, currently not used in \code{singleR} class method. 
+#'
+#' @return An object of class \code{popSizeEstResults} containing population size estimation results.
+#' @export
+popSizeEst <- function(object, ...) {
+  UseMethod("popSizeEst")
+}
 # gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
 #   # TODO::
 #   ################
@@ -92,17 +287,42 @@ dfpopsize <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #     return(opt)
 #   }
 # }
-#' Summary for marginal frequencies
+#' @title Statistical tests of goodness of fit.
 #'
-#' @param object object of singleRmargin class.
-#' @param df degrees of freedom are sometimes not possible to automatically obtain if so this overwrites df of an object.
-#' @param dropl5 a character indicating treatment of cells with frequencies < 5 either grouping them, droping or leaving them as is. Defaults to drop.
-#' @param ... Currently does nothing
+#' @description Performs two statistical test on observed and fitted
+#' marginal frequencies. For G test the test statistic is computed as:
+#' \loadmathjax
+#' \mjdeqn{G = 2\sum_{k}O_{k}\ln{\left(\frac{O_{k}}{E_{k}}\right)}}{G = 2 * Sum O_k ln (O_k/E_k)}
+#' and for \mjeqn{\chi^{2}}{X2} the test statistic is computed as:
+#' \mjdeqn{\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}{X2 = Sum (O_k - E_k)^2/E_k}
+#' where \mjeqn{O_{k},E_{k}}{O_k,E_k} denoted observed and fitted frequencies respectively.
+#' Both of these statistics converge to \mjeqn{\chi^2}{X2} distribution asymptotically 
+#' with the same degrees of freedom.
+#' 
+#' The convergence of \mjeqn{G, \chi^2}{G, X2} statistics to \mjeqn{\chi^2}{X2}
+#' distribution may be violated if expected counts in cells are too low, 
+#' say < 5, so it is customary to either censor or omit these cells.
+#' 
+#' @param object Object of singleRmargin class.
+#' @param df Degrees of freedom if not provided the function will try and manually
+#' but it is not always possible.
+#' @param dropl5 A character indicating treatment of cells with frequencies < 5 
+#' either grouping them, droping or leaving them as is. Defaults to drop.
+#' @param ... Currently does nothing.
 #'
 #' @method summary singleRmargin
-#' @return A chi squared test for comparison between fitted and observed marginal frequencies
+#' @return A chi squared test and G test for comparison between fitted and observed marginal frequencies.
+#' @examples 
+#' # Create a simple model
+#' Model <- estimate_popsize(formula = capture ~ ., 
+#' data = netherlandsimmigrant, 
+#' model = ztpoisson, 
+#' method = "IRLS")
+#' plot(Model, "rootogram")
+#' # We see a considerable lack of fit
+#' summary(marginalFreq(Model), df = 1, dropl5 = "group")
 #' @exportS3Method
-summary.singleRmargin <- function(object, df = NULL,
+summary.singleRmargin <- function(object, df,
                                   dropl5 = c("drop", 
                                              "group", 
                                              "no"), 
@@ -111,16 +331,18 @@ summary.singleRmargin <- function(object, df = NULL,
   y <- object$y
   if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
   A <- object$table[names(y)]
-  if ((is.null(df)) && (object$df < 1)) {
+  if ((missing(df)) && (object$df < 1)) {
     warning("Degrees of freedom may be inacurate.")
     df <- 1
-  } else if (is.null(df)) {
+  } else if (missing(df)) {
     df <- object$df
   }
   if(dropl5 == "group") {
     l <- (A < 5)
-    y <- c(y[!l], sum(y[l]))
-    A <- c(A[!l], sum(A[l]))
+    if(!all(l == FALSE)) {
+      y <- c(y[!l], sum(y[l]))
+      A <- c(A[!l], sum(A[l]))
+    }
   } else if(dropl5 == "drop") {
     l <- (A < 5)
     y <- y[!l]
@@ -144,88 +366,149 @@ summary.singleRmargin <- function(object, df = NULL,
     class = "summarysingleRmargin"
   )
 }
-#' vcov method for singleR class
-#' @title Obtain Covariance Matrix from Fitted singleR class Object
-#' @param object object of class singleRclass.
-#' @param type type of estimate for variance covariance matrix for now either
-#' expected (fisher) information matrix or observed information matrix.
-#' @param ... variables to pass to solve.
-#' @description Returns a estimated covariance matrix for model coefficients
-#' calculated from analytic hessian or fisher information matrix. 
+#' @title Obtain Covariance Matrix estimation.
+#' 
+#' @description A \code{vcov} method for \code{singleR} class.
+#' 
+#' @param object Object of singleR class.
+#' @param type Type of estimate for covariance matrix for now either
+#' expected (Fisher) information matrix or observed information matrix.
+#' @param ... Additional optional arguments passed to following functions:
+#' \itemize{
+#' \item \code{solve} -- for inverting information matrixes.
+#' \item \code{model.frame.singleR} -- forcreation of Xvlm matrix.
+#' }
+#' @details  Returns a estimated covariance matrix for model coefficients
+#' calculated from analytic hessian or Fisher information matrix. 
 #' Covariance type is taken from control parameter that have been provided
-#' on call that created object.
-#' @details For now the covariance matrix is calculated 
+#' on call that created \code{object} if argumetns \code{type} was not specified.
+#' 
 #' @method vcov singleR
 #' @return A covariance matrix for fitted coefficients, rows and columns of which 
 #' correspond to parameters returned by \code{coef} method.
+#' @seealso [vcovHC.singleR()] [sandwich::sandwich()]
 #' @exportS3Method
-vcov.singleR <- function(object, type = c("Fisher", "observedInform"), ...) {
+vcov.singleR <- function(object, 
+                         type = c("Fisher", 
+                                  "observedInform"), 
+                         ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  X <- singleRinternalGetXvlmMatrix(X = subset(object$modelFrame, select = attr(object$modelFrame, "names")[-1], subset = object$which$reg), nPar = object$model$parNum, 
-                                    formulas = object$formula, parNames = object$model$etaNames)
-  hwm <- X[[2]]
-  X <- X[[1]]
+  X <- model.frame.singleR(object, ...)
+  X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg)
+  X <- singleRinternalGetXvlmMatrix(
+    X = X, 
+    nPar = object$model$parNum, 
+    formulas = object$formula, 
+    parNames = object$model$etaNames
+  )
   res <- switch(
     type,
     "observedInform" = solve(
-      -object$model$makeHessian(y = object$y[object$which$reg], X = X, lambdaPredNumber = hwm[1],
+      -object$model$makeHessian(y = object$y[object$which$reg], X = X,
                                 weight = object$prior.weights[object$which$reg])(object$coefficients),
       ...
     ),
     "Fisher" = {
-      if (object$call$method == "robust") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
+      if (object$call$method == "IRLS") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
       solve(
-      singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm) %*% X,
+      singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
     )}
   )
   dimnames(res) <- list(names(object$coefficients), names(object$coefficients))
   res
 }
-#' Hat values for singleRclass
-#' @title Hat values for singleRclass
-#' @param model object of clas singleRclass
-#' @param ... additional parameters to pass to other methods
-#' @description TODO
+#' @title Diagonal elements of the projection matrix
 #' 
+#' @description A method for \code{singleR} class for extracting diagonal 
+#' elementrs of projection matrix.
+#' 
+#' @param model Object of singleR class.
+#' @param ... Currently does nothing.
+#' 
+#' \loadmathjax
+#' @details Since \code{singleRcapture} contains not only regular glm's but also
+#' vglm's the hatvalues returns a matrix with number of columns corresponding to
+#' number of linear predictors in a model, where kth column corresponds
+#' to elements of the diagonal of projection matrix associated with kth linear 
+#' predictor. For glm's  
+#' \mjdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}{sqrt(W)X(X'WX)^-1X'sqrt(W)}
+#' where \mjeqn{\boldsymbol{W}=\mathbb{E}\left(\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}\partial\boldsymbol{\eta}}\right)\right)}{W = E(diag(d^2.ln(L)/d.eta^2))} and \mjeqn{\boldsymbol{X}}{X} is a model (lm) matrix. 
+#' For vglm's it is instead :
+#' \mjdeqn{\boldsymbol{X}_{vlm}\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}{X_vlm(X_vlm'WX_vlm)^-1X_vlm'W}
+#' where 
+#' \mjdeqn{
+#' \boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}) &
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}) &
+#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}})\cr
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}) &
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}) &
+#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}})\cr
+#' \vdots & \vdots & \ddots & \vdots\cr
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}) &
+#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}) &
+#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}})
+#' \end{bmatrix}\right)}{W = E(matrix(
+#' diag(d^2.ln(L)/d.eta_1^2), diag(d^2.ln(L)/d.eta_1 d.eta_2), ..., diag(d^2.ln(L)/d.eta_1 d.eta_p)
+#' diag(d^2.ln(L)/d.eta_2 d.eta_1), diag(d^2.ln(L)/d.eta_2^2), ..., diag(d^2.ln(L)/d.eta_2 d.eta_p)
+#' .............................................................................................
+#' diag(d^2.ln(L)/d.eta_p d.eta_1), diag(d^2.ln(L)/d.eta_p d.eta_2), ..., diag(d^2.ln(L)/d.eta_p^2)))}
+#' is a block matrix constructed by taking the expected  value from diagonal 
+#' matrixes corresponding to second derivatives with respect to each linear 
+#' predictor (and mixed derivatives) and 
+#' \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} is a model (vlm) matrix constructed using 
+#' "main" formula and additional formulas specified in \code{control.model}. 
 #' @method hatvalues singleR
 #' @importFrom stats hatvalues
-#' @return TODO
+#' @return A matrix with n rows and p columns where n is a number of observations
+#' in the data and k is number of regression parameters.
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
-  X <- subset(model$modelFrame, select = attr(model$modelFrame, "names")[-1], subset = model$which$reg)
-  #X <- model$modelFrame[model$which$reg, attr(model$modelFrame, "names")[-1]]
+  X <- model.frame.singleR(model, ...)
+  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
   X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
-  hwm <- X[[2]]
-  X <- X[[1]]
-  if (model$call$method == "robust") {
+  if (isTRUE(model$call$method == "IRLS")) {
     W <- model$weights
   } else {
     W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (model$model$family == "zelterman") model$linear.predictors[model$which$reg, ] else model$linear.predictors)
   }
-  mlt <- singleRinternalMultiplyWeight(X = X, W = W, hwm = hwm)
+  mlt <- singleRinternalMultiplyWeight(X = X, W = W)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
   hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = list(1:(length(hatvalues) / model$model$parNum), model$model$etaNames))
   hatvalues
 }
-#' dfbeta for singleRclass
-#' @title TODO
-#' @param model Fitted object of singleR class
-#' @param maxit.new maximal number of iterations for regression
-#' @param ... Arguments to pass to other methods
-#' @description TODO
+#' @title Regression deletion diagnostics.
+#' \loadmathjax
+#' @description A \code{dfbeta} method for \code{singleR} class.
 #' 
-#' @return TODO
+#' @param model Fitted object of singleR class
+#' @param maxit.new Maximal number of iterations for regressions with starting points
+#' \mjeqn{\hat{\boldsymbol{\beta}}}{beta} on data specified at call for \code{model}
+#' after the romoval of kth row. By default 1.
+#' @param ... Additional optional arguments passed to the following functions:
+#' \itemize{
+#' \item \code{control.method} -- For controlling the simulation of dfbeta.
+#' }
+#' 
+#' @return A matrix with n rows and p observations where p is a number of
+#' units in data and p is the number of regression parameters.
+#' 
+#' K'th row of this matrix corresponds to 
+#' \mjeqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}{beta-beta_(-k)}
+#' where \mjeqn{\hat{\boldsymbol{\beta}}_{-k}}{beta_(-k)} is a vector of estimates
+#' for regression parameters after the removal of k'th row from the data.
 dfbetasingleR <- function(model,
                           maxit.new = 1,
                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
-  X <- subset(model$modelFrame, subset = model$which$reg, select = attr(model$modelFrame, "names")[-1])
-  y <- model$y[model$which$reg]
+  X <- model.frame.singleR(model, ...)
+  y <- if (is.null(model$y)) stats::model.response(X) else model$y
+  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
+  y <- y[model$which$reg]
   cf <- model$coefficients
   pw <- model$prior.weights[model$which$reg]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
-  hwm <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[2]]
   for (k in 1:nrow(X)) {
     res[k, ] <- cf - estimate_popsize.fit(
       control = control.method(
@@ -235,12 +518,11 @@ dfbetasingleR <- function(model,
         ...
       ),
       y = y[-k],
-      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]],
+      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames),
       start = cf,
       family = model$model,
       prior.weights = pw[-k],
-      method = model$call$method,
-      hwm = hwm
+      method = model$call$method
     )$beta
   }
   colnames(res) <- names(model$coefficients)
@@ -249,17 +531,17 @@ dfbetasingleR <- function(model,
 #' @title Confidence Intervals for Model Parameters
 #' 
 #' @description A function that computes studentized confidence intervals
-#' for model coefficients
+#' for model coefficients.
 #' 
-#' @param object a fitted model object.
-#' @param parm names of parameters for which confidence intervals are to be 
-#' computed, if missing all parameters will be considered
-#' @param level confidence level for intervals.
-#' @param ... additional argument(s) for methods.
+#' @param object Object of singleR class.
+#' @param parm Names of parameters for which confidence intervals are to be 
+#' computed, if missing all parameters will be considered.
+#' @param level Confidence level for intervals.
+#' @param ... Currently does nothing.
 #' 
 #' @method confint singleR
 #' @return An object with named columns that include upper and 
-#' lower limit of confidence intervals
+#' lower limit of confidence intervals.
 #' @exportS3Method
 confint.singleR <- function(object,
                             parm, 
@@ -297,7 +579,7 @@ residuals.singleR <- function(object,
   omegaTheta <- object$omegaTheta
   wts <- object$prior.weights
   mu <- object$fitt.values
-  y <- object$y
+  y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
   if (!(all(object$which$reg == object$which$est)) && type == "all") stop("type = all is not aviable for some models")
   if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standardized pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
@@ -338,13 +620,13 @@ print.summarysingleRmargin <- function(x, ...) {
 #' @importFrom stats AIC
 #' @exportS3Method 
 AIC.singleR <- function(object, ...) {
-  object$aic
+  2 * (length(object$coefficients) - object$logL)
 }
 #' @method BIC singleR
 #' @importFrom stats BIC
 #' @exportS3Method 
 BIC.singleR <- function(object, ...) {
-  object$bic
+  length(object$coefficients) * log(sum(object$which$reg)) - 2 * object$logL
 }
 #' @method extractAIC singleR
 #' @importFrom stats extractAIC
@@ -368,6 +650,26 @@ logLik.singleR <- function(object, ...) {
   class(val) <- "logLik"
   val
 }
+#' @method model.frame singleR
+#' @importFrom stats glm
+#' @importFrom stats model.frame
+#' @exportS3Method 
+model.frame.singleR <- function(formula, ...) {
+  dots <- list(...)
+  nargs <- dots[match(c("data", "na.action", "subset"), 
+                      names(dots), 
+                      0L)]
+  if (length(nargs) || is.null(formula$modelFrame)) {
+    fcall <- formula$call
+    fcall$method <- "model.frame"
+    fcall[[1L]] <- quote(stats::glm)
+    fcall[names(nargs)] <- nargs
+    env <- environment(formula$terms)
+    eval(fcall, env)
+  }
+  else formula$modelFrame
+}
+
 #' @method model.matrix singleR
 #' @importFrom stats model.matrix
 #' @exportS3Method 
@@ -375,37 +677,67 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
   if (missing(type)) type <- "lm"
   switch (type,
     lm = {
-      X <- object$X;
-      X[object$which$reg, ]
+      if (is.null(object$X)) {
+        X <- model.frame(object);
+        X <- model.matrix(object$terms, X)
+      } else {
+        X <- object$X
+      }
+      subset(X, subset = object$which$reg)
       },
     vlm = {
-      X <- subset(object$modelFrame, subset = object$which$reg, select = attr(object$modelFrame, "names")[-1]);
+      X <- model.frame.singleR(object, ...);
+      X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg);
       singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames);
       }
   )
 }
-
+#' @method redoPopEstimation singleR
+#' @rdname redoPopEstimation
+#' @exportS3Method
+redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
+  Xvlm <- model.matrix(object, "vlm")
+  singleRcaptureinternalpopulationEstimate(
+    y = object$y[object$which$reg],
+    formulas = object$formula,
+    X = model.matrix(object),
+    grad = object$model$makeGradient(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
+    hessian = object$model$makeHessian(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
+    pop.var = if (is.null(object$call$pop.var)) "analytic" else object$call$pop.var,
+    weights = object$prior.weights[object$which$reg],
+    eta = object$linear.predictors,
+    family = object$model,
+    beta = object$coefficients,
+    control = object$populationSize$control,
+    Xvlm = Xvlm,
+    W = if (object$call$method == "IRLS") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
+    sizeObserved = object$sizeObserved,
+    modelFrame = model.frame.singleR(object, ...),
+    cov = cov
+  )
+}
 #' @method dfpopsize singleR
+#' @rdname dfpopsize
 #' @exportS3Method 
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   if (isTRUE(model$call$pop.var == "bootstrap")) warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
-    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = model$sizeObserved)
-    rownames(dfbnew) <- as.character(1:model$sizeObserved)
-    dfbnew[rownames(dfb), ] <- dfb
+    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = NROW(model$prior.weights))
+    rownames(dfbnew) <- as.character(1:NROW(dfbnew))
+    dfbnew[model$which$reg, ] <- dfb
     dfb <- dfbnew
   }
-  X <- model$modelFrame[model$which$est, attr(model$modelFrame, "names")[-1]]
-  X <- subset(model$modelFrame, subset = model$which$est, select = attr(model$modelFrame, "names")[-1])
+  X <- model.frame.singleR(model, ...)
+  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$est)
   N <- model$populationSize$pointEstimate
   res <- NULL
-  range <- 1:sum(model$which$est)
+  range <- 1:NROW(dfb)
   pw <- model$prior.weights[model$which$est]
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
     res <- c(res, model$model$pointEst(
-      eta = matrix(singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)[[1]] %*% cf, ncol = model$model$parNum),
+      eta = matrix(singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames) %*% cf, ncol = model$model$parNum),
       pw = pw[-k]) + model$trcount)
   }
   
@@ -421,48 +753,11 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   
   res1
 }
-#' @method summary singleR
-#' @importFrom stats pt
-#' @importFrom stats coef
-#' @exportS3Method 
-summary.singleR <- function(object, test = c("t", "z"), resType = "pearson", correlation = FALSE, confint = FALSE, ...) {
-  if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
-  if (missing(test)) {test <- "z"}
-  df.residual <- object$df.residual
-  cov <- vcov.singleR(object, ...)
-  pers <- residuals.singleR(object, type = resType, ...)
-  cf <- object$coefficients
-  se <- sqrt(diag(cov))
-  wValues <- cf / se
-  pValues <- switch (test,
-                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
-                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
-  )
-  crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
-  if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
-  cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
-  structure(
-    list(
-      call = object$call,
-      coefficients = cf,
-      standardErrors = se,
-      wValues = wValues,
-      pValues = pValues,
-      residuals = pers,
-      aic = object$aic,
-      bic = object$bic,
-      iter = object$iter,
-      logL = object$logL,
-      deviance = object$deviance,
-      populationSize = object$populationSize,
-      df.residual = df.residual,
-      sizeObserved = object$sizeObserved,
-      correlation = crr,
-      test = test,
-      cnfint = cnfint
-    ),
-    class = "summarysingleR"
-  )
+#' @method popSizeEst singleR
+#' @rdname popSizeEst
+#' @exportS3Method
+popSizeEst.singleR <- function(object, ...) {
+  object$populationSize
 }
 #' @importFrom stats cooks.distance
 #' @method cooks.distance singleR
@@ -471,44 +766,72 @@ cooks.distance.singleR <- function(model, ...) {
   if (model$model$parNum > 1) stop("Cooks distance is only implemented for single parameter families.")
   res <- residuals(model, type = "pearsonSTD") ** 2
   res <- res[, 1]
-  res <- (res * (hatvalues(model) / (length(model$coefficients))))
-  names(res) <- rownames(model$linear.predictors)
+  ht <- hatvalues(model)
+  res <- (res * (ht / (length(model$coefficients))))
+  names(res) <- rownames(ht)
   res
 }
-#' @method print summarysingleR
+#' @method print popSizeEstResults
 #' @exportS3Method 
-print.summarysingleR <- function(x, ...) {
-  # ifelse is faster than if(_) {} else {}, sapply is faster than for hence the change
-  signifCodes <- sapply(x$pValues, function(k) {
-    ifelse(k <= 0, "****",
-           ifelse(k <= .001, "***",
-                  ifelse(k <= .01, "**", 
-                         ifelse(k <= .05, "*",
-                                ifelse(k <= .1, ".", "")))))
-  })
-  ob <- data.frame(round(x$coefficients, digits = 3),
-                   round(x$standardErrors, digits = 3),
-                   round(x$wValues, digits = 2),
-                   signif(x$pValues, digits = 2),
-                   signifCodes)
+print.popSizeEstResults <- function(x, ...) {
+  cat("Point estimate: ", x$pointEstimate, "\nVariance: ", x$variance, "\n", (1-x$control$alpha) * 100, "% confidence intervals:\n", sep = "")
+  print(x$confidenceInterval)
+  invisible(x)
+}
+#' @method print summarysingleR
+#' @importFrom stats printCoefmat
+#' @exportS3Method 
+print.summarysingleR <- function(x, 
+                                 signif.stars = getOption("show.signif.stars"), 
+                                 digits = max(3L, getOption("digits") - 3L), ...) {
+  ob <- data.frame(x$coefficients,
+                   x$standardErrors,
+                   x$wValues,
+                   x$pValues)
   colnames(ob) <- switch(x$test,
-                         "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)", ""),
-                         "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)", ""))
+                         "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
+                         "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
   if (!is.null(x$cnfint)) {
-    ob[, 5] <- x$cnfint[, 1]
-    ob[, 6] <- x$cnfint[, 2]
-    ob[, 7] <- signifCodes
-    colnames(ob)[5:7] <- c(colnames(x$cnfint), "")
+    ob[, 4] <- x$cnfint[, 1]
+    ob[, 5] <- x$cnfint[, 2]
+    ob[, 6] <- x$pValues
+    colnames(ob)[4:6] <- c(colnames(x$cnfint), colnames(ob)[4])
   }
   
-  print(x$call)
-  cat("\nPearson Residuals:\n")
+  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
+      "\n\n", sep = "")
+  cat("Pearson Residuals:\n")
   print(summary(c(x$residuals[, 1])))
   cat("\nCoefficients:\n")
-  print(ob)
-  cat("-----------------------",
-      "Signif. codes:  0 \'****\' 0.001 \'***\' 0.01 \'**\' 0.05 \'*\' 0.1 \'.\' 1 \' \'\n",
-      sep = "\n")
+  #print(ob)
+  cond <- sapply(x$model$etaNames, FUN = function(k) {sapply(strsplit(rownames(ob), split = ":"), FUN = function(x) {x[[length(x)]] == k})})
+  for (k in x$model$etaNames) {
+    if (!all(cond[,k] == FALSE)) {
+      cat("-----------------------\nFor linear predictors associated with:", k, "\n")
+      # Base liblary has no str_length and no proper sub_string this is a slightly convoluted way of making do without them
+      toPrint <- subset(ob, cond[,k])
+      lengths <- sapply(rownames(toPrint), function(x) {length(strsplit(x, split = "")[[1]])})
+      lK <- length(unlist(strsplit(k, split = "")))
+      rownames(toPrint) <- sapply(1:nrow(toPrint), function(x) {substr(x = rownames(toPrint)[x], start = 1, stop = lengths[[x]] - (1 + lK))})
+      #print(toPrint)
+      printCoefmat(toPrint, digits = digits, 
+                   signif.stars = signif.stars, 
+                   signif.legend = if (k == x$model$etaNames[length(x$model$etaNames)]) signif.stars else FALSE, 
+                   P.values = TRUE, has.Pvalue = TRUE, 
+                   na.print = "NA", ...)
+    } else {
+      cat("-----------------------\nFor linear predictors associated with:", k, "\n")
+      #print(subset(ob, rowSums(cond) == 0))
+      printCoefmat(subset(ob, rowSums(cond) == 0), 
+                   digits = digits, 
+                   signif.stars = signif.stars, 
+                   signif.legend = if (k == x$model$etaNames[length(x$model$etaNames)]) signif.stars else FALSE, 
+                   P.values = TRUE, has.Pvalue = TRUE, 
+                   na.print = "NA", ...)
+    }
+  }
+  
+  cat("\n")
   if (!is.null(x$correlation)) {
     corr <- round(x$correlation, digits = 2)
     corr[!lower.tri(corr)] <- ""
@@ -521,18 +844,19 @@ print.summarysingleR <- function(x, ...) {
   }
   cat("AIC: ", x$aic,
       "\nBIC: ", x$bic,
-      "\nDeviance: ", x$deviance,
+      "\nResidual deviance: ", x$deviance,
       "\n\nLog-likelihood: ", x$logL, " on ", x$df.residual, " Degrees of freedom ",
-      if (isTRUE(x$call$method == "robust")) {
+      if (isTRUE(x$call$method == "IRLS")) {
         "\nNumber of iterations: "
       } else {
-        "\nNumber of calls to log-likelihood function: " # optim does not allow for accesing information
+        "\nNumber of calls to log-likelihood function: " # optim does not allow for accessing information
         # on number of iterations performed only a number of calls for gradient and objective function
       }, x$iter[1], 
       "\n-----------------------",
       "\nPopulation size estimation results: ",
       "\nPoint estimate ", x$populationSize$pointEstimate, 
       "\nObserved proportion: ", round(100 * x$sizeObserved / x$populationSize$pointEstimate, digits = 1), "% (N obs = ", x$sizeObserved, ")",
+      if (!is.null(x$skew)) {"\nBoostrap sample skewness: "}, if (!is.null(x$skew)) {x$skew}, if (!is.null(x$skew)) {"\n0 skewness is expected for normally distributed vairable\n"},
       if (isTRUE(x$call$pop.var == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sd,
       "\n", (1 - x$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(x$populationSize$confidenceInterval)
@@ -549,6 +873,20 @@ print.summarysingleR <- function(x, ...) {
       row.names = rownames(dd)
     ))
   }
+  invisible(x)
+}
+#' @method print singleR
+#' @exportS3Method 
+print.singleR <- function(x, ...) {
+  cat("Call: ")
+  print(x$call)
+  cat("\nCoefficients:\n")
+  print(coef(x))
+  cat("\nDegrees of Freedom:", x$df.null, "Total (i.e NULL);", x$df.residual, "Residual")
+  cat("\nAIC: ", signif(AIC(x)), "\nBIC: ", signif(BIC(x)), "\nResidual deviance: ", signif(x$deviance))
+  cat("\n-----------------------------------\nPopulation size estimation results:\n")
+  print(x$populationSize)
+  invisible(x)
 }
 
 #' @importFrom stats fitted
@@ -565,6 +903,7 @@ fitted.singleR <- function(object,
 #' #' simulate
 #' #' 
 #' #' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' #' @author Maciej Beręsewicz
 #' #' 
 #' #' @param object an object representing a fitted model.
 #' #' @param nsim number of response vectors to simulate. Defaults to \code{1}.
@@ -581,7 +920,7 @@ fitted.singleR <- function(object,
 #' #' df <- data.frame(gender, eta, counts)
 #' #' df2 <- subset(df, counts > 0)
 #' #' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' #' model = "ztpoisson", method = "mle", pop.var = "analytic")
+#' #' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' #' mod1_sims <- simulate(mod1, nsim=10)
 #' #' colMeans(mod1_sims) 
 #' #' @importFrom stats simulate

@@ -1,20 +1,6 @@
-#' Zero-one truncated geometric model
-#'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' Dlink - a 1st derivative of link function \cr
-#' mu.eta,Variance - Expected Value and Variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
+#' @rdname singleRmodels
 #' @export
-zotgeom <- function() {
+zotgeom <- function(...) {
   link <- log
   invlink <- exp
   dlink <- function(lambda) {
@@ -62,7 +48,7 @@ zotgeom <- function() {
   }
   
   
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -75,6 +61,12 @@ zotgeom <- function() {
       S <- 1 / (1 + lambda)
       
       # Beta derivative
+      if (NbyK) {
+        return(((y - 1) * S - 1)  * weight * as.data.frame(X))
+      }
+      if (vectorDer) {
+        return(matrix(((y - 1) * S - 1)  * weight, ncol = 1))
+      }
       G1 <- t(((y - 1) * S - 1)  * weight) %*% X
       
       G1

@@ -1,20 +1,6 @@
-#' Zero-one truncated Poisson model
-#'
-#' @return A object of class "family" containing objects \cr
-#' makeMinusLogLike(y,X) - for creating negative likelihood function \cr
-#' makeGradient(y,X) - for creating gradient function \cr
-#' makeHessian(X) - for creating hessian \cr
-#' linkfun - a link function to connect between linear predictor and model parameter in regression and a name of link function\cr
-#' linkinv - an inverse function of link \cr
-#' Dlink - a 1st derivative of link function \cr
-#' mu.eta,Variance - Expected Value and Variance \cr
-#' valedmu, valideta - for checking if regression arguments and valid\cr
-#' family - family name\cr
-#' Where: \cr
-#' y is a vector of observed values \cr
-#' X is a matrix / data frame of covariates
+#' @rdname singleRmodels
 #' @export
-zotpoisson <- function() {
+zotpoisson <- function(...) {
   link <- log
   invlink <- exp
   dlink <- function(lambda) {
@@ -63,13 +49,19 @@ zotpoisson <- function() {
     }
   }
 
-  gradient <- function(y, X, weight = 1, ...) {
+  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
     function(beta) {
       lambda <- exp(as.matrix(X) %*% beta)
+      if (NbyK) {
+        return(as.data.frame(X) * weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
+      }
+      if (vectorDer) {
+        return(matrix(weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)), ncol = 1))
+      }
 
       t(as.matrix(X)) %*% (weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
     }
