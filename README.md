@@ -35,17 +35,17 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "IRLS")
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "IRLS")
 summary(ModelPo)
 #> 
 #> Call:
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "ztpoisson", method = "robust", pop.var = "analytic")
+#>     model = "ztpoisson", method = "IRLS", pop.var = "analytic")
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
@@ -93,7 +93,7 @@ summary(ModelZl)
 #> 
 #> Call:
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "zelterman", method = "robust", pop.var = "analytic")
+#>     model = "zelterman", method = "IRLS", pop.var = "analytic")
 #> 
 #> Pearson Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -173,14 +173,14 @@ zotgeomBoot <- estimate_popsize(
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
-    method = "robust",
+    method = "IRLS",
     control.pop.var = control.pop.var(B = 1000, alpha = .01)
 )
 summary(zotgeomBoot)
 #> 
 #> Call:
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-#>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
+#>     model = "zotgeom", method = "IRLS", pop.var = "bootstrap", 
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
 #> Pearson Residuals:
