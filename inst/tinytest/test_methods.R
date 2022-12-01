@@ -18,7 +18,7 @@
 #   },
 #   c(2920, 10)
 # )
-expect_silent(
+expect_warning(
   Model <- estimate_popsize(
     formula = capture ~ nation + age + gender, 
     data = netherlandsimmigrant, 
@@ -290,7 +290,7 @@ expect_true(
 )
 
 expect_true(
-  all(vcov(Model3, type = "observedInform") == vcov(Model3, type = "Fisher"))
+  max(vcov(Model3, type = "Fisher") - vcov(Model3, type = "observedInform")) < 1e-8
 )
 
 expect_false(
@@ -306,7 +306,7 @@ expect_true(
 )
 
 expect_true(
-  all(bread(Model3, type = "observedInform") == bread(Model3, type = "Fisher"))
+  max(bread(Model3, type = "observedInform") - bread(Model3, type = "Fisher")) < 1e-1
 )
 
 expect_false(

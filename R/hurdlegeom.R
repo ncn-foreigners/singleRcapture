@@ -197,18 +197,21 @@ ztHurdlegeom <- function(...) {
     CDF <- function(x) {
       p <- lambda / (1 + lambda)
       const <- -p * (lambda * (p ** x - 1) + p ** x) / (1 + lambda)
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, (1 + lambda) / (1 + lambda + lambda ** 2), (1 + lambda) / (1 + lambda + lambda ** 2) + PI * (lambda ** 2) / (1 + lambda + lambda ** 2) +  (1 - PI) * ((1 + lambda) ** 2) * const / (lambda ** 2 + lambda + 1))))
+      ifelse(x == Inf, 1, 
+      ifelse(x < 0, 0, 
+      ifelse(x < 1, (1 + lambda) / (1 + lambda + lambda ** 2), 
+      (1 + lambda) / (1 + lambda + lambda ** 2) + PI * (lambda ** 2
+      ) / (1 + lambda + lambda ** 2) +  (1 - PI) * ((1 + lambda) ** 2
+      ) * const / (lambda ** 2 + lambda + 1))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)
     p_u <- stats::runif(n, lb, ub)
-    sims <- NULL
-    for (k in 1:n) {
-      m <- 0
-      while(CDF(m) < p_u[k]) {
-        m <- m + 1
-      }
-      sims <- c(sims, m)
+    sims <- rep(0, n)
+    cond <- CDF(sims) <= p_u
+    while (any(cond)) {
+      sims[cond] <- sims[cond] + 1
+      cond <- CDF(sims) <= p_u
     }
     sims
   }

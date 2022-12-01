@@ -10,9 +10,10 @@ ztoigeom <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = omega * lambda / (1 + lambda) + (1 - omega) * lambda / ((1 + lambda) ** 2) + (1 - omega) * (2 + lambda) * lambda * lambda / ((1 + lambda) ** 2),
-            "trunc" = omega + (1 - omega) / (1 + lambda) + lambda * (2 + lambda) * (1 - omega) / (1 + lambda)
+    switch (
+      type,
+      "nontrunc" = omega * lambda / (1 + lambda) + (1 - omega) * (1 + lambda),
+      "trunc" = omega + (1 - omega) * (1 + lambda)
     )
   }
   
@@ -20,14 +21,14 @@ ztoigeom <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = omega * lambda / (1 + lambda) + (1 - omega) * lambda / ((1 + lambda) ** 2) + (1 - omega) * (2 * (lambda ** 2) +  5 * lambda + 4) * lambda * lambda / ((1 + lambda) ** 2),
-            "trunc" = omega + (1 - omega) / (1 + lambda) + lambda * (2 * (lambda ** 2) + 5 * lambda + 4) * (1 - omega) / (1 + lambda)
+    switch (
+      type,
+      "nontrunc" = omega * lambda / (1 + lambda) + (1 - omega) * (1 + lambda) * (2 * lambda + 1),
+      "trunc" = omega + (1 - omega) * (1 + lambda) * (2 * lambda + 1)
     ) - mu.eta(eta = eta) ** 2
   }
   
   Wfun <- function(prior, y, eta, ...) {
-    # TODO
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
@@ -182,9 +183,19 @@ ztoigeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  dev.resids <- function(y, eta, wt, ...) {
+    omega <- invlink(eta)
+    lambda <- omega[, 1]
+    omega <- omega[, 2]
+    mu1 <- mu.eta(eta = eta)
+    idealOmega <- ifelse(y == 1, 1, 0)
+    idealLambda <- ifelse(y > 1, y - 1, 0)
+    diff <- ifelse(
+      y == 1,
+      -log(omega + (1 - omega) / (1 + lambda)),
+      (y - 1) * log(idealLambda) - y * log(1 + idealLambda) - log(1 - omega) + log(1 + lambda) - (y - 1) * log(lambda / (1 + lambda))
+    )
+    sign(y - mu1) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -228,18 +239,20 @@ ztoigeom <- function(...) {
     lambda <- lambda[, 1]
     CDF <- function(x) {
       p <- lambda / (1 + lambda)
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, 1 - p, 1 - p + omega * p +  (1 - omega) * (lambda - lambda * (p ** x)) / (1 + lambda))))
+      ifelse(x == Inf, 1, 
+      ifelse(x < 0, 0, 
+      ifelse(x < 1, 1 - p, 
+      1 - p + omega * p +  (1 - omega) * 
+      (lambda - lambda * (p ** x)) / (1 + lambda))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)
     p_u <- stats::runif(n, lb, ub)
-    sims <- NULL
-    for (k in 1:n) {
-      m <- 0
-      while(CDF(m) < p_u[k]) {
-        m <- m + 1
-      }
-      sims <- c(sims, m)
+    sims <- rep(0, n)
+    cond <- CDF(sims) <= p_u
+    while (any(cond)) {
+      sims[cond] <- sims[cond] + 1
+      cond <- CDF(sims) <= p_u
     }
     sims
   }

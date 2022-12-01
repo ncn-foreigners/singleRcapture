@@ -116,7 +116,8 @@ estimate_popsize.fit <- function(y, X,
         momentumFactor = control$momentumFactor,
         momentumActivation = control$momentumActivation,
         check = control$checkDiagWeights,
-        epsWeights = control$weightsEpsilon
+        epsWeights = control$weightsEpsilon,
+        crit = control$criterion
       )
       
       iter <- FITT$iter

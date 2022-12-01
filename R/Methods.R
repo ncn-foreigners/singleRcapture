@@ -731,14 +731,14 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   X <- model.frame.singleR(model, ...)
   X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$est)
   N <- model$populationSize$pointEstimate
-  res <- NULL
   range <- 1:NROW(dfb)
+  res <- vector("numeric", length = NROW(dfb))
   pw <- model$prior.weights[model$which$est]
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
-    res <- c(res, model$model$pointEst(
+    res[k] <- model$model$pointEst(
       eta = matrix(singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames) %*% cf, ncol = model$model$parNum),
-      pw = pw[-k]) + model$trcount)
+      pw = pw[-k]) + model$trcount
   }
   
   if(isTRUE(observedPop) & (grepl("zot", model$model$family) | model$model$family == "chao")) {

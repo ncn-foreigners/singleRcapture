@@ -43,12 +43,12 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "IRLS")
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "IRLS")
 summary(ModelPo)
 ```
 
@@ -80,7 +80,7 @@ zotgeomBoot <- estimate_popsize(
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
-    method = "robust",
+    method = "IRLS",
     control.pop.var = control.pop.var(B = 1000, alpha = .01)
 )
 summary(zotgeomBoot)

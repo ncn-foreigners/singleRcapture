@@ -116,8 +116,8 @@ generalized linear model is similarly characterised by equations
 \mjdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}{eta_k=X_k*beta_k}
 where \mjeqn{\boldsymbol{X}_{k}}{X_k} is a (lm) model matrix constructed
 from appropriate formula (specified in \code{control.model} parameter).
-The \mjeqn{\boldsymbol{\eta}}{eta} is then a matrix constructed as:
-\mjdeqn{\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1} & \boldsymbol{\eta}_{2} & \dotso & \boldsymbol{\eta}_{p}\end{pmatrix}}{eta = (eta_1, eta_2, ..., eta_p)}
+The \mjeqn{\boldsymbol{\eta}}{eta} is then a vector constructed as:
+\mjdeqn{\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1}^{T} & \boldsymbol{\eta}_{2}^{T} & \dotso & \boldsymbol{\eta}_{p}^{T}\end{pmatrix}^{T}}{eta = (eta_1', eta_2', ..., eta_p')'}
 and the (vlm) model matrix is constructed as a block matrix:
 \mjdeqn{\boldsymbol{X}_{vlm}=
 \begin{pmatrix}
@@ -238,7 +238,13 @@ Lastly there is \code{"paramteric"} bootstrap where we assume that the
 probabilistic model used to obtain \mjeqn{\hat{N}}{N} is correct the
 bootstrap procedure may then be described as:
 \enumerate{
-\item Draw \mjeqn{\hat{N}}{N} covariate information vectors with replacement.
+\item Draw \mjeqn{\hat{N}}{N} covariate information vectors with replacement from
+data according to probability distribution
+\mjdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}{([N_k] + M_k)/[N]}
+where \mjeqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}{M_k ~ b(N_k - [N_k])},
+\mjeqn{N_{k}}{N_{k}} is the contribution of kth unit i.e.
+\mjeqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}}{I_l/P(Y_k>0)} and
+\mjeqn{\lfloor \cdot\rfloor}{[]} is the floor function.
 \item Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate \mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
 \item Generate \mjeqn{\boldsymbol{y}}{y} (dependent variable) vector using
 \mjeqn{\boldsymbol{\eta}}{eta} and probability mass function associated with

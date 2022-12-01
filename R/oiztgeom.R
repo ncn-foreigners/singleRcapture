@@ -10,9 +10,12 @@ oiztgeom <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = omega + (1 - omega) * lambda / ((1 + lambda) ** 2) + (1 - omega) * (lambda ** 2) * (2 * lambda) / ((1 + lambda) ** 2),
-            "trunc" = ((lambda ** 2) * omega + lambda * omega + lambda + omega) / (lambda ** 2 + lambda * omega + lambda + omega) + (lambda ** 2) * (2 + lambda) * (1 - omega) / ((lambda + omega) * (1 + lambda))
+    p1 <- (lambda ** 2) * omega + lambda * omega + omega + lambda
+    p1 <- p1 / (lambda ** 2 + lambda * omega + omega + lambda)
+    switch (
+      type,
+      "nontrunc" = omega + lambda * (1 - omega),
+      "trunc" = p1 + (1 - omega ) * (lambda ** 2) * (2 + lambda) / ((1 + lambda) * (lambda + omega))
     )
   }
   
@@ -20,9 +23,12 @@ oiztgeom <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = omega + (1 - omega) * lambda / ((1 + lambda) ** 2) + (1 - omega) * (lambda ** 2) * (2 * (lambda ** 2) + 5 * lambda + 4) / ((1 + lambda) ** 2),
-            "trunc" = ((lambda ** 2) * omega + lambda * omega + lambda + omega) / (lambda ** 2 + lambda * omega + lambda + omega) + (lambda ** 2) * (2 * (lambda ** 2) + 5 * lambda + 4) * (1 - omega) / ((lambda + omega) * (1 + lambda))
+    p1 <- (lambda ** 2) * omega + lambda * omega + omega + lambda
+    p1 <- p1 / (lambda ** 2 + lambda * omega + omega + lambda)
+    switch (
+      type,
+      "nontrunc" = omega + (1 - omega) * lambda * (2 * lambda + 1),
+      "trunc" = p1 + (1 - omega ) * (lambda ** 2) * (2 * (lambda ** 2) + 5 * lambda + 4) / ((1 + lambda) * (lambda + omega))
     ) - (mu.eta(eta = eta, type = type) ** 2)
   }
   
@@ -184,9 +190,19 @@ oiztgeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  dev.resids <- function(y, eta, wt, ...) {
+    omega <- invlink(eta)
+    lambda <- omega[, 1]
+    omega <- omega[, 2]
+    mu1 <- mu.eta(eta = eta)
+    idealOmega <- ifelse(y == 1, 1, 0)
+    idealLambda <- ifelse(y > 1, y - 1, 0)
+    diff <- ifelse(
+      y == 1,
+      -(log((lambda ** 2) * omega + lambda * omega + lambda + omega) - log(lambda ** 2 + lambda * omega + lambda + omega)),
+      (y - 1) * log(idealLambda) - y * log(1 + idealLambda) - log(1 - omega) + log(omega + lambda) - y * log(lambda / (1 + lambda))
+    )
+    sign(y - mu1) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -230,18 +246,20 @@ oiztgeom <- function(...) {
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     CDF <- function(x) {
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, (1 - omega) * stats::pnbinom(x, mu = lambda, size = 1), omega +  (1 - omega) * stats::pnbinom(x, mu = lambda, size = 1))))
+      ifelse(x == Inf, 1, 
+      ifelse(x < 0, 0, 
+      ifelse(x < 1, 
+      (1 - omega) * stats::pnbinom(x, mu = lambda, size = 1), 
+      omega +  (1 - omega) * stats::pnbinom(x, mu = lambda, size = 1))))
     }
-    lb <- CDF(lower)
-    ub <- CDF(upper)
+    lb <- CDF(rep(lower, n))
+    ub <- CDF(rep(upper, n))
     p_u <- stats::runif(n, lb, ub)
-    sims <- NULL
-    for (k in 1:n) {
-      m <- 0
-      while(CDF(m) < p_u[k]) {
-        m <- m + 1
-      }
-      sims <- c(sims, m)
+    sims <- rep(0, n)
+    cond <- CDF(sims) <= p_u
+    while (any(cond)) {
+      sims[cond] <- sims[cond] + 1
+      cond <- CDF(sims) <= p_u
     }
     sims
   }

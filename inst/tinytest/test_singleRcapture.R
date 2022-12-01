@@ -550,7 +550,7 @@ expect_error(
     pop.var = "analytic"
   )
 )
-expect_warning(
+expect_silent(
   estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
@@ -572,7 +572,7 @@ expect_silent(
     control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )
-expect_warning(
+expect_silent(
   estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
@@ -583,7 +583,7 @@ expect_warning(
     control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )
-expect_warning(
+expect_silent(
   estimate_popsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
@@ -594,8 +594,7 @@ expect_warning(
     control.pop.var = control.pop.var(B = 10, bootstrapFitcontrol = control.method(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )
-
-expect_warning(
+expect_silent(
   estimate_popsize(
     formula = capture ~ gender,
     data = netherlandsimmigrant,

@@ -10,9 +10,10 @@ ztoipoisson <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = (omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda) * (1 - exp(-lambda)),
-            "trunc" = omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda
+    switch (
+      type,
+      "nontrunc" = omega * (1 - exp(-lambda)) + lambda * (1 - omega),
+      "trunc" = omega + (1 - omega) * lambda * exp(lambda) / (exp(lambda) - 1)
     )
   }
   
@@ -20,12 +21,11 @@ ztoipoisson <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda + (lambda ** 2) * (1 - omega) / (1 - exp(-lambda))) * (1 - exp(-lambda)) - 
-                         ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda) * (1 - exp(-lambda))) ** 2),
-            "trunc" = ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda + (lambda ** 2) * (1 - omega) / (1 - exp(-lambda))) - 
-                      ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda) ** 2))
-    )
+    switch (
+      type,
+      "nontrunc" = omega * (1 - exp(-lambda)) + (1 - omega) * (lambda + lambda ** 2),
+      "trunc" = omega + (1 - omega) * (lambda ** 2 + lambda) / (1 - exp(-lambda))
+    ) - mu.eta(type = type, eta = eta) ** 2
   }
   
   Wfun <- function(prior, y, eta, ...) {
@@ -103,8 +103,9 @@ ztoipoisson <- function(...) {
       omega <- lambda[, 2]
       lambda <- lambda[, 1]
       theta <- exp(eta[, 2])
-      -sum(weight * (-log(1 + theta) + z * log(theta + lambda / (exp(lambda) - 1)) +
-                    (1 - z) * (y * log(lambda) - log(exp(lambda) - 1) - log(factorial(y)))))
+      -sum(weight * 
+      (-log(1 + theta) + z * log(theta + lambda / (exp(lambda) - 1)) +
+      (1 - z) * (y * log(lambda) - log(exp(lambda) - 1) - log(factorial(y)))))
     }
   }
   
@@ -190,8 +191,18 @@ ztoipoisson <- function(...) {
   }
   
   dev.resids <- function(y, eta, wt, ...) {
-    #TODO
-    0
+    omega <- invlink(eta)
+    lambda <- omega[, 1]
+    omega <- omega[, 2]
+    mu1 <- mu.eta(eta = eta)
+    idealOmega <- ifelse(y == 1, 1, 0)
+    idealLambda <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+    diff <- ifelse(
+      y == 1,
+      -(log(omega + (1 - omega) * lambda / (exp(lambda) - 1))),
+      y * (log(idealLambda) - log(lambda)) + log((exp(lambda) - 1) / (exp(idealLambda) - 1)) - log(1 - omega)
+    )
+    sign(y - mu1) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -236,18 +247,20 @@ ztoipoisson <- function(...) {
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     CDF <- function(x) {
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, exp(-lambda), exp(-lambda) + omega * (1 - exp(-lambda)) +  (1 - omega) * (stats::ppois(x, lambda) - exp(-lambda)))))
+      ifelse(x == Inf, 1, 
+      ifelse(x < 0, 0, 
+      ifelse(x < 1, exp(-lambda), 
+      exp(-lambda) + omega * (1 - exp(-lambda)) + 
+      (1 - omega) * (stats::ppois(x, lambda) - exp(-lambda)))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)
     p_u <- stats::runif(n, lb, ub)
-    sims <- NULL
-    for (k in 1:n) {
-      m <- 0
-      while(CDF(m) < p_u[k]) {
-        m <- m + 1
-      }
-      sims <- c(sims, m)
+    sims <- rep(0, n)
+    cond <- CDF(sims) <= p_u
+    while (any(cond)) {
+      sims[cond] <- sims[cond] + 1
+      cond <- CDF(sims) <= p_u
     }
     sims
   }

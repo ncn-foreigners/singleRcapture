@@ -197,18 +197,21 @@ ztHurdlepoisson <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     CDF <- function(x) {
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, exp(-lambda) / (1 - lambda * exp(-lambda)), exp(-lambda) / (1 - lambda * exp(-lambda)) + PI * (1 - exp(-lambda) / (1 - lambda * exp(-lambda))) +  (1 - PI) * (stats::ppois(x, lambda) - lambda * exp(-lambda) - exp(-lambda)) / (1 - lambda * exp(-lambda)))))
+      ifelse(x == Inf, 1, 
+      ifelse(x < 0, 0, 
+      ifelse(x < 1, exp(-lambda) / (1 - lambda * exp(-lambda)), 
+      exp(-lambda) / (1 - lambda * exp(-lambda)) + PI * (1 - exp(-lambda) / 
+      (1 - lambda * exp(-lambda))) +  (1 - PI) * (stats::ppois(x, lambda) - 
+      lambda * exp(-lambda) - exp(-lambda)) / (1 - lambda * exp(-lambda)))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)
     p_u <- stats::runif(n, lb, ub)
-    sims <- NULL
-    for (k in 1:n) {
-      m <- 0
-      while(CDF(m) < p_u[k]) {
-        m <- m + 1
-      }
-      sims <- c(sims, m)
+    sims <- rep(0, n)
+    cond <- CDF(sims) <= p_u
+    while (any(cond)) {
+      sims[cond] <- sims[cond] + 1
+      cond <- CDF(sims) <= p_u
     }
     sims
   }

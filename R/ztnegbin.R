@@ -281,14 +281,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   dev.resids <- function (y, eta, wt, ...) {
+    # this needs to be corrected
     disp1 <- invlink(eta)
     mu <- disp1[, 1]
     disp1 <- disp1[, 2]
     mu1 <- mu.eta(eta = eta)
     hm1y <- y
     hm1y[y == 1] <- -16
-    a <- function(n) {stats::uniroot(f = function(x) {mu.eta(matrix(c(x, eta[n, 2]), ncol = 2)) - y[n]}, lower = -log(y[n]), upper = y[n] * 10, tol = .Machine$double.eps)$root}
-    hm1y[y > 1] <- sapply(which(y > 1), FUN = a)
+    functionInversion <- function(n) {stats::uniroot(f = function(x) {mu.eta(matrix(c(x, eta[n, 2]), ncol = 2)) - y[n]}, lower = -log(y[n]), upper = y[n] * 10, tol = .Machine$double.eps)$root}
+    hm1y[y > 1] <- sapply(which(y > 1), FUN = functionInversion)
     loghm1ytdisp <- log(disp1 * exp(hm1y))
     logprobhm1y <- log(1 - ((1 + disp1 * exp(hm1y)) ** (-1 / disp1)))
     sign(y - mu1) * sqrt(-2 * wt * (-(y + 1 / disp1) * log(1 + mu * disp1) + y * log(mu * disp1) - log(1 - ((1 + mu * disp1) ** (-1/disp1))) +

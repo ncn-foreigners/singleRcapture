@@ -3,28 +3,32 @@
 \docType{data}
 \name{netherlandsimmigrant}
 \alias{netherlandsimmigrant}
-\title{Netherlands immigrant data}
+\title{Data on immigration in Netherlands}
 \format{
 Data frame with 1,880 rows and 5 columns.
 \describe{
-\item{capture}{Number of times a person has been captured}
-\item{gender}{Gender for apprehended person 1 for male and 0 for female}
-\item{age}{Age of apprehended person 0 for less than 40 yrs old 0 otherwise}
-\item{reason}{Reason for being apprehended 1 if reason was illegally
-residing in Netherlands 0 otherwise}
-\item{nation}{Nation of origin of the captured person}
+\item{\code{capture}}{Number of times a person has been captured by police.}
+\item{\code{gender}}{Factor describing gender of the apprehended person.}
+\item{\code{age}}{Factor describing age of apprehended person.
+Either bellow or above 40 years old.}
+\item{\code{reason}}{Factor describing reason for being apprehended by
+police either illegal stay in Netherlands or other reasons.}
+\item{\code{nation}}{Factor with nation of origin of the captured person.
+There are 6 levels of this variable: \code{"American and Australia",
+  "Asia", "North Africa", "Rest of Africa", "Surinam", "Turkey"}.}
 }
 }
 \usage{
 data("netherlandsimmigrant")
 }
 \description{
-Netherlands immigrant data
-}
-\details{
-Data on irregular immigrants in Netherlands
+This data set contains information about immigrants in four
+cities (Amsterdam, Rotterdam, The Hague and Utrecht) in Netherlands that have
+been staying in the country illegally in 1995 and have appeared in police
+records that year.
 }
 \references{
+This data set and its description was provided in publication:
 van Der Heijden, P. G., Bustami, R., Cruyff, M. J., Engbersen, G., and Van Houwelingen, H. C. (2003). Point and interval estimation of the population size using the truncated Poisson regression model. \emph{Statistical Modelling}, 3(4), 305-322. doi:10.1191/1471082X03st057oa
 }
 \keyword{datasets}

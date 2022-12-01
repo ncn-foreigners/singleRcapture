@@ -4,9 +4,10 @@
 #' @description \code{control.method} constructs a list with all necessary control parameters
 #' for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
 #'
-#' @param epsilon Relative tolerance for fitting algorithms by default 1e-8.
+#' @param epsilon Tolerance for fitting algorithms by default 1e-8.
 #' @param maxiter Maximum number of iterations.
-#' @param verbose Value indicating whether to trace steps of fitting algorithm for \code{IRLS} fitting method different values of verbose give the following information:
+#' @param verbose Value indicating whether to trace steps of fitting algorithm for 
+#' \code{IRLS} fitting method different values of verbose give the following information:
 #' \itemize{
 #'   \item 1 -- Returns information on the number of current iteration and current log-likelihood.
 #'   \item 2 -- Returns information on vector of regression parameters at current iteration (and all of the above).
@@ -15,22 +16,41 @@
 #'   \item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
 #' }
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
-#' @param start initial parameters for regression associated with main formula specified in function call if NULL they will be derived from simple poisson regression.
+#' @param start initial parameters for regression associated with main formula 
+#' specified in function call if NULL they will be derived from simple poisson regression.
 #' @param alphaStart initial parameters for dispersion parameter if applies.
 #' @param omegaStart initial parameters for inflation parameter if applies.
 #' @param piStart initial parameters for probability parameter if applies.
 #' @param silent Logical, indicating whether warnings in \code{IRLS} method should be suppressed.
-#' @param optimPass Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
-#' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.
-#' @param stepsize Only for \code{IRLS}, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.
-#' @param checkDiagWeights Logical value indicating whether to check if diagonal elements of working weights matrixes in \code{IRLS} are sufficiently positive so that these matrixes are positive defined. By default \code{TRUE}.
-#' @param weightsEpsilon Small number to ensure positivity of weights matrixes. Only matters if \code{checkDiagWeights} is set to \code{TRUE}. By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}
-#' @param momentumFactor Experimental parameter in \code{IRLS} only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
-#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
+#' @param optimPass Optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
+#' if FALSE then list of control parameters will be inferred from other parameters.
+#' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default 
+#' except for negative binomial and one inflated models where Nelder-Mead is used.
+#' @param stepsize Only for \code{IRLS}, scaling of stepsize lower value means slower 
+#' convergence but more accuracy by default 1. In general if fitting algorithm fails 
+#' lowering this value tends to be most effective at correcting it.
+#' @param checkDiagWeights Logical value indicating whether to check if diagonal 
+#' elements of working weights matrixes in \code{IRLS} are sufficiently positive 
+#' so that these matrixes are positive defined. By default \code{TRUE}.
+#' @param weightsEpsilon Small number to ensure positivity of weights matrixes. 
+#' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
+#' By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}
+#' @param momentumFactor Experimental parameter in \code{IRLS} only allowing for 
+#' taking previous step into account at current step, i.e instead of 
+#' updating regression parameters as:
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 #' the update will be made as:
-#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}
-#' @param useZtpoissonAsStart boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models.
-#' @param momentumActivation the value of log-likelihood reduction bellow which momentum will apply.
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{
+#' beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}
+#' @param useZtpoissonAsStart boolean value indicating whether to chose starting 
+#' parameters from \code{ztpoisson} regression this one is useful mostly for 
+#' various one inflated models.
+#' @param momentumActivation the value of log-likelihood reduction bellow 
+#' which momentum will apply.
+#' @param criterion Criterion used to determine convergence in \code{IRLS}, 
+#' multiple values may be provided. By default \code{c("coef", "abstol")}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
 #' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
@@ -50,7 +70,14 @@ control.method <- function(epsilon = 1e-8,
                            weightsEpsilon = .Machine$double.eps^.75,
                            momentumFactor = 0,
                            useZtpoissonAsStart = FALSE,
-                           momentumActivation = 5) {
+                           momentumActivation = 5,
+                           criterion = c("coef", "abstol", "reltol")) {
+  if (!missing(criterion) && all(c("abstol", "reltol") %in% criterion)) {
+    stop("Choosing both absolute tolerance and relative tolerance for convergence criterion is not allowed.")
+  }
+  if (!missing(criterion) && all(!(c("coef", "abstol", "reltol") %in% criterion))) {
+    stop("At least one convergence criterion has to be chosen")
+  }
   list(
     epsilon = epsilon,
     maxiter = maxiter,
@@ -67,7 +94,8 @@ control.method <- function(epsilon = 1e-8,
     weightsEpsilon = weightsEpsilon,
     momentumFactor = momentumFactor,
     momentumActivation = momentumActivation,
-    useZtpoissonAsStart = useZtpoissonAsStart
+    useZtpoissonAsStart = useZtpoissonAsStart,
+    criterion = if (missing(criterion)) c("coef", "abstol") else criterion
   )
 }
 #' @title Control parameters specific to some models

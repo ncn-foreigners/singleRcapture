@@ -10,9 +10,12 @@ oiztpoisson <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = (omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda) * (1 - exp(-lambda)),
-            "trunc" = omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda
+    switch (
+      type,
+      "nontrunc" = omega + lambda * (1 - omega),
+      "trunc" = (
+      (exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) +
+      (1 - omega) * lambda * (exp(lambda) - 1) / (exp(lambda) - 1 + omega))
     )
   }
   
@@ -20,12 +23,13 @@ oiztpoisson <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    switch (type,
-            "nontrunc" = ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda + (lambda ** 2) * (1 - omega) / (1 - exp(-lambda))) * (1 - exp(-lambda)) - 
-                            ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda) * (1 - exp(-lambda))) ** 2),
-            "trunc" = ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda + (lambda ** 2) * (1 - omega) / (1 - exp(-lambda))) - 
-                         ((omega + (1 - omega) * lambda / (exp(lambda) - 1) + (1 - omega) * lambda) ** 2))
-    )
+    switch (
+      type,
+      "nontrunc" = omega + (1 - omega) * lambda * (lambda + 1),
+      "trunc" = (
+      (exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) +
+      (1 - omega) * lambda * ((1 + lambda) * exp(lambda) - 1) / (exp(lambda) - 1 + omega))
+    ) - mu.eta(type = type, eta = eta) ** 2
   }
   
   Wfun <- function(prior, y, eta, ...) {
@@ -195,9 +199,19 @@ oiztpoisson <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  dev.resids <- function(y, eta, wt, ...) {
+    omega <- invlink(eta)
+    lambda <- omega[, 1]
+    omega <- omega[, 2]
+    mu1 <- mu.eta(eta = eta)
+    idealOmega <- ifelse(y == 1, 1, 0)
+    idealLambda <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+    diff <- ifelse(
+      y == 1,
+      -(log(exp(lambda) * omega + lambda * (1 - omega)) - log(exp(lambda) - 1 + omega)),
+      y * log(idealLambda) - log(exp(idealLambda) - 1) - log(1 - omega) - y * log(lambda) + log(exp(lambda) - 1 + omega)
+    )
+    sign(y - mu1) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -245,18 +259,19 @@ oiztpoisson <- function(...) {
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     CDF <- function(x) {
-      ifelse(x == Inf, 1, ifelse(x < 0, 0, ifelse(x < 1, (1 - omega) * exp(-lambda), omega +  (1 - omega) * stats::ppois(x, lambda))))
+      ifelse(x == Inf, 1, 
+      ifelse(x < 0, 0, 
+      ifelse(x < 1, (1 - omega) * exp(-lambda), 
+      omega +  (1 - omega) * stats::ppois(x, lambda))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)
     p_u <- stats::runif(n, lb, ub)
-    sims <- NULL
-    for (k in 1:n) {
-      m <- 0
-      while(CDF(m) < p_u[k]) {
-        m <- m + 1
-      }
-      sims <- c(sims, m)
+    sims <- rep(0, n)
+    cond <- CDF(sims) <= p_u
+    while (any(cond)) {
+      sims[cond] <- sims[cond] + 1
+      cond <- CDF(sims) <= p_u
     }
     sims
   }

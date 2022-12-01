@@ -14,7 +14,7 @@ noparBoot <- function(family,
                       method,
                       N, 
                       ...) {
-  strappedStatistic <- NULL
+  strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
   
@@ -46,11 +46,16 @@ noparBoot <- function(family,
       colnames(Xstrap) <- colnames(modelFrame)
     }
     
-    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(
+    family = family, observed = ystrap, pop.var = "analytic")
     if (famName == "zelterman") {
-      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
+      Xstrap1 <- singleRinternalGetXvlmMatrix(
+      X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
+      nPar = family$parNum, formulas = formulas, family$etaNames)
     }
-    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)
+    Xstrap <- singleRinternalGetXvlmMatrix(
+    X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
+    nPar = family$parNum, formulas = formulas, family$etaNames)
     theta <- NULL
     try(
       theta <- estimate_popsize.fit(
@@ -81,7 +86,7 @@ noparBoot <- function(family,
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
-      strappedStatistic <- c(strappedStatistic, est)
+      strappedStatistic[k - 1] <- est
     }
   }
   
@@ -103,7 +108,7 @@ semparBoot <- function(family,
                        N,
                        modelFrame, 
                        ...) {
-  strappedStatistic <- NULL
+  strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
   
@@ -116,7 +121,8 @@ semparBoot <- function(family,
       1, type = "n",
       xlab = "Bootstrap sample", 
       ylab = "Value of population size estimator",
-      main = expression(paste("Plot of values of ", hat(N), " obtained from bootstrap samples")),
+      main = expression(paste("Plot of values of ", hat(N), 
+                              " obtained from bootstrap samples")),
       sub = "Points will be added in real time",
       xlim = c(0, numboot + 1), ylim = c(0, 2 * N)
     )
@@ -155,14 +161,20 @@ semparBoot <- function(family,
       Xstrap <- as.data.frame(Xstrap)
     }
 
-    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(
+    family = family, observed = ystrap, pop.var = "analytic")
     theta <- NULL
-    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), sep = " ")
+    if (isTRUE(trace)) cat("Iteration number:", k, 
+                           "sample size:", length(ystrap), sep = " ")
     colnames(Xstrap) <- colnames(modelFrame)
     if (famName == "zelterman") {
-      Xstrap1 <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
+      Xstrap1 <- singleRinternalGetXvlmMatrix(
+      X = subset(Xstrap, select = attr(modelFrame, "names")[-1]),
+      nPar = family$parNum, formulas = formulas, family$etaNames)
     }
-    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), nPar = family$parNum, formulas = formulas, family$etaNames)
+    Xstrap <- singleRinternalGetXvlmMatrix(
+    X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
+    nPar = family$parNum, formulas = formulas, family$etaNames)
     try(
       theta <- estimate_popsize.fit(
         y = ystrap[wch$reg],
@@ -191,7 +203,7 @@ semparBoot <- function(family,
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
-      strappedStatistic <- c(strappedStatistic, est)
+      strappedStatistic[k - 1] <- est
     }
   }
   
@@ -215,7 +227,7 @@ parBoot <- function(family,
                     method,
                     modelFrame,
                     ...) {
-  strappedStatistic <- NULL
+  strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
   if (length(weights) == 1) {
@@ -275,11 +287,15 @@ parBoot <- function(family,
     }
     colnames(Xstrap) <- colnames(modelFrame)
     
-    Xstrap <- singleRinternalGetXvlmMatrix(X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), nPar = family$parNum, formulas = formulas, family$etaNames)
+    Xstrap <- singleRinternalGetXvlmMatrix(
+    X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
+    nPar = family$parNum, formulas = formulas, family$etaNames)
 
-    ystrap <- dataFunc(n = N,
-                       eta = matrix(Xstrap %*% beta, ncol = family$parNum),
-                       lower = -1, upper = Inf)
+    ystrap <- dataFunc(
+      n = N,
+      eta = matrix(Xstrap %*% beta, ncol = family$parNum),
+      lower = -1, upper = Inf
+    )
     weightsStrap <- weightsStrap[ystrap > 0]
     strap <- rep(FALSE, family$parNum * length(ystrap))
     strap[rep(ystrap > 0, family$parNum)] <- TRUE
@@ -287,8 +303,10 @@ parBoot <- function(family,
     Xstrap <- subset(Xstrap, subset = strap)
     ystrap <- ystrap[ystrap > 0]
 
-    if (isTRUE(trace)) cat("Iteration number:", k, "sample size:", length(ystrap), sep = " ")
-    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, observed = ystrap, pop.var = "analytic")
+    if (isTRUE(trace)) cat("Iteration number:", k, 
+                           "sample size:", length(ystrap), sep = " ")
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(
+    family = family, observed = ystrap, pop.var = "analytic")
     
     theta <- NULL
     if (famName == "zelterman") {
@@ -326,7 +344,7 @@ parBoot <- function(family,
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
       
-      strappedStatistic <- c(strappedStatistic, est)
+      strappedStatistic[k - 1] <- est
     }
     
   }

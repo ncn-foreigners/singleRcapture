@@ -35,17 +35,21 @@ ModelPo <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
-                            method = "robust")
+                            method = "IRLS")
+#> Warning in FittingFunction(dependent = y, covariates = X, eps =
+#> control$epsilon, : IRLS half-stepping terminated because the step is too small.
 ModelZl <- estimate_popsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
-                            method = "robust")
+                            method = "IRLS")
+#> Warning in FittingFunction(dependent = y, covariates = X, eps =
+#> control$epsilon, : Convergence at halfstepsize
 summary(ModelPo)
 #> 
 #> Call:
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "ztpoisson", method = "robust", pop.var = "analytic")
+#>     model = "ztpoisson", method = "IRLS", pop.var = "analytic")
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
@@ -55,10 +59,10 @@ summary(ModelPo)
 #> -----------------------
 #> For linear predictors associated with: lambda 
 #>                      Estimate Std. Error z value  P(>|z|)    
-#> (Intercept)          -2.31735    0.44940  -5.156 2.52e-07 ***
-#> gender                0.39741    0.16305   2.437 0.014796 *  
-#> age                   0.97463    0.40824   2.387 0.016969 *  
-#> reason                0.01093    0.16153   0.068 0.946048    
+#> (Intercept)          -1.33179    0.25486  -5.226 1.74e-07 ***
+#> gendermale            0.39741    0.16305   2.437 0.014796 *  
+#> age>40yrs            -0.97463    0.40824  -2.387 0.016969 *  
+#> reasonOther reason   -0.01093    0.16153  -0.068 0.946048    
 #> nationAsia           -1.09241    0.30164  -3.622 0.000293 ***
 #> nationNorth Africa    0.18997    0.19400   0.979 0.327471    
 #> nationRest of Africa -0.91129    0.30097  -3.028 0.002463 ** 
@@ -77,15 +81,15 @@ summary(ModelPo)
 #> Population size estimation results: 
 #> Point estimate 12691.45
 #> Observed proportion: 14.8% (N obs = 1880)
-#> Std. Error 2809.508
+#> Std. Error 2809.505
 #> 95% CI for the population size:
 #>              lowerBound upperBound
-#> Studentized    7184.917   18197.99
-#> Logtransform   8430.749   19723.38
+#> Studentized    7184.921   18197.98
+#> Logtransform   8430.750   19723.37
 #> 95% CI for the share of observed population:
 #>              lowerBound upperBound
-#> Studentized   10.330814   26.16592
-#> Logtransform   9.531836   22.29932
+#> Studentized   10.330819   26.16591
+#> Logtransform   9.531842   22.29932
 ```
 
 ``` r
@@ -93,7 +97,7 @@ summary(ModelZl)
 #> 
 #> Call:
 #> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "zelterman", method = "robust", pop.var = "analytic")
+#>     model = "zelterman", method = "IRLS", pop.var = "analytic")
 #> 
 #> Pearson Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -103,10 +107,10 @@ summary(ModelZl)
 #> -----------------------
 #> For linear predictors associated with: lambda 
 #>                      Estimate Std. Error z value  P(>|z|)    
-#> (Intercept)           -3.3593     0.5278  -6.364 1.96e-10 ***
-#> gender                 0.5347     0.2320   2.305   0.0212 *  
-#> age                    0.5669     0.4338   1.307   0.1913    
-#> reason                 0.1893     0.2198   0.861   0.3890    
+#> (Intercept)           -2.6031     0.3821  -6.813 9.59e-12 ***
+#> gendermale             0.5347     0.2320   2.305   0.0212 *  
+#> age>40yrs             -0.5669     0.4338  -1.307   0.1913    
+#> reasonOther reason    -0.1893     0.2198  -0.861   0.3890    
 #> nationAsia            -1.0563     0.4476  -2.360   0.0183 *  
 #> nationNorth Africa     0.5794     0.3067   1.889   0.0589 .  
 #> nationRest of Africa  -0.6643     0.4249  -1.563   0.1180    
@@ -125,15 +129,15 @@ summary(ModelZl)
 #> Population size estimation results: 
 #> Point estimate 16188.3
 #> Observed proportion: 11.6% (N obs = 1880)
-#> Std. Error 3166.094
+#> Std. Error 3166.091
 #> 95% CI for the population size:
 #>              lowerBound upperBound
-#> Studentized    9982.871   22393.73
-#> Logtransform  11201.447   23843.06
+#> Studentized    9982.874   22393.72
+#> Logtransform  11201.449   23843.04
 #> 95% CI for the share of observed population:
 #>              lowerBound upperBound
-#> Studentized    8.395207   18.83226
-#> Logtransform   7.884896   16.78355
+#> Studentized    8.395210   18.83225
+#> Logtransform   7.884899   16.78354
 ```
 
 Marginal frequencies and Goodness of fit test:
@@ -173,14 +177,14 @@ zotgeomBoot <- estimate_popsize(
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
-    method = "robust",
+    method = "IRLS",
     control.pop.var = control.pop.var(B = 1000, alpha = .01)
 )
 summary(zotgeomBoot)
 #> 
 #> Call:
 #> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-#>     model = "zotgeom", method = "robust", pop.var = "bootstrap", 
+#>     model = "zotgeom", method = "IRLS", pop.var = "bootstrap", 
 #>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
 #> 
 #> Pearson Residuals:
@@ -194,7 +198,7 @@ summary(zotgeomBoot)
 #> (Intercept)  -2.60802    0.29776  -8.759  <2e-16 ***
 #> log_size      0.58498    0.02210  26.469  <2e-16 ***
 #> log_distance -0.06793    0.02549  -2.665  0.0077 ** 
-#> C_TYPE        0.61081    0.04448  13.731  <2e-16 ***
+#> C_TYPEDairy   0.61081    0.04448  13.731  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
