@@ -213,21 +213,25 @@ sample size it is likely to underestimate variance.
 
 A more sophisticated bootstrap procedure may be described as follows:
 \enumerate{
-\item Compute the probability distribution as: \mjdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, \frac{\boldsymbol{f}_{1}}{\hat{N}}, \dotso, \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{f_0 / N, f_1 / N, ..., f_max(y) / N}
+\item Compute the probability distribution as:
+\mjdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, \frac{\boldsymbol{f}_{1}}{\hat{N}}, \dotso, \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{f_0 / N, f_1 / N, ..., f_max(y) / N}
 where \mjeqn{\boldsymbol{f}_{n}}{f_n} denotes observed marginal frequency of
-units being observed exactly n times.
-\item Draw \mjeqn{\hat{N}}{N} units from the distribution above (if \mjeqn{\hat{N}}{N} is not an integer than draw \mjeqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{floor(N) + b(N-floor(N))})
-\item Truncated units with \mjeqn{y=0}{y=0}
+units being observed exactly n times, round the quantitites above to nearest
+integer if necessary.
+\item Draw \mjeqn{\hat{N}}{N} units from the distribution above
+(if \mjeqn{\hat{N}}{N} is not an integer than draw \mjeqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{floor(N) + b(N-floor(N))}).
+\item Truncated units with \mjeqn{y=0}{y=0}.
 \item If there are covariates draw them from original data with replacement from
-uniform distribution. Eg if unit drawn to new data has \mjeqn{y=2}{y=2}
-choose one of covariate vectors from original data that was associated with
-unit for which was observed 2 times
+uniform distribution. For example if unit drawn to new data has
+\mjeqn{y=2}{y=2} choose one of covariate vectors from original data that
+was associated with unit for which was observed 2 times.
 \item Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} use them to compute
-\mjeqn{\hat{N}_{new}}{N_new}.
+and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new}, with starting
+point \mjeqn{\hat{\boldsymbol{\beta}}}{beta} to make it slightly faster,
+use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
 \item Repeat 2-5 unit there are at least \code{B} statistics are obtained.
 \item Compute confidence intervals based on \code{alpha} and \code{confType}
-specified in \code{\link[=control.pop.var]{control.pop.var()}}
+specified in \code{\link[=control.pop.var]{control.pop.var()}}.
 }
 
 This procedure is known in literature as \code{"semiparametric"} bootstrap
@@ -245,14 +249,18 @@ where \mjeqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}{M_k ~ b(N_k - [N_k])},
 \mjeqn{N_{k}}{N_{k}} is the contribution of kth unit i.e.
 \mjeqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}}{I_l/P(Y_k>0)} and
 \mjeqn{\lfloor \cdot\rfloor}{[]} is the floor function.
-\item Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate \mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
+\item Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate
+\mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
 \item Generate \mjeqn{\boldsymbol{y}}{y} (dependent variable) vector using
 \mjeqn{\boldsymbol{\eta}}{eta} and probability mass function associated with
 chosen model.
-\item Truncated units with \mjeqn{y=0}{y=0} and construct \mjeqn{\boldsymbol{y}_{new}}{y_new} and \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-\item Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} use them to compute
-\mjeqn{\hat{N}_{new}}{N_new}.
+\item Truncated units with \mjeqn{y=0}{y=0} and construct
+\mjeqn{\boldsymbol{y}_{new}}{y_new} and
+\mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}.
+\item Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on
+\mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
+and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new}
+use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
 \item Repeat 1-5 unit there are at least \code{B} statistics are obtained.
 \item Compute confidence intervals based on \code{alpha} and \code{confType}
 specified in \code{\link[=control.pop.var]{control.pop.var()}}

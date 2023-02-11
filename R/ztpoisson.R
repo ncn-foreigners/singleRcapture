@@ -78,7 +78,7 @@ ztpoisson <- function(...) {
       dmu <- weight * as.numeric(coefficient) # This was probably the dumbest mistake I've made in last 8 months
       dlam <- as.matrix(X * as.numeric(lambda))
 
-      -((t(as.matrix(X) * dmu)) %*% dlam)
+      -(t(as.matrix(X) * dmu)) %*% dlam
     }
   }
 

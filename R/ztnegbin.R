@@ -1,6 +1,7 @@
 #' @rdname singleRmodels
 #' @importFrom stats uniroot
 #' @importFrom stats dnbinom
+#' @importFrom rootSolve multiroot
 #' @export
 ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   # Fist for lambda second for alpha
@@ -21,9 +22,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     A <- invlink(eta)
     lambda <- A[, 1]
     A <- A[, 2]
+    P0 <- (1 + A * lambda) ** (-1 / A)
     switch (type,
       nontrunc = lambda * (1 + A * lambda),
-      trunc = (lambda + A * (lambda ** 2) - A * (lambda ** 2) * ((1 + A * lambda) ** (-1 / A))) / ((1 - (1 + A * lambda) ** (-1 / A)) ** 2)
+      trunc = (lambda + A * (lambda ** 2) - A * (lambda ** 2) * P0) / ((1 - P0) ** 2)
     )
   }
   
@@ -46,20 +48,18 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     alpha <- invlink(matrix(eta, ncol = 2))
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
+    P0 <- (1 + alpha * lambda) ** (-1 / alpha)
     res <- res1 <- 0
     k <- 0
-    repeat{
+    finished <- c(FALSE, FALSE)
+    while ((k < nSim) & !all(finished)) {
       k <- k + 1 # 1 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda))
-      toAdd <- compdigamma(y = k, alpha = alpha) * prob
-      toAdd1 <- comptrigamma(y = k, alpha = alpha) * prob
+      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
+      toAdd <- c(compdigamma(y = k, alpha = alpha) * prob, comptrigamma(y = k, alpha = alpha) * prob)
       res <- res + toAdd
-      res1 <- res1 + toAdd1
-      if ((k == nSim) | ((abs(toAdd) < epsSim) & (abs(toAdd1) < epsSim))) {
-        break
-      }
+      finished <- abs(toAdd) < epsSim
     }
-    c(res, res1)
+    res
   }
   
   Wfun <- function(prior, eta, ...) {
@@ -281,19 +281,33 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   dev.resids <- function (y, eta, wt, ...) {
-    # this needs to be corrected
-    disp1 <- invlink(eta)
-    mu <- disp1[, 1]
-    disp1 <- disp1[, 2]
-    mu1 <- mu.eta(eta = eta)
-    hm1y <- y
-    hm1y[y == 1] <- -16
-    functionInversion <- function(n) {stats::uniroot(f = function(x) {mu.eta(matrix(c(x, eta[n, 2]), ncol = 2)) - y[n]}, lower = -log(y[n]), upper = y[n] * 10, tol = .Machine$double.eps)$root}
-    hm1y[y > 1] <- sapply(which(y > 1), FUN = functionInversion)
-    loghm1ytdisp <- log(disp1 * exp(hm1y))
-    logprobhm1y <- log(1 - ((1 + disp1 * exp(hm1y)) ** (-1 / disp1)))
-    sign(y - mu1) * sqrt(-2 * wt * (-(y + 1 / disp1) * log(1 + mu * disp1) + y * log(mu * disp1) - log(1 - ((1 + mu * disp1) ** (-1/disp1))) +
-                                    (y + 1 / disp1) * log(1 + exp(hm1y) * disp1) - y * loghm1ytdisp + logprobhm1y))
+    alpha <- invlink(eta)
+    lambda <- alpha[, 1]
+    alpha <- alpha[, 2]
+    mu <- mu.eta(eta = eta)
+    logLikFit <- wt * (lgamma(y + 1/alpha) - lgamma(1/alpha) -
+    log(factorial(y)) - (y + 1/alpha) * log(1+alpha * lambda) +
+    y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ** (-1/alpha)))
+    findL <- function(t) {
+      yNow <- y[t]
+      rootSolve::multiroot(
+        start = c(.5, log(yNow), 1),# maybe pick better starting points
+        f = function(x) { # TODO:: provide analytic jacobian matrix will make it faster and more reliable
+          s <- x[1] # this is the lagrange multiplier and has no constraints of positivity
+          l <- exp(x[2])
+          a <- exp(x[3]) # including constraints
+          prob <- 1 - (1+a*l)^(-1/a)
+          prob <- 1 / prob
+          c(l*prob - yNow,# s der
+          yNow/l+(1+yNow*a)/(1+l*a)+s*yNow*l-(yNow-l)/(l*(1+l*a))-s*yNow*(yNow-l)/(l*(1+l*a)),# lambda der
+          (1+yNow*a)*l+(yNow-l)*(1+s*yNow)*((1+a*l)*log(1+a*l)-a*l)+l*(1+a*l)*(digamma(1/a)+log(a)+log(yNow+1/a))-(digamma(yNow+1/a)+1)*(1+a*l)*l)#alpha der
+        }
+      )$f.root
+    }
+    logLikIdeal <- sapply(1:length(y), FUN = function(x) {
+      ifelse(y[x] == 1, 0, findL(x))
+    })
+    sign(y - mu) * sqrt(-2 * wt * (logLikFit - logLikIdeal))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -334,7 +348,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     alpha <- invlink(eta)
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
-    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - stats::dnbinom(x = 0, mu = lambda, size = 1  / alpha))
+    P0 <- (1 + alpha * lambda) ** (-1 / alpha)
+    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0)
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {

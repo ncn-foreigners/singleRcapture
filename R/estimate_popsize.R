@@ -140,21 +140,25 @@ NULL
 #' sample size it is likely to underestimate variance.
 #' 
 #' A more sophisticated bootstrap procedure may be described as follows:
-#' 1. Compute the probability distribution as: \mjdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, \frac{\boldsymbol{f}_{1}}{\hat{N}}, \dotso, \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{f_0 / N, f_1 / N, ..., f_max(y) / N}
+#' 1. Compute the probability distribution as: 
+#' \mjdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, \frac{\boldsymbol{f}_{1}}{\hat{N}}, \dotso, \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{f_0 / N, f_1 / N, ..., f_max(y) / N}
 #' where \mjeqn{\boldsymbol{f}_{n}}{f_n} denotes observed marginal frequency of
-#' units being observed exactly n times.
-#' 2. Draw \mjeqn{\hat{N}}{N} units from the distribution above (if \mjeqn{\hat{N}}{N} is not an integer than draw \mjeqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{floor(N) + b(N-floor(N))})
-#' 3. Truncated units with \mjeqn{y=0}{y=0}
+#' units being observed exactly n times, round the quantitites above to nearest 
+#' integer if necessary.
+#' 2. Draw \mjeqn{\hat{N}}{N} units from the distribution above 
+#' (if \mjeqn{\hat{N}}{N} is not an integer than draw \mjeqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{floor(N) + b(N-floor(N))}).
+#' 3. Truncated units with \mjeqn{y=0}{y=0}.
 #' 4. If there are covariates draw them from original data with replacement from 
-#' uniform distribution. Eg if unit drawn to new data has \mjeqn{y=2}{y=2} 
-#' choose one of covariate vectors from original data that was associated with
-#' unit for which was observed 2 times
+#' uniform distribution. For example if unit drawn to new data has 
+#' \mjeqn{y=2}{y=2} choose one of covariate vectors from original data that 
+#' was associated with unit for which was observed 2 times.
 #' 5. Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-#' and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} use them to compute 
-#' \mjeqn{\hat{N}_{new}}{N_new}.
+#' and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new}, with starting 
+#' point \mjeqn{\hat{\boldsymbol{\beta}}}{beta} to make it slightly faster, 
+#' use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
 #' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
-#' specified in [control.pop.var()]
+#' specified in [control.pop.var()].
 #' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
 #' it is necessary to assume that the have a correct estimate \mjeqn{\hat{N}}{N}
@@ -170,14 +174,18 @@ NULL
 #' \mjeqn{N_{k}}{N_{k}} is the contribution of kth unit i.e. 
 #' \mjeqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}}{I_l/P(Y_k>0)} and
 #' \mjeqn{\lfloor \cdot\rfloor}{[]} is the floor function.
-#' 2. Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate \mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
+#' 2. Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate 
+#' \mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
 #' 3. Generate \mjeqn{\boldsymbol{y}}{y} (dependent variable) vector using
 #' \mjeqn{\boldsymbol{\eta}}{eta} and probability mass function associated with
 #' chosen model.
-#' 4. Truncated units with \mjeqn{y=0}{y=0} and construct \mjeqn{\boldsymbol{y}_{new}}{y_new} and \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-#' 5. Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-#' and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} use them to compute 
-#' \mjeqn{\hat{N}_{new}}{N_new}.
+#' 4. Truncated units with \mjeqn{y=0}{y=0} and construct 
+#' \mjeqn{\boldsymbol{y}_{new}}{y_new} and 
+#' \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}.
+#' 5. Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on 
+#' \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
+#' and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} 
+#' use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
 #' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType}
 #' specified in [control.pop.var()]
@@ -511,8 +519,13 @@ estimate_popsize <- function(formula,
         #start <- c(start, log(omg / (1 - omg)))
         start <- c(start, log(omg))
       } else {
+        #print(modelFrame1)
+        #print(terms)
+        #print(attr(terms, "term.labels"))
+        #stop("stopy")
+        #, select = attr(terms, "term.labels") i dunno why this was here but it stop interaction terms
         start <- c(start, stats::glm.fit(
-          x = model.matrix(control.model$omegaFormula, subset(modelFrame1, subset = wch$reg, select = attr(terms, "term.labels"))),
+          x = model.matrix(control.model$omegaFormula, subset(modelFrame1, subset = wch$reg)),
           y = as.numeric(observed[wch$reg] == 1),
           family = stats::binomial(),
           ...
