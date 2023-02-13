@@ -35,16 +35,17 @@ devtools::install_github("ncn-foreigners/singleRcapture")
 
 ### Examples
 
-This is a basic example of zero truncated poisson model and zelterman model with netherlands imigrant data with analytic variance:
+This is a basic example of zero truncated poisson model and zelterman model with 
+data on immigration in netherlands with analytic variance:
 
 ```{r example}
 library(singleRcapture)
-ModelPo <- estimate_popsize(formula = capture ~ .,
+ModelPo <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
                             method = "IRLS")
-ModelZl <- estimate_popsize(formula = capture ~ .,
+ModelZl <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
@@ -70,18 +71,18 @@ plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
 plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
 ```
 
-singleRcapture also includes bootstraps and models truncated at values 0 and 1 
+`singleRcapture` also includes bootstraps and models truncated at values 0 and 1 
 and non standard confidence levels (i.e. different from usual 95%)
 
 ```{r boot}
 set.seed(123)
-zotgeomBoot <- estimate_popsize(
+zotgeomBoot <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "IRLS",
-    control.pop.var = control.pop.var(B = 1000, alpha = .01)
+    controlPopVar = controlPopVar(B = 1000, alpha = .01)
 )
 summary(zotgeomBoot)
 ```

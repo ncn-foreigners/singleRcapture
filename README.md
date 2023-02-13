@@ -27,18 +27,18 @@ devtools::install_github("ncn-foreigners/singleRcapture")
 ### Examples
 
 This is a basic example of zero truncated poisson model and zelterman
-model with netherlands imigrant data with analytic variance:
+model with data on immigration in netherlands with analytic variance:
 
 ``` r
 library(singleRcapture)
-ModelPo <- estimate_popsize(formula = capture ~ .,
+ModelPo <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "ztpoisson",
                             method = "IRLS")
 #> Warning in FittingFunction(dependent = y, covariates = X, eps =
 #> control$epsilon, : IRLS half-stepping terminated because the step is too small.
-ModelZl <- estimate_popsize(formula = capture ~ .,
+ModelZl <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
                             pop.var = "analytic",
                             model = "zelterman",
@@ -48,7 +48,7 @@ ModelZl <- estimate_popsize(formula = capture ~ .,
 summary(ModelPo)
 #> 
 #> Call:
-#> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
+#> estimatePopsize(formula = capture ~ ., data = netherlandsimmigrant, 
 #>     model = "ztpoisson", method = "IRLS", pop.var = "analytic")
 #> 
 #> Pearson Residuals:
@@ -96,7 +96,7 @@ summary(ModelPo)
 summary(ModelZl)
 #> 
 #> Call:
-#> estimate_popsize(formula = capture ~ ., data = netherlandsimmigrant, 
+#> estimatePopsize(formula = capture ~ ., data = netherlandsimmigrant, 
 #>     model = "zelterman", method = "IRLS", pop.var = "analytic")
 #> 
 #> Pearson Residuals:
@@ -167,25 +167,26 @@ plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterma
 
 <img src="man/figures/README-plot-1.png" width="47%" /><img src="man/figures/README-plot-2.png" width="47%" />
 
-singleRcapture also includes bootstraps and models truncated at values 0
-and 1 and non standard confidence levels (i.e. different from usual 95%)
+`singleRcapture` also includes bootstraps and models truncated at values
+0 and 1 and non standard confidence levels (i.e. different from usual
+95%)
 
 ``` r
 set.seed(123)
-zotgeomBoot <- estimate_popsize(
+zotgeomBoot <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     pop.var = "bootstrap",
     model = "zotgeom",
     method = "IRLS",
-    control.pop.var = control.pop.var(B = 1000, alpha = .01)
+    controlPopVar = controlPopVar(B = 1000, alpha = .01)
 )
 summary(zotgeomBoot)
 #> 
 #> Call:
-#> estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
+#> estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
 #>     model = "zotgeom", method = "IRLS", pop.var = "bootstrap", 
-#>     control.pop.var = control.pop.var(B = 1000, alpha = 0.01))
+#>     controlPopVar = controlPopVar(B = 1000, alpha = 0.01))
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
