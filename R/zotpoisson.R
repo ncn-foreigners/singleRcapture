@@ -35,53 +35,41 @@ zotpoisson <- function(...) {
     (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1, ...) {
+  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
-
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- exp(eta)
-      -sum(weight * (y * eta - lambda - log(factorial(y)) -
-           log(1 - exp(-lambda) - lambda * exp(-lambda))))
-    }
-  }
-
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
-    y <- as.numeric(y)
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    function(beta) {
-      lambda <- exp(as.matrix(X) %*% beta)
-      if (NbyK) {
-        return(as.data.frame(X) * weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
+    
+    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
+    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    
+    switch (deriv,
+      function(beta) {
+        eta <- as.matrix(X) %*% beta
+        lambda <- exp(eta)
+        -sum(weight * (y * eta - lambda - log(factorial(y)) -
+        log(1 - exp(-lambda) - lambda * exp(-lambda))))
+      },
+      function(beta) {
+        lambda <- exp(as.matrix(X) %*% beta)
+        if (NbyK) {
+          return(as.data.frame(X) * weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
+        }
+        if (vectorDer) {
+          return(matrix(weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)), ncol = 1))
+        }
+        
+        t(as.matrix(X)) %*% (weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
+      },
+      function(beta) {
+        lambda <- exp(as.matrix(X) %*% beta)
+        
+        term <- ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
+        
+        t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term * weight)))
       }
-      if (vectorDer) {
-        return(matrix(weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)), ncol = 1))
-      }
-
-      t(as.matrix(X)) %*% (weight * (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
-    }
-  }
-
-  hessian <- function(y, X, weight = 1, ...) {
-    X <- as.matrix(X)
-    y <- as.numeric(y)
-
-    if (is.null(weight)) {
-      weight <- 1
-    }
-
-    function(beta) {
-      lambda <- exp(as.matrix(X) %*% beta)
-
-      term <- ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
-
-      t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term * weight)))
-    }
+    )
   }
 
   validmu <- function(mu) {
@@ -144,8 +132,6 @@ zotpoisson <- function(...) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      makeGradient = gradient,
-      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,

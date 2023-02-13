@@ -28,7 +28,7 @@ singleRcaptureinternalIRLS <- function(dependent,
   prior <- as.numeric(weights)
   
   logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
-  grad <- family$makeGradient(y = dependent, X = covariates, weight = prior)
+  grad <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
   
   if (famName %in% c("chao", "zelterman")) {
     dependent <- dependent - 1
@@ -360,7 +360,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   beta <- start
   
   logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
-  grad <- family$makeGradient(y = dependent, X = covariates, weight = prior)
+  grad <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
   traceGreaterThanFourMessegeExpr <- expression(
     if (trace > 4) {
       cat(sep = " ", "\nAlgorithm will terminate if one of following conditions will be met:\n")
@@ -577,4 +577,30 @@ singleRinternalMultiplyWeight <- function (X, W, ...) {
     index1 <- index1 + nrow(X) / thick
   }
   XbyW
+}
+# TODO
+cholFroW <- function(W, prior) {
+  if (NROW(W) != NROW(prior)) stop("Error in estimate_popsize.fit, working weights and prior weights suggest different number of observations.")
+  L <- list()
+  for (k in 1:NROW(W)) {
+    L[[k]] <- chol(matrix(prior[k] * W[k,], ncol = 2, nrow = 2))
+  }
+  L
+}
+# TODO
+MultibyCholW <- function(Z, X, cholW, which) {
+  # zmień na większą liczbe parametrów
+  W <- cholW
+  if (!is.null(Z)) {# 1 2 to par 3 to mieszane
+    return(c(Z[1:NROW(W)]*cholW[,1]+Z[NROW(W)+1:2*NROW(W)]*cholW[,3], Z[1:NROW(W)]*cholW[,2]))
+  } else if (!is.null(X)) {
+    # to samo co wyżej może wykorzystaj istniejące funkcje
+    # to jest explicite używając własnoći dekompozycji choleskiego
+    return(cbind(
+      rbind(cholW[,1]*X[1:(NROW(X)/2),1:which[1]]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
+            cholW[,2]*X[-(1:(NROW(X)/2)),1:which[1]]),
+      rbind(cholW[,1]*X[1:(NROW(X)/2),-(1:which[1])]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
+            cholW[,2]*X[-(1:(NROW(X)/2)),-(1:which[1])])
+    ))
+  }
 }

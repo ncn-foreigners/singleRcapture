@@ -10,8 +10,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     lambda <- A[, 1]
     A <- A[, 2]
     switch (type,
-            "nontrunc" = lambda,
-            "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - (1 + A * lambda) ** (-1 / A) - lambda * ((1 + A * lambda) ** (-1 - 1 / A)))
+    "nontrunc" = lambda,
+    "trunc" = (lambda - lambda * ((1 + A * lambda) ** (-1 - 1 / A))) / (1 - (1 + A * lambda) ** (-1 / A) - lambda * ((1 + A * lambda) ** (-1 - 1 / A)))
     )
   }
 
@@ -155,158 +155,145 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     pseudoResid
   }
 
-  minusLogLike <- function(y, X, weight = 1, ...) {
+  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
 
-    function(beta) {
-      eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-      alpha <- invlink(eta)
-      lambda <- alpha[, 1]
-      alpha <- alpha[, 2]
-      z <- 1 / alpha
-      S <- 1 / (1 + lambda / z)
-      prob <- 1 - S ** z - lambda * (S ** (1 + z))
-
-      -sum(weight * (lgamma(y + z) - lgamma(z) -
-      log(factorial(y)) - (y + z) * log(1 + lambda / z) +
-      y * log(lambda / z) - log(prob)))
-    }
-  }
-
-
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    y <- as.numeric(y)
-    X <- as.matrix(X)
-
-    function(beta) {
-      eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-      alpha <- invlink(eta)
-      lambda <- alpha[, 1]
-      alpha <- alpha[, 2]
-      # z is inverse of alpha in documentation
-      z <- 1 / alpha
-      M <- 1 + lambda * alpha
-      S <- 1 / M
-      prob <- 1 - S ** z - lambda * (S ** (1 + z))
-      cp1 <- z * log(M)
-      cp2 <- lambda * S
-      cp3 <- alpha * (-1 - z)
-
-      # log(alpha) derivative
-      G0 <- t((-(digamma(y + z) - digamma(z)) * (z ** 2)  - 
-            z * ((S ** z) * (z * log(S) + cp2) - lambda *
-            (S ** (1 + z)) * (cp1 + cp3 * cp2)) / prob +
-            cp1 * z - cp2 * (y + z) + y * z) * alpha * weight)
-      # Beta derivative
-      G1 <- (weight * (y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob))
-      
-      if (NbyK) {
-        XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-        return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
+    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    
+    switch (deriv,
+      function(beta) {
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        alpha <- invlink(eta)
+        lambda <- alpha[, 1]
+        alpha <- alpha[, 2]
+        z <- 1 / alpha
+        S <- 1 / (1 + lambda / z)
+        prob <- 1 - S ** z - lambda * (S ** (1 + z))
+        
+        -sum(weight * (lgamma(y + z) - lgamma(z) -
+        log(factorial(y)) - (y + z) * log(1 + lambda / z) +
+        y * log(lambda / z) - log(prob)))
+      },
+      function(beta) {
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        alpha <- invlink(eta)
+        lambda <- alpha[, 1]
+        alpha <- alpha[, 2]
+        # z is inverse of alpha in documentation
+        z <- 1 / alpha
+        M <- 1 + lambda * alpha
+        S <- 1 / M
+        prob <- 1 - S ** z - lambda * (S ** (1 + z))
+        cp1 <- z * log(M)
+        cp2 <- lambda * S
+        cp3 <- alpha * (-1 - z)
+        
+        # log(alpha) derivative
+        G0 <- t((-(digamma(y + z) - digamma(z)) * (z ** 2)  - 
+                   z * ((S ** z) * (z * log(S) + cp2) - lambda *
+                          (S ** (1 + z)) * (cp1 + cp3 * cp2)) / prob +
+                   cp1 * z - cp2 * (y + z) + y * z) * alpha * weight)
+        # Beta derivative
+        G1 <- (weight * (y - alpha * (y + z) * cp2 + lambda * cp3 * lambda * (S ** (2 + z)) / prob))
+        
+        if (NbyK) {
+          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
+          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+        }
+        if (vectorDer) {
+          return(cbind(G1, G0))
+        }
+        
+        as.numeric(c(G1, G0) %*% X)
+      },
+      function(beta) {
+        lambdaPredNumber <- attr(X, "hwm")[1]
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        alpha <- invlink(eta)
+        lambda <- alpha[, 1]
+        alpha <- alpha[, 2]
+        Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        Xalpha <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
+        # z is inverse of alpha in documentation
+        z <- 1 / alpha
+        M <- 1 + lambda * alpha
+        S <- 1 / M
+        prob <- 1 - S ** z - lambda * (S ** (1 + z))
+        res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
+        # The following vectors are meant to decrease compitation time
+        cp1 <- M ** z
+        cp2 <- alpha * lambda
+        cp3 <- (2 * alpha + 1)
+        #cp4 <- (y + lambda) No longer needed
+        cp5 <- log(M)
+        #cp6 <- (y - lambda)
+        cp7 <- (1 + alpha)
+        cp8 <- M ** (1 + z)
+        cp9 <- lambda * alpha
+        cp10 <- (M ** (2 + z))
+        cp11 <- (alpha ** 2)
+        #cp12 <- (1 + lambda)
+        #cp13 <- y * alpha
+        cp14 <- (lambda ** 2)
+        cp15 <- lambda * S
+        cp16 <- M ** 2
+        cp17 <- (-1 - z)
+        cp18 <- (cp8 - cp2 - lambda - 1)
+        cp19 <- (cp1 - 1)
+        cp20 <- cp19 ** 2
+        cp21 <- lambda * (y + lambda) * cp11
+        cp22 <- (y - lambda) * alpha * cp8
+        cp23 <- (1 + lambda) * y * alpha
+        cp24 <- (cp5 * cp10 - cp21 + cp22 - cp23)
+        cp25 <- (1 - z * cp7)
+        cp26 <- z * cp3
+        cp27 <- 1 / cp10
+        
+        # 2nd log(alpha) derivative
+        
+        G00 <- t(as.data.frame(Xalpha) * weight *
+                   ((trigamma(y + z) - trigamma(z)) * (z ** 2) + 
+                      (digamma(y + z) - digamma(z)) * z + z * 
+                      (((M ** cp26) * cp5 * (cp5 * (2 - cp26) + cp15 * cp3)) +
+                         cp22 * (cp5 * cp25 + cp15 * cp7) - 2 * cp21 + cp9 * (M ** (cp26 - 1)) +
+                         cp22 - cp23) / (M * cp18) - z * cp24 * (cp8 * (cp25 * cp5 + cp15 * cp7) - cp9) /
+                      (M * (cp18 ** 2)) - z * (cp5 * cp10 - cp21 + cp22 - cp23) /
+                      (M * cp18) - lambda * cp24 / (cp16 * cp18))) %*% Xalpha
+        
+        # mixed derivative
+        term <- (-alpha * (y + z) * S + lambda * cp11 * (y + z) * (1 / cp16) +
+                   (cp17 * cp2 * cp27) / prob + (lambda * cp27) / prob + S +
+                   cp2 * cp17 * cp27 * (cp2 * (-2 - z) * S + cp5 * z) / prob -
+                   (alpha * cp17 * lambda * cp27 *
+                      ((1 / cp1) * (z * log(S) + cp15) - lambda * (1 / cp8) *
+                         (z * cp5 + S * cp9 * cp17))) / (prob ** 2))
+        
+        G01 <- t(as.data.frame(Xlambda) * as.numeric(term * lambda * weight)) %*% as.matrix(Xalpha)
+        # second beta derivative
+        term <- ((-(alpha ** 3) * y * cp14 * cp20 +
+                    cp11 * lambda * (cp14 * cp1 - lambda * cp19 *
+                                       (1 - 2 * y + cp1) - 2 * y * cp20) +
+                    cp14 * cp1 + alpha * ((lambda ** 3) * cp1 +
+                                            cp14 * (1 - y + cp1) - 2 * lambda * cp19 *
+                                            (cp1 - y) - y * cp20) - cp20) /
+                   (cp16 * ((cp1 + lambda * (alpha * cp19 - 1) - 1) ** 2)))
+        
+        G11 <- t(as.data.frame(Xlambda) * lambda * weight * as.numeric(term)) %*% Xlambda
+        
+        
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
+        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(G01)
+        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- G01
+        
+        res
       }
-      if (vectorDer) {
-        return(cbind(G1, G0))
-      }
-
-      as.numeric(c(G1, G0) %*% X)
-    }
-  }
-
-  hessian <- function(y, X, weight = 1, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    y <- as.numeric(y)
-
-    function(beta) {
-      lambdaPredNumber <- attr(X, "hwm")[1]
-      eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-      alpha <- invlink(eta)
-      lambda <- alpha[, 1]
-      alpha <- alpha[, 2]
-      Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-      Xalpha <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
-      # z is inverse of alpha in documentation
-      z <- 1 / alpha
-      M <- 1 + lambda * alpha
-      S <- 1 / M
-      prob <- 1 - S ** z - lambda * (S ** (1 + z))
-      res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
-      # The following vectors are meant to decrease compitation time
-      cp1 <- M ** z
-      cp2 <- alpha * lambda
-      cp3 <- (2 * alpha + 1)
-      #cp4 <- (y + lambda) No longer needed
-      cp5 <- log(M)
-      #cp6 <- (y - lambda)
-      cp7 <- (1 + alpha)
-      cp8 <- M ** (1 + z)
-      cp9 <- lambda * alpha
-      cp10 <- (M ** (2 + z))
-      cp11 <- (alpha ** 2)
-      #cp12 <- (1 + lambda)
-      #cp13 <- y * alpha
-      cp14 <- (lambda ** 2)
-      cp15 <- lambda * S
-      cp16 <- M ** 2
-      cp17 <- (-1 - z)
-      cp18 <- (cp8 - cp2 - lambda - 1)
-      cp19 <- (cp1 - 1)
-      cp20 <- cp19 ** 2
-      cp21 <- lambda * (y + lambda) * cp11
-      cp22 <- (y - lambda) * alpha * cp8
-      cp23 <- (1 + lambda) * y * alpha
-      cp24 <- (cp5 * cp10 - cp21 + cp22 - cp23)
-      cp25 <- (1 - z * cp7)
-      cp26 <- z * cp3
-      cp27 <- 1 / cp10
-
-      # 2nd log(alpha) derivative
-
-      G00 <- t(as.data.frame(Xalpha) * weight *
-             ((trigamma(y + z) - trigamma(z)) * (z ** 2) + 
-             (digamma(y + z) - digamma(z)) * z + z * 
-             (((M ** cp26) * cp5 * (cp5 * (2 - cp26) + cp15 * cp3)) +
-             cp22 * (cp5 * cp25 + cp15 * cp7) - 2 * cp21 + cp9 * (M ** (cp26 - 1)) +
-             cp22 - cp23) / (M * cp18) - z * cp24 * (cp8 * (cp25 * cp5 + cp15 * cp7) - cp9) /
-             (M * (cp18 ** 2)) - z * (cp5 * cp10 - cp21 + cp22 - cp23) /
-             (M * cp18) - lambda * cp24 / (cp16 * cp18))) %*% Xalpha
-
-      # mixed derivative
-      term <- (-alpha * (y + z) * S + lambda * cp11 * (y + z) * (1 / cp16) +
-               (cp17 * cp2 * cp27) / prob + (lambda * cp27) / prob + S +
-               cp2 * cp17 * cp27 * (cp2 * (-2 - z) * S + cp5 * z) / prob -
-               (alpha * cp17 * lambda * cp27 *
-               ((1 / cp1) * (z * log(S) + cp15) - lambda * (1 / cp8) *
-               (z * cp5 + S * cp9 * cp17))) / (prob ** 2))
-
-      G01 <- t(as.data.frame(Xlambda) * as.numeric(term * lambda * weight)) %*% as.matrix(Xalpha)
-      # second beta derivative
-      term <- ((-(alpha ** 3) * y * cp14 * cp20 +
-              cp11 * lambda * (cp14 * cp1 - lambda * cp19 *
-              (1 - 2 * y + cp1) - 2 * y * cp20) +
-              cp14 * cp1 + alpha * ((lambda ** 3) * cp1 +
-              cp14 * (1 - y + cp1) - 2 * lambda * cp19 *
-              (cp1 - y) - y * cp20) - cp20) /
-              (cp16 * ((cp1 + lambda * (alpha * cp19 - 1) - 1) ** 2)))
-
-      G11 <- t(as.data.frame(Xlambda) * lambda * weight * as.numeric(term)) %*% Xlambda
-
-
-      res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
-      res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
-      res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(G01)
-      res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- G01
-      
-      res
-    }
+    )
   }
 
   validmu <- function(mu) {
@@ -394,8 +381,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      makeGradient = gradient,
-      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       mu.eta = mu.eta,

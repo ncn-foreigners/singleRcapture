@@ -125,7 +125,7 @@ estimate_popsize.fit <- function(y, X,
       beta <- FITT$coefficients
     } else if (method == "optim") {
       logLike <- family$makeMinusLogLike(y = y, X = X, weight = prior.weights)
-      grad <- family$makeGradient(y = y, X = X, weight = prior.weights, lambdaPredNumber = length(start) - 1)
+      grad <- family$makeMinusLogLike(y = y, X = X, weight = prior.weights, deriv = 1)
       
       weights <- prior.weights
       methodopt <- control$optimMethod
@@ -163,8 +163,11 @@ estimate_popsize.fit <- function(y, X,
       if (FITT$convergence == 1 && !control$silent) {
         warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")
       }
+    } else if (method == "maxLik") {
+      #TODO
+      stop("Not yet implemented")
     } else {
-      stop("Method not implemented")
+      stop("Method implemented.")
     }
   }
 

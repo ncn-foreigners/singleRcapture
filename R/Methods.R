@@ -270,8 +270,8 @@ popSizeEst <- function(object, ...) {
 #     object$populationSize <- singleRcaptureinternalpopulationEstimate(
 #       y = object$y,
 #       X = object$X,
-#       grad = object$model$makeGradient(y = object$y, X = object$X, weight = object$prior.weights),
-#       hessian = object$model$makeHessian(y = object$y, X = object$X, weight = object$prior.weights),
+#       grad = object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights, deriv = 1),
+#       hessian = object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights, deriv = 2),
 #       method = object$call$pop.var,
 #       weights = object$prior.weights,
 #       weights0 = object$prior.weights,
@@ -404,8 +404,8 @@ vcov.singleR <- function(object,
   res <- switch(
     type,
     "observedInform" = solve(
-      -object$model$makeHessian(y = object$y[object$which$reg], X = X,
-                                weight = object$prior.weights[object$which$reg])(object$coefficients),
+      -object$model$makeMinusLogLike(y = object$y[object$which$reg], X = X,
+      weight = object$prior.weights[object$which$reg], deriv = 2)(object$coefficients),
       ...
     ),
     "Fisher" = {
@@ -701,8 +701,8 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
     y = object$y[object$which$reg],
     formulas = object$formula,
     X = model.matrix(object),
-    grad = object$model$makeGradient(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
-    hessian = object$model$makeHessian(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights),
+    grad = object$model$makeMinusLogLike(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, deriv = 1),
+    hessian = object$model$makeMinusLogLike(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, deriv = 2),
     pop.var = if (is.null(object$call$pop.var)) "analytic" else object$call$pop.var,
     weights = object$prior.weights[object$which$reg],
     eta = object$linear.predictors,

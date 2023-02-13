@@ -10,16 +10,16 @@ zotgeom <- function(...) {
   mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = lambda,
-      "trunc" = 2 + lambda
+    "nontrunc" = lambda,
+    "trunc" = 2 + lambda
     )
   }
   
   variance <- function(eta, disp, type = "nontrunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = lambda * (lambda - 1),
-      "trunc" = lambda * (lambda + 1)
+    "nontrunc" = lambda * (lambda - 1),
+    "trunc" = lambda * (lambda + 1)
     )
   }
   
@@ -32,65 +32,47 @@ zotgeom <- function(...) {
     ((y - 1) / (1 + exp(eta)) - 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, ...) {
+  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- exp(eta)
-      
-      -sum(weight * ((y - 2) * log(lambda) - (y - 1) * log(1 + lambda)))
-    }
-  }
-  
-  
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    y <- as.numeric(y)
-    X <- as.matrix(X)
+    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
+    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
     
-    function(beta) {
-      eta <- X %*% beta
-      lambda <- exp(eta)
-      S <- 1 / (1 + lambda)
-      
-      # Beta derivative
-      if (NbyK) {
-        return(((y - 1) * S - 1)  * weight * as.data.frame(X))
+    switch (deriv,
+      function(beta) {
+        eta <- as.matrix(X) %*% beta
+        lambda <- exp(eta)
+        
+        -sum(weight * ((y - 2) * log(lambda) - (y - 1) * log(1 + lambda)))
+      },
+      function(beta) {
+        eta <- X %*% beta
+        lambda <- exp(eta)
+        S <- 1 / (1 + lambda)
+        
+        # Beta derivative
+        if (NbyK) {
+          return(((y - 1) * S - 1)  * weight * as.data.frame(X))
+        }
+        if (vectorDer) {
+          return(matrix(((y - 1) * S - 1)  * weight, ncol = 1))
+        }
+        t(((y - 1) * S - 1)  * weight) %*% X
+      },
+      function(beta) {
+        eta <- X %*% beta
+        lambda <- exp(eta)
+        S <- 1 / (1 + lambda)
+        
+        # second beta derivative
+        
+        -t(as.data.frame(X) * lambda * (y - 1) * (S ** 2) * weight) %*% X
       }
-      if (vectorDer) {
-        return(matrix(((y - 1) * S - 1)  * weight, ncol = 1))
-      }
-      G1 <- t(((y - 1) * S - 1)  * weight) %*% X
-      
-      G1
-    }
-  }
-  
-  hessian <- function(y, X, weight = 1, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    y <- as.numeric(y)
-    X <- as.matrix(X)
-    
-    function(beta) {
-      eta <- X %*% beta
-      lambda <- exp(eta)
-      S <- 1 / (1 + lambda)
-      
-      # second beta derivative
-      
-      G11 <- -t(as.data.frame(X) * lambda * (y - 1) * (S ** 2) * weight) %*% X
-      
-      G11
-    }
+    )
   }
   
   validmu <- function(mu) {
@@ -151,8 +133,6 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      makeGradient = gradient,
-      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,

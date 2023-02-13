@@ -31,7 +31,7 @@ estfun.singleR <- function(object,...) {
   beta <- stats::coef(object)
   wts <- stats::weights(object)
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- object$model$makeGradient(y = Y, X = X, NbyK = TRUE)(beta)
+  res <- object$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
   colnames(res) <- names(beta)
   rownames(res) <- rownames(X)
   res
@@ -131,7 +131,7 @@ vcovHC.singleR <- function(x,
   hat <- as.vector(hatvalues(x, ...))
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
   Y <- Y[x$which$reg] # only choose units which appear in regression
-  res <- as.vector(x$model$makeGradient(y = Y, X = X, vectorDer = TRUE)(beta))
+  res <- as.vector(x$model$makeMinusLogLike(y = Y, X = X, vectorDer = TRUE, der = 1)(beta))
   if (is.null(omega)) {
     if (type == "HC") 
       type <- "HC0"

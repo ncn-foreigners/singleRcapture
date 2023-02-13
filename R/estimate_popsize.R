@@ -567,6 +567,7 @@ estimate_popsize <- function(formula,
     }
   }
   names(start) <- colnames(Xvlm)
+  
   FITT <- estimate_popsize.fit(
     y = observed[wch$reg],
     X = Xvlm,
@@ -576,15 +577,20 @@ estimate_popsize <- function(formula,
     prior.weights = prior.weights[wch$reg],
     start = start
   )
+  
   coefficients <- FITT$beta
   names(coefficients) <- names(start)
   iter <- FITT$iter
   df.reduced <- nrow(Xvlm) - length(coefficients)
+  
   logLike <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
   weight = prior.weights[wch$reg])
-  grad <- family$makeGradient(y = observed[wch$reg], X = Xvlm, weight = prior.weights[wch$reg])
-  hessian <- family$makeHessian(y = observed[wch$reg], X = Xvlm,
-  weight = prior.weights[wch$reg])
+  
+  grad <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm, 
+  weight = prior.weights[wch$reg], deriv = 1)
+  
+  hessian <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
+  weight = prior.weights[wch$reg], deriv = 2)
 
   hess <- hessian(coefficients)
   eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = family$parNum)
