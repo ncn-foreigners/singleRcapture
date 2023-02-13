@@ -90,7 +90,7 @@
 #' @importFrom stats qqnorm
 #' @importFrom graphics boxplot
 #' @importFrom graphics panel.smooth
-#' @seealso [estimate_popsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
+#' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
 #' @export
 plot.singleR <- function(x, 
                          plotType = c("QQ", "marginal", "fitresid",

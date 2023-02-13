@@ -1,18 +1,18 @@
 #' @title Regression fitting in single source capture-recapture models
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
-#' @description \code{estimate_popsize.fit} does for \code{estimate_popsize} what
+#' @description \code{estimatePopsize.fit} does for \code{estimatePopsize} what
 #' \code{glm.fit} does for \code{glm}. It is internally called in 
-#' \code{estimate_popsize}. Since \code{estimate_popsize} does much more than
-#' just regression fitting \code{estimate_popsize.fit} is much faster.
+#' \code{estimatePopsize}. Since \code{estimatePopsize} does much more than
+#' just regression fitting \code{estimatePopsize.fit} is much faster.
 #'
 #' @param y vector of dependent variables.
 #' @param X model matrix, the vglm one.
-#' @param family same as model in \code{estimate_popsize}.
-#' @param control control parameters created in \code{control.model}.
-#' @param method method of estimation same as in \code{estimate_popsize}.
+#' @param family same as model in \code{estimatePopsize}.
+#' @param control control parameters created in \code{controlModel}.
+#' @param method method of estimation same as in \code{estimatePopsize}.
 #' @param prior.weights vector of prior weights its the same argument as weights
-#' in \code{estimate_popsize}.
+#' in \code{estimatePopsize}.
 #' @param start initial value of regression parameters.
 #' @param ... arguments to pass to other methods.
 #' 
@@ -21,7 +21,7 @@
 #' (minus) log likelihood functions as \code{gr} and \code{fn} arguments. 
 #' Unfortunately \code{optim} does not allow for hessian to be specified.
 #' More information about how to modify \code{optim} fitting is included in 
-#' [control.method()].
+#' [controlMethod()].
 #' 
 #' 
 #' If \code{method} argument was set to \code{"IRLS"} the iteratively reweighted 
@@ -77,9 +77,9 @@
 #' 
 #' @return List with regression parameters, working weights 
 #' (if IRLS fitting method) was chosen and number of iterations taken.
-#' @seealso [stats::glm()] [estimate_popsize()] [control.method()] [stats::optim()]
+#' @seealso [stats::glm()] [estimatePopsize()] [controlMethod()] [stats::optim()]
 #' @export
-estimate_popsize.fit <- function(y, X,
+estimatePopsize.fit <- function(y, X,
                                  family,
                                  control,
                                  method,

@@ -136,7 +136,7 @@ ztHurdlegeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function(y, mu, wt, theta, ...) {
+  devResids <- function(y, mu, wt, theta, ...) {
     #TODO
     0
   }
@@ -218,7 +218,7 @@ ztHurdlegeom <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

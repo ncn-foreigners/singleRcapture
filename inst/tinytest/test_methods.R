@@ -8,7 +8,7 @@
 #    counts <- rnbinom(N, mu = exp(eta), size = disp)
 #    df <- data.frame(gender, eta, counts)
 #    df2 <- subset(df, counts > 0)
-#    mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, 
+#    mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, 
 #                              data = df2,
 #                              model = "ztnegbin", 
 #                              method = "optim",
@@ -19,7 +19,7 @@
 #   c(2920, 10)
 # )
 expect_warning(
-  Model <- estimate_popsize(
+  Model <- estimatePopsize(
     formula = capture ~ nation + age + gender, 
     data = netherlandsimmigrant, 
     model = ztpoisson, 
@@ -28,7 +28,7 @@ expect_warning(
 )
 
 expect_silent(
-  Model1 <- estimate_popsize(
+  Model1 <- estimatePopsize(
     formula = capture ~ 1, 
     data = netherlandsimmigrant, 
     model = ztpoisson, 
@@ -37,7 +37,7 @@ expect_silent(
 )
 
 expect_warning(
-  Model2 <- estimate_popsize(
+  Model2 <- estimatePopsize(
     formula = capture ~ . - age - reason, 
     data = netherlandsimmigrant, 
     model = zelterman, 
@@ -46,7 +46,7 @@ expect_warning(
 )
 
 expect_warning(
-  Model3 <- estimate_popsize(
+  Model3 <- estimatePopsize(
     formula = capture ~ . - age, 
     data = netherlandsimmigrant, 
     model = chao, 
@@ -55,7 +55,7 @@ expect_warning(
 )
 
 expect_silent(
-  Model4 <- estimate_popsize(
+  Model4 <- estimatePopsize(
     formula = TOTAL_SUB ~ ., 
     data = farmsubmission, 
     model = ztnegbin,
@@ -64,14 +64,14 @@ expect_silent(
 )
 
 expect_silent(
-  Model5 <- estimate_popsize(
+  Model5 <- estimatePopsize(
     formula = TOTAL_SUB ~ ., 
     data = farmsubmission, 
     model = ztoigeom, 
     method = "IRLS",
-    control.pop.var = control.pop.var(covType = "Fisher"),
-    control.model = control.model(omegaFormula = ~ log_distance),
-    control.method = control.method(stepsize = .45)
+    controlPopVar = controlPopVar(covType = "Fisher"),
+    controlModel = controlModel(omegaFormula = ~ log_distance),
+    controlMethod = controlMethod(stepsize = .45)
   )
 )
 

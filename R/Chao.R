@@ -76,7 +76,7 @@ chao <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, eta, wt, ...) {
+  devResids <- function(y, eta, wt, ...) {
     z <- y - 1
     mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
@@ -133,7 +133,7 @@ chao <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

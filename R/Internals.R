@@ -265,7 +265,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       eta = eta, trace = control$traceBootstrapSize,
       visT = control$bootstrapVisualTrace,
       method = control$fittingMethod,
-      control.bootstrap.method = control$bootstrapFitcontrol,
+      controlBootstrapMethod = control$bootstrapFitcontrol,
       N = N, Xvlm = Xvlm, modelFrame = modelFrame
     )
 
@@ -580,7 +580,7 @@ singleRinternalMultiplyWeight <- function (X, W, ...) {
 }
 # TODO
 cholFroW <- function(W, prior) {
-  if (NROW(W) != NROW(prior)) stop("Error in estimate_popsize.fit, working weights and prior weights suggest different number of observations.")
+  if (NROW(W) != NROW(prior)) stop("Error in estimatePopsize.fit, working weights and prior weights suggest different number of observations.")
   L <- list()
   for (k in 1:NROW(W)) {
     L[[k]] <- chol(matrix(prior[k] * W[k,], ncol = 2, nrow = 2))

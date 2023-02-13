@@ -149,7 +149,7 @@ summary.singleR <- function(object,
 #' \dontrun{
 #' # For singleR class
 #' # Get simple model
-#' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+#' Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
 #' method = "IRLS")
@@ -179,7 +179,7 @@ dfpopsize <- function(model, ...) {
 #' population size estimation results.
 #' @examples
 #' # Create simple model
-#' Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+#' Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
 #' method = "IRLS")
@@ -207,86 +207,6 @@ redoPopEstimation <- function(object, ...) {
 popSizeEst <- function(object, ...) {
   UseMethod("popSizeEst")
 }
-# gridSearch.singleR <- function(object, useOptim, updateCalculations = TRUE, ...) {
-#   # TODO::
-#   ################
-#   ## Important ###
-#   ################
-#   # check this for new function
-#   # Make this a method or a function??
-#   # TODO search on all start parameters
-#   if (isFALSE(grepl("^ztoi", object$model$family))) {
-#     stop("For now only one iflated models have this method implemented")
-#   }
-#   logL <- object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights)
-#   FUN <- function(CHNG) {
-#     A <- estimate_popsize.fit(
-#       y = object$y,
-#       X = object$X,
-#       family = object$model,
-#       control = object$control$control.method,
-#       method = object$call$method,
-#       prior.weights = object$prior.weights,
-#       start = c(CHNG, object$coefficients[-1]),
-#       dispersion = object$dispersion,
-#       omegaTheta = CHNG,
-#       ...
-#     )$beta
-#     return(logL(A))
-#   }
-#   opt <- stats::optim(par = object$omegaTheta,fn = FUN, lower = -.95, upper = 10, method = "Brent", ...)$par
-#   if (isTRUE(updateCalculations)) {
-#     FITT <- estimate_popsize.fit(
-#       y = object$y,
-#       X = object$X,
-#       family = object$model,
-#       control = object$control$control.method,
-#       method = object$call$method,
-#       prior.weights = object$prior.weights,
-#       start = c(opt, object$coefficients[-1]),
-#       dispersion = object$dispersion,
-#       omegaTheta = opt,
-#       ...
-#     )
-#     object$coefficients <- FITT$beta
-#     eta <- as.matrix(object$X) %*% object$coefficients[-1]
-#     rownames(eta) <- rownames(object$X)
-#     object$iter <- FITT$iter
-#     object$weights <- FITT$weights
-#     object$linear.predictors <- eta
-#     object$fitt.values <- data.frame("mu" = object$model$mu.eta(eta, disp = object$dispersion, theta = opt),
-#                                      "link" = object$model$linkinv(eta))
-#     object$omegaTheta <- opt
-#     LOG <- -logL(FITT$beta)
-#     object$logL <- LOG
-#     object$resRes <- object$prior.weights * (object$y - object$fitt.values)
-#     object$aic <- 2 * (length(FITT$beta) - LOG)
-#     object$bic <- length(FITT$beta) * log(length(object$y)) - 2 * LOG
-#     object$deviance <- sum(object$model$dev.resids(y = object$y, 
-#                                                    mu = object$model$linkinv(eta),
-#                                                    disp = object$dispersion,
-#                                                    wt = object$prior.weights, 
-#                                                    theta = opt) ** 2)
-#     object$populationSize <- singleRcaptureinternalpopulationEstimate(
-#       y = object$y,
-#       X = object$X,
-#       grad = object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights, deriv = 1),
-#       hessian = object$model$makeMinusLogLike(y = object$y, X = object$X, weight = object$prior.weights, deriv = 2),
-#       method = object$call$pop.var,
-#       weights = object$prior.weights,
-#       weights0 = object$prior.weights,
-#       lambda = object$fitt.values$link,
-#       family = object$model,
-#       dispersion = object$dispersion,
-#       omegaTheta = object$omegaTheta,
-#       beta = object$coefficients,
-#       control = object$populationSize$control
-#     )
-#     return(object)
-#   } else {
-#     return(opt)
-#   }
-# }
 #' @title Statistical tests of goodness of fit.
 #'
 #' @description Performs two statistical test on observed and fitted
@@ -314,7 +234,7 @@ popSizeEst <- function(object, ...) {
 #' @return A chi squared test and G test for comparison between fitted and observed marginal frequencies.
 #' @examples 
 #' # Create a simple model
-#' Model <- estimate_popsize(formula = capture ~ ., 
+#' Model <- estimatePopsize(formula = capture ~ ., 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
 #' method = "IRLS")
@@ -458,7 +378,7 @@ vcov.singleR <- function(object,
 #' matrixes corresponding to second derivatives with respect to each linear 
 #' predictor (and mixed derivatives) and 
 #' \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} is a model (vlm) matrix constructed using 
-#' "main" formula and additional formulas specified in \code{control.model}. 
+#' "main" formula and additional formulas specified in \code{controlModel}. 
 #' @method hatvalues singleR
 #' @importFrom stats hatvalues
 #' @return A matrix with n rows and p columns where n is a number of observations
@@ -488,7 +408,7 @@ hatvalues.singleR <- function(model, ...) {
 #' after the romoval of kth row. By default 1.
 #' @param ... Additional optional arguments passed to the following functions:
 #' \itemize{
-#' \item \code{control.method} -- For controlling the simulation of dfbeta.
+#' \item \code{controlMethod} -- For controlling the simulation of dfbeta.
 #' }
 #' 
 #' @return A matrix with n rows and p observations where p is a number of
@@ -510,8 +430,8 @@ dfbetasingleR <- function(model,
   pw <- model$prior.weights[model$which$reg]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
   for (k in 1:nrow(X)) {
-    res[k, ] <- cf - estimate_popsize.fit(
-      control = control.method(
+    res[k, ] <- cf - estimatePopsize.fit(
+      control = controlMethod(
         silent = TRUE, 
         start = cf,
         maxiter = maxit.new + 1,
@@ -588,14 +508,14 @@ residuals.singleR <- function(object,
     response = res,
     pearson = data.frame("pearson" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
     pearsonSTD = data.frame("pearsonSTD" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
-    deviance = data.frame("deviance" = object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
+    deviance = data.frame("deviance" = object$model$devResids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
       as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
       res,
       "pearson" = as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
       "pearsonSTD" = if (object$model$parNum == 1) as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))) else 0,
-      "deviance" = as.numeric(object$model$dev.resids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
+      "deviance" = as.numeric(object$model$devResids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
       row.names = rownames(object$linear.predictors)
     )}
   )
@@ -919,7 +839,7 @@ fitted.singleR <- function(object,
 #' #' counts <- rpois(N, lambda = exp(eta))
 #' #' df <- data.frame(gender, eta, counts)
 #' #' df2 <- subset(df, counts > 0)
-#' #' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' #' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
 #' #' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' #' mod1_sims <- simulate(mod1, nsim=10)
 #' #' colMeans(mod1_sims) 

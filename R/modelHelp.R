@@ -6,7 +6,7 @@
 #' functions that specify variable parts of population size estimation,
 #' regression, diagnostics and other necessary information that depends
 #' on the model. These functions are used as \code{model} argument in
-#' \code{estimate_popsize} function.
+#' \code{estimatePopsize} function.
 #' 
 #' @param nSim If working weights cannot be computed analytically this argument
 #' specifies maximum number of simulations allowed to find them numerically. 
@@ -181,7 +181,7 @@
 #' \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
 #' }{}
 #' 
-#' @seealso [estimate_popsize()]
+#' @seealso [estimatePopsize()]
 #'
 #' @return A object of class \code{family} containing objects:
 #' \itemize{
@@ -205,7 +205,7 @@
 #' link function).
 #' \item \code{funcZ, Wfun} -- Functions that create pseudo residuals and
 #' working weights used in IRLS algorithm.
-#' \item \code{dev.resids} -- Function that given the linear predictors
+#' \item \code{devResids} -- Function that given the linear predictors
 #' prior weights vector and response vector returns deviance residuals.
 #' Not all family functions have these functions implemented yet.
 #' \item \code{pointEst, popVar} -- Functions that given prior weights

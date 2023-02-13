@@ -87,7 +87,7 @@ transormed into some elements of parameter space the subjected to inverse
 link function).
 \item \code{funcZ, Wfun} -- Functions that create pseudo residuals and
 working weights used in IRLS algorithm.
-\item \code{dev.resids} -- Function that given the linear predictors
+\item \code{devResids} -- Function that given the linear predictors
 prior weights vector and response vector returns deviance residuals.
 Not all family functions have these functions implemented yet.
 \item \code{pointEst, popVar} -- Functions that given prior weights
@@ -111,7 +111,7 @@ Package \code{singleRcapture} utilises various family type
 functions that specify variable parts of population size estimation,
 regression, diagnostics and other necessary information that depends
 on the model. These functions are used as \code{model} argument in
-\code{estimate_popsize} function.
+\code{estimatePopsize} function.
 }
 \details{
 \loadmathjax
@@ -282,7 +282,7 @@ and \emph{chao} estimator has the form:
 }{}
 }
 \seealso{
-\code{\link[=estimate_popsize]{estimate_popsize()}}
+\code{\link[=estimatePopsize]{estimatePopsize()}}
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz

@@ -81,7 +81,7 @@ ztgeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, eta, wt, ...) {
+  devResids <- function (y, eta, wt, ...) {
     mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     hm1y <- y - 1 # that's an analytic inverse for geometric
@@ -139,7 +139,7 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

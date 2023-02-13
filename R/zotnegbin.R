@@ -300,7 +300,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function (y, eta, wt, ...) {
+  devResids <- function (y, eta, wt, ...) {
     # disp1 <- exp(eta[, 2])
     # mu <- invlink(eta[, 1])
     # mu1 <- mu.eta(eta = eta)
@@ -389,7 +389,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar = popVar,

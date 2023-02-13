@@ -1,8 +1,8 @@
 #' @title Control parameters for regression
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' \loadmathjax
-#' @description \code{control.method} constructs a list with all necessary control parameters
-#' for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
+#' @description \code{controlMethod} constructs a list with all necessary control parameters
+#' for regression fitting in \code{estimatePopsize.fit} and \code{estimatePopsize}.
 #'
 #' @param epsilon Tolerance for fitting algorithms by default 1e-8.
 #' @param maxiter Maximum number of iterations.
@@ -53,9 +53,9 @@
 #' multiple values may be provided. By default \code{c("coef", "abstol")}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
 #' @export
-control.method <- function(epsilon = 1e-8,
+controlMethod <- function(epsilon = 1e-8,
                            maxiter = 1000,
                            verbose = 0,
                            start = NULL,
@@ -101,8 +101,8 @@ control.method <- function(epsilon = 1e-8,
 #' @title Control parameters specific to some models
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
-#' @description \code{control.model} constructs a list with all necessary control parameters
-#' in \code{estimate_popsize} that are either specific to selected model or don't fit
+#' @description \code{controlModel} constructs a list with all necessary control parameters
+#' in \code{estimatePopsize} that are either specific to selected model or don't fit
 #' anywhere else.
 #' 
 #' Specifying additional formulas should be done by using only right hand side of
@@ -121,13 +121,12 @@ control.method <- function(epsilon = 1e-8,
 #' @param piFormula Formula for probability parameter in pseudo hurdle zero 
 #' truncated and zero truncated pseudo hurdle models.
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.method()] [singleRcapture::control.pop.var()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlMethod()] [singleRcapture::controlPopVar()]
 #' @export
-control.model <- function(weightsAsCounts = FALSE,
-                          omegaFormula = ~ 1,
-                          alphaFormula = ~ 1,
-                          piFormula = ~ 1
-                          ) {
+controlModel <- function(weightsAsCounts = FALSE,
+                         omegaFormula = ~ 1,
+                         alphaFormula = ~ 1,
+                         piFormula = ~ 1) {
   # This is not fully completed yet.
   list(
     weightsAsCounts = weightsAsCounts,
@@ -151,7 +150,7 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.
 #' @param bootstrapVisualTrace Boolean value indicating whether to plot bootstrap statistics in real time.
 #' @param fittingMethod Method used for fitting models from bootstrap samples.
-#' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{control.method} but for fitting models from bootstrap samples.
+#' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{controlMethod} but for fitting models from bootstrap samples.
 #' @param sd Indicates how to compute standard deviation of population size estimator either as:
 #' \loadmathjax
 #' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
@@ -161,26 +160,25 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.method()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlMethod()]
 #' @export
-control.pop.var <- function(alpha = .05,
-                            trcount = 0,
-                            bootType = c("parametric",
-                                         "semiparametric",
-                                         "nonparametric"),
-                            B = 500,
-                            confType = c("percentilic",
-                                         "studentized",
-                                         "basic"), # TODO: add all
-                            keepbootStat = TRUE,
-                            traceBootstrapSize = FALSE,
-                            bootstrapVisualTrace = FALSE,
-                            fittingMethod = NULL,
-                            bootstrapFitcontrol = NULL,
-                            sd = c("sqrtVar", "normalMVUE"),
-                            covType = c("observedInform",
-                                        "Fisher")
-                            ) {
+controlPopVar <- function(alpha = .05,
+                          trcount = 0,
+                          bootType = c("parametric",
+                                       "semiparametric",
+                                       "nonparametric"),
+                          B = 500,
+                          confType = c("percentilic",
+                                       "studentized",
+                                       "basic"), # TODO: add all
+                          keepbootStat = TRUE,
+                          traceBootstrapSize = FALSE,
+                          bootstrapVisualTrace = FALSE,
+                          fittingMethod = NULL,
+                          bootstrapFitcontrol = NULL,
+                          sd = c("sqrtVar", "normalMVUE"),
+                          covType = c("observedInform",
+                                      "Fisher")) {
   list(
     alpha = alpha,
     trcount = trcount,

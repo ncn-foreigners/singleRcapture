@@ -37,7 +37,7 @@ say < 5, so it is customary to either censor or omit these cells.
 }
 \examples{
 # Create a simple model
-Model <- estimate_popsize(formula = capture ~ ., 
+Model <- estimatePopsize(formula = capture ~ ., 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
 method = "IRLS")

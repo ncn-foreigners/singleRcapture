@@ -77,7 +77,7 @@ ztpoisson <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, eta, wt, ...) {
+  devResids <- function(y, eta, wt, ...) {
     mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
     #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
@@ -135,7 +135,7 @@ ztpoisson <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

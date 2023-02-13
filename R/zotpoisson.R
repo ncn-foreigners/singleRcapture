@@ -10,8 +10,8 @@ zotpoisson <- function(...) {
   mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = lambda,
-            "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
+    "nontrunc" = lambda,
+    "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     )
   }
 
@@ -76,17 +76,28 @@ zotpoisson <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, eta, wt, ...) {
-    mu <- invlink(eta)
-    mu1 <- mu.eta(eta = eta)
-    a <- function(y) {stats::uniroot(f = function(x) {mu.eta(x, disp = NULL) - y}, lower = -log(y), upper = y * 10, tol = .Machine$double.eps)$root}
-    loghm1y <- y
-    loghm1y[y == 2] <- -Inf
-    loghm1y[y > 2] <- sapply(y[y > 2], FUN = a)
-    loghm1y[y == 2] <- -10
-    hm1y <- exp(loghm1y)
-    log1mexphm1y <- log(1 - exp(-hm1y) - hm1y * exp(-hm1y))#ifelse(y > 2, log(1 - exp(-hm1y) - hm1y * exp(-hm1y)), 0)
-    sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu) - mu * exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
+  devResids <- function(y, eta, wt, ...) {
+    lambda <- invlink(eta)
+    mu <- mu.eta(eta = eta)
+    
+    inverseFunction <- function(y) {stats::uniroot(
+      f = function(x) {mu.eta(x) - y}, 
+      lower = -log(y), upper = y * 10, 
+      tol = .Machine$double.eps
+    )$root}
+    
+    etaSat <- vector("numeric", length = length(y))
+    
+    etaSat[y == 2] <- -Inf
+    etaSat[y > 2] <- sapply(y[y > 2], FUN = inverseFunction)
+    lambdaSat <- exp(etaSat)
+    print(lambdaSat)
+    
+    lFit <- y * eta - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda))
+    lSat <- ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
+    y * etaSat - lambdaSat - log(1 - exp(-lambdaSat) - lambdaSat * exp(-lambdaSat)))
+    
+    sign(y - mu) * sqrt(-2 * wt * (lFit - lSat))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -141,7 +152,7 @@ zotpoisson <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

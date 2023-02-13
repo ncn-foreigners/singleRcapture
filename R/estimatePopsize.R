@@ -3,7 +3,7 @@ NULL
 #' @title Single source capture-recapture models
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
-#' @description \code{estimate_popsize} first fits appropriate (v)glm model and 
+#' @description \code{estimatePopsize} first fits appropriate (v)glm model and 
 #' then estimates full (observed and unobserved) population size.
 #' In this types of models it is assumed that the response vector 
 #' (i.e. the dependent variable) corresponds to the number of times a given unit 
@@ -24,18 +24,18 @@ NULL
 #' @param na.action Not yet implemented.
 #' @param method Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).
 #' @param pop.var A method of constructing confidence interval either analytic or bootstrap.
-#' Bootstrap confidence interval type may be specified in \code{control.pop.var.} 
+#' Bootstrap confidence interval type may be specified in \code{controlPopVar.} 
 #' There is also the third possible value of \code{noEst} which skips the population size estimate all together.
-#' @param control.method A list indicating parameters to use in fitting the model may be constructed with \code{singleRcapture::control.method} function. More information included in [control.method()].
-#' @param control.model A list indicating additional formulas for regression (like formula for inflation parameter/dispersion parameter) may be constructed with \code{singleRcapture::control.model} function. More information will eventually be included in More information included in [control.model()].
-#' @param control.pop.var A list indicating parameters to use in estimating variance of population size estimation may be constructed with \code{singleRcapture::control.pop.var} function. More information included in [control.pop.var()].
+#' @param controlMethod A list indicating parameters to use in fitting the model may be constructed with \code{singleRcapture::controlMethod} function. More information included in [controlMethod()].
+#' @param controlModel A list indicating additional formulas for regression (like formula for inflation parameter/dispersion parameter) may be constructed with \code{singleRcapture::controlModel} function. More information will eventually be included in More information included in [controlModel()].
+#' @param controlPopVar A list indicating parameters to use in estimating variance of population size estimation may be constructed with \code{singleRcapture::controlPopVar} function. More information included in [controlPopVar()].
 #' @param modelFrame,x,y Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.
 #' @param contrasts Not yet implemented.
 #' @param ... Additional optional arguments passed to the following functions:
 #' \itemize{
 #'   \item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
 #'   \item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
-#'   \item \code{estimate_popsize.fit} -- possibly for picking starting points from zero truncated poisson regression.
+#'   \item \code{estimatePopsize.fit} -- possibly for picking starting points from zero truncated poisson regression.
 #'   \item \code{stats::glm.fit} -- for picking starting points from simple poisson regression.
 #' } 
 #' 
@@ -45,7 +45,7 @@ NULL
 #' generalized linear model is similarly characterised by equations
 #' \mjdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}{eta_k=X_k*beta_k}
 #' where \mjeqn{\boldsymbol{X}_{k}}{X_k} is a (lm) model matrix constructed
-#' from appropriate formula (specified in \code{control.model} parameter).
+#' from appropriate formula (specified in \code{controlModel} parameter).
 #' The \mjeqn{\boldsymbol{\eta}}{eta} is then a vector constructed as:
 #' \mjdeqn{\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1}^{T} & \boldsymbol{\eta}_{2}^{T} & \dotso & \boldsymbol{\eta}_{p}^{T}\end{pmatrix}^{T}}{eta = (eta_1', eta_2', ..., eta_p')'}
 #' and the (vlm) model matrix is constructed as a block matrix:
@@ -63,7 +63,7 @@ NULL
 #' this differs from convention in \code{VGAM} package but this is just a 
 #' convention and does not affect the model, this convention is taken
 #' because it makes fitting with IRLS (explanation of algorithm in 
-#' [estimate_popsize.fit()]) algorithm easier.
+#' [estimatePopsize.fit()]) algorithm easier.
 #' In this package we use observed likelihood to fit regression models.
 #' 
 #' As mentioned aboce usually the population size estimation is done via:
@@ -136,7 +136,7 @@ NULL
 #' units from data with replacement and just computing \mjeqn{\hat{N}}{N}.
 #' 
 #' Method described above is refered to in literature as \code{"nonparametric"}
-#' bootstrap (see [control.pop.var()]), due to ignoring variability in observed
+#' bootstrap (see [controlPopVar()]), due to ignoring variability in observed
 #' sample size it is likely to underestimate variance.
 #' 
 #' A more sophisticated bootstrap procedure may be described as follows:
@@ -158,7 +158,7 @@ NULL
 #' use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
 #' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
-#' specified in [control.pop.var()].
+#' specified in [controlPopVar()].
 #' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
 #' it is necessary to assume that the have a correct estimate \mjeqn{\hat{N}}{N}
@@ -188,9 +188,9 @@ NULL
 #' use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
 #' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType}
-#' specified in [control.pop.var()]
+#' specified in [controlPopVar()]
 #' 
-#' It is also worth noting that in the \code{"analytic"} method \code{estimate_popsize}
+#' It is also worth noting that in the \code{"analytic"} method \code{estimatePopsize}
 #' only uses "standard" covariance matrix estimation. It is possible that improper
 #' covariance matrix estimate is the only part of estimation that has its assumptions
 #' violated. In such cases post-hoc procedures are implemented in this package
@@ -265,10 +265,10 @@ NULL
 #' \itemize{
 #'  \item{\code{y} -- Vector of dependent variable if specified at function call.}
 #'  \item{\code{X} -- Model matrix if specified at function call.}
-#'  \item{\code{formula} -- A list with formula provided on call and additional formulas specified in \code{control.model}.}
+#'  \item{\code{formula} -- A list with formula provided on call and additional formulas specified in \code{controlModel}.}
 #'  \item{\code{call} -- Call matching original input.}
 #'  \item{\code{coefficients} -- A vector of fitted coefficients of regression.}
-#'  \item{\code{control} -- A list of control parameters for \code{control.method} and \code{control.model}, \code{control.pop.var} is included in populationSize.}
+#'  \item{\code{control} -- A list of control parameters for \code{controlMethod} and \code{controlModel}, \code{controlPopVar} is included in populationSize.}
 #'  \item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
 #'  \item{\code{deviance} -- Deviance for the model.}
 #'  \item{\code{prior.weights} -- Prior weight provided on call.}
@@ -296,13 +296,13 @@ NULL
 #' [stats::optim()] -- For more information on \code{optim} function used in 
 #' \code{optim} method of fitting regression.
 #' 
-#' [control.method()] -- For control parameters related to regression.
+#' [controlMethod()] -- For control parameters related to regression.
 #' 
-#' [control.pop.var()] -- For control parameters related to population size estimation.
+#' [controlPopVar()] -- For control parameters related to population size estimation.
 #' 
-#' [control.model()] -- For control parameters related to model specification.
+#' [controlModel()] -- For control parameters related to model specification.
 #' 
-#' [estimate_popsize.fit()] -- For more information on fitting procedure in
+#' [estimatePopsize.fit()] -- For more information on fitting procedure in
 #' \code{esitmate_popsize}.
 #' 
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
@@ -323,7 +323,7 @@ NULL
 #' # Point and interval estimation of the
 #' # population size using the truncated Poisson regression mode
 #' # Heijden, Peter GM van der et al. (2003)
-#' model <- estimate_popsize(formula = capture ~ gender + age + nation, 
+#' model <- estimatePopsize(formula = capture ~ gender + age + nation, 
 #' data = netherlandsimmigrant, model = ztpoisson)
 #' summary(model)
 #' # Graphical presentation of model fit
@@ -331,7 +331,7 @@ NULL
 #' # Statistical test
 #' summary(marginalFreq(model), df = 1)
 #' 
-#' modelSingleRcapture <- estimate_popsize(formula = TOTAL_SUB ~ ., 
+#' modelSingleRcapture <- estimatePopsize(formula = TOTAL_SUB ~ ., 
 #' data = farmsubmission, model = ztnegbin, method = "IRLS")
 #' # comparison with VGAM package, VGAM uses slightly different parametrisation
 #' # so we use negloglink instead of loglink for size parameter
@@ -348,10 +348,10 @@ NULL
 #' 
 #' # More advanced call that specifies additional formula and shows
 #' # in depth information about fitting procedure
-#' pseudoHurdleModel <- estimate_popsize(formula = capture ~ nation + age + gender, 
+#' pseudoHurdleModel <- estimatePopsize(formula = capture ~ nation + age + gender, 
 #' data = netherlandsimmigrant, model = Hurdleztgeom, 
-#' method = "IRLS", control.method = control.method(verbose = 5), 
-#' control.model = control.model(piFormula = ~ gender))
+#' method = "IRLS", controlMethod = controlMethod(verbose = 5), 
+#' controlModel = controlModel(piFormula = ~ gender))
 #' summary(pseudoHurdleModel)
 #' # very good fit may be a little over fitted
 #' plot(pseudoHurdleModel, "rootogram")
@@ -362,10 +362,10 @@ NULL
 #' 
 #' # A advanced input with additional information for fitting procedure and
 #' # additional formula specification.
-#' Model <- estimate_popsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-#' model = oiztgeom, method = "IRLS", control.method = control.method(
+#' Model <- estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
+#' model = oiztgeom, method = "IRLS", controlMethod = controlMethod(
 #' verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
-#' silent = TRUE), control.model = control.model(omegaFormula = ~ .))
+#' silent = TRUE), controlModel = controlModel(omegaFormula = ~ .))
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
 #' }
 #' @importFrom stats glm.fit
@@ -377,7 +377,7 @@ NULL
 #' @importFrom stats pnorm
 #' @importFrom stats family
 #' @export
-estimate_popsize <- function(formula,
+estimatePopsize <- function(formula,
                              data,
                              model = c("ztpoisson", "ztnegbin", "ztgeom", 
                                        "zotpoisson", "ztoipoisson", "oiztpoisson", 
@@ -389,13 +389,13 @@ estimate_popsize <- function(formula,
                              weights = NULL,
                              subset = NULL,
                              na.action = NULL,
-                             method = c("optim", "IRLS"),
+                             method = c("optim", "IRLS", "maxLik"), # TODO add max lik to fit
                              pop.var = c("analytic",
                                          "bootstrap",
                                          "noEst"),
-                             control.method = NULL,
-                             control.model = NULL,
-                             control.pop.var = NULL,
+                             controlMethod = NULL,
+                             controlModel = NULL,
+                             controlPopVar = NULL,
                              modelFrame = TRUE,
                              x = FALSE,
                              y = TRUE,
@@ -403,10 +403,13 @@ estimate_popsize <- function(formula,
                              ...) {
   if (missing(method)) method <- "optim"
   if (missing(pop.var)) pop.var <- "analytic"
+  
   subset <- parse(text = deparse(substitute(subset)))
+  
   if (!is.data.frame(data)) {
     data <- data.frame(data)
   }
+  
   family <- model
   if (is.character(family)) {
     family <- get(family, mode = "function", envir = parent.frame())
@@ -418,42 +421,42 @@ estimate_popsize <- function(formula,
   returnElements <- list(y, x, modelFrame)
   # adding control parameters that may possibly be missing
   # since passing simple lists as control arguments is allowed
-  m1 <- control.pop.var
+  m1 <- controlPopVar
   m1 <- m1[sapply(m1, is.null) == FALSE]
-  m2 <- control.pop.var(fittingMethod = match.arg(method), 
-  bootstrapFitcontrol = control.method(epsilon = 1e-3, maxiter = 20, 
+  m2 <- controlPopVar(fittingMethod = match.arg(method), 
+  bootstrapFitcontrol = controlMethod(epsilon = 1e-3, maxiter = 20, 
   optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi") || grepl(x = family$family, pattern = "^oizt")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.pop.var <- append(m1, m2)
-  m1 <- control.method
-  m2 <- control.method(optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
+  controlPopVar <- append(m1, m2)
+  m1 <- controlMethod
+  m2 <- controlMethod(optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.method <- append(m1, m2)
-  m1 <- control.model
-  m2 <- control.model()
+  controlMethod <- append(m1, m2)
+  m1 <- controlModel
+  m2 <- controlModel()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  control.model <- append(m1, m2)
+  controlModel <- append(m1, m2)
   
-  modelFrame1 <- stats::model.frame(formula, data,  ...)
-  variables <- stats::model.matrix(formula, modelFrame1, contrasts = contrasts, ...)
-  terms <- attr(modelFrame1, "terms")
+  modelFrame <- stats::model.frame(formula, data,  ...)
+  variables <- stats::model.matrix(formula, modelFrame, contrasts = contrasts, ...)
+  terms <- attr(modelFrame, "terms")
   contrasts <- attr(variables, "contrasts")
   
-  subset <- eval(subset, modelFrame1)
+  subset <- eval(subset, modelFrame)
   if (is.null(subset)) {subset <- TRUE}
   # subset is often in conflict with some common packages hence explicit call
-  modelFrame1 <- base::subset(modelFrame1, subset = subset)
-  attributes(modelFrame1)$terms <- terms # subset deletes terms attribute for some reason
+  modelFrame <- base::subset(modelFrame, subset = subset)
+  attributes(modelFrame)$terms <- terms # subset deletes terms attribute for some reason
   variables <- base::subset(variables, subset = subset)
-  observed <- modelFrame1[, attr(terms, "response")]
+  observed <- modelFrame[, attr(terms, "response")]
   if (NCOL(observed) > 1) stop("Single source capture-recapture models support only single dependent variable")
-  sizeObserved <- nrow(data) + control.pop.var$trcount
+  sizeObserved <- nrow(data) + controlPopVar$trcount
 
   
   if (!is.null(weights)) {
     prior.weights <- as.numeric(weights)
   } else {
-    prior.weights <- rep(1, nrow(modelFrame1))
+    prior.weights <- rep(1, nrow(modelFrame))
   }
   weights <- 1
   
@@ -467,24 +470,24 @@ estimate_popsize <- function(formula,
   
   formulas <- list(formula)
   if ("alpha" %in% family$etaNames) {
-    formulas <- append(x = formulas, control.model$alphaFormula)
+    formulas <- append(x = formulas, controlModel$alphaFormula)
   }
   if ("omega" %in% family$etaNames) {
-    formulas <- append(x = formulas, control.model$omegaFormula)
+    formulas <- append(x = formulas, controlModel$omegaFormula)
   }
   if ("pi" %in% family$etaNames) {
-    formulas <- append(x = formulas, control.model$piFormula)
+    formulas <- append(x = formulas, controlModel$piFormula)
   }
 
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
                                                        observed = observed, 
                                                        pop.var = pop.var)
 
-  control.pop.var$trcount <- control.pop.var$trcount + wch$trr
+  controlPopVar$trcount <- controlPopVar$trcount + wch$trr
   
   # TODO::
   ## move this to family functions
-  if (is.null(control.method$start)) {
+  if (is.null(controlMethod$start)) {
     start <- stats::glm.fit(
       x = variables[wch$reg, ],
       y = observed[wch$reg],
@@ -492,14 +495,14 @@ estimate_popsize <- function(formula,
       weights = prior.weights[wch$reg],
       ...
     )$coefficients
-    if (isTRUE(control.method$useZtpoissonAsStart)) {
-      start <- estimate_popsize.fit(
+    if (isTRUE(controlMethod$useZtpoissonAsStart)) {
+      start <- estimatePopsize.fit(
         y = observed[wch$reg],
         X = variables[wch$reg, ],
         family = ztpoisson(),
         start = start,
         hwm = ncol(variables),
-        control = control.method(),
+        control = controlMethod(),
         method = method,
         prior.weights = prior.weights,
         ...
@@ -509,39 +512,39 @@ estimate_popsize <- function(formula,
       start[1] <- start[1] + log(1 / 2)
     }
   } else {
-    start <- control.method$start
+    start <- controlMethod$start
   }
   
   if ("omega" %in% family$etaNames) {
-    if (is.null(control.method$omegaStart)) {
-      if (control.model$omegaFormula == ~ 1) {
+    if (is.null(controlMethod$omegaStart)) {
+      if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(table(observed[wch$reg]) * as.numeric(names(table(observed[wch$reg])))) - length(observed[wch$reg]))
         #start <- c(start, log(omg / (1 - omg)))
         start <- c(start, log(omg))
       } else {
-        #print(modelFrame1)
+        #print(modelFrame)
         #print(terms)
         #print(attr(terms, "term.labels"))
         #stop("stopy")
         #, select = attr(terms, "term.labels") i dunno why this was here but it stop interaction terms
         start <- c(start, stats::glm.fit(
-          x = model.matrix(control.model$omegaFormula, subset(modelFrame1, subset = wch$reg)),
+          x = model.matrix(controlModel$omegaFormula, subset(modelFrame, subset = wch$reg)),
           y = as.numeric(observed[wch$reg] == 1),
           family = stats::binomial(),
           ...
         )$coefficients)
       }
     } else {
-      start <- c(start, control.method$omegaStart)
+      start <- c(start, controlMethod$omegaStart)
     }
   }
-  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(modelFrame1, 
-                                                  select = colnames(modelFrame1)[-(attr(terms, "response"))], 
+  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(modelFrame, 
+                                                  select = colnames(modelFrame)[-(attr(terms, "response"))], 
                                                   subset = wch$reg), 
   nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
   if ("alpha" %in% family$etaNames) {
-    if (is.null(control.method$alphaStart)) {
-      if (control.model$alphaFormula == ~ 1) {
+    if (is.null(controlMethod$alphaStart)) {
+      if (controlModel$alphaFormula == ~ 1) {
         start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
       } else {
         cc <- colnames(Xvlm)
@@ -551,11 +554,11 @@ estimate_popsize <- function(formula,
         start <- c(start, start[cc])  # TODO: gosh this is terrible pick a better method
       }
     } else {
-      start <- c(start, control.method$alphaStart)
+      start <- c(start, controlMethod$alphaStart)
     }
   }
   if ("pi" %in% family$etaNames) {
-    if (is.null(control.method$piStart)) {
+    if (is.null(controlMethod$piStart)) {
       # maybe there is a less complicated way
       cc <- colnames(Xvlm)
       cc <- cc[grepl(x = cc, pattern = "pi$")]
@@ -563,16 +566,16 @@ estimate_popsize <- function(formula,
       cc <- cc[cc != "pi"]
       start <- c(start, start[cc])
     } else {
-      start <- c(start, control.method$piStart)
+      start <- c(start, controlMethod$piStart)
     }
   }
   names(start) <- colnames(Xvlm)
   
-  FITT <- estimate_popsize.fit(
+  FITT <- estimatePopsize.fit(
     y = observed[wch$reg],
     X = Xvlm,
     family = family,
-    control = control.method,
+    control = controlMethod,
     method = method,
     prior.weights = prior.weights[wch$reg],
     start = start
@@ -607,7 +610,7 @@ estimate_popsize <- function(formula,
   fitt <- data.frame(family$mu.eta(eta = eta),
   family$mu.eta(eta = eta, type = "nontrunc"))
   colnames(fitt) <- c("mu", "link")
-  if (control.pop.var$covType == "observedInform") { # maybe add warning and swich to fisher matrix ?????
+  if (controlPopVar$covType == "observedInform") { # maybe add warning and swich to fisher matrix ?????
     if ((sum(diag(-solve(hess)) <= 0) != 0)) {
       stop("Fitting error observed information matrix obtained from analytic hessian is invalid i.e not positive defined, try another model.")
     }
@@ -618,7 +621,7 @@ estimate_popsize <- function(formula,
   resRes <- prior.weights * (observed[wch$reg] - fitt)
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
 
-  deviance <- sum(family$dev.resids(y = observed[wch$reg], wt = prior.weights[wch$reg],
+  deviance <- sum(family$devResids(y = observed[wch$reg], wt = prior.weights[wch$reg],
   eta = if (family$family == "zelterman") eta[wch$reg] else eta) ** 2)
   
   POP <- singleRcaptureinternalpopulationEstimate(
@@ -632,11 +635,11 @@ estimate_popsize <- function(formula,
     eta = eta,
     family = family,
     beta = coefficients,
-    control = control.pop.var,
+    control = controlPopVar,
     Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
     W = if (method == "IRLS") weights else family$Wfun(prior = prior.weights, eta = eta),
     sizeObserved = sizeObserved,
-    modelFrame = modelFrame1,
+    modelFrame = modelFrame,
     cov = NULL
   )
   structure(
@@ -646,8 +649,8 @@ estimate_popsize <- function(formula,
       formula = formulas,
       call = match.call(),
       coefficients = coefficients,
-      control = list(control.model = control.model,
-                     control.method = control.method),
+      control = list(controlModel = controlModel,
+                     controlMethod = controlMethod),
       null.deviance = null.deviance,
       model = family,
       deviance = deviance,
@@ -660,9 +663,9 @@ estimate_popsize <- function(formula,
       df.null = length(observed) - 1,
       fitt.values = fitt,
       populationSize = POP,
-      modelFrame = if (isTRUE(returnElements[[3]])) modelFrame1 else NULL,
+      modelFrame = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
       linear.predictors = eta,
-      trcount = control.pop.var$trcount,
+      trcount = controlPopVar$trcount,
       sizeObserved = sizeObserved,
       terms = terms,
       contrasts = contrasts,

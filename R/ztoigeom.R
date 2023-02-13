@@ -174,7 +174,7 @@ ztoigeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function(y, eta, wt, ...) {
+  devResids <- function(y, eta, wt, ...) {
     omega <- invlink(eta)
     lambda <- omega[, 1]
     omega <- omega[, 2]
@@ -259,7 +259,7 @@ ztoigeom <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

@@ -41,7 +41,7 @@ unit from the data set.
 \dontrun{
 # For singleR class
 # Get simple model
-Model <- estimate_popsize(formula = capture ~ nation + age + gender, 
+Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
 method = "IRLS")

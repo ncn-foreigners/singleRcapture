@@ -268,7 +268,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     all(is.finite(mu)) && all(0 < mu)
   }
 
-  dev.resids <- function (y, eta, wt, ...) {
+  devResids <- function (y, eta, wt, ...) {
     alpha <- invlink(eta)
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
@@ -362,7 +362,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

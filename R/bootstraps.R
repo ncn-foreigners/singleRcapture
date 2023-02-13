@@ -1,19 +1,9 @@
 # These functions are only used internally in the package so there is no need for documenting them
 #' @importFrom graphics points
-noparBoot <- function(family,
-                      formulas,
-                      y, X, modelFrame,
-                      beta,
-                      weights,
-                      trcount,
-                      numboot,
-                      eta,
-                      trace,
-                      visT,
-                      control.bootstrap.method = NULL,
-                      method,
-                      N, 
-                      ...) {
+noparBoot <- function(family, formulas, y, X, modelFrame,
+                      beta, weights, trcount, numboot,
+                      eta, trace, visT, controlBootstrapMethod = NULL,
+                      method, N, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
@@ -58,11 +48,11 @@ noparBoot <- function(family,
     nPar = family$parNum, formulas = formulas, family$etaNames)
     theta <- NULL
     try(
-      theta <- estimate_popsize.fit(
+      theta <- estimatePopsize.fit(
         y = ystrap[wch$reg],
         X = Xstrap,
         family = family,
-        control = control.bootstrap.method,
+        control = controlBootstrapMethod,
         method = method,
         prior.weights = weightsStrap[wch$reg],
         start = jitter(beta)
@@ -93,21 +83,10 @@ noparBoot <- function(family,
   strappedStatistic
 }
 # semi parametric
-semparBoot <- function(family,
-                       formulas,
-                       y, X,
-                       beta,
-                       weights,
-                       trcount,
-                       numboot,
-                       eta,
-                       trace,
-                       visT,
-                       control.bootstrap.method = NULL,
-                       method,
-                       N,
-                       modelFrame, 
-                       ...) {
+semparBoot <- function(family, formulas, y, X, beta,
+                       weights, trcount, numboot, eta,
+                       trace, visT, controlBootstrapMethod = NULL,
+                       method, N, modelFrame, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
@@ -176,11 +155,11 @@ semparBoot <- function(family,
     X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
     nPar = family$parNum, formulas = formulas, family$etaNames)
     try(
-      theta <- estimate_popsize.fit(
+      theta <- estimatePopsize.fit(
         y = ystrap[wch$reg],
         X = Xstrap,
         family = family,
-        control = control.bootstrap.method,
+        control = controlBootstrapMethod,
         method = method,
         prior.weights = weightsStrap[wch$reg],
         start = jitter(beta)
@@ -223,7 +202,7 @@ parBoot <- function(family,
                     eta,
                     trace,
                     visT,
-                    control.bootstrap.method = NULL,
+                    controlBootstrapMethod = NULL,
                     method,
                     modelFrame,
                     ...) {
@@ -316,11 +295,11 @@ parBoot <- function(family,
     attr(Xstrap, "hwm") <- hwm
     
     try(
-      theta <- estimate_popsize.fit(
+      theta <- estimatePopsize.fit(
         y = ystrap[wch$reg],
         X = Xstrap,
         family = family,
-        control = control.bootstrap.method,
+        control = controlBootstrapMethod,
         method = method,
         prior.weights = weightsStrap[wch$reg],
         start = jitter(beta)

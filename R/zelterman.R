@@ -79,7 +79,7 @@ zelterman <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, eta, wt, ...) {
+  devResids <- function(y, eta, wt, ...) {
     mu <- invlink(eta)
     z <- y - 1
     mu1 <- mu.eta(eta = eta)
@@ -134,7 +134,7 @@ zelterman <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,

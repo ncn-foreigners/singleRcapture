@@ -17,7 +17,7 @@
 #' counts <- rpois(N, lambda = exp(eta))
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
 #' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' mod1_sims <- sandwich::estfun(mod1)
 #' head(mod1_sims) 
@@ -45,12 +45,12 @@ estfun.singleR <- function(object,...) {
 #' @param object an object representing a fitted model.
 #' @param ... additional optional arguments passed to the following functions:
 #' \itemize{
-#'   \item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{control.pop.var} specified in call for object.
+#'   \item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{controlPopVar} specified in call for object.
 #' }
 #' @return A bread matrix, i.e. a hessian based estimation of variance-covariance matrix scaled by degrees of freedom.
-#' @seealso [sandwich::bread()] [singleRcapture::control.pop.var()]
+#' @seealso [sandwich::bread()] [singleRcapture::controlPopVar()]
 #' @examples 
-#' Model <- estimate_popsize(
+#' Model <- estimatePopsize(
 #' formula = capture ~ ., 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
@@ -98,7 +98,7 @@ bread.singleR <- function(object,...) {
 #' counts <- rpois(N, lambda = exp(eta))
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
+#' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
 #' model = "ztpoisson", method = "optim", pop.var = "analytic")
 #' require(sandwich)
 #' HC <- sandwich::vcovHC(mod1, type = "HC4")

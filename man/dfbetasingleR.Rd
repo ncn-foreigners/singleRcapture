@@ -16,7 +16,7 @@ after the romoval of kth row. By default 1.}
 
 \item{...}{Additional optional arguments passed to the following functions:
 \itemize{
-\item \code{control.method} -- For controlling the simulation of dfbeta.
+\item \code{controlMethod} -- For controlling the simulation of dfbeta.
 }}
 }
 \value{
