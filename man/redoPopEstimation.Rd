@@ -27,7 +27,7 @@ reduction) to population size estimation and standard error estimation.
 }
 \examples{
 # Create simple model
-Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
+Model <- estimatePopsize(formula = capture ~ nation + gender, 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
 method = "IRLS")

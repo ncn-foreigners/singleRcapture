@@ -11,7 +11,7 @@
 #' @param family same as model in \code{estimatePopsize}.
 #' @param control control parameters created in \code{controlModel}.
 #' @param method method of estimation same as in \code{estimatePopsize}.
-#' @param prior.weights vector of prior weights its the same argument as weights
+#' @param priorWeights vector of prior weights its the same argument as weights
 #' in \code{estimatePopsize}.
 #' @param start initial value of regression parameters.
 #' @param ... arguments to pass to other methods.
@@ -75,17 +75,104 @@
 #' @references Yee, T. W. (2015). Vector Generalized Linear and Additive Models: 
 #' With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 #' 
+#' @examples 
+#' 
+#' # Set seed for reproducibility
+#' set.seed(123)
+#' 
+#' # Set population size and 'true' regression coefficients
+#' N <- 7562
+#' beta1 <- c(1, .2, -.95, -3)
+#' beta2 <- c(2, 0, -.01, .3)
+#' 
+#' # Generate covariates
+#' x1 <- rpois(n = N, lambda = 1.85)
+#' x2 <- rnorm(n = N)
+#' x3 <- rbinom(n = N, size = 1, prob = runif(n = 1))
+#' 
+#' # Compute linear predictors
+#' eta1 <- cbind(1, x1, x2, x3) %*% beta1
+#' eta2 <- cbind(1, x1, x2, x3) %*% beta2
+#' 
+#' # generate dependent variable
+#' y <- ztoipoisson()$simulate(n = N, eta = cbind(eta1, eta2))
+#' # optionally visualise destribution on y with barplot
+#' # barplot(table(y))
+#' # truncate data
+#' x1 <- x1[y>0]
+#' x2 <- x2[y>0]
+#' x3 <- x3[y>0]
+#' y <- y[y>0]
+#' 
+#' # construct vglm model matrix
+#' X <- matrix(data = 0, nrow = 2 * length(y), ncol = 8)
+#' X[1:length(y), 1:4] <- model.matrix(~ 1 + x1 + x2 + x3)
+#' X[-(1:length(y)), 5:8] <- X[1:length(y), 1:4]
+#' # this arrtibute tells the function which elements of the design matrix 
+#' # correspond to which linear predictor 
+#' attr(X, "hwm") <- c(4, 4)
+#' 
+#' # finally call the function
+#' beta <- c(beta1, beta2)
+#' 
+#' res <- estimatePopsize.fit(
+#'   y = y, X = X, 
+#'   method = "IRLS", 
+#'   priorWeights = 1, 
+#'   family = ztoipoisson(), 
+#'   control = controlMethod(verbose = 5), 
+#'   start = beta + rnorm(n = length(beta), sd = .1)
+#' )
+#' 
+#' # extract results
+#' 
+#' # regression coefficient vector
+#' res$beta
+#' 
+#' # compare with actual true coeffictient vector
+#' beta
+#' 
+#' # number of iterations
+#' res$iter
+#' 
+#' # working weights
+#' head(res$weights)
+#' 
+#' # call with another method
+#' 
+#' res <- estimatePopsize.fit(
+#'   y = y, X = X, 
+#'   method = "optim", 
+#'   priorWeights = 1, 
+#'   family = ztoipoisson(), 
+#'   start = beta + rnorm(n = length(beta), sd = .1), 
+#'   control = controlMethod()
+#' )
+#' # extract results
+#' 
+#' # regression coefficient vector
+#' res$beta
+#' 
+#' # compare with actual true coeffictient vector
+#' beta
+#' 
+#' # number of iterations
+#' res$iter
+#' 
+#' # optim does not calculated working weights
+#' head(res$weights)
+#' 
 #' @return List with regression parameters, working weights 
 #' (if IRLS fitting method) was chosen and number of iterations taken.
 #' @seealso [stats::glm()] [estimatePopsize()] [controlMethod()] [stats::optim()]
 #' @export
 estimatePopsize.fit <- function(y, X,
-                                 family,
-                                 control,
-                                 method,
-                                 prior.weights,
-                                 start,
-                                 ...) {
+                                family,
+                                control,
+                                method,
+                                priorWeights,
+                                start,
+                                ...) {
   hwm <- attr(X, "hwm")
   tbgname <- colnames(X)
   X <- as.matrix(X)
@@ -107,7 +194,7 @@ estimatePopsize.fit <- function(y, X,
         eps = control$epsilon,
         family = family,
         maxiter = control$maxiter,
-        weights = prior.weights,
+        weights = priorWeights,
         start = start,
         silent = control$silent,
         trace = control$verbose,
@@ -124,10 +211,10 @@ estimatePopsize.fit <- function(y, X,
       weights <- FITT$weights
       beta <- FITT$coefficients
     } else if (method == "optim") {
-      logLike <- family$makeMinusLogLike(y = y, X = X, weight = prior.weights)
-      grad <- family$makeMinusLogLike(y = y, X = X, weight = prior.weights, deriv = 1)
+      logLike <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
+      grad <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
       
-      weights <- prior.weights
+      weights <- priorWeights
       methodopt <- control$optimMethod
       
       if (!isFALSE(control$optimPass)) {

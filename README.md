@@ -33,14 +33,14 @@ model with data on immigration in netherlands with analytic variance:
 library(singleRcapture)
 ModelPo <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
-                            pop.var = "analytic",
+                            popVar = "analytic",
                             model = "ztpoisson",
                             method = "IRLS")
 #> Warning in FittingFunction(dependent = y, covariates = X, eps =
 #> control$epsilon, : IRLS half-stepping terminated because the step is too small.
 ModelZl <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
-                            pop.var = "analytic",
+                            popVar = "analytic",
                             model = "zelterman",
                             method = "IRLS")
 #> Warning in FittingFunction(dependent = y, covariates = X, eps =
@@ -49,7 +49,7 @@ summary(ModelPo)
 #> 
 #> Call:
 #> estimatePopsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "ztpoisson", method = "IRLS", pop.var = "analytic")
+#>     model = "ztpoisson", method = "IRLS", popVar = "analytic")
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
@@ -97,7 +97,7 @@ summary(ModelZl)
 #> 
 #> Call:
 #> estimatePopsize(formula = capture ~ ., data = netherlandsimmigrant, 
-#>     model = "zelterman", method = "IRLS", pop.var = "analytic")
+#>     model = "zelterman", method = "IRLS", popVar = "analytic")
 #> 
 #> Pearson Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -176,7 +176,7 @@ set.seed(123)
 zotgeomBoot <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     model = "zotgeom",
     method = "IRLS",
     controlPopVar = controlPopVar(B = 1000, alpha = .01)
@@ -185,7 +185,7 @@ summary(zotgeomBoot)
 #> 
 #> Call:
 #> estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-#>     model = "zotgeom", method = "IRLS", pop.var = "bootstrap", 
+#>     model = "zotgeom", method = "IRLS", popVar = "bootstrap", 
 #>     controlPopVar = controlPopVar(B = 1000, alpha = 0.01))
 #> 
 #> Pearson Residuals:

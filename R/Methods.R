@@ -48,7 +48,7 @@
 #' \item \code{logL} -- Logarithm of likelihood function evaluated at coefficients.
 #' \item \code{deviance} -- Residual deviance.
 #' \item \code{populationSize} -- Object with population size estimation results.
-#' \item \code{df.residual} -- Residual degrees of freedom.
+#' \item \code{dfResidual} -- Residual degrees of freedom.
 #' \item \code{sizeObserved} -- Size of observed population.
 #' \item \code{correlation} -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
 #' \item \code{test} -- Type of statistical test performed.
@@ -71,8 +71,8 @@ summary.singleR <- function(object,
                             popSizeEst, 
                             ...) {
   if (resType == "all") {stop("Can't use 'resType = all' in summary.singleR method, if you wish to obtain all aviable types of residuals call residuals.singleR method directly.")}
-  df.residual <- object$df.residual
-  if (missing(test)) {if (df.residual > 30) test <- "z" else test <- "t"}
+  dfResidual <- object$dfResidual
+  if (missing(test)) {if (dfResidual > 30) test <- "z" else test <- "t"}
   if (missing(cov)) {
     cov <- vcov.singleR(object, ...)
   } else if (is.function(cov)) {
@@ -83,7 +83,7 @@ summary.singleR <- function(object,
   se <- sqrt(diag(cov))
   wValues <- cf / se
   pValues <- switch (test,
-                     "t" = 2 * stats::pt(q = -abs(wValues), df = df.residual),
+                     "t" = 2 * stats::pt(q = -abs(wValues), df = dfResidual),
                      "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
   )
   crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
@@ -111,7 +111,7 @@ summary.singleR <- function(object,
       logL = object$logL,
       deviance = object$deviance,
       populationSize = if (missing(popSizeEst)) object$populationSize else popSizeEst,
-      df.residual = df.residual,
+      dfResidual = dfResidual,
       sizeObserved = object$sizeObserved,
       correlation = crr,
       test = test,
@@ -179,7 +179,7 @@ dfpopsize <- function(model, ...) {
 #' population size estimation results.
 #' @examples
 #' # Create simple model
-#' Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
+#' Model <- estimatePopsize(formula = capture ~ nation + gender, 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
 #' method = "IRLS")
@@ -325,11 +325,11 @@ vcov.singleR <- function(object,
     type,
     "observedInform" = solve(
       -object$model$makeMinusLogLike(y = object$y[object$which$reg], X = X,
-      weight = object$prior.weights[object$which$reg], deriv = 2)(object$coefficients),
+      weight = object$priorWeights[object$which$reg], deriv = 2)(object$coefficients),
       ...
     ),
     "Fisher" = {
-      if (object$call$method == "IRLS") {W <- object$weights} else {W <- object$model$Wfun(prior = object$prior.weights[object$which$reg], eta = object$linear.predictors)};
+      if (object$call$method == "IRLS") {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights[object$which$reg], eta = object$linearPredictors)};
       solve(
       singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
@@ -391,7 +391,7 @@ hatvalues.singleR <- function(model, ...) {
   if (isTRUE(model$call$method == "IRLS")) {
     W <- model$weights
   } else {
-    W <- model$model$Wfun(prior = model$prior.weights[model$which$reg], eta = if (model$model$family == "zelterman") model$linear.predictors[model$which$reg, ] else model$linear.predictors)
+    W <- model$model$Wfun(prior = model$priorWeights[model$which$reg], eta = if (model$model$family == "zelterman") model$linearPredictors[model$which$reg, ] else model$linearPredictors)
   }
   mlt <- singleRinternalMultiplyWeight(X = X, W = W)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
@@ -403,7 +403,7 @@ hatvalues.singleR <- function(model, ...) {
 #' @description A \code{dfbeta} method for \code{singleR} class.
 #' 
 #' @param model Fitted object of singleR class
-#' @param maxit.new Maximal number of iterations for regressions with starting points
+#' @param maxitNew Maximal number of iterations for regressions with starting points
 #' \mjeqn{\hat{\boldsymbol{\beta}}}{beta} on data specified at call for \code{model}
 #' after the romoval of kth row. By default 1.
 #' @param ... Additional optional arguments passed to the following functions:
@@ -419,7 +419,7 @@ hatvalues.singleR <- function(model, ...) {
 #' where \mjeqn{\hat{\boldsymbol{\beta}}_{-k}}{beta_(-k)} is a vector of estimates
 #' for regression parameters after the removal of k'th row from the data.
 dfbetasingleR <- function(model,
-                          maxit.new = 1,
+                          maxitNew = 1,
                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
@@ -427,21 +427,21 @@ dfbetasingleR <- function(model,
   X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
   y <- y[model$which$reg]
   cf <- model$coefficients
-  pw <- model$prior.weights[model$which$reg]
+  pw <- model$priorWeights[model$which$reg]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
   for (k in 1:nrow(X)) {
     res[k, ] <- cf - estimatePopsize.fit(
       control = controlMethod(
         silent = TRUE, 
         start = cf,
-        maxiter = maxit.new + 1,
+        maxiter = maxitNew + 1,
         ...
       ),
       y = y[-k],
       X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames),
       start = cf,
       family = model$model,
-      prior.weights = pw[-k],
+      priorWeights = pw[-k],
       method = model$call$method
     )$beta
   }
@@ -495,28 +495,26 @@ residuals.singleR <- function(object,
                               ...) {
   type <- match.arg(type)
   res <- object$residuals
-  disp <- object$dispersion
-  omegaTheta <- object$omegaTheta
-  wts <- object$prior.weights
+  wts <- object$priorWeights
   mu <- object$fitt.values
   y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
   if (!(all(object$which$reg == object$which$est)) && type == "all") stop("type = all is not aviable for some models")
   if (type == "pearsonSTD" && object$model$parNum > 1) {stop("Standardized pearson residuals not yet implemented for models with multiple linear predictors")}
   rs <- switch(
     type,
-    working = as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
+    working = as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linearPredictors[object$which$reg, ] else object$linearPredictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
     response = res,
-    pearson = data.frame("pearson" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
-    pearsonSTD = data.frame("pearsonSTD" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
-    deviance = data.frame("deviance" = object$model$devResids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
+    pearson = data.frame("pearson" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linearPredictors[object$which$reg, ] else object$linearPredictors, type = "trunc"))),
+    pearsonSTD = data.frame("pearsonSTD" = (if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linearPredictors[object$which$reg, ] else object$linearPredictors, type = "trunc"))),
+    deviance = data.frame("deviance" = object$model$devResids(y = y[object$which$reg], eta = object$linearPredictors, wt = wts[object$which$reg])),
     all = {colnames(res) <- c("muResponse", "linkResponse");
       data.frame(
-      as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
+      as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") object$linearPredictors[object$which$reg, ] else object$linearPredictors, weight = object$weights, y = y[object$which$reg]), col.names = paste0("working:", object$model$etaNames)),
       res,
-      "pearson" = as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))),
-      "pearsonSTD" = if (object$model$parNum == 1) as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linear.predictors[object$which$reg, ] else object$linear.predictors, type = "trunc"))) else 0,
-      "deviance" = as.numeric(object$model$devResids(y = y[object$which$reg], eta = object$linear.predictors, wt = wts[object$which$reg])),
-      row.names = rownames(object$linear.predictors)
+      "pearson" = as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt(object$model$variance(eta = if (object$model$family == "zelterman") object$linearPredictors[object$which$reg, ] else object$linearPredictors, type = "trunc"))),
+      "pearsonSTD" = if (object$model$parNum == 1) as.numeric((if (object$model$family == "zelterman") res$mu[object$which$reg] else res$mu) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = if (object$model$family == "zelterman") object$linearPredictors[object$which$reg, ] else object$linearPredictors, type = "trunc"))) else 0,
+      "deviance" = as.numeric(object$model$devResids(y = y[object$which$reg], eta = object$linearPredictors, wt = wts[object$which$reg])),
+      row.names = rownames(object$linearPredictors)
     )}
   )
   rs
@@ -534,7 +532,9 @@ print.summarysingleRmargin <- function(x, ...) {
       "\n", sep = "")
   print(x$Test)
   cat("\n--------------------------------------------------------------",
-      "\nCells with fitted frequencies of < 5 have been", x$l5, "\nNames of cells used in calculating test(s) statistic:", names(x$y), "\n", sep = " ")
+      "\nCells with fitted frequencies of < 5 have been", x$l5, 
+      "\nNames of cells used in calculating test(s) statistic:", names(x$y), 
+      "\n", sep = " ")
 }
 #' @method AIC singleR
 #' @importFrom stats AIC
@@ -608,7 +608,8 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
     vlm = {
       X <- model.frame.singleR(object, ...);
       X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg);
-      singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, formulas = object$formula, parNames = object$model$etaNames);
+      singleRinternalGetXvlmMatrix(X = X, nPar = object$model$parNum, 
+      formulas = object$formula, parNames = object$model$etaNames);
       }
   )
 }
@@ -621,16 +622,18 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
     y = object$y[object$which$reg],
     formulas = object$formula,
     X = model.matrix(object),
-    grad = object$model$makeMinusLogLike(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, deriv = 1),
-    hessian = object$model$makeMinusLogLike(y = object$y[object$which$reg], X = Xvlm, weight = object$prior.weights, deriv = 2),
-    pop.var = if (is.null(object$call$pop.var)) "analytic" else object$call$pop.var,
-    weights = object$prior.weights[object$which$reg],
-    eta = object$linear.predictors,
+    grad = object$model$makeMinusLogLike(y = object$y[object$which$reg], 
+    X = Xvlm, weight = object$priorWeights, deriv = 1),
+    hessian = object$model$makeMinusLogLike(y = object$y[object$which$reg], 
+    X = Xvlm, weight = object$priorWeights, deriv = 2),
+    popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar,
+    weights = object$priorWeights[object$which$reg],
+    eta = object$linearPredictors,
     family = object$model,
     beta = object$coefficients,
     control = object$populationSize$control,
     Xvlm = Xvlm,
-    W = if (object$call$method == "IRLS") object$weights else object$model$Wfun(prior = object$prior.weights, eta = object$linear.predictors),
+    W = if (object$call$method == "IRLS") object$weights else object$model$Wfun(prior = object$priorWeights, eta = object$linearPredictors),
     sizeObserved = object$sizeObserved,
     modelFrame = model.frame.singleR(object, ...),
     cov = cov
@@ -640,10 +643,10 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
 #' @rdname dfpopsize
 #' @exportS3Method 
 dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
-  if (isTRUE(model$call$pop.var == "bootstrap")) warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
+  if (isTRUE(model$call$popVar == "bootstrap")) warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
   dfb <- if (is.null(dfbeta)) {dfbeta(model, ...)} else {dfbeta}
   if (model$model$family == "zelterman") {
-    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = NROW(model$prior.weights))
+    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = NROW(model$priorWeights))
     rownames(dfbnew) <- as.character(1:NROW(dfbnew))
     dfbnew[model$which$reg, ] <- dfb
     dfb <- dfbnew
@@ -653,7 +656,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   N <- model$populationSize$pointEstimate
   range <- 1:NROW(dfb)
   res <- vector("numeric", length = NROW(dfb))
-  pw <- model$prior.weights[model$which$est]
+  pw <- model$priorWeights[model$which$est]
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
     res[k] <- model$model$pointEst(
@@ -704,13 +707,14 @@ print.popSizeEstResults <- function(x, ...) {
 print.summarysingleR <- function(x, 
                                  signif.stars = getOption("show.signif.stars"), 
                                  digits = max(3L, getOption("digits") - 3L), ...) {
+  
   ob <- data.frame(x$coefficients,
-                   x$standardErrors,
-                   x$wValues,
-                   x$pValues)
+  x$standardErrors, x$wValues, x$pValues)
+  
   colnames(ob) <- switch(x$test,
-                         "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
-                         "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
+  "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
+  "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
+  
   if (!is.null(x$cnfint)) {
     ob[, 4] <- x$cnfint[, 1]
     ob[, 5] <- x$cnfint[, 2]
@@ -724,7 +728,9 @@ print.summarysingleR <- function(x,
   print(summary(c(x$residuals[, 1])))
   cat("\nCoefficients:\n")
   #print(ob)
-  cond <- sapply(x$model$etaNames, FUN = function(k) {sapply(strsplit(rownames(ob), split = ":"), FUN = function(x) {x[[length(x)]] == k})})
+  cond <- sapply(x$model$etaNames, 
+  FUN = function(k) {sapply(strsplit(rownames(ob), split = ":"), 
+                            FUN = function(x) {x[[length(x)]] == k})})
   for (k in x$model$etaNames) {
     if (!all(cond[,k] == FALSE)) {
       cat("-----------------------\nFor linear predictors associated with:", k, "\n")
@@ -765,7 +771,7 @@ print.summarysingleR <- function(x,
   cat("AIC: ", x$aic,
       "\nBIC: ", x$bic,
       "\nResidual deviance: ", x$deviance,
-      "\n\nLog-likelihood: ", x$logL, " on ", x$df.residual, " Degrees of freedom ",
+      "\n\nLog-likelihood: ", x$logL, " on ", x$dfResidual, " Degrees of freedom ",
       if (isTRUE(x$call$method == "IRLS")) {
         "\nNumber of iterations: "
       } else {
@@ -777,7 +783,7 @@ print.summarysingleR <- function(x,
       "\nPoint estimate ", x$populationSize$pointEstimate, 
       "\nObserved proportion: ", round(100 * x$sizeObserved / x$populationSize$pointEstimate, digits = 1), "% (N obs = ", x$sizeObserved, ")",
       if (!is.null(x$skew)) {"\nBoostrap sample skewness: "}, if (!is.null(x$skew)) {x$skew}, if (!is.null(x$skew)) {"\n0 skewness is expected for normally distributed vairable\n"},
-      if (isTRUE(x$call$pop.var == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sd,
+      if (isTRUE(x$call$popVar == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sd,
       "\n", (1 - x$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(x$populationSize$confidenceInterval)
   cat((1 - x$populationSize$control$alpha) * 100, "% CI for the share of observed population:\n", sep = "")
@@ -802,7 +808,7 @@ print.singleR <- function(x, ...) {
   print(x$call)
   cat("\nCoefficients:\n")
   print(coef(x))
-  cat("\nDegrees of Freedom:", x$df.null, "Total (i.e NULL);", x$df.residual, "Residual")
+  cat("\nDegrees of Freedom:", x$df.null, "Total (i.e NULL);", x$dfResidual, "Residual")
   cat("\nAIC: ", signif(AIC(x)), "\nBIC: ", signif(BIC(x)), "\nResidual deviance: ", signif(x$deviance))
   cat("\n-----------------------------------\nPopulation size estimation results:\n")
   print(x$populationSize)
@@ -840,7 +846,7 @@ fitted.singleR <- function(object,
 #' #' df <- data.frame(gender, eta, counts)
 #' #' df2 <- subset(df, counts > 0)
 #' #' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
-#' #' model = "ztpoisson", method = "optim", pop.var = "analytic")
+#' #' model = "ztpoisson", method = "optim", popVar = "analytic")
 #' #' mod1_sims <- simulate(mod1, nsim=10)
 #' #' colMeans(mod1_sims) 
 #' #' @importFrom stats simulate
@@ -862,7 +868,7 @@ fitted.singleR <- function(object,
 #'     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
 #'   }
 #'   
-#'   linpred <- object$linear.predictors
+#'   linpred <- object$linearPredictors
 #'   n <- NROW(linpred)
 #'   if (grepl("negbin", object$model$family)) {
 #'     val <- object$model$simulate(n*nsim, exp(linpred), exp(-object$dispersion)) # dispersion argument will be removed in next update remember to change that to accomodate that

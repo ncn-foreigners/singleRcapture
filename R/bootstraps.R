@@ -37,7 +37,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     }
     
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
-    family = family, observed = ystrap, pop.var = "analytic")
+    family = family, observed = ystrap, popVar = "analytic")
     if (famName == "zelterman") {
       Xstrap1 <- singleRinternalGetXvlmMatrix(
       X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
@@ -54,7 +54,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
         family = family,
         control = controlBootstrapMethod,
         method = method,
-        prior.weights = weightsStrap[wch$reg],
+        priorWeights = weightsStrap[wch$reg],
         start = jitter(beta)
       )$beta,
       silent = TRUE
@@ -141,7 +141,7 @@ semparBoot <- function(family, formulas, y, X, beta,
     }
 
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
-    family = family, observed = ystrap, pop.var = "analytic")
+    family = family, observed = ystrap, popVar = "analytic")
     theta <- NULL
     if (isTRUE(trace)) cat("Iteration number:", k, 
                            "sample size:", length(ystrap), sep = " ")
@@ -161,7 +161,7 @@ semparBoot <- function(family, formulas, y, X, beta,
         family = family,
         control = controlBootstrapMethod,
         method = method,
-        prior.weights = weightsStrap[wch$reg],
+        priorWeights = weightsStrap[wch$reg],
         start = jitter(beta)
       )$beta,
       silent = TRUE
@@ -285,7 +285,7 @@ parBoot <- function(family,
     if (isTRUE(trace)) cat("Iteration number:", k, 
                            "sample size:", length(ystrap), sep = " ")
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
-    family = family, observed = ystrap, pop.var = "analytic")
+    family = family, observed = ystrap, popVar = "analytic")
     
     theta <- NULL
     if (famName == "zelterman") {
@@ -301,7 +301,7 @@ parBoot <- function(family,
         family = family,
         control = controlBootstrapMethod,
         method = method,
-        prior.weights = weightsStrap[wch$reg],
+        priorWeights = weightsStrap[wch$reg],
         start = jitter(beta)
       )$beta,
       silent = TRUE

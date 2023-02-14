@@ -67,7 +67,7 @@ An object of \code{summarysingleR} class containing:
 \item \code{logL} -- Logarithm of likelihood function evaluated at coefficients.
 \item \code{deviance} -- Residual deviance.
 \item \code{populationSize} -- Object with population size estimation results.
-\item \code{df.residual} -- Residual degrees of freedom.
+\item \code{dfResidual} -- Residual degrees of freedom.
 \item \code{sizeObserved} -- Size of observed population.
 \item \code{correlation} -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
 \item \code{test} -- Type of statistical test performed.

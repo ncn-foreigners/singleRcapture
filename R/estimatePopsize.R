@@ -21,9 +21,9 @@ NULL
 #' @param model Model for regression and population estimate full description in [singleRmodels()]. 
 #' @param weights Optional object of a priori weights used in fitting the model.
 #' @param subset A logical vector indicating which observations should be used in regression and population size estimation.
-#' @param na.action Not yet implemented.
+#' @param naAction Not yet implemented.
 #' @param method Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).
-#' @param pop.var A method of constructing confidence interval either analytic or bootstrap.
+#' @param popVar A method of constructing confidence interval either analytic or bootstrap.
 #' Bootstrap confidence interval type may be specified in \code{controlPopVar.} 
 #' There is also the third possible value of \code{noEst} which skips the population size estimate all together.
 #' @param controlMethod A list indicating parameters to use in fitting the model may be constructed with \code{singleRcapture::controlMethod} function. More information included in [controlMethod()].
@@ -271,22 +271,22 @@ NULL
 #'  \item{\code{control} -- A list of control parameters for \code{controlMethod} and \code{controlModel}, \code{controlPopVar} is included in populationSize.}
 #'  \item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
 #'  \item{\code{deviance} -- Deviance for the model.}
-#'  \item{\code{prior.weights} -- Prior weight provided on call.}
-#'  \item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as prior.weights.}
+#'  \item{\code{priorWeights} -- Prior weight provided on call.}
+#'  \item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as priorWeights.}
 #'  \item{\code{residuals} -- Vector of raw residuals.}
 #'  \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
 #'  \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
-#'  \item{\code{df.residuals} -- Residual degrees of freedom.}
-#'  \item{\code{df.null} -- Null degrees of freedom.}
-#'  \item{\code{fitt.values} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
+#'  \item{\code{dfResiduals} -- Residual degrees of freedom.}
+#'  \item{\code{dfNull} -- Null degrees of freedom.}
+#'  \item{\code{fittValues} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
 #'  \item{\code{populationSize} -- A list containing information of population size estimate.}
 #'  \item{\code{modelFrame} -- Model frame if specified at call.}
-#'  \item{\code{linear.predictors} -- Vector of fitted linear predictors.}
+#'  \item{\code{linearPredictors} -- Vector of fitted linear predictors.}
 #'  \item{\code{trcount} -- Number of truncated observations.}
 #'  \item{\code{sizeObserved} -- Number of observations in original model frame.}
 #'  \item{\code{terms} -- terms attribute of model frame used.}
 #'  \item{\code{contrasts} -- contrasts specified in function call.}
-#'  \item{\code{na.aciton} -- na.action used.}
+#'  \item{\code{naAction} -- naAction used.}
 #'  \item{\code{which} -- list indicating which observations were used in regression/population size estimation.}
 #' }
 #' 
@@ -388,9 +388,9 @@ estimatePopsize <- function(formula,
                                        "zelterman", "chao"),
                              weights = NULL,
                              subset = NULL,
-                             na.action = NULL,
+                             naAction = NULL,
                              method = c("optim", "IRLS", "maxLik"), # TODO add max lik to fit
-                             pop.var = c("analytic",
+                             popVar = c("analytic",
                                          "bootstrap",
                                          "noEst"),
                              controlMethod = NULL,
@@ -402,7 +402,7 @@ estimatePopsize <- function(formula,
                              contrasts = NULL,
                              ...) {
   if (missing(method)) method <- "optim"
-  if (missing(pop.var)) pop.var <- "analytic"
+  if (missing(popVar)) popVar <- "analytic"
   
   subset <- parse(text = deparse(substitute(subset)))
   
@@ -444,24 +444,26 @@ estimatePopsize <- function(formula,
   
   subset <- eval(subset, modelFrame)
   if (is.null(subset)) {subset <- TRUE}
+  
   # subset is often in conflict with some common packages hence explicit call
   modelFrame <- base::subset(modelFrame, subset = subset)
   attributes(modelFrame)$terms <- terms # subset deletes terms attribute for some reason
+  
   variables <- base::subset(variables, subset = subset)
   observed <- modelFrame[, attr(terms, "response")]
+  
   if (NCOL(observed) > 1) stop("Single source capture-recapture models support only single dependent variable")
   sizeObserved <- nrow(data) + controlPopVar$trcount
 
-  
   if (!is.null(weights)) {
-    prior.weights <- as.numeric(weights)
+    priorWeights <- as.numeric(weights)
   } else {
-    prior.weights <- rep(1, nrow(modelFrame))
+    priorWeights <- rep(1, nrow(modelFrame))
   }
   weights <- 1
   
   if(!all(observed > 0)) {
-    stop("Error in function estimate.popsize, data contains zero-counts")
+    stop("Error in function estimatePopsize, data contains zero-counts")
   }
 
   # if (!family$valideta(start) && !is.null(start)) {
@@ -481,7 +483,7 @@ estimatePopsize <- function(formula,
 
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
                                                        observed = observed, 
-                                                       pop.var = pop.var)
+                                                       popVar = popVar)
 
   controlPopVar$trcount <- controlPopVar$trcount + wch$trr
   
@@ -492,7 +494,7 @@ estimatePopsize <- function(formula,
       x = variables[wch$reg, ],
       y = observed[wch$reg],
       family = stats::poisson(),
-      weights = prior.weights[wch$reg],
+      weights = priorWeights[wch$reg],
       ...
     )$coefficients
     if (isTRUE(controlMethod$useZtpoissonAsStart)) {
@@ -504,7 +506,7 @@ estimatePopsize <- function(formula,
         hwm = ncol(variables),
         control = controlMethod(),
         method = method,
-        prior.weights = prior.weights,
+        priorWeights = priorWeights,
         ...
       )$beta
     }
@@ -538,10 +540,12 @@ estimatePopsize <- function(formula,
       start <- c(start, controlMethod$omegaStart)
     }
   }
-  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(modelFrame, 
-                                                  select = colnames(modelFrame)[-(attr(terms, "response"))], 
-                                                  subset = wch$reg), 
-  nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
+  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(
+    modelFrame, 
+    select = colnames(modelFrame)[-(attr(terms, "response"))], 
+    subset = wch$reg
+  ), nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
+  
   if ("alpha" %in% family$etaNames) {
     if (is.null(controlMethod$alphaStart)) {
       if (controlModel$alphaFormula == ~ 1) {
@@ -577,23 +581,23 @@ estimatePopsize <- function(formula,
     family = family,
     control = controlMethod,
     method = method,
-    prior.weights = prior.weights[wch$reg],
+    priorWeights = priorWeights[wch$reg],
     start = start
   )
   
   coefficients <- FITT$beta
   names(coefficients) <- names(start)
   iter <- FITT$iter
-  df.reduced <- nrow(Xvlm) - length(coefficients)
+  dfReduced <- nrow(Xvlm) - length(coefficients)
   
   logLike <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
-  weight = prior.weights[wch$reg])
+  weight = priorWeights[wch$reg])
   
   grad <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm, 
-  weight = prior.weights[wch$reg], deriv = 1)
+  weight = priorWeights[wch$reg], deriv = 1)
   
   hessian <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
-  weight = prior.weights[wch$reg], deriv = 2)
+  weight = priorWeights[wch$reg], deriv = 2)
 
   hess <- hessian(coefficients)
   eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = family$parNum)
@@ -616,12 +620,12 @@ estimatePopsize <- function(formula,
     }
   }
   
-  null.deviance <- as.numeric(NULL)
+  nullDeviance <- as.numeric(NULL)
   LOG <- -logLike(coefficients)
-  resRes <- prior.weights * (observed[wch$reg] - fitt)
+  resRes <- priorWeights * (observed[wch$reg] - fitt)
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
 
-  deviance <- sum(family$devResids(y = observed[wch$reg], wt = prior.weights[wch$reg],
+  deviance <- sum(family$devResids(y = observed[wch$reg], wt = priorWeights[wch$reg],
   eta = if (family$family == "zelterman") eta[wch$reg] else eta) ** 2)
   
   POP <- singleRcaptureinternalpopulationEstimate(
@@ -630,14 +634,14 @@ estimatePopsize <- function(formula,
     X = variables[wch$est, ],
     grad = grad,
     hessian = hessian,
-    pop.var = pop.var,
-    weights = prior.weights[wch$est],
+    popVar = popVar,
+    weights = priorWeights[wch$est],
     eta = eta,
     family = family,
     beta = coefficients,
     control = controlPopVar,
-    Xvlm = if (family$family %in% c("zelterman", "chao") && pop.var == "bootstrap") variables else Xvlm,
-    W = if (method == "IRLS") weights else family$Wfun(prior = prior.weights, eta = eta),
+    Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") variables else Xvlm,
+    W = if (method == "IRLS") weights else family$Wfun(prior = priorWeights, eta = eta),
     sizeObserved = sizeObserved,
     modelFrame = modelFrame,
     cov = NULL
@@ -651,25 +655,25 @@ estimatePopsize <- function(formula,
       coefficients = coefficients,
       control = list(controlModel = controlModel,
                      controlMethod = controlMethod),
-      null.deviance = null.deviance,
+      nullDeviance = nullDeviance,
       model = family,
       deviance = deviance,
-      prior.weights = prior.weights,
+      priorWeights = priorWeights,
       weights = weights,
       residuals = resRes,
       logL = LOG,
       iter = iter,
-      df.residual = df.reduced,
-      df.null = length(observed) - 1,
-      fitt.values = fitt,
+      dfResidualsidual = dfReduced,
+      dfNull = length(observed) - 1,
+      fittValues = fitt,
       populationSize = POP,
       modelFrame = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
-      linear.predictors = eta,
+      linearPredictors = eta,
       trcount = controlPopVar$trcount,
       sizeObserved = sizeObserved,
       terms = terms,
       contrasts = contrasts,
-      na.action = na.action,
+      naAction = naAction,
       which = wch
     ),
     class = c("singleR", "glm", "lm")

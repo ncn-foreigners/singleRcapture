@@ -13,9 +13,9 @@ estimatePopsize(
     "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
   weights = NULL,
   subset = NULL,
-  na.action = NULL,
+  naAction = NULL,
   method = c("optim", "IRLS", "maxLik"),
-  pop.var = c("analytic", "bootstrap", "noEst"),
+  popVar = c("analytic", "bootstrap", "noEst"),
   controlMethod = NULL,
   controlModel = NULL,
   controlPopVar = NULL,
@@ -37,11 +37,11 @@ estimatePopsize(
 
 \item{subset}{A logical vector indicating which observations should be used in regression and population size estimation.}
 
-\item{na.action}{Not yet implemented.}
+\item{naAction}{Not yet implemented.}
 
 \item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).}
 
-\item{pop.var}{A method of constructing confidence interval either analytic or bootstrap.
+\item{popVar}{A method of constructing confidence interval either analytic or bootstrap.
 Bootstrap confidence interval type may be specified in \code{controlPopVar.}
 There is also the third possible value of \code{noEst} which skips the population size estimate all together.}
 
@@ -75,22 +75,22 @@ Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 \item{\code{control} -- A list of control parameters for \code{controlMethod} and \code{controlModel}, \code{controlPopVar} is included in populationSize.}
 \item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
 \item{\code{deviance} -- Deviance for the model.}
-\item{\code{prior.weights} -- Prior weight provided on call.}
-\item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as prior.weights.}
+\item{\code{priorWeights} -- Prior weight provided on call.}
+\item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as priorWeights.}
 \item{\code{residuals} -- Vector of raw residuals.}
 \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
 \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
-\item{\code{df.residuals} -- Residual degrees of freedom.}
-\item{\code{df.null} -- Null degrees of freedom.}
-\item{\code{fitt.values} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
+\item{\code{dfResiduals} -- Residual degrees of freedom.}
+\item{\code{dfNull} -- Null degrees of freedom.}
+\item{\code{fittValues} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
 \item{\code{populationSize} -- A list containing information of population size estimate.}
 \item{\code{modelFrame} -- Model frame if specified at call.}
-\item{\code{linear.predictors} -- Vector of fitted linear predictors.}
+\item{\code{linearPredictors} -- Vector of fitted linear predictors.}
 \item{\code{trcount} -- Number of truncated observations.}
 \item{\code{sizeObserved} -- Number of observations in original model frame.}
 \item{\code{terms} -- terms attribute of model frame used.}
 \item{\code{contrasts} -- contrasts specified in function call.}
-\item{\code{na.aciton} -- na.action used.}
+\item{\code{naAction} -- naAction used.}
 \item{\code{which} -- list indicating which observations were used in regression/population size estimation.}
 }
 }

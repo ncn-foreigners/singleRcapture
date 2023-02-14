@@ -18,7 +18,7 @@
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
 #' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "optim", pop.var = "analytic")
+#' model = "ztpoisson", method = "optim", popVar = "analytic")
 #' mod1_sims <- sandwich::estfun(mod1)
 #' head(mod1_sims) 
 #' @importFrom sandwich estfun
@@ -67,7 +67,7 @@ estfun.singleR <- function(object,...) {
 #' @method bread singleR
 #' @exportS3Method
 bread.singleR <- function(object,...) {
-  stats::vcov(object, ...) * as.vector(object$df.residual + length(object$coefficients))
+  stats::vcov(object, ...) * as.vector(object$dfResidual + length(object$coefficients))
 }
 
 #' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
@@ -99,7 +99,7 @@ bread.singleR <- function(object,...) {
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
 #' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "optim", pop.var = "analytic")
+#' model = "ztpoisson", method = "optim", popVar = "analytic")
 #' require(sandwich)
 #' HC <- sandwich::vcovHC(mod1, type = "HC4")
 #' Fisher <- vcov(mod1, "Fisher") # variance covariance matrix obtained from 

@@ -5,7 +5,7 @@ expect_equal(
     formula = TOTAL_SUB ~ .,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission
   )$populationSize$pointEstimate,
         digits = 0),
@@ -16,7 +16,7 @@ expect_equal(
     formula = TOTAL_SUB ~ .,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission
   )$populationSize$pointEstimate,
         digits = 0),
@@ -28,7 +28,7 @@ expect_equivalent(
     formula = TOTAL_SUB ~ .,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission
   )$populationSize$confidenceInterval[1, ],
         digits = 0))
@@ -39,7 +39,7 @@ expect_equivalent(
     formula = TOTAL_SUB ~ .,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission
   )$populationSize$confidenceInterval[1, ],
                    digits = 0))
@@ -49,7 +49,7 @@ expect_equal(
     formula = TOTAL_SUB ~ .,
     model = "chao",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission,
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$pointEstimate,
@@ -62,7 +62,7 @@ expect_equivalent(
     formula = TOTAL_SUB ~ .,
     model = "chao",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission,
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$confidenceInterval[1, ],
@@ -73,7 +73,7 @@ expect_equal(
     formula = TOTAL_SUB ~ .,
     model = "chao",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission
   )$populationSize$pointEstimate,
         digits = 0),
@@ -85,7 +85,7 @@ expect_equivalent(
     formula = TOTAL_SUB ~ .,
     model = "chao",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = farmsubmission
   )$populationSize$confidenceInterval[1, ],
                    digits = 0))
@@ -97,7 +97,7 @@ expect_equivalent(
     formula = capture ~ .,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -108,7 +108,7 @@ expect_equivalent(
     formula = capture ~ .,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -119,7 +119,7 @@ expect_equivalent(
     formula = capture ~ . - reason,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -130,7 +130,7 @@ expect_equivalent(
     formula = capture ~ . - reason,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -141,7 +141,7 @@ expect_equivalent(
     formula = capture ~ . - reason - nation,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS",
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$confidenceInterval[1, ],
@@ -153,7 +153,7 @@ expect_equivalent(
     formula = capture ~ . - reason - nation,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -164,7 +164,7 @@ expect_equivalent(
     formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -175,7 +175,7 @@ expect_equivalent(
     formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -186,7 +186,7 @@ expect_equivalent(
     formula = capture ~ 1,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -197,7 +197,7 @@ expect_equivalent(
     formula = capture ~ 1,
     data = netherlandsimmigrant,
     model = "zelterman",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -208,7 +208,7 @@ expect_equivalent(
     formula = capture ~ .,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -219,7 +219,7 @@ expect_equivalent(
     formula = capture ~ .,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -230,7 +230,7 @@ expect_equivalent(
     formula = capture ~ . - reason,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS",
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$confidenceInterval[1, ],
@@ -242,7 +242,7 @@ expect_equivalent(
     formula = capture ~ . - reason,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -253,7 +253,7 @@ expect_equivalent(
     formula = capture ~ . - reason - nation,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS",
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$confidenceInterval[1, ],
@@ -265,7 +265,7 @@ expect_equivalent(
     formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -276,7 +276,7 @@ expect_equivalent(
     formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -287,7 +287,7 @@ expect_equivalent(
     formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -298,7 +298,7 @@ expect_equivalent(
     formula = capture ~ 1,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "IRLS"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -309,7 +309,7 @@ expect_equivalent(
     formula = capture ~ 1,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "analytic",
+    popVar = "analytic",
     method = "optim"
   )$populationSize$confidenceInterval[1, ],
                    digits = 0)),
@@ -321,7 +321,7 @@ expect_equal(
     formula = capture ~ .,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -332,7 +332,7 @@ expect_equal(
     formula = capture ~ .,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -343,7 +343,7 @@ expect_equal(
     formula = capture ~ . - reason,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant,
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$pointEstimate,
@@ -355,7 +355,7 @@ expect_equal(
     formula = capture ~ . - reason,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -366,7 +366,7 @@ expect_equal(
     formula = capture ~ . - reason - nation,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant,
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$pointEstimate,
@@ -378,7 +378,7 @@ expect_equal(
     formula = capture ~ .- reason - nation,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -389,7 +389,7 @@ expect_equal(
     formula = capture ~ gender,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -400,7 +400,7 @@ expect_equal(
     formula = capture ~ gender,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -411,7 +411,7 @@ expect_equal(
     formula = capture ~ 1,
     model = "ztpoisson",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -422,7 +422,7 @@ expect_equal(
     formula = capture ~ 1,
     model = "ztpoisson",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -433,7 +433,7 @@ expect_equal(
     formula = capture ~ .,
     model = "zelterman",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -444,7 +444,7 @@ expect_equal(
     formula = capture ~ .,
     model = "zelterman",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -455,7 +455,7 @@ expect_equal(
     formula = capture ~ . - reason,
     model = "zelterman",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -466,7 +466,7 @@ expect_equal(
     formula = capture ~ . - reason,
     model = "zelterman",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -477,7 +477,7 @@ expect_equal(
     formula = capture ~ . - reason - nation,
     model = "zelterman",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant,
     controlMethod = controlMethod(silent = TRUE)
   )$populationSize$pointEstimate,
@@ -489,7 +489,7 @@ expect_equal(
     formula = capture ~ .- reason - nation,
     model = "zelterman",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -500,7 +500,7 @@ expect_equal(
     formula = capture ~ gender,
     model = "zelterman",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -511,7 +511,7 @@ expect_equal(
     formula = capture ~ gender,
     model = "zelterman",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -522,7 +522,7 @@ expect_equal(
     formula = capture ~ 1,
     model = "zelterman",
     method = "IRLS",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -533,7 +533,7 @@ expect_equal(
     formula = capture ~ 1,
     model = "zelterman",
     method = "optim",
-    pop.var = "analytic",
+    popVar = "analytic",
     data = netherlandsimmigrant
   )$populationSize$pointEstimate,
         digits = 0),
@@ -547,7 +547,7 @@ expect_error(
                       X = rep(c(1, 2), 100)),
     model = "ztnegbin",
     method = "IRLS",
-    pop.var = "analytic"
+    popVar = "analytic"
   )
 )
 expect_silent(
@@ -555,7 +555,7 @@ expect_silent(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     model = "zotpoisson",
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     method = "IRLS",
     controlMethod = controlMethod(epsilon = 1e-6),
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
@@ -566,7 +566,7 @@ expect_silent(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     model = "ztnegbin",
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     method = "optim",
     controlMethod = controlMethod(epsilon = 1e-6),
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
@@ -577,7 +577,7 @@ expect_silent(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     model = "chao",
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     method = "IRLS",
     controlMethod = controlMethod(silent = TRUE),
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
@@ -588,7 +588,7 @@ expect_silent(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     model = "zelterman",
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     method = "IRLS",
     controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
@@ -599,7 +599,7 @@ expect_silent(
     formula = capture ~ gender,
     data = netherlandsimmigrant,
     model = "ztpoisson",
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     method = "IRLS",
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
   )

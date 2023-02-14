@@ -205,18 +205,19 @@ singleRcaptureinternalIRLS <- function(dependent,
 singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      beta, weights,
                                                      hessian, family,
-                                                     eta, pop.var,
+                                                     eta, popVar,
                                                      control,
                                                      Xvlm, W, formulas,
                                                      sizeObserved,
                                                      modelFrame, cov) {
-  if (pop.var == "noEst") {return(NULL)}
+  if (popVar == "noEst") {return(NULL)}
   hwm <- attr(Xvlm, "hwm")
   siglevel <- control$alpha
   trcount <- control$trcount
   numboot <- control$B
   sc <- qnorm(p = 1 - siglevel / 2)
-  if (pop.var == "analytic") {
+  
+  if (popVar == "analytic") {
     strappedStatistic <- "No bootstrap performed"
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     if (is.null(cov)) {
@@ -247,7 +248,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                           sizeObserved), 
                          upperBound = sizeObserved + (N - sizeObserved) * G)
     )))
-  } else if (grepl("bootstrap", pop.var, fixed = TRUE)) {
+  } else if (grepl("bootstrap", popVar, fixed = TRUE)) {
     funBoot <- switch(control$bootType,
                       "parametric" = parBoot,
                       "semiparametric" = semparBoot,
@@ -530,18 +531,18 @@ singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
   Xvlm
 }
 # Chosing data for estimation/regression
-singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop.var) {
+singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, popVar) {
   if (grepl("zot", family$family)) {
     trr <- sum(observed == 1)
     wch1 <- wch2 <- (observed > 1)
-    if (pop.var != "analytic") {
+    if (popVar != "analytic") {
       # in bootstrap we need all
       wch2 <- rep(TRUE, length(observed))
     }
   } else if (family$family == "chao") {
     trr <- sum(observed > 2)
     wch1 <- wch2 <- (observed %in% c(1, 2))
-    if (pop.var != "analytic") {
+    if (popVar != "analytic") {
       # in bootstrap we need all
       wch2 <- rep(TRUE, length(observed))
     }

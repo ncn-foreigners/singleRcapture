@@ -5,12 +5,12 @@
 \title{Regression deletion diagnostics.
 \loadmathjax}
 \usage{
-dfbetasingleR(model, maxit.new = 1, ...)
+dfbetasingleR(model, maxitNew = 1, ...)
 }
 \arguments{
 \item{model}{Fitted object of singleR class}
 
-\item{maxit.new}{Maximal number of iterations for regressions with starting points
+\item{maxitNew}{Maximal number of iterations for regressions with starting points
 \mjeqn{\hat{\boldsymbol{\beta}}}{beta} on data specified at call for \code{model}
 after the romoval of kth row. By default 1.}
 

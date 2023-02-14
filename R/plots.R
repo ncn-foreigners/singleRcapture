@@ -163,10 +163,10 @@ plot.singleR <- function(x,
            lty = 2)
   },
   dfpopContr = {
-    dfpop <- dfpopsize(x, observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
-    contr <- x$model$pointEst(pw = x$prior.weights[x$which$est], 
-                              eta = x$linear.predictors,
-                              contr = TRUE);
+    dfpop <- dfpopsize(x, 
+    observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
+    contr <- x$model$pointEst(pw = x$priorWeights[x$which$est], # TODO:: implement a function to get a contribution
+    eta = x$linearPredictors, contr = TRUE);
     plot(x = dfpop, y = contr,
          main = "Observation deletion effect on point estimate of\npopulation size estimate vs observation contribution",
          xlab = "Deletion effect", ylab = "Observation contribution", 
@@ -181,7 +181,7 @@ plot.singleR <- function(x,
   },
   scaleLoc = {
     if (x$model$parNum == 1) {
-      lp <- x$linear.predictors
+      lp <- x$linearPredictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
       }
@@ -195,20 +195,20 @@ plot.singleR <- function(x,
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
-        plot(y = sqrt(abs(res)), x = x$linear.predictors[, k],
+        plot(y = sqrt(abs(res)), x = x$linearPredictors[, k],
              xlab = "Linear predictors",
              ylab = expression(sqrt("Pearson resid.")),
              main = "Scale-Location plot",
              sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
              ...);
-        graphics::panel.smooth(y = sqrt(abs(res)), x = x$linear.predictors[, k], iter = 0)
+        graphics::panel.smooth(y = sqrt(abs(res)), x = x$linearPredictors[, k], iter = 0)
       }
       graphics::par(par);
     }
   },
   fitresid = {
     if (x$model$parNum == 1) {
-      lp <- x$linear.predictors
+      lp <- x$linearPredictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
         res <- res[x$which$reg]
@@ -224,14 +224,14 @@ plot.singleR <- function(x,
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
-        plot(y = res, x = x$linear.predictors[, k],
+        plot(y = res, x = x$linearPredictors[, k],
              xlab = "Linear predictors",
              ylab = "Response residuals",
              main = "Residuals vs Fitted",
              sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
              ...);
         abline(lty = 2, col = "darkgrey", h = 0);
-        graphics::panel.smooth(y = res, x = x$linear.predictors[, k], iter = 0)
+        graphics::panel.smooth(y = res, x = x$linearPredictors[, k], iter = 0)
       }
       graphics::par(par);
     }

@@ -42,12 +42,12 @@ data on immigration in netherlands with analytic variance:
 library(singleRcapture)
 ModelPo <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
-                            pop.var = "analytic",
+                            popVar = "analytic",
                             model = "ztpoisson",
                             method = "IRLS")
 ModelZl <- estimatePopsize(formula = capture ~ .,
                             data = netherlandsimmigrant,
-                            pop.var = "analytic",
+                            popVar = "analytic",
                             model = "zelterman",
                             method = "IRLS")
 summary(ModelPo)
@@ -79,7 +79,7 @@ set.seed(123)
 zotgeomBoot <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
-    pop.var = "bootstrap",
+    popVar = "bootstrap",
     model = "zotgeom",
     method = "IRLS",
     controlPopVar = controlPopVar(B = 1000, alpha = .01)
