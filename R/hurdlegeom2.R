@@ -243,6 +243,27 @@ Hurdleztgeom <- function(...) {
     sims
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients,
+    if (is.null(controlMethod$piStart)) {
+      cc <- colnames(Xvlm)
+      cc <- cc[grepl(x = cc, pattern = "pi$")]
+      cc <- unlist(strsplit(x = cc, ":pi"))
+      cc <- sapply(cc, FUN = function(x) {
+        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+      })
+      start <- c(start, cc)
+    } else {
+      start <- c(start, controlMethod$piStart)
+    }
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -262,7 +283,8 @@ Hurdleztgeom <- function(...) {
       parNum = 2,
       etaNames = c("lambda", "pi"),
       densityFunction = dFun,
-      simulate = simulate
+      simulate = simulate,
+      getStart = getStart
     ),
     class = "family"
   )

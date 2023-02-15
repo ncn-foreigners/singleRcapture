@@ -1,4 +1,6 @@
 #' @rdname singleRmodels
+#' @importFrom stats glm.fit
+#' @importFrom stats poisson
 #' @export
 chao <- function(...) {
   link <- function(x) {log(x / 2)}
@@ -121,6 +123,16 @@ chao <- function(...) {
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, ],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -141,7 +153,8 @@ chao <- function(...) {
       family = "chao",
       parNum = 1,
       etaNames = "lambda",
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

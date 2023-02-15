@@ -248,6 +248,45 @@ ztoigeom <- function(...) {
     sims
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients,
+    if (isTRUE(controlMethod$useZtpoissonAsStart)) {
+      start <- estimatePopsize.fit(
+        y = observed[wch$reg],
+        X = variables[wch$reg, ],
+        family = ztpoisson(),
+        start = start,
+        hwm = ncol(variables),
+        control = controlMethod(),
+        method = method,
+        priorWeights = priorWeights,
+        ...
+      )$beta
+    },
+    if (is.null(controlMethod$omegaStart)) {
+      if (controlModel$omegaFormula == ~ 1) {
+        omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
+        start <- c(start, log(omg))
+      } else {
+        cc <- colnames(Xvlm)
+        cc <- cc[grepl(x = cc, pattern = "omega$")]
+        cc <- unlist(strsplit(x = cc, ":omega"))
+        cc <- sapply(cc, FUN = function(x) {
+          ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+        })
+        start <- c(start, cc)
+      }
+    } else {
+      start <- c(start, controlMethod$omegaStart)
+    }
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -267,7 +306,8 @@ ztoigeom <- function(...) {
       parNum = 2,
       etaNames = c("lambda", "omega"),
       densityFunction = dFun,
-      simulate = simulate
+      simulate = simulate,
+      getStart = getStart
     ),
     class = "family"
   )

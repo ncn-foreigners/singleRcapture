@@ -130,6 +130,16 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
     stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, ],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -150,7 +160,8 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       family = "zotgeom",
       parNum = 1,
       etaNames = "lambda",
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

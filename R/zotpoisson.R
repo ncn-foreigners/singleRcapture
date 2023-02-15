@@ -140,6 +140,16 @@ zotpoisson <- function(...) {
     sims
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, ],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -160,7 +170,8 @@ zotpoisson <- function(...) {
       family = "zotpoisson",
       parNum = 1,
       etaNames = "lambda",
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

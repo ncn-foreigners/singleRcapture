@@ -27,31 +27,45 @@ estimatePopsize(
 )
 }
 \arguments{
-\item{formula}{Formula for the model to be fitted, only applied to the "main" linear predictor. Only single response models are available.}
+\item{formula}{Formula for the model to be fitted, only applied to the "main"
+linear predictor. Only single response models are available.}
 
-\item{data}{Data frame or object coercible to data.frame class containing data for the regression and population size estimation.}
+\item{data}{Data frame or object coercible to data.frame class containing
+data for the regression and population size estimation.}
 
 \item{model}{Model for regression and population estimate full description in \code{\link[=singleRmodels]{singleRmodels()}}.}
 
 \item{weights}{Optional object of a priori weights used in fitting the model.}
 
-\item{subset}{A logical vector indicating which observations should be used in regression and population size estimation.}
+\item{subset}{A logical vector indicating which observations should be used
+in regression and population size estimation. It will be evaluated on \code{data} argument provided on call.}
 
 \item{naAction}{Not yet implemented.}
 
-\item{method}{Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).}
+\item{method}{Method for fitting values currently supported: iteratively
+reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).}
 
 \item{popVar}{A method of constructing confidence interval either analytic or bootstrap.
 Bootstrap confidence interval type may be specified in \code{controlPopVar.}
-There is also the third possible value of \code{noEst} which skips the population size estimate all together.}
+There is also the third possible value of \code{noEst} which skips the
+population size estimate all together.}
 
-\item{controlMethod}{A list indicating parameters to use in fitting the model may be constructed with \code{singleRcapture::controlMethod} function. More information included in \code{\link[=controlMethod]{controlMethod()}}.}
+\item{controlMethod}{A list indicating parameters to use in fitting the model
+may be constructed with \code{singleRcapture::controlMethod} function.
+More information included in \code{\link[=controlMethod]{controlMethod()}}.}
 
-\item{controlModel}{A list indicating additional formulas for regression (like formula for inflation parameter/dispersion parameter) may be constructed with \code{singleRcapture::controlModel} function. More information will eventually be included in More information included in \code{\link[=controlModel]{controlModel()}}.}
+\item{controlModel}{A list indicating additional formulas for regression
+(like formula for inflation parameter/dispersion parameter) may be
+constructed with \code{singleRcapture::controlModel} function.
+More information will eventually be included in \code{\link[=controlModel]{controlModel()}}.}
 
-\item{controlPopVar}{A list indicating parameters to use in estimating variance of population size estimation may be constructed with \code{singleRcapture::controlPopVar} function. More information included in \code{\link[=controlPopVar]{controlPopVar()}}.}
+\item{controlPopVar}{A list indicating parameters to use in estimating variance
+of population size estimation may be constructed with
+\code{singleRcapture::controlPopVar} function.
+More information included in \code{\link[=controlPopVar]{controlPopVar()}}.}
 
-\item{modelFrame, x, y}{Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.}
+\item{modelFrame, x, y}{Logical value indicating whether to return model matrix,
+dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{Not yet implemented.}
 

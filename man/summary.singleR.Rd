@@ -56,10 +56,9 @@ In particular it is possible to set confidence level in \code{...}.
 An object of \code{summarysingleR} class containing:
 \itemize{
 \item \code{call} -- A call which created \code{object}.
-\item \code{coefficients} -- Regression parameters in \code{object}.
-\item \code{standardErrors} -- Square roots of diagonal elements of covariance matrix.
-\item \code{wValues} -- Test statistics for Wald's tests.
-\item \code{pValues} -- P values for corresponding tests.
+\item \code{coefficients} -- A dataframe with estimated regression coefficients
+and their summary statistics such as standard error wald test statistic and
+p value for wald test.
 \item \code{residuals} -- A vector of residuals of type specified at call.
 \item \code{aic} -- Akaike's informsation criterion.
 \item \code{bic} -- Bayesian (Schwarz's) information criterion.
@@ -71,7 +70,6 @@ An object of \code{summarysingleR} class containing:
 \item \code{sizeObserved} -- Size of observed population.
 \item \code{correlation} -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
 \item \code{test} -- Type of statistical test performed.
-\item \code{cnfint} -- Data frame with confidence intervals.
 \item \code{model} -- Family class object specified in call for \code{object}.
 \item \code{skew} -- If bootstrap sample was saved contains estimate of skewness.
 }

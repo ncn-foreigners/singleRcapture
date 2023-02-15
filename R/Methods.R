@@ -37,10 +37,9 @@
 #' @return An object of \code{summarysingleR} class containing:
 #' \itemize{
 #' \item \code{call} -- A call which created \code{object}.
-#' \item \code{coefficients} -- Regression parameters in \code{object}.
-#' \item \code{standardErrors} -- Square roots of diagonal elements of covariance matrix.
-#' \item \code{wValues} -- Test statistics for Wald's tests.
-#' \item \code{pValues} -- P values for corresponding tests.
+#' \item \code{coefficients} -- A dataframe with estimated regression coefficients
+#' and their summary statistics such as standard error wald test statistic and
+#' p value for wald test.
 #' \item \code{residuals} -- A vector of residuals of type specified at call.
 #' \item \code{aic} -- Akaike's informsation criterion.
 #' \item \code{bic} -- Bayesian (Schwarz's) information criterion.
@@ -52,7 +51,6 @@
 #' \item \code{sizeObserved} -- Size of observed population.
 #' \item \code{correlation} -- Correlation matrix if \code{correlation} parameter was set to \code{TRUE}
 #' \item \code{test} -- Type of statistical test performed.
-#' \item \code{cnfint} -- Data frame with confidence intervals.
 #' \item \code{model} -- Family class object specified in call for \code{object}.
 #' \item \code{skew} -- If bootstrap sample was saved contains estimate of skewness.
 #' }
@@ -79,12 +77,12 @@ summary.singleR <- function(object,
     cov <- cov(object, ...)
   }
   pers <- residuals.singleR(object, type = resType)
-  cf <- object$coefficients
+  cf <- coef(object)
   se <- sqrt(diag(cov))
   wValues <- cf / se
   pValues <- switch (test,
-                     "t" = 2 * stats::pt(q = -abs(wValues), df = dfResidual),
-                     "z" = 2 * stats::pnorm(q =  abs(wValues), lower.tail = FALSE)
+  "t" = 2 *    stats::pt(q = -abs(wValues), df = dfResidual),
+  "z" = 2 * stats::pnorm(q = abs(wValues), lower.tail = FALSE)
   )
   crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
   if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
@@ -97,13 +95,24 @@ summary.singleR <- function(object,
   } else {
     skew <- NULL
   }
+  
+  ob <- data.frame(cf, se, wValues, pValues)
+  
+  colnames(ob) <- switch(test,
+  "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
+  "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
+  if (isTRUE(confint)) {
+    ob[, 4] <- cnfint[, 1]
+    ob[, 5] <- cnfint[, 2]
+    ob[, 6] <- pValues
+    colnames(ob)[4:6] <- c(colnames(cnfint), colnames(ob)[4])
+  }
+  
+  cf <- ob
   structure(
     list(
       call = object$call,
       coefficients = cf,
-      standardErrors = se,
-      wValues = wValues,
-      pValues = pValues,
       residuals = pers,
       aic = AIC(object, ...),
       bic = BIC(object, ...),
@@ -115,7 +124,6 @@ summary.singleR <- function(object,
       sizeObserved = object$sizeObserved,
       correlation = crr,
       test = test,
-      cnfint = cnfint,
       model = object$model,
       skew = skew
     ),
@@ -707,21 +715,6 @@ print.popSizeEstResults <- function(x, ...) {
 print.summarysingleR <- function(x, 
                                  signif.stars = getOption("show.signif.stars"), 
                                  digits = max(3L, getOption("digits") - 3L), ...) {
-  
-  ob <- data.frame(x$coefficients,
-  x$standardErrors, x$wValues, x$pValues)
-  
-  colnames(ob) <- switch(x$test,
-  "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
-  "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
-  
-  if (!is.null(x$cnfint)) {
-    ob[, 4] <- x$cnfint[, 1]
-    ob[, 5] <- x$cnfint[, 2]
-    ob[, 6] <- x$pValues
-    colnames(ob)[4:6] <- c(colnames(x$cnfint), colnames(ob)[4])
-  }
-  
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
       "\n\n", sep = "")
   cat("Pearson Residuals:\n")
@@ -729,13 +722,13 @@ print.summarysingleR <- function(x,
   cat("\nCoefficients:\n")
   #print(ob)
   cond <- sapply(x$model$etaNames, 
-  FUN = function(k) {sapply(strsplit(rownames(ob), split = ":"), 
-                            FUN = function(x) {x[[length(x)]] == k})})
+  FUN = function(k) {sapply(strsplit(rownames(x$coefficients), split = ":"), 
+                     FUN = function(x) {x[[length(x)]] == k})})
   for (k in x$model$etaNames) {
     if (!all(cond[,k] == FALSE)) {
       cat("-----------------------\nFor linear predictors associated with:", k, "\n")
       # Base liblary has no str_length and no proper sub_string this is a slightly convoluted way of making do without them
-      toPrint <- subset(ob, cond[,k])
+      toPrint <- subset(x$coefficients, cond[,k])
       lengths <- sapply(rownames(toPrint), function(x) {length(strsplit(x, split = "")[[1]])})
       lK <- length(unlist(strsplit(k, split = "")))
       rownames(toPrint) <- sapply(1:nrow(toPrint), function(x) {substr(x = rownames(toPrint)[x], start = 1, stop = lengths[[x]] - (1 + lK))})
@@ -747,8 +740,8 @@ print.summarysingleR <- function(x,
                    na.print = "NA", ...)
     } else {
       cat("-----------------------\nFor linear predictors associated with:", k, "\n")
-      #print(subset(ob, rowSums(cond) == 0))
-      printCoefmat(subset(ob, rowSums(cond) == 0), 
+      #print(subset(x$coefficients, rowSums(cond) == 0))
+      printCoefmat(subset(x$coefficients, rowSums(cond) == 0), 
                    digits = digits, 
                    signif.stars = signif.stars, 
                    signif.legend = if (k == x$model$etaNames[length(x$model$etaNames)]) signif.stars else FALSE, 
@@ -782,7 +775,7 @@ print.summarysingleR <- function(x,
       "\nPopulation size estimation results: ",
       "\nPoint estimate ", x$populationSize$pointEstimate, 
       "\nObserved proportion: ", round(100 * x$sizeObserved / x$populationSize$pointEstimate, digits = 1), "% (N obs = ", x$sizeObserved, ")",
-      if (!is.null(x$skew)) {"\nBoostrap sample skewness: "}, if (!is.null(x$skew)) {x$skew}, if (!is.null(x$skew)) {"\n0 skewness is expected for normally distributed vairable\n"},
+      if (!is.null(x$skew)) {"\nBoostrap sample skewness: "}, if (!is.null(x$skew)) {x$skew}, if (!is.null(x$skew)) {"\n0 skewness is expected for normally distributed vairable\n---"},
       if (isTRUE(x$call$popVar == "bootstrap")) {"\nBootstrap Std. Error "} else {"\nStd. Error "}, sd,
       "\n", (1 - x$populationSize$control$alpha) * 100, "% CI for the population size:\n", sep = "")
   print(x$populationSize$confidenceInterval)

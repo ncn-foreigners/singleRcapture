@@ -351,6 +351,31 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     sims
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients,
+    if (!is.null(controlMethod$alphaStart)) {
+      start <- c(start, controlMethod$alphaStart)
+    } else {
+      if (controlModel$alphaFormula == ~ 1) {
+        start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
+      } else {
+        cc <- colnames(Xvlm)
+        cc <- cc[grepl(x = cc, pattern = "alpha$")]
+        cc <- unlist(strsplit(x = cc, ":alpha"))
+        cc <- sapply(cc, FUN = function(x) {
+          ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+        })
+        start <- c(start, cc)
+      }
+    }
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -370,7 +395,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       family = "ztnegbin",
       parNum = 2,
       etaNames = c("lambda", "alpha"),
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

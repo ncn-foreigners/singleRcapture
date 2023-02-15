@@ -16,20 +16,34 @@ NULL
 #' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, 
 #' with value 1 if kth unit was observed at least once and 0 otherwise.
 #'
-#' @param data Data frame or object coercible to data.frame class containing data for the regression and population size estimation.
-#' @param formula Formula for the model to be fitted, only applied to the "main" linear predictor. Only single response models are available.
+#' @param data Data frame or object coercible to data.frame class containing 
+#' data for the regression and population size estimation.
+#' @param formula Formula for the model to be fitted, only applied to the "main" 
+#' linear predictor. Only single response models are available.
 #' @param model Model for regression and population estimate full description in [singleRmodels()]. 
 #' @param weights Optional object of a priori weights used in fitting the model.
-#' @param subset A logical vector indicating which observations should be used in regression and population size estimation.
+#' @param subset A logical vector indicating which observations should be used 
+#' in regression and population size estimation. It will be evaluated on \code{data} argument provided on call.
 #' @param naAction Not yet implemented.
-#' @param method Method for fitting values currently supported: iteratively reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).
+#' @param method Method for fitting values currently supported: iteratively 
+#' reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).
 #' @param popVar A method of constructing confidence interval either analytic or bootstrap.
 #' Bootstrap confidence interval type may be specified in \code{controlPopVar.} 
-#' There is also the third possible value of \code{noEst} which skips the population size estimate all together.
-#' @param controlMethod A list indicating parameters to use in fitting the model may be constructed with \code{singleRcapture::controlMethod} function. More information included in [controlMethod()].
-#' @param controlModel A list indicating additional formulas for regression (like formula for inflation parameter/dispersion parameter) may be constructed with \code{singleRcapture::controlModel} function. More information will eventually be included in More information included in [controlModel()].
-#' @param controlPopVar A list indicating parameters to use in estimating variance of population size estimation may be constructed with \code{singleRcapture::controlPopVar} function. More information included in [controlPopVar()].
-#' @param modelFrame,x,y Logical value indicating whether to return model matrix, dependent vector and model matrix as a part of output.
+#' There is also the third possible value of \code{noEst} which skips the 
+#' population size estimate all together.
+#' @param controlMethod A list indicating parameters to use in fitting the model 
+#' may be constructed with \code{singleRcapture::controlMethod} function. 
+#' More information included in [controlMethod()].
+#' @param controlModel A list indicating additional formulas for regression 
+#' (like formula for inflation parameter/dispersion parameter) may be 
+#' constructed with \code{singleRcapture::controlModel} function. 
+#' More information will eventually be included in [controlModel()].
+#' @param controlPopVar A list indicating parameters to use in estimating variance 
+#' of population size estimation may be constructed with 
+#' \code{singleRcapture::controlPopVar} function. 
+#' More information included in [controlPopVar()].
+#' @param modelFrame,x,y Logical value indicating whether to return model matrix, 
+#' dependent vector and model matrix as a part of output.
 #' @param contrasts Not yet implemented.
 #' @param ... Additional optional arguments passed to the following functions:
 #' \itemize{
@@ -375,6 +389,7 @@ NULL
 #' @importFrom stats model.matrix
 #' @importFrom stats optim
 #' @importFrom stats pnorm
+#' @importFrom stats model.response
 #' @importFrom stats family
 #' @export
 estimatePopsize <- function(formula,
@@ -410,6 +425,11 @@ estimatePopsize <- function(formula,
     data <- data.frame(data)
   }
   
+  if (!is.logical(subset)) {subset <- eval(subset, data)}
+  if (is.null(subset)) {subset <- TRUE}
+  # subset is often in conflict with some common packages hence explicit call
+  data <- base::subset(data, subset = subset)
+  
   family <- model
   if (is.character(family)) {
     family <- get(family, mode = "function", envir = parent.frame())
@@ -428,29 +448,35 @@ estimatePopsize <- function(formula,
   optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi") || grepl(x = family$family, pattern = "^oizt")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   controlPopVar <- append(m1, m2)
+  
   m1 <- controlMethod
   m2 <- controlMethod(optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   controlMethod <- append(m1, m2)
+  
   m1 <- controlModel
   m2 <- controlModel()
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   controlModel <- append(m1, m2)
   
-  modelFrame <- stats::model.frame(formula, data,  ...)
-  variables <- stats::model.matrix(formula, modelFrame, contrasts = contrasts, ...)
+  formulas <- list(formula)
+  if ("alpha" %in% family$etaNames) {
+    formulas <- append(x = formulas, controlModel$alphaFormula)
+  }
+  if ("omega" %in% family$etaNames) {
+    formulas <- append(x = formulas, controlModel$omegaFormula)
+  }
+  if ("pi" %in% family$etaNames) {
+    formulas <- append(x = formulas, controlModel$piFormula)
+  }
+  
+  combinedFromula <- singleRinternalMergeFormulas(formulas)
+  
+  modelFrame <- stats::model.frame(combinedFromula, data,  ...)
+  variables <- stats::model.matrix(combinedFromula, modelFrame, contrasts = contrasts, ...)
   terms <- attr(modelFrame, "terms")
   contrasts <- attr(variables, "contrasts")
-  
-  subset <- eval(subset, modelFrame)
-  if (is.null(subset)) {subset <- TRUE}
-  
-  # subset is often in conflict with some common packages hence explicit call
-  modelFrame <- base::subset(modelFrame, subset = subset)
-  attributes(modelFrame)$terms <- terms # subset deletes terms attribute for some reason
-  
-  variables <- base::subset(variables, subset = subset)
-  observed <- modelFrame[, attr(terms, "response")]
+  observed <- model.response(modelFrame)
   
   if (NCOL(observed) > 1) stop("Single source capture-recapture models support only single dependent variable")
   sizeObserved <- nrow(data) + controlPopVar$trcount
@@ -466,113 +492,25 @@ estimatePopsize <- function(formula,
     stop("Error in function estimatePopsize, data contains zero-counts")
   }
 
-  # if (!family$valideta(start) && !is.null(start)) {
-  #   stop("Invalid start parameter")
-  # }
-  
-  formulas <- list(formula)
-  if ("alpha" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$alphaFormula)
-  }
-  if ("omega" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$omegaFormula)
-  }
-  if ("pi" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$piFormula)
-  }
-
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
                                                        observed = observed, 
                                                        popVar = popVar)
 
   controlPopVar$trcount <- controlPopVar$trcount + wch$trr
   
-  # TODO::
-  ## move this to family functions
-  if (is.null(controlMethod$start)) {
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients
-    if (isTRUE(controlMethod$useZtpoissonAsStart)) {
-      start <- estimatePopsize.fit(
-        y = observed[wch$reg],
-        X = variables[wch$reg, ],
-        family = ztpoisson(),
-        start = start,
-        hwm = ncol(variables),
-        control = controlMethod(),
-        method = method,
-        priorWeights = priorWeights,
-        ...
-      )$beta
-    }
-    if (family$family %in% c("chao", "zelterman")) {
-      start[1] <- start[1] + log(1 / 2)
-    }
-  } else {
-    start <- controlMethod$start
-  }
-  
-  if ("omega" %in% family$etaNames) {
-    if (is.null(controlMethod$omegaStart)) {
-      if (controlModel$omegaFormula == ~ 1) {
-        omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(table(observed[wch$reg]) * as.numeric(names(table(observed[wch$reg])))) - length(observed[wch$reg]))
-        #start <- c(start, log(omg / (1 - omg)))
-        start <- c(start, log(omg))
-      } else {
-        #print(modelFrame)
-        #print(terms)
-        #print(attr(terms, "term.labels"))
-        #stop("stopy")
-        #, select = attr(terms, "term.labels") i dunno why this was here but it stop interaction terms
-        start <- c(start, stats::glm.fit(
-          x = model.matrix(controlModel$omegaFormula, subset(modelFrame, subset = wch$reg)),
-          y = as.numeric(observed[wch$reg] == 1),
-          family = stats::binomial(),
-          ...
-        )$coefficients)
-      }
-    } else {
-      start <- c(start, controlMethod$omegaStart)
-    }
-  }
   Xvlm <- singleRinternalGetXvlmMatrix(X = subset(
     modelFrame, 
     select = colnames(modelFrame)[-(attr(terms, "response"))], 
     subset = wch$reg
   ), nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
   
-  if ("alpha" %in% family$etaNames) {
-    if (is.null(controlMethod$alphaStart)) {
-      if (controlModel$alphaFormula == ~ 1) {
-        start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
-      } else {
-        cc <- colnames(Xvlm)
-        cc <- cc[grepl(x = cc, pattern = "alpha$")]
-        cc <- unlist(strsplit(x = cc, ":"))
-        cc <- cc[cc != "alpha"]
-        start <- c(start, start[cc])  # TODO: gosh this is terrible pick a better method
-      }
-    } else {
-      start <- c(start, controlMethod$alphaStart)
-    }
+  
+  start <- controlMethod$start #TODO:: Re-add use ztpoisson as start
+  if (isTRUE(controlMethod$useZtpoissonAsStart)) stop("useZtpoissonAsStart option is temporarily removed.")
+  if (is.null(start)) {
+    eval(family$getStart)
   }
-  if ("pi" %in% family$etaNames) {
-    if (is.null(controlMethod$piStart)) {
-      # maybe there is a less complicated way
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "pi$")]
-      cc <- unlist(strsplit(x = cc, ":"))
-      cc <- cc[cc != "pi"]
-      start <- c(start, start[cc])
-    } else {
-      start <- c(start, controlMethod$piStart)
-    }
-  }
+  
   names(start) <- colnames(Xvlm)
   
   FITT <- estimatePopsize.fit(
@@ -599,7 +537,6 @@ estimatePopsize <- function(formula,
   hessian <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
   weight = priorWeights[wch$reg], deriv = 2)
 
-  hess <- hessian(coefficients)
   eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = family$parNum)
   colnames(eta) <- family$etaNames
   rownames(eta) <- rownames(variables[wch$reg])
@@ -614,9 +551,21 @@ estimatePopsize <- function(formula,
   fitt <- data.frame(family$mu.eta(eta = eta),
   family$mu.eta(eta = eta, type = "nontrunc"))
   colnames(fitt) <- c("mu", "link")
-  if (controlPopVar$covType == "observedInform") { # maybe add warning and swich to fisher matrix ?????
-    if ((sum(diag(-solve(hess)) <= 0) != 0)) {
-      stop("Fitting error observed information matrix obtained from analytic hessian is invalid i.e not positive defined, try another model.")
+  
+  # (Real square) Matrix is negative define iff all eigen values have negative sign
+  # This is very fast. We only use eigen values so only.values is set to true
+  eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
+  if (!all(sign(eig$values) == -1)) {
+    warningMessage <- paste0(
+      "The (analytically computed) hessian of the score function is not negative define.\n",
+      "NOTE: Second derivative test failing does not necessarily mean that the maximum of score function that was found numericaly is invalid since R^k is not a bounded space.\n",
+      "Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments."
+    )
+    warning(warningMessage)
+    #cat("The eigen values were: ", eig$values) # Add some option that will give much more information everywhere including here
+    if (controlPopVar$covType == "observedInform") {
+      warning("Switching from observed information matrix to Fisher information matrix because hessian of log-likelihood is not negative define.")
+      controlPopVar$covType <- "Fisher"
     }
   }
   

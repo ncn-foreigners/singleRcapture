@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # singleRcapture
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
 <!-- badges: end -->
 
 The goal of singleRcapture is to automate single source capture-recapture estimation of population size.

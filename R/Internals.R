@@ -560,7 +560,32 @@ singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop
        est = wch2, # which rows for estimation
        trr = trr)  # add to trcount
 }
-# TODO:: additional verification
+#' @importFrom stats reformulate
+singleRinternalMergeFormulas <- function(ff) {
+  # This code was inspired by: https://stevencarlislewalker.wordpress.com/2012/08/06/merging-combining-adding-together-two-formula-objects-in-r/
+  #ff is a list with many formulas
+  env <- environment(ff[[1]])
+  for (k in 1:length(ff)) { # eliminate left hand side
+    if (length(ff[[k]]) == 3) {
+      resp <- ff[[k]][[2]]
+      ff[[k]][[2]] <- NULL
+    }
+  }
+  dotCheck <- sapply(ff, FUN = function(x) {x == ~.})
+  if (any(dotCheck)) {
+    out <- reformulate(".", resp)
+  } else {
+    for (k in 1:length(ff)) { # extract right hand side and create string vector
+      ff[[k]] <- strsplit(deparse(ff[[k]][[2]]), " \\+ ")[[1]]
+    }
+    ff <- unlist(ff)
+    out <- reformulate(ff, resp)
+  }
+  
+  environment(out) <- env
+  out
+}
+
 # This is almost certainly an overkill but is supports arbitrary number of linear predictors
 singleRinternalMultiplyWeight <- function (X, W, ...) {
   hwm <- attr(X, "hwm")

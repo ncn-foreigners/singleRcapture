@@ -4,6 +4,8 @@
 # singleRcapture
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
 <!-- badges: end -->
 
 The goal of singleRcapture is to automate single source
@@ -43,8 +45,6 @@ ModelZl <- estimatePopsize(formula = capture ~ .,
                             popVar = "analytic",
                             model = "zelterman",
                             method = "IRLS")
-#> Warning in FittingFunction(dependent = y, covariates = X, eps =
-#> control$epsilon, : Convergence at halfstepsize
 summary(ModelPo)
 #> 
 #> Call:
@@ -129,15 +129,15 @@ summary(ModelZl)
 #> Population size estimation results: 
 #> Point estimate 16188.3
 #> Observed proportion: 11.6% (N obs = 1880)
-#> Std. Error 3166.091
+#> Std. Error 3166.094
 #> 95% CI for the population size:
 #>              lowerBound upperBound
-#> Studentized    9982.874   22393.72
-#> Logtransform  11201.449   23843.04
+#> Studentized    9982.871   22393.73
+#> Logtransform  11201.447   23843.06
 #> 95% CI for the share of observed population:
 #>              lowerBound upperBound
-#> Studentized    8.395210   18.83225
-#> Logtransform   7.884899   16.78354
+#> Studentized    8.395207   18.83226
+#> Logtransform   7.884896   16.78355
 ```
 
 Marginal frequencies and Goodness of fit test:
@@ -215,7 +215,7 @@ summary(zotgeomBoot)
 #> Observed proportion: 41.4% (N obs = 12036)
 #> Boostrap sample skewness: 0.7788564
 #> 0 skewness is expected for normally distributed vairable
-#> 
+#> ---
 #> Bootstrap Std. Error 1962.695
 #> 99% CI for the population size:
 #> lowerBound upperBound 
