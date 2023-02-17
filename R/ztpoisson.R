@@ -28,7 +28,7 @@ ztpoisson <- function(...) {
   
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
-    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2)), 
+    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ^ 2)), 
            ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -65,7 +65,7 @@ ztpoisson <- function(...) {
       function(beta) {
         lambda <- exp(as.matrix(X) %*% beta)
         eml <- exp(-lambda)
-        coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2)
+        coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2)
         
         dmu <- weight * as.numeric(coefficient)
         dlam <- as.matrix(X * as.numeric(lambda))
@@ -101,7 +101,7 @@ ztpoisson <- function(...) {
   popVar <- function (pw, eta, cov, Xvlm, ...) {
     Xvlm <- as.data.frame(Xvlm)
     lambda <- invlink(eta)
-    ml <- (1 - exp(-lambda)) ** 2
+    ml <- (1 - exp(-lambda)) ^ 2
 
     f1 <- colSums(-Xvlm * pw * (exp(log(lambda) - lambda) / ml))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1

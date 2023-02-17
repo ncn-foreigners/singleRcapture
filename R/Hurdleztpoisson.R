@@ -21,9 +21,9 @@ Hurdleztpoisson <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     switch(type,
-            "nontrunc" = PI + (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / (1 - lambda * exp(-lambda)),
-            "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
-    ) - (mu.eta(eta = eta, type = type) ** 2)
+    "nontrunc" = PI + (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / (1 - lambda * exp(-lambda)),
+    "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+    ) - (mu.eta(eta = eta, type = type) ^ 2)
   }
   
   Wfun <- function(prior, eta, ...) {
@@ -32,16 +32,16 @@ Hurdleztpoisson <- function(...) {
     lambda <- lambda[, 1]
     z <- (1 - PI) * exp(-lambda) / (1 - lambda * exp(-lambda))
     
-    G00 <- -1 + PI * (1 - PI) * exp(-2 * lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ** 2) - (1 - 2 * PI) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+    G00 <- -1 + PI * (1 - PI) * exp(-2 * lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ^ 2) - (1 - 2 * PI) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
     G00 <- G00 * PI * (1 - PI) * prior
     
     # mixed
     
-    G01 <- -PI * (1 - PI) * (-exp(-lambda) * (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) - exp(-2 * lambda) * (lambda - PI)) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ** 2)
+    G01 <- -PI * (1 - PI) * (-exp(-lambda) * (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) - exp(-2 * lambda) * (lambda - PI)) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ^ 2)
     G01 <- G01 * lambda * prior
     
     # Beta^2 derivative
-    G11 <- -(PI * (exp(lambda) * (lambda + 1) - 1) + exp(lambda) * (-lambda ** 2 - 2) + exp(2 * lambda) + 1) / ((PI + exp(lambda) - lambda - 1) ** 2) - (exp(lambda) * (lambda ** 2 - lambda - exp(lambda) + 1) * z) / ((lambda - exp(lambda)) ** 2)
+    G11 <- -(PI * (exp(lambda) * (lambda + 1) - 1) + exp(lambda) * (-lambda ^ 2 - 2) + exp(2 * lambda) + 1) / ((PI + exp(lambda) - lambda - 1) ^ 2) - (exp(lambda) * (lambda ^ 2 - lambda - exp(lambda) + 1) * z) / ((lambda - exp(lambda)) ^ 2)
     G11 <- G11 * lambda * prior
     
     matrix(
@@ -73,7 +73,7 @@ Hurdleztpoisson <- function(...) {
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) # less computationally demanding
+      xx <- solve(weight[[x]]) # more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -134,18 +134,18 @@ Hurdleztpoisson <- function(...) {
         res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
         
         # PI^2 derivative
-        G00 <- -1 + PI * (1 - PI) * exp(-2 * lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ** 2) - (1 - 2 * PI) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+        G00 <- -1 + PI * (1 - PI) * exp(-2 * lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ^ 2) - (1 - 2 * PI) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
         G00 <- G00 * PI * (1 - PI)
         G00 <- t(as.data.frame(XPI * G00 * weight)) %*% as.matrix(XPI)
         
         # mixed
         
-        G01 <- -PI * (1 - PI) * (-exp(-lambda) * (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) - exp(-2 * lambda) * (lambda - PI)) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ** 2)
+        G01 <- -PI * (1 - PI) * (-exp(-lambda) * (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) - exp(-2 * lambda) * (lambda - PI)) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) ^ 2)
         G01 <- G01 * lambda
         G01 <- t(as.data.frame(Xlambda * G01 * weight)) %*% as.matrix(XPI)
         
         # Beta^2 derivative
-        G11 <- -(PI * (exp(lambda) * (lambda + 1) - 1) + exp(lambda) * (-lambda ** 2 - 2) + exp(2 * lambda) + 1) / ((PI + exp(lambda) - lambda - 1) ** 2) - (exp(lambda) * (lambda ** 2 - lambda - exp(lambda) + 1) * z) / ((lambda - exp(lambda)) ** 2)
+        G11 <- -(PI * (exp(lambda) * (lambda + 1) - 1) + exp(lambda) * (-lambda ^ 2 - 2) + exp(2 * lambda) + 1) / ((PI + exp(lambda) - lambda - 1) ^ 2) - (exp(lambda) * (lambda ^ 2 - lambda - exp(lambda) + 1) * z) / ((lambda - exp(lambda)) ^ 2)
         G11 <- G11 * lambda
         G11 <- t(as.data.frame(Xlambda * G11 * weight)) %*% Xlambda
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
@@ -162,9 +162,35 @@ Hurdleztpoisson <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  devResids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  devResids <- function(y, eta, wt, ...) {
+    PI <- invlink(eta)
+    lambda <- PI[, 1]
+    PI <- PI[, 2]
+    mu <- mu.eta(eta = eta)
+    
+    # when pi = 0 distribution collapses to zotpoisson
+    inverseFunction <- function(y) {stats::uniroot(
+      f = function(x) {
+        lambda <- exp(x)
+        (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda)) - y
+      }, 
+      lower = -log(y), upper = y * 10, 
+      tol = .Machine$double.eps
+    )$root}
+    
+    etaSat <- vector("numeric", length = length(y))
+    
+    etaSat[y == 1] <- -Inf # this case doesnt matter
+    etaSat[y == 2] <- -Inf
+    etaSat[y > 2] <- sapply(y[y > 2], FUN = inverseFunction)
+    idealLambda <- exp(etaSat)
+    
+    diff <- ifelse(
+      y == 1,
+      -(log(PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))),
+      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - (log(1 - PI) + log(1 - lambda * exp(-lambda)) -log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
+    )
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -184,15 +210,15 @@ Hurdleztpoisson <- function(...) {
     lambda <- lambda[, 1]
     prob <- 1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)
     
-    bigTheta1 <- -pw * (1 - lambda * exp(-lambda)) * exp(-lambda) / (prob ** 2) # w.r to PI
-    bigTheta2 <- pw * (prob * (lambda * exp(-lambda) - exp(-lambda)) - ((1 - PI) * exp(-lambda) + lambda * exp(-lambda) - exp(-lambda))) / (prob ** 2) # w.r to lambda
+    bigTheta1 <- -pw * (1 - lambda * exp(-lambda)) * exp(-lambda) / (prob ^ 2) # w.r to PI
+    bigTheta2 <- pw * (prob * (lambda * exp(-lambda) - exp(-lambda)) - ((1 - PI) * exp(-lambda) + lambda * exp(-lambda) - exp(-lambda))) / (prob ^ 2) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    #f2 <- sum(pw * (1 - PI) * exp(-lambda) * (1 - lambda * exp(-lambda)) / (prob ** 2))
-    f2 <- sum(pw * (1 - lambda * exp(-lambda)) * (1 - PI) * exp(-lambda) / (prob ** 2))
+    #f2 <- sum(pw * (1 - PI) * exp(-lambda) * (1 - lambda * exp(-lambda)) / (prob ^ 2))
+    f2 <- sum(pw * (1 - lambda * exp(-lambda)) * (1 - PI) * exp(-lambda) / (prob ^ 2))
     
     f1 + f2
   }
@@ -202,7 +228,7 @@ Hurdleztpoisson <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     ifelse(x == 1, PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)),
-           (1 - PI) * (lambda ** x) * exp(-lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) * factorial(x)))
+           (1 - PI) * (lambda ^ x) * exp(-lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) * factorial(x)))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

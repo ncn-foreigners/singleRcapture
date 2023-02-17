@@ -20,8 +20,8 @@ ztHurdlegeom <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     switch (type,
-    "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ** 2 + lambda - lambda * exp(-lambda)),
-    "trunc" = (PI + (1 - PI) * (lambda + lambda ** 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ** 2
+    "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ^ 2 + lambda - lambda * exp(-lambda)),
+    "trunc" = (PI + (1 - PI) * (lambda + lambda ^ 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ^ 2
     )
   }
   
@@ -35,7 +35,7 @@ ztHurdlegeom <- function(...) {
     term <- -(PI * (1 - PI))
     G00 <- term * prior
     S <- 1 / (1 + lambda)
-    term <- (1 - z) * lambda * (Ey - 1) * (S ** 2)
+    term <- (1 - z) * lambda * (Ey - 1) * (S ^ 2)
     G11 <- -term * prior
     G01 <- rep(0, nrow (eta))
     
@@ -73,7 +73,7 @@ ztHurdlegeom <- function(...) {
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it comfort to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
       function(beta) {
@@ -119,7 +119,7 @@ ztHurdlegeom <- function(...) {
         
         # Beta^2 derivative
         S <- 1 / (1 + lambda)
-        term <- ifelse(z, 0, lambda * (y - 1) * (S ** 2))
+        term <- ifelse(z, 0, lambda * (y - 1) * (S ^ 2))
         G11 <- -term * weight
         G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
@@ -136,17 +136,27 @@ ztHurdlegeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  devResids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  devResids <- function(y, eta, wt, ...) {
+    omega <- invlink(eta)
+    lambda <- PI[, 1]
+    PI <- PI[, 2]
+    mu <- mu.eta(eta = eta)
+    #idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed
+    # when pi = 0 distribution collapses to zotgeom
+    idealLambda <- ifelse(y > 1, y - 2, 0)
+    diff <- ifelse(
+      y == 1, -log(PI),
+      ((y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda))-(log(1 - PI) + (y - 2) * log(lambda) - (y - 1) * log(1 + lambda))
+    )
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- invlink(eta)
     lambda <- lambda[, 1]
     S <- 1 / (1 + lambda)
-    prob <- 1 - S - lambda * (S ** 2)
-    N <- pw * (1 - lambda * (S ** 2)) / prob
+    prob <- 1 - S - lambda * (S ^ 2)
+    N <- pw * (1 - lambda * (S ^ 2)) / prob
     if(!contr) {
       N <- sum(N)
     }
@@ -159,17 +169,17 @@ ztHurdlegeom <- function(...) {
     lambda <- lambda[, 1]
     M <- 1 + lambda
     S <- 1 / M
-    prob <- 1 - S - lambda * (S ** 2)
+    prob <- 1 - S - lambda * (S ^ 2)
     
     bigTheta1 <- rep(0, nrow(eta)) # w.r to PI
-    bigTheta2 <- pw * as.numeric(lambda * (prob * (lambda - 1) * (S ** 3) - 
-    2 * lambda * (S ** 3) * (1 - lambda * (S ** 2))) / (prob ** 2)) # w.r to lambda
+    bigTheta2 <- pw * as.numeric(lambda * (prob * (lambda - 1) * (S ^ 3) - 
+    2 * lambda * (S ^ 3) * (1 - lambda * (S ^ 2))) / (prob ^ 2)) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (1 + lambda) * (1 + lambda + lambda ** 2) / (lambda ** 4))
+    f2 <- sum(pw * (1 + lambda) * (1 + lambda + lambda ^ 2) / (lambda ^ 4))
     
     f1 + f2
   }
@@ -178,7 +188,7 @@ ztHurdlegeom <- function(...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    ifelse(x == 1, PI, (1 - PI) * (lambda ** (x - 2)) / ((1 + lambda) ** (x - 1)))
+    ifelse(x == 1, PI, (1 - PI) * (lambda ^ (x - 2)) / ((1 + lambda) ^ (x - 1)))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -187,13 +197,13 @@ ztHurdlegeom <- function(...) {
     lambda <- lambda[, 1]
     CDF <- function(x) {
       p <- lambda / (1 + lambda)
-      const <- -p * (lambda * (p ** x - 1) + p ** x) / (1 + lambda)
+      const <- -p * (lambda * (p ^ x - 1) + p ^ x) / (1 + lambda)
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 
-      ifelse(x < 1, (1 + lambda) / (1 + lambda + lambda ** 2), 
-      (1 + lambda) / (1 + lambda + lambda ** 2) + PI * (lambda ** 2
-      ) / (1 + lambda + lambda ** 2) +  (1 - PI) * ((1 + lambda) ** 2
-      ) * const / (lambda ** 2 + lambda + 1))))
+      ifelse(x < 1, (1 + lambda) / (1 + lambda + lambda ^ 2), 
+      (1 + lambda) / (1 + lambda + lambda ^ 2) + PI * (lambda ^ 2
+      ) / (1 + lambda + lambda ^ 2) +  (1 - PI) * ((1 + lambda) ^ 2
+      ) * const / (lambda ^ 2 + lambda + 1))))
     }
     lb <- CDF(lower)
     ub <- CDF(upper)

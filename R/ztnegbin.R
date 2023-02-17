@@ -14,7 +14,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     A <- A[, 2]
     switch (type,
     nontrunc = lambda,
-    trunc = lambda / (1 - (1 + A * lambda) ** (-1 / A))
+    trunc = lambda / (1 - (1 + A * lambda) ^ (-1 / A))
     )
   }
 
@@ -22,24 +22,24 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     A <- invlink(eta)
     lambda <- A[, 1]
     A <- A[, 2]
-    P0 <- (1 + A * lambda) ** (-1 / A)
+    P0 <- (1 + A * lambda) ^ (-1 / A)
     switch (type,
     nontrunc = lambda * (1 + A * lambda),
-    trunc = (lambda + A * (lambda ** 2) - A * (lambda ** 2) * P0) / ((1 - P0) ** 2)
+    trunc = (lambda + A * (lambda ^ 2) - A * (lambda ^ 2) * P0) / ((1 - P0) ^ 2)
     )
   }
   
   compdigamma <- function(y, alpha) {
     #temp <- 0:(y-1)
-    #sum(-(alpha ** (-2)) / (temp + 1 / alpha))
-    (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ** 2)
+    #sum(-(alpha ^ (-2)) / (temp + 1 / alpha))
+    (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ^ 2)
   }
   
   
   comptrigamma <- function(y, alpha) {
     #temp <- 0:(y-1)
-    #sum(-(temp ** 2) / (((1 + temp * alpha)) ** 2))
-    (alpha ** 2 * (1 - y) + 2 * alpha * digamma(y + 1 / alpha) + trigamma(y + 1 / alpha) - 2 * alpha * digamma(1 + 1 / alpha) - trigamma(1 + 1 / alpha)) / (alpha ** 4)
+    #sum(-(temp ^ 2) / (((1 + temp * alpha)) ^ 2))
+    (alpha ^ 2 * (1 - y) + 2 * alpha * digamma(y + 1 / alpha) + trigamma(y + 1 / alpha) - 2 * alpha * digamma(1 + 1 / alpha) - trigamma(1 + 1 / alpha)) / (alpha ^ 4)
   }
   
   # Computing the expected value of di/trigamma functions on (y + 1/alpha)
@@ -48,7 +48,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     alpha <- invlink(matrix(eta, ncol = 2))
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
-    P0 <- (1 + alpha * lambda) ** (-1 / alpha)
+    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     res <- res1 <- 0
     k <- 0
     finished <- c(FALSE, FALSE)
@@ -67,29 +67,29 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
     z <- 1 / alpha
-    M <- ((1 + lambda / z) ** z) - 1
+    M <- ((1 + lambda / z) ^ z) - 1
     S <- 1 / (1 + lambda / z)
-    G <- 1 / (1 - (1 + lambda / z) ** (-z))
+    G <- 1 / (1 - (1 + lambda / z) ^ (-z))
     Ey <- mu.eta(eta = eta)
-    cp4 <- z ** 2
+    cp4 <- z ^ 2
     cp9 <- (1 / S)
     cp1 <- log(cp9) * cp4
     cp2 <- lambda * S
-    cp3 <- S ** (-z)
+    cp3 <- S ^ (-z)
     cp5 <- log(S) / S
-    cp6 <- (S ** 2)
+    cp6 <- (S ^ 2)
     cp7 <- log(S)
     cp8 <- (lambda / z + cp5)
-    cp10 <- cp9 ** (-1 - z)
+    cp10 <- cp9 ^ (-1 - z)
     cp11 <- (S / M)
     T1 <- lambda * (Ey - lambda) * cp6
     T2 <- cp10 * (lambda * (1 + z) * S + cp7 * cp4)
     T2 <- G * T2
-    T3 <- cp9 ** (-z)
+    T3 <- cp9 ^ (-z)
     T3 <- T3 * (-cp7 * cp4 - z * cp2)
-    T3 <- (G ** 2) * (-T3) * cp10
-    C1 <- as.numeric(((cp9 ** z) * (lambda - 1) + 1) *
-                       cp6 / ((cp9 ** z - 1) ** 2))
+    T3 <- (G ^ 2) * (-T3) * cp10
+    C1 <- as.numeric(((cp9 ^ z) * (lambda - 1) + 1) *
+                       cp6 / ((cp9 ^ z - 1) ^ 2))
     C2 <- (1 + Ey / z) * cp6
     Edig <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
     Etrig <- Edig[2,]
@@ -98,11 +98,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       c(-lambda * (C1 - C2) * prior,           # lambda predictor derivative without X matrix,
         -(-T1 + lambda * (T2 + T3)) * prior * alpha, # mixed derivative without X matrix
         -(-T1 + lambda * (T2 + T3)) * prior * alpha, # mixed derivative without X matrix
-        -((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) + Etrig + # alpha predictor derivative without X matrix
-        (Ey + z) * (lambda ** 2) * cp6 + (z ** 3) * 2 * cp8 * cp11 +
-        cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
-        cp8 / (M ** 2) + cp4 * lambda * log(cp9) * cp11 +
-        cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2)+
+        -((2 * cp2 * cp4 + 2 * cp7 * (z ^ 3) + Etrig + # alpha predictor derivative without X matrix
+        (Ey + z) * (lambda ^ 2) * cp6 + (z ^ 3) * 2 * cp8 * cp11 +
+        cp4 * (S ^ (1 - z)) * (z * cp2 + cp7 * cp4) *
+        cp8 / (M ^ 2) + cp4 * lambda * log(cp9) * cp11 +
+        cp4 * lambda * cp6 * cp8 / M) * (alpha ^ 2)+
         (cp1 + Ey * z - (Ey + z) * cp2 + Edig +
         G * (1 / cp3) * (cp1 - z * cp2)) * alpha) * prior
       ),
@@ -117,10 +117,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     alpha <- alpha[, 2]
     z <- 1 / alpha
     S <- 1 / (1 + lambda / z)
-    G <- 1 / (1 - (1 + lambda / z) ** (-z))
-    cp1 <- log(1 / S) * (z ** 2)
+    G <- 1 / (1 - (1 + lambda / z) ^ (-z))
+    cp1 <- log(1 / S) * (z ^ 2)
     cp2 <- lambda * S
-    cp3 <- S ** (-z)
+    cp3 <- S ^ (-z)
     dig <- compdigamma(y = y, alpha = alpha)
 
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
@@ -164,7 +164,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
         
         -sum(weight * (lgamma(y + z) - lgamma(z) -
         log(factorial(y)) - (y + z) * log(M) +
-        y * log(lambda / z) - log(1 - (M ** (-z)))))
+        y * log(lambda / z) - log(1 - (M ^ (-z)))))
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
@@ -174,10 +174,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
         # z is inverse of alpha in documentation
         z <- 1 / alpha
         S <- 1 / (1 + lambda / z)
-        G <- 1 / (1 - (1 + lambda / z) ** (-z))
-        cp1 <- log(1 / S) * (z ** 2)
+        G <- 1 / (1 - (1 + lambda / z) ^ (-z))
+        cp1 <- log(1 / S) * (z ^ 2)
         cp2 <- lambda * S
-        cp3 <- S ** (-z)
+        cp3 <- S ^ (-z)
         
         # log(alpha) derivative
         dig <- compdigamma(y = y, alpha = alpha)
@@ -207,20 +207,20 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
         Xalpha <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
         # z is inverse of alpha in documentation
         z <- 1 / alpha
-        M <- ((1 + lambda / z) ** z) - 1
+        M <- ((1 + lambda / z) ^ z) - 1
         S <- 1 / (1 + lambda / z)
-        G <- 1 / (1 - (1 + lambda / z) ** (-z))
+        G <- 1 / (1 - (1 + lambda / z) ^ (-z))
         res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
-        cp4 <- z ** 2
+        cp4 <- z ^ 2
         cp9 <- (1 / S)
         cp1 <- log(cp9) * cp4
         cp2 <- lambda * S
-        cp3 <- S ** (-z)
+        cp3 <- S ^ (-z)
         cp5 <- log(S) / S
-        cp6 <- (S ** 2)
+        cp6 <- (S ^ 2)
         cp7 <- log(S)
         cp8 <- (lambda / z + cp5)
-        cp10 <- cp9 ** (-1 - z)
+        cp10 <- cp9 ^ (-1 - z)
         cp11 <- (S / M)
         
         trig <- comptrigamma(y = y, alpha = alpha)
@@ -228,11 +228,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
         
         # 2nd log(alpha) derivative
         G00 <- t(as.data.frame(Xalpha) *
-                   ((2 * cp2 * cp4 + 2 * cp7 * (z ** 3) + trig +
-                       (y + z) * (lambda ** 2) * cp6 + (z ** 3) * 2 * cp8 * cp11 +
-                       cp4 * (S ** (1 - z)) * (z * cp2 + cp7 * cp4) *
-                       cp8 / (M ** 2) + cp4 * lambda * log(cp9) * cp11 +
-                       cp4 * lambda * cp6 * cp8 / M) * (alpha ** 2) +
+                   ((2 * cp2 * cp4 + 2 * cp7 * (z ^ 3) + trig +
+                       (y + z) * (lambda ^ 2) * cp6 + (z ^ 3) * 2 * cp8 * cp11 +
+                       cp4 * (S ^ (1 - z)) * (z * cp2 + cp7 * cp4) *
+                       cp8 / (M ^ 2) + cp4 * lambda * log(cp9) * cp11 +
+                       cp4 * lambda * cp6 * cp8 / M) * (alpha ^ 2) +
                       (cp1 + y * z - (y + z) * cp2 + dig +
                          G * (1 / cp3) * (cp1 - z * cp2)) * alpha) * weight) %*% Xalpha
         # mixed derivative
@@ -241,15 +241,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
         T2 <- cp10 * (lambda * (1 + z) * S + cp7 * cp4)
         T2 <- G * T2
         
-        T3 <- cp9 ** (-z)
+        T3 <- cp9 ^ (-z)
         T3 <- T3 * (-cp7 * cp4 - z * cp2)
-        T3 <- (G ** 2) * (-T3) * cp10
+        T3 <- (G ^ 2) * (-T3) * cp10
         
         G01 <- t(as.data.frame(Xlambda) * as.numeric(-T1 + lambda * (T2 + T3)) * alpha * weight) %*% as.matrix(Xalpha)
         
         # second beta derivative
-        C1 <- as.numeric(((cp9 ** z) * (lambda - 1) + 1) *
-                           cp6 / ((cp9 ** z - 1) ** 2))
+        C1 <- as.numeric(((cp9 ^ z) * (lambda - 1) + 1) *
+                           cp6 / ((cp9 ^ z - 1) ^ 2))
         C2 <- (1 + y / z) * cp6
         
         G11 <- t(as.data.frame(Xlambda) * lambda * (C1 - C2) * weight) %*% Xlambda
@@ -275,7 +275,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     mu <- mu.eta(eta = eta)
     logLikFit <- wt * (lgamma(y + 1/alpha) - lgamma(1/alpha) -
     log(factorial(y)) - (y + 1/alpha) * log(1+alpha * lambda) +
-    y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ** (-1/alpha)))
+    y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ^ (-1/alpha)))
     findL <- function(t) {
       yNow <- y[t]
       rootSolve::multiroot(
@@ -302,7 +302,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     disp <- invlink(eta)
     lambda <- disp[, 1]
     disp <- disp[, 2]
-    pr <- 1 - (1 + disp * lambda) ** (- 1 / disp)
+    pr <- 1 - (1 + disp * lambda) ^ (- 1 / disp)
     N <- pw / pr
     if(!contr) {
       N <- sum(N)
@@ -314,20 +314,20 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     z <- invlink(eta)
     lambda <- z[, 1]
     z <- z[, 2]
-    pr <- 1 - (1 + z * lambda) ** (- 1 / z)
+    pr <- 1 - (1 + z * lambda) ^ (- 1 / z)
     S <- 1 / (1 + z * lambda)
 
     cp1 <- (1 / S)
-    cp2 <- (S ** (1 - 1 / z))
-    cp3 <- ((1 - cp1 ** (1 / z)) ** 2)
+    cp2 <- (S ^ (1 - 1 / z))
+    cp3 <- ((1 - cp1 ^ (1 / z)) ^ 2)
 
-    bigTheta1 <- pw * z * (cp2 * (cp1 * log(cp1) - z * lambda) / ((z ** 2) * cp3)) # w.r to alpha
+    bigTheta1 <- pw * z * (cp2 * (cp1 * log(cp1) - z * lambda) / ((z ^ 2) * cp3)) # w.r to alpha
     bigTheta2 <- -(pw * as.numeric(lambda * cp2 / cp3)) # w.r to lambda
 
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
 
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <-  sum(pw * (1 - pr) / (pr ** 2))
+    f2 <-  sum(pw * (1 - pr) / (pr ^ 2))
 
     f1 + f2
   }
@@ -336,7 +336,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     alpha <- invlink(eta)
     lambda <- alpha[, 1]
     alpha <- alpha[, 2]
-    P0 <- (1 + alpha * lambda) ** (-1 / alpha)
+    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0)
   }
 
@@ -363,7 +363,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       start <- c(start, controlMethod$alphaStart)
     } else {
       if (controlModel$alphaFormula == ~ 1) {
-        start <- c(start, log(abs(mean(observed[wch$reg] ** 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ** 2 + .25)))
+        start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "alpha$")]

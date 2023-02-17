@@ -182,11 +182,12 @@ estimatePopsize.fit <- function(y, X,
   } else {
     if (method == "IRLS") {
       
-      if (family$parNum == 1) {
-        FittingFunction <- singleRcaptureinternalIRLS
-      } else {
-        FittingFunction <- singleRcaptureinternalIRLSmultipar
-      }
+      # if (family$parNum == 1) { singleRcaptureinternalIRLS is deprecated
+      #   FittingFunction <- singleRcaptureinternalIRLS
+      # } else {
+      #   FittingFunction <- singleRcaptureinternalIRLSmultipar
+      # }
+      FittingFunction <- singleRcaptureinternalIRLSmultipar
       
       FITT <- FittingFunction(
         dependent = y,

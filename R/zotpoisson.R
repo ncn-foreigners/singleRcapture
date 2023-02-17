@@ -25,8 +25,8 @@ zotpoisson <- function(...) {
   
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
-    matrix(-lambda * (((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) /
-                     ((exp(lambda) - lambda - 1) ** 2)), 
+    matrix(-lambda * (((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) /
+                     ((exp(lambda) - lambda - 1) ^ 2)), 
            ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -65,7 +65,7 @@ zotpoisson <- function(...) {
       function(beta) {
         lambda <- exp(as.matrix(X) %*% beta)
         
-        term <- ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
+        term <- ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2)
         
         t(X) %*% as.matrix(t(t(as.data.frame(X) * lambda * term * weight)))
       }
@@ -114,14 +114,14 @@ zotpoisson <- function(...) {
     lambda <- invlink(eta)
     Xvlm <- as.data.frame(Xvlm)
     prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
-    term <- (1 - lambda * exp(-lambda)) ** 2
+    term <- (1 - lambda * exp(-lambda)) ^ 2
     
     f1 <- t(Xvlm) %*% (as.numeric(pw * lambda * (1 - exp(lambda)) /
-                                 ((1 + lambda - exp(lambda)) ** 2)))
+                                 ((1 + lambda - exp(lambda)) ^ 2)))
     
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
     
-    f2 <- sum(pw * term * (1 - prob) / (prob ** 2))
+    f2 <- sum(pw * term * (1 - prob) / (prob ^ 2))
     
     f1 + f2
   }

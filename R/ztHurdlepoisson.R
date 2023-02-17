@@ -23,8 +23,8 @@ ztHurdlepoisson <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     switch (type,
-            "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ** 2 + lambda - lambda * exp(-lambda)),
-            "trunc" = (PI + (1 - PI) * (lambda + lambda ** 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ** 2
+            "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ^ 2 + lambda - lambda * exp(-lambda)),
+            "trunc" = (PI + (1 - PI) * (lambda + lambda ^ 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ^ 2
     )
   }
   
@@ -36,7 +36,7 @@ ztHurdlepoisson <- function(...) {
     #z <- ifelse(y == 1, y, 0)
     term <- -(PI * (1 - PI))
     G00 <- term * prior
-    term <- (1 - z) * ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2)
+    term <- (1 - z) * ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2)
     G11 <- lambda * term * prior
     G01 <- rep(0, nrow (eta))
     
@@ -127,7 +127,7 @@ ztHurdlepoisson <- function(...) {
         G00 <- t(as.data.frame(XPI * term * weight)) %*% as.matrix(XPI)
         
         # Beta^2 derivative
-        term <- ifelse(z, 0, ((2 + lambda ** 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ** 2))
+        term <- ifelse(z, 0, ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2))
         G11 <- lambda * term * weight
         G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
@@ -144,9 +144,36 @@ ztHurdlepoisson <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  devResids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  devResids <- function(y, eta, wt, ...) {
+    PI <- invlink(eta)
+    lambda <- PI[, 1]
+    PI <- PI[, 2]
+    mu <- mu.eta(eta = eta)
+    
+    # when pi = 0 distribution collapses to zotpoisson
+    inverseFunction <- function(y) {stats::uniroot(
+      f = function(x) {
+        lambda <- exp(x)
+        (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda)) - y
+      }, 
+      lower = -log(y), upper = y * 10, 
+      tol = .Machine$double.eps
+    )$root}
+    
+    etaSat <- vector("numeric", length = length(y))
+    
+    etaSat[y == 1] <- -Inf # this case doesnt matter
+    etaSat[y == 2] <- -Inf
+    etaSat[y > 2] <- sapply(y[y > 2], FUN = inverseFunction)
+    idealLambda <- exp(etaSat)
+    
+    #idealPI <- ifelse(y == 1, 1, 0)
+    diff <- ifelse(
+      y == 1,
+      -log(PI),
+      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(lambda) - lambda * exp(-lambda)))
+    )
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -165,13 +192,13 @@ ztHurdlepoisson <- function(...) {
     lambda <- lambda[, 1]
     
     bigTheta1 <- rep(0, nrow(eta)) # w.r to PI
-    bigTheta2 <-as.numeric(pw * lambda * (1 - exp(lambda)) / ((1 + lambda - exp(lambda)) ** 2)) # w.r to lambda
+    bigTheta2 <-as.numeric(pw * lambda * (1 - exp(lambda)) / ((1 + lambda - exp(lambda)) ^ 2)) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) * exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ** 2)))
+    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) * exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ^ 2)))
     
     f1 + f2
   }
@@ -180,7 +207,7 @@ ztHurdlepoisson <- function(...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    ifelse(x == 1, PI, (1 - PI) * (lambda ** x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
+    ifelse(x == 1, PI, (1 - PI) * (lambda ^ x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

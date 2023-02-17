@@ -23,7 +23,7 @@ oiztpoisson <- function(...) {
     switch (type,
     "nontrunc" = omega + (1 - omega) * lambda * (lambda + 1),
     "trunc" = ((exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) +
-    (1 - omega) * lambda * ((1 + lambda) * exp(lambda) - 1) / (exp(lambda) - 1 + omega))) - mu.eta(type = type, eta = eta) ** 2
+    (1 - omega) * lambda * ((1 + lambda) * exp(lambda) - 1) / (exp(lambda) - 1 + omega))) - mu.eta(type = type, eta = eta) ^ 2
   }
   
   Wfun <- function(prior, y, eta, ...) {
@@ -36,20 +36,20 @@ oiztpoisson <- function(...) {
     temp2 <- exp(lambda) + 1 - omega
     z <- temp / temp2 # expected for I's
     #z <- ifelse(y == 1, y, 0)
-    G00 <- z * (-(1 - omega) * omega * ((exp(lambda) - lambda) ** 2) / ((omega * (exp(lambda) - lambda) + lambda) ** 2) +
+    G00 <- z * (-(1 - omega) * omega * ((exp(lambda) - lambda) ^ 2) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2) +
                   (1 - omega) * (exp(lambda) - lambda) / (omega * (exp(lambda) - lambda) + lambda) - omega * (exp(lambda) - lambda) / (omega * (exp(lambda) - lambda) + lambda))
     G00 <- G00 - (1 - z)
-    G00 <- G00 - ((1 - 2 * omega) * (exp(lambda) - 1 + omega) - omega * (1 - omega)) / ((exp(lambda) - 1 + omega) ** 2)
+    G00 <- G00 - ((1 - 2 * omega) * (exp(lambda) - 1 + omega) - omega * (1 - omega)) / ((exp(lambda) - 1 + omega) ^ 2)
     G00 <- G00 * (1 - omega) * omega * prior
     
     # mixed derivative
-    G01 <- lambda * exp(lambda) / ((exp(lambda) - 1 + omega) ** 2)
-    G01 <- G01 + z * lambda * exp(lambda) * (lambda - 1) / ((omega * (exp(lambda) - lambda) + lambda) ** 2)
+    G01 <- lambda * exp(lambda) / ((exp(lambda) - 1 + omega) ^ 2)
+    G01 <- G01 + z * lambda * exp(lambda) * (lambda - 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
     G01 <- G01 * (1 - omega) * omega
     G01 <- G01 * prior
     
-    G11 <- z * omega * exp(lambda) * (omega * (lambda + exp(lambda) - 1 - (lambda ** 2)) + lambda ** 2 - lambda + 1) / ((omega * (exp(lambda) - lambda) + lambda) ** 2)
-    G11 <- G11 - exp(lambda) * (omega * lambda + omega + exp(lambda) - lambda - 1) / ((omega + exp(lambda) - 1) ** 2)
+    G11 <- z * omega * exp(lambda) * (omega * (lambda + exp(lambda) - 1 - (lambda ^ 2)) + lambda ^ 2 - lambda + 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
+    G11 <- G11 - exp(lambda) * (omega * lambda + omega + exp(lambda) - lambda - 1) / ((omega + exp(lambda) - 1) ^ 2)
     G11 <- G11 * prior * lambda
     matrix(
       -c(G11, # lambda
@@ -152,22 +152,22 @@ oiztpoisson <- function(...) {
         temp2 <- exp(lambda) + 1 - omega
         
         # omega^2 derivative
-        G00 <- z * (-(1 - omega) * omega * ((exp(lambda) - lambda) ** 2) / ((omega * (exp(lambda) - lambda) + lambda) ** 2) +
+        G00 <- z * (-(1 - omega) * omega * ((exp(lambda) - lambda) ^ 2) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2) +
                       (1 - 2 * omega) * (exp(lambda) - lambda) / (omega * (exp(lambda) - lambda) + lambda))
         G00 <- G00 - (1 - z)
-        G00 <- G00 - ((1 - 2 * omega) * (exp(lambda) - 1 + omega) - omega * (1 - omega)) / ((exp(lambda) - 1 + omega) ** 2)
+        G00 <- G00 - ((1 - 2 * omega) * (exp(lambda) - 1 + omega) - omega * (1 - omega)) / ((exp(lambda) - 1 + omega) ^ 2)
         G00 <- G00 * (1 - omega) * omega
         G00 <- t(as.data.frame(Xomega * G00 * weight)) %*% as.matrix(Xomega)
         
         # mixed derivative
-        G01 <- lambda * exp(lambda) / ((exp(lambda) - 1 + omega) ** 2)
-        G01 <- G01 + z * lambda * exp(lambda) * (lambda - 1) / ((omega * (exp(lambda) - lambda) + lambda) ** 2)
+        G01 <- lambda * exp(lambda) / ((exp(lambda) - 1 + omega) ^ 2)
+        G01 <- G01 + z * lambda * exp(lambda) * (lambda - 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
         G01 <- G01 * (1 - omega) * omega
         G01 <- t(as.data.frame(Xlambda) * G01 * weight) %*% as.matrix(Xomega)
         
         # Beta^2 derivative
-        G11 <- z * omega * exp(lambda) * (omega * (lambda + exp(lambda) - 1 - lambda ** 2) + lambda ** 2 - lambda + 1) / ((omega * (exp(lambda) - lambda) + lambda) ** 2)
-        G11 <- G11 - exp(lambda) * (omega * lambda + omega + exp(lambda) - lambda - 1) / ((omega + exp(lambda) - 1) ** 2)
+        G11 <- z * omega * exp(lambda) * (omega * (lambda + exp(lambda) - 1 - lambda ^ 2) + lambda ^ 2 - lambda + 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
+        G11 <- G11 - exp(lambda) * (omega * lambda + omega + exp(lambda) - lambda - 1) / ((omega + exp(lambda) - 1) ^ 2)
         G11 <- G11 * weight * lambda
         G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
@@ -217,16 +217,16 @@ oiztpoisson <- function(...) {
     lambda <- lambda[, 1]
     
     coefficient <- (1 - (1 - omega) * exp(-lambda))
-    bigTheta1 <- -pw * exp(-lambda) / (coefficient ** 2)# w.r to omega
+    bigTheta1 <- -pw * exp(-lambda) / (coefficient ^ 2)# w.r to omega
     bigTheta1 <- bigTheta1 * omega * (1 - omega)
-    bigTheta2 <- -pw * lambda * exp(-lambda) * (1 - omega) / (coefficient ** 2) # w.r to lambda
+    bigTheta2 <- -pw * lambda * exp(-lambda) * (1 - omega) / (coefficient ^ 2) # w.r to lambda
     bigTheta2 <- bigTheta2 * lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (1 - omega) * exp(-lambda) / (coefficient ** 2))
+    f2 <- sum(pw * (1 - omega) * exp(-lambda) / (coefficient ^ 2))
     
     f1 + f2
   }
@@ -236,7 +236,7 @@ oiztpoisson <- function(...) {
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
     ifelse(x == 1, exp(lambda) * omega + (1 - omega) * lambda,
-           (1 - omega) * (lambda ** x) / factorial(x)) / (exp(lambda) - 1 + omega)
+           (1 - omega) * (lambda ^ x) / factorial(x)) / (exp(lambda) - 1 + omega)
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

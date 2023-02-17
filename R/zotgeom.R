@@ -70,7 +70,7 @@ zotgeom <- function(...) {
         
         # second beta derivative
         
-        -t(as.data.frame(X) * lambda * (y - 1) * (S ** 2) * weight) %*% X
+        -t(as.data.frame(X) * lambda * (y - 1) * (S ^ 2) * weight) %*% X
       }
     )
   }
@@ -89,8 +89,8 @@ zotgeom <- function(...) {
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- invlink(eta)
     S <- 1 / (1 + lambda)
-    prob <- 1 - S - lambda * (S ** 2)
-    N <- pw * (1 - lambda * (S ** 2)) / prob
+    prob <- 1 - S - lambda * (S ^ 2)
+    N <- pw * (1 - lambda * (S ^ 2)) / prob
     if(!contr) {
       N <- sum(N)
     }
@@ -101,12 +101,12 @@ zotgeom <- function(...) {
     lambda <- invlink(eta)
     M <- 1 + lambda
     S <- 1 / M
-    prob <- 1 - S - lambda * (S ** 2)
+    prob <- 1 - S - lambda * (S ^ 2)
     
     bigTheta <- t(Xvlm) %*% (pw * as.numeric(lambda *
-                            (prob * (lambda - 1) * (S ** 3) -
-                            2 * lambda * (S ** 3) *
-                            (1 - lambda * (S ** 2))) / (prob ** 2)))
+                            (prob * (lambda - 1) * (S ^ 3) -
+                            2 * lambda * (S ^ 3) *
+                            (1 - lambda * (S ^ 2))) / (prob ^ 2)))
     
     bigTheta <- as.vector(bigTheta)
     

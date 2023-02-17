@@ -575,26 +575,30 @@ estimatePopsize <- function(formula,
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
 
   deviance <- sum(family$devResids(y = observed[wch$reg], wt = priorWeights[wch$reg],
-  eta = if (family$family == "zelterman") eta[wch$reg] else eta) ** 2)
+  eta = if (family$family == "zelterman") eta[wch$reg] else eta) ^ 2)
   
-  POP <- singleRcaptureinternalpopulationEstimate(
-    y = observed[wch$est],
-    formulas = formulas,
-    X = variables[wch$est, ],
-    grad = grad,
-    hessian = hessian,
-    popVar = popVar,
-    weights = priorWeights[wch$est],
-    eta = eta,
-    family = family,
-    beta = coefficients,
-    control = controlPopVar,
-    Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") variables else Xvlm,
-    W = if (method == "IRLS") weights else family$Wfun(prior = priorWeights, eta = eta),
-    sizeObserved = sizeObserved,
-    modelFrame = modelFrame,
-    cov = NULL
-  )
+  if (popVar == "noEst") {
+    Pop <- NULL #TODO:: make sure methods are prepared for this
+  } else {
+    POP <- singleRcaptureinternalpopulationEstimate(
+      y = observed[wch$est],
+      formulas = formulas,
+      X = variables[wch$est, ],
+      grad = grad,
+      hessian = hessian,
+      popVar = popVar,
+      weights = priorWeights[wch$est],
+      eta = eta,
+      family = family,
+      beta = coefficients,
+      control = controlPopVar,
+      Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") variables else Xvlm,
+      W = if (method == "IRLS") weights else family$Wfun(prior = priorWeights, eta = eta),
+      sizeObserved = sizeObserved,
+      modelFrame = modelFrame,
+      cov = NULL
+    )
+  }
   structure(
     list(
       y = if(isTRUE(returnElements[[1]])) observed else NULL,

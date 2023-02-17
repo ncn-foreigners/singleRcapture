@@ -11,8 +11,8 @@ Hurdleztgeom <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     switch (type,
-    "nontrunc" = PI + (1 - PI) * lambda * lambda * (2 + lambda) / (lambda ** 2 + lambda + 1),
-    "trunc" = PI * (lambda ** 2 + lambda + 1) / (lambda ** 2 + PI * (lambda + 1)) + (1 - PI) * lambda * lambda * (2 + lambda) / (lambda ** 2 + PI * (lambda + 1))
+    "nontrunc" = PI + (1 - PI) * lambda * lambda * (2 + lambda) / (lambda ^ 2 + lambda + 1),
+    "trunc" = PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1)) + (1 - PI) * lambda * lambda * (2 + lambda) / (lambda ^ 2 + PI * (lambda + 1))
     )
   }
   
@@ -21,38 +21,38 @@ Hurdleztgeom <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     switch(type,
-    "nontrunc" = PI + (1 - PI) * lambda * lambda * (2 * lambda * lambda + 5 * lambda + 4) / (lambda ** 2 + lambda + 1),
-    "trunc" = PI * (lambda ** 2 + lambda + 1) / (lambda ** 2 + PI * (lambda + 1)) + (1 - PI) * lambda * lambda * (2 * lambda * lambda + 5 * lambda + 4) / (lambda ** 2 + PI * (lambda + 1))
-    ) - (mu.eta(eta = eta, type = type) ** 2)
+    "nontrunc" = PI + (1 - PI) * lambda * lambda * (2 * lambda * lambda + 5 * lambda + 4) / (lambda ^ 2 + lambda + 1),
+    "trunc" = PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1)) + (1 - PI) * lambda * lambda * (2 * lambda * lambda + 5 * lambda + 4) / (lambda ^ 2 + PI * (lambda + 1))
+    ) - (mu.eta(eta = eta, type = type) ^ 2)
   }
   
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    z <- PI * (lambda ** 2 + lambda + 1) / (lambda ** 2 + PI * (lambda + 1))
+    z <- PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))
     Ey <- mu.eta(eta)
     
-    G1 <- z * (2 * lambda + 1) / (lambda ** 2 + lambda + 1)
+    G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1)
     #G1 <- G1 + (1 - z) * (y / lambda - (y - 1) / (1 + lambda)) #this part
     G1 <- G1 + Ey / lambda - (Ey - 1) / (1 + lambda) - z / lambda
-    G1 <- G1 - (2 * lambda + PI) / (lambda ** 2 + PI * (lambda + 1)) # lambda derivative
-    G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ** 2 + PI * (1 + lambda)) # PI derivative
+    G1 <- G1 - (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1)) # lambda derivative
+    G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda)) # PI derivative
     
     # PI^2 derivative
-    G00 <- -z / (PI ** 2) - (1 - z) / ((1 - PI) ** 2) + ((lambda + 1) ** 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2)
-    G00 <- prior * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ** 2))
+    G00 <- -z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + ((lambda + 1) ^ 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2)
+    G00 <- prior * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ^ 2))
     
     # mixed
     
-    G01 <- lambda * (lambda + 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2)
+    G01 <- lambda * (lambda + 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2)
     G01 <- G01 * lambda * PI * (1 - PI) * prior
     
     # Beta^2 derivative
-    #G11 <- (1 - z) * ((y - 1) / ((1 + lambda) ** 2) - y / (lambda ** 2)) # This part
-    G11 <- (Ey - 1) / ((1 + lambda) ** 2) - Ey / (lambda ** 2) + z / (lambda ** 2)
-    G11 <- G11 + z * (2 / (lambda ** 2 + lambda + 1) - ((2 * lambda + 1) ** 2) / ((lambda ** 2 + lambda + 1) ** 2))
-    G11 <- G11 + ((2 * lambda + PI) ** 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2) - 2 / (lambda ** 2 + PI * (lambda + 1))
+    #G11 <- (1 - z) * ((y - 1) / ((1 + lambda) ^ 2) - y / (lambda ^ 2)) # This part
+    G11 <- (Ey - 1) / ((1 + lambda) ^ 2) - Ey / (lambda ^ 2) + z / (lambda ^ 2)
+    G11 <- G11 + z * (2 / (lambda ^ 2 + lambda + 1) - ((2 * lambda + 1) ^ 2) / ((lambda ^ 2 + lambda + 1) ^ 2))
+    G11 <- G11 + ((2 * lambda + PI) ^ 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2) - 2 / (lambda ^ 2 + PI * (lambda + 1))
     G11 <- (G11 * lambda * lambda + G1 * lambda) * prior
     
     matrix(
@@ -71,11 +71,11 @@ Hurdleztgeom <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     z <- ifelse(y == 1, y, 0)
-    G1 <- z * (2 * lambda + 1) / (lambda ** 2 + lambda + 1)
+    G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1)
     G1 <- G1 + (1 - z) * (y / lambda - (y - 1) / (1 + lambda))
-    G1 <- G1 - (2 * lambda + PI) / (lambda ** 2 + PI * (lambda + 1))
+    G1 <- G1 - (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1))
     G1 <- G1 * lambda # lambda derivative
-    G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ** 2 + PI * (1 + lambda))
+    G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda))
     G0 <- G0 * PI * (1 - PI) # PI derivative
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
@@ -85,8 +85,8 @@ Hurdleztgeom <- function(...) {
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]]) # less computationally demanding
+      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      xx <- solve(weight[[x]]) # more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -110,18 +110,18 @@ Hurdleztgeom <- function(...) {
         lambda <- invlink(eta)
         PI <- lambda[, 2]
         lambda <- lambda[, 1]
-        -sum(weight * (z * (log(PI) + log(lambda ** 2 + lambda + 1)) + (1 - z) * (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda)) - log(lambda ** 2 + PI * (lambda + 1))))
+        -sum(weight * (z * (log(PI) + log(lambda ^ 2 + lambda + 1)) + (1 - z) * (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda)) - log(lambda ^ 2 + PI * (lambda + 1))))
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
         lambda <- invlink(eta)
         PI <- lambda[, 2]
         lambda <- lambda[, 1]
-        G1 <- z * (2 * lambda + 1) / (lambda ** 2 + lambda + 1)
+        G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1)
         G1 <- G1 + (1 - z) * (y / lambda - (y - 1) / (1 + lambda))
-        G1 <- G1 - (2 * lambda + PI) / (lambda ** 2 + PI * (lambda + 1))
+        G1 <- G1 - (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1))
         G1 <- G1 * weight * lambda # lambda derivative
-        G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ** 2 + PI * (1 + lambda))
+        G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda))
         G0 <- G0 * weight * PI * (1 - PI) # PI derivative
         if (NbyK) {
           XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
@@ -142,26 +142,26 @@ Hurdleztgeom <- function(...) {
         XPI <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
         res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
         
-        G1 <- z * (2 * lambda + 1) / (lambda ** 2 + lambda + 1)
+        G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1)
         G1 <- G1 + (1 - z) * (y / lambda - (y - 1) / (1 + lambda))
-        G1 <- G1 - (2 * lambda + PI) / (lambda ** 2 + PI * (lambda + 1)) # lambda derivative
-        G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ** 2 + PI * (1 + lambda)) # PI derivative
+        G1 <- G1 - (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1)) # lambda derivative
+        G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda)) # PI derivative
         
         # PI^2 derivative
-        G00 <- -z / (PI ** 2) - (1 - z) / ((1 - PI) ** 2) + ((lambda + 1) ** 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2)
-        G00 <- weight * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ** 2))  # second derivative of inverse logistic link
+        G00 <- -z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + ((lambda + 1) ^ 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2)
+        G00 <- weight * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ^ 2))  # second derivative of inverse logistic link
         G00 <- t(as.data.frame(XPI * G00)) %*% as.matrix(XPI)
         
         # mixed
         
-        G01 <- lambda * (lambda + 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2)
+        G01 <- lambda * (lambda + 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2)
         G01 <- G01 * lambda * PI * (1 - PI) * weight
         G01 <- t(as.data.frame(Xlambda * G01)) %*% as.matrix(XPI)
         
         # Beta^2 derivative
-        G11 <- (1 - z) * ((y - 1) / ((1 + lambda) ** 2) - y / (lambda ** 2))
-        G11 <- G11 + z * (2 / (lambda ** 2 + lambda + 1) - ((2 * lambda + 1) ** 2) / ((lambda ** 2 + lambda + 1) ** 2))
-        G11 <- G11 + ((2 * lambda + PI) ** 2) / ((lambda ** 2 + PI * (lambda + 1)) ** 2) - 2 / (lambda ** 2 + PI * (lambda + 1))
+        G11 <- (1 - z) * ((y - 1) / ((1 + lambda) ^ 2) - y / (lambda ^ 2))
+        G11 <- G11 + z * (2 / (lambda ^ 2 + lambda + 1) - ((2 * lambda + 1) ^ 2) / ((lambda ^ 2 + lambda + 1) ^ 2))
+        G11 <- G11 + ((2 * lambda + PI) ^ 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2) - 2 / (lambda ^ 2 + PI * (lambda + 1))
         G11 <- (G11 * lambda * lambda + G1 * lambda) * weight # second derivative of log link
         G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
@@ -178,16 +178,26 @@ Hurdleztgeom <- function(...) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  devResids <- function(y, mu, wt, theta, ...) {
-    #TODO
-    0
+  devResids <- function(y, eta, wt, ...) {
+    omega <- invlink(eta)
+    lambda <- PI[, 1]
+    PI <- PI[, 2]
+    mu <- mu.eta(eta = eta)
+    #idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed
+    # when pi = 0 distribution collapses to zotgeom
+    idealLambda <- ifelse(y > 1, y - 2, 0)
+    diff <- ifelse(
+      y == 1, -(log(PI) + log(lambda ^ 2 + lambda + 1) - log(lambda ^ 2 + PI * (lambda + 1))),
+      (y * log(idealLambda) - (y - 1) * log(1 + idealLambda) - log(idealLambda ^ 2 + PI * (idealLambda + 1))) - (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda) - log(lambda ^ 2 + PI * (lambda + 1)))
+    )
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    N <- pw * (lambda ** 2 + lambda + 1) / (lambda ** 2 + PI * (lambda + 1))
+    N <- pw * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))
     if(!contr) {
       N <- sum(N)
     }
@@ -199,14 +209,14 @@ Hurdleztgeom <- function(...) {
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
     
-    bigTheta1 <- -pw *  PI * (1 - PI) * (lambda ** 2 + lambda + 1) * (lambda + 1) / (lambda ** 2 + PI * (lambda + 1)) # w.r to PI
-    bigTheta2 <- pw * lambda * ((2 * lambda + 1) * (lambda ** 2 + PI * (lambda + 1)) - (2 * lambda + PI) * (lambda ** 2 + lambda + 1)) / ((lambda ** 2 + PI * (lambda + 1)) ** 2) # w.r to lambda
+    bigTheta1 <- -pw *  PI * (1 - PI) * (lambda ^ 2 + lambda + 1) * (lambda + 1) / (lambda ^ 2 + PI * (lambda + 1)) # w.r to PI
+    bigTheta2 <- pw * lambda * ((2 * lambda + 1) * (lambda ^ 2 + PI * (lambda + 1)) - (2 * lambda + PI) * (lambda ^ 2 + lambda + 1)) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (lambda ** 2 + lambda + 1) * (1 - PI) * (1 + lambda) / ((lambda ** 2 + PI * (lambda + 1)) ** 2))
+    f2 <- sum(pw * (lambda ^ 2 + lambda + 1) * (1 - PI) * (1 + lambda) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2))
     
     f1 + f2
   }
@@ -215,7 +225,7 @@ Hurdleztgeom <- function(...) {
     lambda <- invlink(eta)
     PI <- lambda[, 2]
     lambda <- lambda[, 1]
-    ifelse(x == 1, PI * (lambda ** 2 + lambda + 1), (1 - PI) * (lambda ** x) / ((1 + lambda) ** (x - 1))) / (lambda ** 2 + PI * (lambda + 1))
+    ifelse(x == 1, PI * (lambda ^ 2 + lambda + 1), (1 - PI) * (lambda ^ x) / ((1 + lambda) ^ (x - 1))) / (lambda ^ 2 + PI * (lambda + 1))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -224,8 +234,8 @@ Hurdleztgeom <- function(...) {
     lambda <- lambda[, 1]
     CDF <- function(x) {
       p <- lambda / (1 + lambda)
-      const <- -lambda * (p ** x + lambda * (p ** x - 1))
-      polly <- lambda ** 2 + lambda + 1
+      const <- -lambda * (p ^ x + lambda * (p ^ x - 1))
+      polly <- lambda ^ 2 + lambda + 1
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 
       ifelse(x < 1, (1 - PI) * (1 + lambda) / polly, 

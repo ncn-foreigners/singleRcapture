@@ -26,7 +26,7 @@ chao <- function(...) {
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     L1 <- lambda / 2
-    (L1 / ((1 + L1) ** 2))
+    (L1 / ((1 + L1) ^ 2))
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
@@ -68,7 +68,7 @@ chao <- function(...) {
         eta <- as.matrix(X) %*% beta
         lambda <- invlink(eta)
         L1 <- lambda / 2
-        term <- -(L1 / ((1 + L1) ** 2))
+        term <- -(L1 / ((1 + L1) ^ 2))
         t(as.data.frame(X) * weight * term) %*% as.matrix(X)
       }
     )
@@ -82,12 +82,12 @@ chao <- function(...) {
     z <- y - 1
     mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
-    ((-1) ** y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
+    ((-1) ^ y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- invlink(eta)
-    N <- ((1 + 1 / (lambda + (lambda ** 2) / 2)) * pw)
+    N <- ((1 + 1 / (lambda + (lambda ^ 2) / 2)) * pw)
     if(!contr) {
       N <- sum(N)
     }
@@ -97,13 +97,13 @@ chao <- function(...) {
   popVar <- function (pw, eta, cov, Xvlm, ...) {
     lambda <- invlink(eta)
     Xvlm <- as.data.frame(Xvlm)
-    prob <- lambda * exp(-lambda) + (lambda ** 2) * exp(-lambda) / 2
+    prob <- lambda * exp(-lambda) + (lambda ^ 2) * exp(-lambda) / 2
 
-    f1 <- colSums(-Xvlm * pw * ((lambda + (lambda ** 2)) /
-                  ((lambda + (lambda ** 2) / 2) ** 2)))
+    f1 <- colSums(-Xvlm * pw * ((lambda + (lambda ^ 2)) /
+                  ((lambda + (lambda ^ 2) / 2) ^ 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
-    f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ** 2))
+    f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ^ 2))
 
     f1 + f2
   }

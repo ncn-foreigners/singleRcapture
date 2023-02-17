@@ -18,14 +18,14 @@ ztgeom <- function(...) {
   variance <- function(eta, type = "nontrunc", ...) {
     mu <- mu.eta(eta)
     switch (type,
-      nontrunc = mu ** 2 - mu - 1 / mu + 2,
+      nontrunc = mu ^ 2 - mu - 1 / mu + 2,
       trunc = (mu + 1) / mu
     )
   }
   
   Wfun <- function(prior, eta, ...) {
     lambda <- exp(eta)
-    lambda * (1 + lambda) / ((1 + lambda) ** 2)
+    lambda * (1 + lambda) / ((1 + lambda) ^ 2)
   }
   
   funcZ <- function(eta, weight, y, ...) {
@@ -72,7 +72,7 @@ ztgeom <- function(...) {
         
         # second beta derivative
         
-        -t(as.data.frame(X) * lambda * y * (S ** 2) * weight) %*% X
+        -t(as.data.frame(X) * lambda * y * (S ^ 2) * weight) %*% X
       },
     )
   }
@@ -104,11 +104,11 @@ ztgeom <- function(...) {
     pr <- 1 - 1 / (1 + lambda)
     
     bigTheta <- -(pw * as.numeric(lambda / 
-                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(Xvlm)
+                 ((1 - (1 + lambda)) ^ 2))) %*% as.matrix(Xvlm)
     bigTheta <- as.vector(bigTheta)
     
     f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <- sum(pw * (1 - pr) / (pr ** 2))
+    f2 <- sum(pw * (1 - pr) / (pr ^ 2))
     
     f1 + f2
   }

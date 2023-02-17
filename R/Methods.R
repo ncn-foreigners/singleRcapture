@@ -89,9 +89,9 @@ summary.singleR <- function(object,
   cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
   if (is.numeric(object$populationSize$boot)) {
     n <- length(object$populationSize$boot)
-    m <- sum((object$populationSize$boot - mean(object$populationSize$boot)) ** 3) / n
+    m <- sum((object$populationSize$boot - mean(object$populationSize$boot)) ^ 3) / n
     s <- sd(object$populationSize$boot)
-    skew <- m / (s ** 3)
+    skew <- m / (s ^ 3)
   } else {
     skew <- NULL
   }
@@ -215,6 +215,72 @@ redoPopEstimation <- function(object, ...) {
 popSizeEst <- function(object, ...) {
   UseMethod("popSizeEst")
 }
+#' @title Estimate size of sub populations.
+#' 
+#' @description A function that estimates sizes of specific sub populations 
+#' based on a capture-recapture model for the whole population.
+#'
+#' @param object An object on which the population size estimates should be based
+#' in \code{singleRcapture} package this is a fitter \code{singleR} class object.
+#' @param stratas A specification of sub populations either by:
+#' \itemize{
+#' \item formula -- TODO.
+#' \item logical vector with number of entries equal to number of rows in the dataset.
+#' \item A (named) list where each element is a logical vector, names of the list
+#' will be used to specify row names in returned object.
+#' \item Vector of names of explanatory variables. For \code{singleR} method
+#' for this function this specification of \code{stratas} parameter will
+#' result in every level of explanatory variable having its own sub population
+#' for each variable specified.
+#' \item If no value was provided the \code{singleR} method for this function 
+#' will itself create sub populations based on levels of factor variables
+#' in \code{model.frame}.
+#' }
+#' @param cov For \code{singleR} method an estimate of variance-covariance matrix
+#' for estimate of regression parameters. It is possible to pass a function
+#' such as for example \code{sandwich::vcovHC} which will be called as:
+#' \code{foo(object, ...)} and a user may specify additional arguments of a 
+#' function in \code{...} argument. If not provided an estimate for covariance
+#' matrix will be set by calling appropriate \code{vcov} method.
+#' @param alpha Significance level for confidence intervals --
+#' Either a single numeric value or a vector of length equal to number of 
+#' sub populations specified in \code{stratas}. 
+#' If missing it is set to \code{.05} in \code{singleR} method.
+#' @param ... A vector of arguments to be passed to other functions.
+#' For \code{singleR} method for this functions arguments in \code{...} are 
+#' passed to either \code{cov} if argument provided was a function or 
+#' \code{vcov} if \code{cov} argument was missing at call.
+#' 
+#' \loadmathjax
+#' @details In single source capture-recapture models the most frequently used
+#' estimate for population size is Horwitz-Thompson type estimate
+#' 
+#' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+#'
+#' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, 
+#' with value 1 if kth unit was observed at least once and 0 otherwise and
+#' the inverse probabilistic weights weights for units observed in the data
+#' \mjeqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}{1/P(Y_k > 0)}
+#' are estimated using fitted linear predictors.
+#' 
+#' The estimates for different sub populations are made by changing the
+#' \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} indicator variables
+#' to refer not to the population as a whole but to the sub populations that
+#' are being considered i.e. by changing values from 1 to 0 if kth unit is not
+#' a member of sub population that is being considered at the moment.
+#' 
+#' The estimation of variance for these estimates and estimation of variance for
+#' estimate of population size for the whole population follow the same relation
+#' as the one described above.
+#' 
+#' @seealso [vcov.singleR()] [estimatePopsize()]
+#'
+#' @return A \code{data.frame} object with row names being the names of specified 
+#' sub populations either provided or inferred.
+#' @export
+stratifyPopEst <- function(object, stratas, alpha, ...) {
+  UseMethod("stratifyPopEst")
+}
 #' @title Statistical tests of goodness of fit.
 #'
 #' @description Performs two statistical test on observed and fitted
@@ -277,7 +343,7 @@ summary.singleRmargin <- function(object, df,
     A <- A[!l]
   }
   
-  X2 <- sum(((A - y) ** 2) / A)
+  X2 <- sum(((A - y) ^ 2) / A)
   G <- 2 * sum(y * log(y / A))
   pval <- stats::pchisq(q = c(X2, G), df = df, lower.tail = FALSE)
   vect <- data.frame(round(c(X2, G), digits = 2),
@@ -684,6 +750,113 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   
   res1
 }
+#' @method stratifyPopEst singleR
+#' @rdname stratifyPopEst
+#' @importFrom stats vcov
+#' @exportS3Method
+stratifyPopEst.singleR <- function(object, stratas, alpha, cov = NULL, ...) {
+  # if stratas is unspecified get all levels of factors in modelFrame
+  if (missing(stratas)) {
+    stratas <- names(which(attr(object$terms, "dataClasses") == "factor"))
+    stratas <- stratas[stratas %in% attr(object$terms, "term.labels")]
+  }
+  # if significance level is unspecified set it to 5%
+  if (missing(alpha)) alpha <- .05
+  
+  # convert stratas to list for all viable types of specifying the argument
+  if (inherits(stratas, "formula")) {
+    modelFrame <- model.frame(object)
+    # TODO
+  } else if (is.list(stratas)) {
+    if (!all(sapply(stratas, is.logical))) {
+      stop("Invalid way of specifying subpopulations in stratas. If stratas argument is a list ")
+    }
+    if (length(stratas[[1]]) != object$sizeObserved) stop("Elements of stratas object should have length equal to number of observed units.")
+  } else if (is.logical(stratas)) {
+    if (length(stratas) != object$sizeObserved) stop("Stratas object should have length equal to number of observed units.")
+    stratas <- list(strata = stratas)
+  } else if (is.character(stratas)) {
+    modelFrame <- model.frame(object)
+    out <- list()
+    for (k in stratas) {
+      if (!(k %in% colnames(modelFrame))) stop("Variable specified in stratas is not present in model frame.")
+      if (!(is.factor(modelFrame[,k])) & !(is.character(modelFrame[,k]))) stop("Variable specified in stratas is not a factor or a character vector.")
+
+      if (is.factor(modelFrame[, k])) {
+        # this makes a difference on factor that is not present
+        for (t in levels(modelFrame[, k])) {
+          out[[paste0(as.character(k), "==", t)]] <- (modelFrame[, k] == t)
+        }
+      } else {
+        for (t in unique(modelFrame[, k])) {
+          out[[paste0(as.character(k), "==", t)]] <- (modelFrame[, k] == t)
+        }
+      }
+    }
+    stratas <- out
+  } else {
+    # a formula, a list with logical vectors specifying different sub populations or a single logical vector or a vector with names of factor variables.
+    errorMessage <- paste0("Invalid way of specifying subpopulations in stratas.\n", 
+    "Please provide either:\n",
+    "(1) - a list with logical vectors specifying different sub populations\n",
+    "(2) - a single logical vector\n",
+    "(3) - a formula\n",
+    "(4) - a vector with names of factor variables\n",)
+    stop(errorMessage)
+  }
+  
+  # get neccesary model info AFTER possible error in function
+  family <- family(object = object, ...)
+  priorWeights <- object$priorWeights
+  eta <- object$linearPredictors
+  Xvlm <- model.matrix(object, "vlm")
+  
+  # get covariance matrix
+  if (is.function(cov)) cov <- cov(object, ...)
+  if (is.null(cov)) cov <- vcov(object, ...)
+  
+  obs <- vector(mode = "numeric", length = length(stratas))
+  est <- vector(mode = "numeric", length = length(stratas))
+  stdErr <- vector(mode = "numeric", length = length(stratas))
+  cnfStudent <- matrix(nrow = length(stratas), ncol = 2)
+  cnfChao <- matrix(nrow = length(stratas), ncol = 2)
+  sc <- qnorm(p = 1 - alpha / 2)
+  if (length(sc) != length(stratas)) sc <- rep(sc, length.out = length())
+  
+  #TODO adjust for chao
+  for (k in 1:length(stratas)) {
+    cond <- stratas[[k]]
+    obs[k] <- sum(cond)
+    if (obs[k] > 0) {
+      est[k] <- family$pointEst(pw = priorWeights[cond], eta = eta[cond, ])
+      stdErr[k] <- family$popVar(pw = priorWeights[cond], eta = eta[cond, ], cov = cov, Xvlm = Xvlm[rep(cond, length(family$etaNames)), ]) ^ .5
+      cnfStudent[k, ] <- est[k] + c(-sc * stdErr[k], sc * stdErr[k])
+      G <- exp(sc * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
+      cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
+    } else {
+      est[k] <- 0
+      stdErr[k] <- 0
+      cnfStudent[k, ] <- c(0, 0)
+      cnfChao[k, ] <- c(0, 0)
+    }
+  }
+  
+  result <- data.frame(
+    obs, est, 100 * obs / est, stdErr, 
+    cnfStudent[, 1], cnfStudent[, 2], 
+    cnfChao[, 1], cnfChao[, 2],
+    row.names = names(stratas)
+  )
+  if (length(unique(alpha)) == 1) {
+    nma <- c(as.character(100 * alpha / 2), as.character(100 * (1 - alpha / 2)))
+  } else {
+    nma <- c("LowerBounds", "UpperBounds")
+  }
+  colnames(result) <- c("Observed", "Estimated", "ObservedProcentage", "StdError",
+  paste0("Studentized - ", nma, "%"), paste0("Chao - ", nma, "%"))
+  
+  result
+}
 #' @method popSizeEst singleR
 #' @rdname popSizeEst
 #' @exportS3Method
@@ -695,7 +868,7 @@ popSizeEst.singleR <- function(object, ...) {
 #' @exportS3Method 
 cooks.distance.singleR <- function(model, ...) {
   if (model$model$parNum > 1) stop("Cooks distance is only implemented for single parameter families.")
-  res <- residuals(model, type = "pearsonSTD") ** 2
+  res <- residuals(model, type = "pearsonSTD") ^ 2
   res <- res[, 1]
   ht <- hatvalues(model)
   res <- (res * (ht / (length(model$coefficients))))

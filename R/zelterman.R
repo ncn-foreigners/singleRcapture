@@ -26,7 +26,7 @@ zelterman <- function(...) {
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     L1 <- lambda / 2
-    (L1 / ((1 + L1) ** 2))
+    (L1 / ((1 + L1) ^ 2))
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
@@ -71,7 +71,7 @@ zelterman <- function(...) {
         eta <- as.matrix(X) %*% beta
         lambda <- invlink(eta)
         L1 <- lambda / 2
-        term <- -(L1 / ((1 + L1) ** 2))
+        term <- -(L1 / ((1 + L1) ^ 2))
         t(as.data.frame(X) * weight * term) %*% as.matrix(X)
       }
     )
@@ -102,10 +102,10 @@ zelterman <- function(...) {
     Xvlm <- as.data.frame(Xvlm)
     prob <- 1 - exp(-lambda)
 
-    f1 <- colSums(-Xvlm * pw * (exp(-lambda) * lambda / (prob ** 2)))
+    f1 <- colSums(-Xvlm * pw * (exp(-lambda) * lambda / (prob ^ 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
-    f2 <- sum(pw * (1 - prob) / (prob ** 2))
+    f2 <- sum(pw * (1 - prob) / (prob ^ 2))
 
     f1 + f2
   }
