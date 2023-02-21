@@ -1,202 +1,4 @@
 # These functions are only used internally in the package so there is no need for documenting them
-# singleRcaptureinternalIRLS <- function(dependent,
-#                                        family,
-#                                        covariates,
-#                                        start,
-#                                        weights = NULL,
-#                                        maxiter = 10000,
-#                                        eps = .Machine$double.eps,
-#                                        silent = FALSE,
-#                                        trace = 0,
-#                                        stepsize = 1,
-#                                        momentumFactor,
-#                                        momentumActivation,
-#                                        check,
-#                                        epsWeights,
-#                                        crit,
-#                                        ...) {
-#   dg <- 8 # Add to control
-#   converged <- FALSE
-# 
-#   mu.eta <- family$mu.eta
-#   validmu <- family$validmu
-#   variance <- family$variance
-#   famName <- family$family
-#   funcZ <- family$funcZ
-#   Wfun <- family$Wfun
-#   prior <- as.numeric(weights)
-# 
-#   logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
-#   grad <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
-# 
-#   if (famName %in% c("chao", "zelterman")) {
-#     dependent <- dependent - 1
-#   }
-# 
-#   traceGreaterThanFourMessegeExpr <- expression(
-#     if (trace > 4) {
-#       cat(sep = " ", "\nAlgorithm will terminate if one of following conditions will be met:\n")
-#       if ("abstol" %in% crit) {
-#         cat("The increase to minus log-likelihood will be bellow chosen value of epsilon", eps, "\n")
-#       }
-#       if ("reltol" %in% crit) {
-#         cat("The relative increase to minus log-likelihood will be bellow chosen value of epsilon", eps, "value at current step", format((L - LPrev) / LPrev, scientific = FALSE, digits = dg), "\n")
-#       }
-#       if ("coef" %in% crit) {
-#         cat("Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.\nAt current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))
-#       }
-#     }
-#   )
-#   convergence <- expression(
-#     any(
-#       if ("abstol" %in% crit) {
-#         L - LPrev < eps
-#       } else FALSE,
-#       if ("reltol" %in% crit) {
-#         L - LPrev < eps * LPrev
-#       } else FALSE,
-#       if ("coef" %in% crit) {
-#         max(abs(beta - betaPrev)) < eps
-#       } else FALSE
-#     )
-#   )
-# 
-#   iter <- 1
-#   step <- NULL
-#   beta <- start
-# 
-#   W <- prior
-#   L <- -logLike(beta)
-# 
-#   while (!converged & (iter < maxiter)) {
-#     # if (famName %in% c("ztnegbin", "zotnegbin") &&
-#     #     isFALSE(dispGiven) && (abs(disp - dispPrev) > epsdisp)) {
-#     #   dispPrev <- disp
-#     #   ll <- function(a) logLike(c(a, beta))
-#     #   gr <- function(a) -grad(c(a, beta))[1]
-#     #   disp <- stats::optim(par = disp,
-#     #                        lower = disp - 5 * abs(disp),
-#     #                        upper = disp + 5 * abs(disp),
-#     #                        fn = ll,
-#     #                        gr = gr,
-#     #                        method = "Brent",
-#     #                        control = list(reltol = epsdisp))$par
-#     # }
-# 
-#     halfstepsizing <- FALSE
-#     WPrev <- W
-#     betaPrev <- beta
-#     LPrev <- L
-# 
-#     eta <- covariates %*% beta
-#     mu <- mu.eta(eta = eta)
-#     # if (!validmu(mu)) {
-#     #   stop("Fit error infinite values reached consider another model,
-#     #         mu is too close to zero/infinity")
-#     # }
-# 
-#     W <- Wfun(mu = mu, prior = prior, eta = eta)
-#     if (any(!is.finite(W))) {
-#       if (!silent) {
-#         warning("NA's or NaN's or infinite values in weights matrixes detected IRLS may not work propperly.")
-#       }
-#       W[!is.finite(W)] <- epsWeights
-#     }
-#     if (check) {
-#       W[, (1:family$parNum) ^ 2] <- ifelse(
-#         W[, (1:family$parNum) ^ 2] < epsWeights,
-#         epsWeights,
-#         W[, (1:family$parNum) ^ 2]
-#       )
-#     }
-#     Z <- eta + funcZ(mu = mu, y = dependent, eta = eta, weight = W)
-#     if (any(is.nan(Z))) {
-#       stop("Pseudo residuals could not be computed at current iteration, possibly infinite or non numeric values in weights appeared.")
-#     }
-#     # This is equivalent to
-#     # A <- t(covariates) %*% W %*% covariates
-#     # B <- t(covariates) %*% W %*% Z
-#     # But much much faster and less memory heavy
-#     A <- t(covariates) %*% (covariates * as.numeric(W))
-#     B <- t(covariates) %*% (Z * as.numeric(W))
-# 
-#     stepPrev <- step
-#     step <- solve(A,B) - betaPrev
-# 
-#     beta <- betaPrev + stepsize *
-#     (step + if ((is.null(stepPrev) | !momentumFactor)) 0 else {
-#     if (L-LPrev < 1) momentumFactor * stepPrev else 0})
-# 
-#     #beta <- beta - solve(A, B, tol = .Machine$double.eps)
-# 
-#     L <- -logLike(beta)
-# 
-#     if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
-#     if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
-#     if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
-#     if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-#     eval(traceGreaterThanFourMessegeExpr)
-# 
-#     if (isTRUE(L < LPrev) || is.infinite(L) || is.nan(L)) {
-#       halfstepsizing <- TRUE
-#       h <- stepsize * (betaPrev - beta)
-#       if (trace > 0) {
-#         cat("\nTaking a modified step....\n")
-#       }
-#       repeat {
-#         h <- h / 2
-#         beta <- betaPrev - h
-#         L <- -logLike(beta)
-#         if (isTRUE(L > LPrev) && is.finite(L)) {
-#           break
-#         }
-# 
-#         if (isTRUE(max(abs(h)) < .Machine$double.eps ^ (1 / 8))) {
-#           if (isTRUE(L < LPrev)) {
-#             if (!silent) {
-#               warning("IRLS half-stepping terminated because the step is too small.")
-#             }
-#             halfstepsizing <- FALSE
-#             L <- LPrev
-#             beta <- betaPrev
-#           }
-#           break
-#         }
-#       }
-#       if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
-#       if (trace > 1) {cat(sep = " ","\nParameter vector:", format(beta, scientific = FALSE, digits = dg))}
-#       if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
-#       if (trace > 3) {cat(sep = " ", "\nValue of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-#       eval(traceGreaterThanFourMessegeExpr)
-#     }
-#     if (trace > 0) {cat(sep = "", "\n----\n")}
-#     converged <- eval(convergence)
-# 
-#     if (!converged && (iter + 1 <= maxiter)) {
-#       iter <- iter + 1
-#     } else if (L < LPrev) {
-#       beta <- betaPrev
-#       L <- LPrev
-#       W <- WPrev
-#     }
-# 
-#     if (converged && halfstepsizing && !silent) {
-#       warning("Convergence at halfstepsize")
-#     }
-# 
-#   }
-# 
-#   if(iter == maxiter && !converged && !silent) {
-#     warning("Fitting algorithm (IRLS) has not converged")
-#   }
-# 
-#   if (!validmu(mu)) {
-#     stop("Fit error infinite values reached consider another model,
-#             mu is too close to zero/infinity")
-#   }
-# 
-#   list(coefficients = beta, iter = iter, weights = W)
-# }
 #' @importFrom stats runif
 #' @importFrom stats var
 #' @importFrom stats quantile
@@ -337,8 +139,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                check,
                                                epsWeights,
                                                crit,
+                                               printOften,
+                                               saveLog,
                                                ...) {
-  dg <- 8
+  dg <- 8 # add to controll
   converged <- FALSE
   
   # Lowering stepsize to about .3 usually helps a great deal in IRLS fitting
@@ -365,6 +169,20 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   
   logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
   grad <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
+  
+  logg <- NULL
+  if (isTRUE(saveLog)) {
+    logg <- data.frame()
+  }
+  
+  addToLog <- expression(
+    if (isTRUE(saveLog)) {
+      if (trace == 1) {logg[NROW(logg) + 1, c(1, 2, 3)] <- c(iter, halfstepsizing, L)}
+      if (trace == 2) {logg[NROW(logg) + 1, c(1:3, 4:(3+length(beta)))] <- c(iter, halfstepsizing, L, beta)}
+      if (trace  > 2) {logg[NROW(logg) + 1, c(1:3, 4:(3+2*length(beta)))] <- c(iter, halfstepsizing, L, beta, grad(beta))}
+    }
+  )
+  
   traceGreaterThanFourMessegeExpr <- expression(
     if (trace > 4) {
       cat(sep = " ", "\nAlgorithm will terminate if one of following conditions will be met:\n")
@@ -442,16 +260,19 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     LPrev <- L
     L <- -logLike(beta)
     
-    if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
-    if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
-    if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
-    if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-    eval(traceGreaterThanFourMessegeExpr)
+    if ((iter - 1) %% printOften == 0) {
+      if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+      if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
+      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+      eval(traceGreaterThanFourMessegeExpr)
+      eval(addToLog)
+    }
 
     if (isTRUE(L < LPrev) || is.infinite(L) || is.nan(L)) {
       halfstepsizing <- TRUE
       h <- step <- stepsize * (betaPrev - beta)
-      if (trace > 0) {
+      if ((trace > 0) && (iter - 1) %% printOften == 0) {
         cat("\nTaking a modified step....\n")
       }
       repeat {
@@ -474,13 +295,16 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
           break
         }
       }
-      if (trace > 0) {cat(sep = "", "Modified step:\nIteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
-      if (trace > 1) {cat(sep = " ","\nParameter vector:", format(beta, scientific = FALSE, digits = dg))}
-      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
-      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current (modified) step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
-      eval(traceGreaterThanFourMessegeExpr)
+      if ((iter - 1) %% printOften == 0) {
+        if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
+        if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
+        if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
+        if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+        eval(traceGreaterThanFourMessegeExpr)
+        eval(addToLog)
+      }
     }
-    if (trace > 0) {cat(sep = "", "\n----\n")}
+    if (trace > 0 && (iter - 1) %% printOften == 0) {cat(sep = "", "\n----\n")}
     converged <- eval(convergence)
 
     if (!converged && (iter + 1 <= maxiter)) {
@@ -501,12 +325,28 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     warning("Fitting algorithm (IRLS) has not converged")
   }
   
+  if (trace > 4) {
+    hhh <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 2)(beta)
+    cat("Value of analytically computed hessian at fitted regression coefficients:\n")
+    print(hhh)
+    cat("The matrix above has the following eigen values:\n", 
+        eigen(hhh, only.values = TRUE)$values, "\n", sep = " ")
+    
+    if (isTRUE(saveLog)) attr(logg, "hessian") <- hhh
+  }
+  
+  if (isTRUE(saveLog)) {
+    if (trace == 1) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood")
+    if (trace == 2) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood", colnames(covariates))
+    if (trace  > 2) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood", colnames(covariates), paste0("gradient -- ", colnames(covariates)))
+  }
+  
   if (!validmu(mu)) {
     stop("Fit error infinite values reached consider another model,
           mu is too close to zero/infinity")
   }
   
-  list(coefficients = beta, iter = iter, weights = W)
+  list(coefficients = beta, iter = iter, weights = W, logg = logg)
 }
 # make Xvlm matrix
 singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
@@ -559,8 +399,8 @@ singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, pop
     trr <- 0
     wch1 <- wch2 <- rep(TRUE, length(observed))
   }
-  list(reg = wch1, # which rows for regression
-       est = wch2, # which rows for estimation
+  list(reg = as.logical(wch1), # which rows for regression
+       est = as.logical(wch2), # which rows for estimation
        trr = trr)  # add to trcount
 }
 #' @importFrom stats reformulate

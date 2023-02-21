@@ -101,11 +101,10 @@ ztHurdlepoisson <- function(...) {
         PI <- lambda[, 2]
         lambda <- lambda[, 1]
         G1 <- weight * ifelse(z, 0 , (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
-        G0 <- (z - PI) # PI derivative
-        G0 <- G0 * weight
+        G0 <- (z - PI) * weight# PI derivative
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -118,20 +117,12 @@ ztHurdlepoisson <- function(...) {
         lambda <- invlink(eta)
         PI <- lambda[, 2]
         lambda <- lambda[, 1]
-        Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         XPI <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
-        res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
         
         # PI^2 derivative
-        term <- -(PI * (1 - PI))
-        G00 <- t(as.data.frame(XPI * term * weight)) %*% as.matrix(XPI)
-        
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- -t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * PI * (1 - PI) * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         # Beta^2 derivative
-        term <- ifelse(z, 0, ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2))
-        G11 <- lambda * term * weight
-        G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * lambda * ifelse(z, 0, ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2)) * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- 0
         res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- 0
         
@@ -148,7 +139,6 @@ ztHurdlepoisson <- function(...) {
     PI <- invlink(eta)
     lambda <- PI[, 1]
     PI <- PI[, 2]
-    mu <- mu.eta(eta = eta)
     
     # when pi = 0 distribution collapses to zotpoisson
     inverseFunction <- function(y) {stats::uniroot(
@@ -162,18 +152,16 @@ ztHurdlepoisson <- function(...) {
     
     etaSat <- vector("numeric", length = length(y))
     
-    etaSat[y == 1] <- -Inf # this case doesnt matter
-    etaSat[y == 2] <- -Inf
-    etaSat[y > 2] <- sapply(y[y > 2], FUN = inverseFunction)
+    yUnq <- unique(y)
+    etaSat <- sapply(yUnq, FUN = function(x) ifelse(x %in% c(1, 2), -Inf, inverseFunction(x)))
+    etaSat <- sapply(y, FUN = function(x) etaSat[yUnq == x])
     idealLambda <- exp(etaSat)
-    
-    #idealPI <- ifelse(y == 1, 1, 0)
     diff <- ifelse(
       y == 1,
-      -log(PI),
-      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(lambda) - lambda * exp(-lambda)))
+      -log(PI), ifelse(y == 2, log(2),
+      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)))
     )
-    sign(y - mu) * sqrt(2 * wt * diff)
+    sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

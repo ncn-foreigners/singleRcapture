@@ -80,10 +80,9 @@ zotgeom <- function(...) {
   }
   
   devResids <- function (y, eta, wt, ...) {
-    mu <- invlink(eta)
-    mu1 <- mu.eta(eta = eta)
+    lambda <- invlink(eta)
     loghm1y <- ifelse(y > 2, log(y - 2), 0)
-    sign(y - mu1) * sqrt(-2 * wt * ((y - 2) * eta - (y - 1) * log(1 + mu1) - (y - 2) * loghm1y + (y - 1) * log(y - 1)))
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * ((y - 2) * eta - (y - 1) * log(1 + lambda) - (y - 2) * loghm1y + (y - 1) * log(y - 1)))
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -116,7 +115,7 @@ zotgeom <- function(...) {
     f1 + f2
   }
   
-simulate <- function(n, eta, lower = 0, upper = Inf) {
+  simulate <- function(n, eta, lower = 0, upper = Inf) {
     lambda <- invlink(eta)
     lb <- stats::pnbinom(lower, mu=lambda, size = 1)
     ub <- stats::pnbinom(upper, mu=lambda, size = 1)

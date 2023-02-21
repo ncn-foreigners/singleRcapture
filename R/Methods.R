@@ -370,7 +370,7 @@ summary.singleRmargin <- function(object, df,
 #' @param ... Additional optional arguments passed to following functions:
 #' \itemize{
 #' \item \code{solve} -- for inverting information matrixes.
-#' \item \code{model.frame.singleR} -- forcreation of Xvlm matrix.
+#' \item \code{model.frame.singleR} -- for creation of Xvlm matrix.
 #' }
 #' @details  Returns a estimated covariance matrix for model coefficients
 #' calculated from analytic hessian or Fisher information matrix. 
@@ -765,8 +765,30 @@ stratifyPopEst.singleR <- function(object, stratas, alpha, cov = NULL, ...) {
   
   # convert stratas to list for all viable types of specifying the argument
   if (inherits(stratas, "formula")) {
-    modelFrame <- model.frame(object)
-    # TODO
+    mf <- model.frame(stratas, model.frame(object))
+    mmf <- model.matrix(stratas, data = mf, 
+                        contrasts.arg = lapply(subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
+                                               contrasts, contrasts = FALSE))
+    trm <- attr(mf, "terms")
+    stratas <- list()
+    for (k in attr(trm, "term.labels")) {
+      if (k %in% colnames(mf)) {
+        if (is.integer(mf[, k]) | is.character(mf[, k])) {
+          for (t in unique(mf[,k])) {
+            stratas[[paste0(k, "==", t)]] <- mf[,k] == t
+          }
+        } else if (is.factor(mf[, k])) {
+          for (t in levels(mf[, k])) {
+            stratas[[paste0(k, "==", t)]] <- mf[,k] == t
+          }
+        }
+      } else {
+        tLevs <- colnames(mmf)[attr(mmf, "assign") == which(attr(trm, "term.labels") == k)]
+        for (t in tLevs) {
+          stratas[[as.character(t)]] <- mmf[, t] == 1
+        }
+      }
+    }
   } else if (is.list(stratas)) {
     if (!all(sapply(stratas, is.logical))) {
       stop("Invalid way of specifying subpopulations in stratas. If stratas argument is a list ")
@@ -821,23 +843,44 @@ stratifyPopEst.singleR <- function(object, stratas, alpha, cov = NULL, ...) {
   cnfStudent <- matrix(nrow = length(stratas), ncol = 2)
   cnfChao <- matrix(nrow = length(stratas), ncol = 2)
   sc <- qnorm(p = 1 - alpha / 2)
-  if (length(sc) != length(stratas)) sc <- rep(sc, length.out = length())
+  if (length(sc) != length(stratas)) sc <- rep(sc, length.out = length(stratas))
   
-  #TODO adjust for chao
-  for (k in 1:length(stratas)) {
-    cond <- stratas[[k]]
-    obs[k] <- sum(cond)
-    if (obs[k] > 0) {
-      est[k] <- family$pointEst(pw = priorWeights[cond], eta = eta[cond, ])
-      stdErr[k] <- family$popVar(pw = priorWeights[cond], eta = eta[cond, ], cov = cov, Xvlm = Xvlm[rep(cond, length(family$etaNames)), ]) ^ .5
-      cnfStudent[k, ] <- est[k] + c(-sc * stdErr[k], sc * stdErr[k])
-      G <- exp(sc * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
-      cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
-    } else {
-      est[k] <- 0
-      stdErr[k] <- 0
-      cnfStudent[k, ] <- c(0, 0)
-      cnfChao[k, ] <- c(0, 0)
+  if (grepl(object$model$family, pattern = "(^zot|chao|zelterman)")) {
+    Xvlm <- model.matrix(object$formula[[1]], model.frame(object))
+    for (k in 1:length(stratas)) {
+      cond <- stratas[[k]]
+      trr <- sum(cond & !object$which$est)
+      obs[k] <- sum(cond)
+      if (obs[k] > 0) {
+        if (grepl(object$model$family, pattern = "(^zot|chao)")) cond1 <- cond[object$which$est] else cond1 <- cond
+        est[k] <- family$pointEst(pw = priorWeights[cond & object$which$est], eta = eta[cond1, ]) + trr
+        stdErr[k] <- family$popVar(pw = priorWeights[cond & object$which$est], eta = eta[cond1, ], cov = cov, Xvlm = subset(Xvlm, subset = cond & object$which$est)) ^ .5
+        cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
+        G <- exp(sc[k] * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
+        cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
+      } else {
+        est[k] <- 0
+        stdErr[k] <- 0
+        cnfStudent[k, ] <- c(0, 0)
+        cnfChao[k, ] <- c(0, 0)
+      }
+    }
+  } else {
+    for (k in 1:length(stratas)) {
+      cond <- stratas[[k]]
+      obs[k] <- sum(cond)
+      if (obs[k] > 0) {
+        est[k] <- family$pointEst(pw = priorWeights[cond], eta = eta[cond, ])
+        stdErr[k] <- family$popVar(pw = priorWeights[cond], eta = eta[cond, ], cov = cov, Xvlm = subset(Xvlm, subset = rep(cond, length(family$etaNames)))) ^ .5
+        cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
+        G <- exp(sc[k] * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
+        cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
+      } else {
+        est[k] <- 0
+        stdErr[k] <- 0
+        cnfStudent[k, ] <- c(0, 0)
+        cnfChao[k, ] <- c(0, 0)
+      }
     }
   }
   

@@ -527,6 +527,8 @@ estimatePopsize <- function(formula,
   names(coefficients) <- names(start)
   iter <- FITT$iter
   dfReduced <- nrow(Xvlm) - length(coefficients)
+  IRLSlog <- FITT$logg
+  
   
   logLike <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
   weight = priorWeights[wch$reg])
@@ -601,7 +603,7 @@ estimatePopsize <- function(formula,
   }
   structure(
     list(
-      y = if(isTRUE(returnElements[[1]])) observed else NULL,
+      y = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
       X = if(isTRUE(returnElements[[2]])) variables else NULL,
       formula = formulas,
       call = match.call(),
@@ -616,7 +618,7 @@ estimatePopsize <- function(formula,
       residuals = resRes,
       logL = LOG,
       iter = iter,
-      dfResidualsidual = dfReduced,
+      dfResidual = dfReduced,
       dfNull = length(observed) - 1,
       fittValues = fitt,
       populationSize = POP,
@@ -627,7 +629,8 @@ estimatePopsize <- function(formula,
       terms = terms,
       contrasts = contrasts,
       naAction = naAction,
-      which = wch
+      which = wch,
+      fittingLog = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
     ),
     class = c("singleR", "glm", "lm")
   )

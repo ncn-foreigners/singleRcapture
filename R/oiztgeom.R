@@ -127,8 +127,8 @@ oiztgeom <- function(...) {
         G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)) # omega derivative
         G0 <- G0 * weight * omega * (1 - omega)
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         } 
         if (vectorDer) {
           return(cbind(G1, G0))

@@ -12,7 +12,7 @@ Hurdleztpoisson <- function(...) {
     lambda <- lambda[, 1]
     switch (type,
     "nontrunc" = PI + (1 - PI) * exp(-lambda) * (lambda * exp(lambda) - lambda) / (1 - lambda * exp(-lambda)),
-    "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + (1 - PI) * (lambda * exp(lambda) - 1) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+    "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + (1 - PI) * lambda * (exp(lambda) - 1) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
     )
   }
   
@@ -115,8 +115,8 @@ Hurdleztpoisson <- function(...) {
         G0 <- (z - PI- PI * (1 - PI) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))) # PI derivative
         G0 <- G0 * weight
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -159,14 +159,13 @@ Hurdleztpoisson <- function(...) {
   }
   
   validmu <- function(mu) {
-    (sum(!is.finite(mu)) == 0) && all(0 < mu)
+    all(0 < mu & is.finite(mu))
   }
   
   devResids <- function(y, eta, wt, ...) {
     PI <- invlink(eta)
     lambda <- PI[, 1]
     PI <- PI[, 2]
-    mu <- mu.eta(eta = eta)
     
     # when pi = 0 distribution collapses to zotpoisson
     inverseFunction <- function(y) {stats::uniroot(
@@ -178,19 +177,17 @@ Hurdleztpoisson <- function(...) {
       tol = .Machine$double.eps
     )$root}
     
-    etaSat <- vector("numeric", length = length(y))
-    
-    etaSat[y == 1] <- -Inf # this case doesnt matter
-    etaSat[y == 2] <- -Inf
-    etaSat[y > 2] <- sapply(y[y > 2], FUN = inverseFunction)
+    yUnq <- unique(y)
+    etaSat <- sapply(yUnq, FUN = function(x) ifelse(x %in% c(1, 2), -Inf, inverseFunction(x)))
+    etaSat <- sapply(y, FUN = function(x) etaSat[yUnq == x])
     idealLambda <- exp(etaSat)
-    
     diff <- ifelse(
       y == 1,
       -(log(PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))),
-      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - (log(1 - PI) + log(1 - lambda * exp(-lambda)) -log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
+      ifelse(y == 2, log(2),
+      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - (log(1 - PI) + log(1 - lambda * exp(-lambda)) -log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
     )
-    sign(y - mu) * sqrt(2 * wt * diff)
+    sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

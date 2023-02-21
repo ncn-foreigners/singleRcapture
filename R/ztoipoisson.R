@@ -30,25 +30,20 @@ ztoipoisson <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    theta <- exp(eta[, 2])
     z <- omega + (1 - omega) * lambda / (exp(lambda) - 1) # expected for I's
     #z <- ifelse(y == 1, y, 0)
-    eml <- exp(-lambda)
-    term <- lambda / (exp(lambda) - 1)
-    G00 <- -omega * (1 - omega) + z * (theta / (theta + term) - (theta / (theta + term)) ^ 2)
-    G00 <- G00 * prior
+    G00 <- -omega * (1 - omega) + z * (exp(eta[, 2]) / (exp(eta[, 2]) + lambda / (exp(lambda) - 1)) - (exp(eta[, 2]) / (exp(eta[, 2]) + lambda / (exp(lambda) - 1))) ^ 2) * prior
     
     # mixed derivative
-    G01 <- -z * theta / ((theta + term) ^ 2)
-    G01 <- G01 * (term - (term ^ 2) * exp(lambda)) * prior
+    G01 <- -z * exp(eta[, 2]) / ((exp(eta[, 2]) + lambda / (exp(lambda) - 1)) ^ 2) * (lambda / (exp(lambda) - 1) - (lambda / (exp(lambda) - 1) ^ 2) * exp(lambda)) * prior
     
-    G11 <- -(1 - z) * (1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2))
     wwd <- 1 / (exp(lambda) - 1)
-    thetaLambdaTerm <- 1 / (theta + lambda * wwd)
-    G11 <- G11 + z * (-lambda * ((wwd - exp(lambda) * lambda * wwd * wwd) ^ 2) * (thetaLambdaTerm ^ 2) +
-    thetaLambdaTerm * (wwd - wwd * wwd * lambda * exp(lambda)) + lambda * thetaLambdaTerm *
-    (-wwd * wwd * lambda * exp(lambda) + 2 * lambda * exp(2 * lambda) * wwd * wwd * wwd - 2 * wwd * wwd * exp(lambda)))
-    G11 <- lambda * prior * G11
+    thetaLambdaTerm <- 1 / (exp(eta[, 2]) + lambda * wwd)
+    G11 <- -(1 - z) * (1 / (1 - exp(-lambda)) - lambda * exp(-lambda) / ((1 - exp(-lambda)) ^ 2)) + 
+    z * (-lambda * ((wwd - exp(lambda) * lambda * wwd * wwd) ^ 2) / ((exp(eta[, 2]) + lambda * wwd) ^ 2) +
+    (wwd - wwd * wwd * lambda * exp(lambda)) / (exp(eta[, 2]) + lambda * wwd) + lambda *
+    (-wwd * wwd * lambda * exp(lambda) + 2 * lambda * exp(2 * lambda) * wwd * wwd * wwd - 
+    2 * wwd * wwd * exp(lambda)) / (exp(eta[, 2]) + lambda * wwd)) * lambda * prior
     matrix(
       -c(G11, # lambda
          G01, # mixed
@@ -64,14 +59,10 @@ ztoipoisson <- function(...) {
     lambda <- invlink(eta)
     omega <- lambda[, 2]
     lambda <- lambda[, 1]
-    theta <- exp(eta[, 2])
     z <- ifelse(y == 1, y, 0)
-    mm <- exp(lambda) - 1
-    mm <- 1 / mm
-    G1 <- z * (mm - mm * mm * lambda * exp(lambda)) / (theta + lambda * mm)
-    G1 <- G1 + (1 - z) * (y / lambda - mm * exp(lambda))
-    G1 <- G1 * lambda
-    G0 <- -omega + z * (theta / (theta + lambda / (exp(lambda) - 1)))
+    mm <- (exp(lambda) - 1) ^ -1
+    G1 <- z * lambda * (mm - mm * mm * lambda * exp(lambda)) / (exp(eta[, 2]) + lambda * mm) + lambda * (1 - z) * (y / lambda - mm * exp(lambda))
+    G0 <- -omega + z * (exp(eta[, 2]) / (exp(eta[, 2]) + lambda / (exp(lambda) - 1)))
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -81,7 +72,7 @@ ztoipoisson <- function(...) {
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]], tol = 1e-30)
+      xx <- solve(weight[[x]]) # more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -105,8 +96,7 @@ ztoipoisson <- function(...) {
         lambda <- invlink(eta)
         omega <- lambda[, 2]
         lambda <- lambda[, 1]
-        theta <- exp(eta[, 2])
-        -sum(weight * (-log(1 + theta) + z * log(theta + lambda / (exp(lambda) - 1)) +
+        -sum(weight * (-log(1 + exp(eta[, 2])) + z * log(exp(eta[, 2]) + lambda / (exp(lambda) - 1)) +
         (1 - z) * (y * log(lambda) - log(exp(lambda) - 1) - log(factorial(y)))))
       },
       function(beta) {
@@ -115,17 +105,13 @@ ztoipoisson <- function(...) {
         omega <- lambda[, 2]
         lambda <- lambda[, 1]
         theta <- exp(eta[, 2])
-        mm <- exp(lambda) - 1
-        mm <- 1 / mm
-        G1 <- z * (mm - mm * mm * lambda * exp(lambda)) / (theta + lambda * mm)
-        G1 <- G1 + (1 - z) * (y / lambda - mm * exp(lambda))
-        G1 <- G1 * weight * lambda
-        G0 <- -omega + z * (theta / (theta + lambda / (exp(lambda) - 1))) # omega derivative
-        G0 <- G0 * weight
+        mm <- (exp(lambda) - 1) ^ -1
+        G1 <- weight * lambda * z * (mm - mm * mm * lambda * exp(lambda)) / (exp(eta[, 2]) + lambda * mm) + weight * lambda * (1 - z) * (y / lambda - mm * exp(lambda))
+        G0 <- -omega * weight + z * weight * (exp(eta[, 2]) / (exp(eta[, 2]) + lambda / (exp(lambda) - 1))) # omega derivative
         
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -140,30 +126,22 @@ ztoipoisson <- function(...) {
         omega <- lambda[, 2]
         lambda <- lambda[, 1]
         theta <- exp(eta[, 2])
-        Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-        Xomega <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
         res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
-        eml <- exp(-lambda)
-        coefficient <- (1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2))
         
         # omega^2 derivative
         term <- lambda / (exp(lambda) - 1)
-        G00 <- t(as.data.frame(Xomega * (-omega * (1 - omega) + z * (theta / (theta + term) - (theta / (theta + term)) ^ 2)) * weight)) %*% as.matrix(Xomega)
+        G00 <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * (-omega * (1 - omega) + z * (theta / (theta + term) - (theta / (theta + term)) ^ 2)) * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         
         # mixed derivative
-        xx <- -z * theta / ((theta + term) ^ 2)
-        xx <- xx * (term - (term ^ 2) * exp(lambda))
-        G01 <- t(as.data.frame(Xlambda) * xx * weight) %*% as.matrix(Xomega)
+        G01 <- -t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * (term - (term ^ 2) * exp(lambda)) * z * theta / ((theta + term) ^ 2) * weight) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         
         # Beta^2 derivative
-        G11 <- -(1 - z) * (1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2))
         wwd <- 1 / (exp(lambda) - 1)
-        thetaLambdaTerm <- 1 / (theta + lambda * wwd)
-        G11 <- G11 + z * (-lambda * ((wwd - exp(lambda) * lambda * wwd * wwd) ^ 2) * (thetaLambdaTerm ^ 2) +
-                            thetaLambdaTerm * (wwd - wwd * wwd * lambda * exp(lambda)) + lambda * thetaLambdaTerm *
-                            (-wwd * wwd * lambda * exp(lambda) + 2 * lambda * exp(2 * lambda) * wwd * wwd * wwd - 2 * wwd * wwd * exp(lambda)))
-        G11 <- lambda * weight * G11
-        G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
+        G11 <- (-(1 - z) * (1 / (1 - exp(-lambda)) - lambda * exp(-lambda) / ((1 - exp(-lambda)) ^ 2)) + 
+        z * (-lambda * ((wwd - exp(lambda) * lambda * wwd * wwd) ^ 2) / ((theta + lambda * wwd) ^ 2) +
+        (wwd - wwd * wwd * lambda * exp(lambda)) / (theta + lambda * wwd) + lambda / (theta + lambda * wwd) *
+        (-wwd * wwd * lambda * exp(lambda) + 2 * lambda * exp(2 * lambda) * wwd * wwd * wwd - 2 * wwd * wwd * exp(lambda)))) * lambda * weight
+        G11 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
         res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
         res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(G01)

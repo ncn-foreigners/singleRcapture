@@ -95,8 +95,8 @@ ztHurdlegeom <- function(...) {
         G0 <- (z - PI) # PI derivative
         G0 <- G0 * weight
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -137,18 +137,17 @@ ztHurdlegeom <- function(...) {
   }
   
   devResids <- function(y, eta, wt, ...) {
-    omega <- invlink(eta)
+    PI <- invlink(eta)
     lambda <- PI[, 1]
     PI <- PI[, 2]
-    mu <- mu.eta(eta = eta)
-    #idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed
-    # when pi = 0 distribution collapses to zotgeom
+    # idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed when pi = 0 distribution collapses to zotgeom
     idealLambda <- ifelse(y > 1, y - 2, 0)
     diff <- ifelse(
       y == 1, -log(PI),
-      ((y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda))-(log(1 - PI) + (y - 2) * log(lambda) - (y - 1) * log(1 + lambda))
+      ifelse(y == 2, 0,
+      (y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda))-(log(1 - PI) + (y - 2) * log(lambda) - (y - 1) * log(1 + lambda))
     )
-    sign(y - mu) * sqrt(2 * wt * diff)
+    sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

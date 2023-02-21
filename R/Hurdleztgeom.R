@@ -124,8 +124,8 @@ Hurdleztgeom <- function(...) {
         G0 <- z / PI - (1 - z) / (1 - PI) - (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda))
         G0 <- G0 * weight * PI * (1 - PI) # PI derivative
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -179,18 +179,18 @@ Hurdleztgeom <- function(...) {
   }
   
   devResids <- function(y, eta, wt, ...) {
-    omega <- invlink(eta)
+    PI <- invlink(eta)
     lambda <- PI[, 1]
     PI <- PI[, 2]
-    mu <- mu.eta(eta = eta)
     #idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed
     # when pi = 0 distribution collapses to zotgeom
     idealLambda <- ifelse(y > 1, y - 2, 0)
     diff <- ifelse(
       y == 1, -(log(PI) + log(lambda ^ 2 + lambda + 1) - log(lambda ^ 2 + PI * (lambda + 1))),
-      (y * log(idealLambda) - (y - 1) * log(1 + idealLambda) - log(idealLambda ^ 2 + PI * (idealLambda + 1))) - (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda) - log(lambda ^ 2 + PI * (lambda + 1)))
+      ifelse(y == 2, 0,
+      (y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda)) - (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda) - log(lambda ^ 2 + PI * (lambda + 1)))
     )
-    sign(y - mu) * sqrt(2 * wt * diff)
+    sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

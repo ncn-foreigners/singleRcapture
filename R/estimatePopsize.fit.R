@@ -164,7 +164,8 @@
 #' 
 #' @return List with regression parameters, working weights 
 #' (if IRLS fitting method) was chosen and number of iterations taken.
-#' @seealso [stats::glm()] [estimatePopsize()] [controlMethod()] [stats::optim()]
+#' @seealso [stats::glm()] [estimatePopsize()] [controlMethod()] [stats::optim()] 
+# #' @importFrom maxLik maxLik
 #' @export
 estimatePopsize.fit <- function(y, X,
                                 family,
@@ -176,87 +177,94 @@ estimatePopsize.fit <- function(y, X,
   hwm <- attr(X, "hwm")
   tbgname <- colnames(X)
   X <- as.matrix(X)
-
-  if (FALSE) {
-    # maybe implement
-  } else {
-    if (method == "IRLS") {
-      
-      # if (family$parNum == 1) { singleRcaptureinternalIRLS is deprecated
-      #   FittingFunction <- singleRcaptureinternalIRLS
-      # } else {
-      #   FittingFunction <- singleRcaptureinternalIRLSmultipar
-      # }
-      FittingFunction <- singleRcaptureinternalIRLSmultipar
-      
-      FITT <- FittingFunction(
-        dependent = y,
-        covariates = X,
-        eps = control$epsilon,
-        family = family,
-        maxiter = control$maxiter,
-        weights = priorWeights,
-        start = start,
-        silent = control$silent,
-        trace = control$verbose,
-        stepsize = control$stepsize,
-        hwm = hwm,
-        momentumFactor = control$momentumFactor,
-        momentumActivation = control$momentumActivation,
-        check = control$checkDiagWeights,
-        epsWeights = control$weightsEpsilon,
-        crit = control$criterion
-      )
-      
-      iter <- FITT$iter
-      weights <- FITT$weights
-      beta <- FITT$coefficients
-    } else if (method == "optim") {
-      logLike <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
-      grad <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
-      
-      weights <- priorWeights
-      methodopt <- control$optimMethod
-      
-      if (!isFALSE(control$optimPass)) {
-        ctrl <- control$optimPass
-      } else {
-        if (methodopt == "L-BFGS-B") {
-          ctrl <- list(
-            factr = control$epsilon,
-            maxit = control$maxiter,
-            trace = control$verbose,
-            trace = if (is.numeric(control$trace)) control$trace else 0
-          )
-        } else {
-          ctrl <- list(
-            reltol = control$epsilon,
-            maxit = control$maxiter,
-            trace = control$verbose
-          )
-        }
-      }
-
-      FITT <- stats::optim(fn = logLike,
-                           par = start,
-                           gr = function(x) -grad(x),
-                           method = methodopt,
-                           # hessian = TRUE,
-                           control = ctrl)
-      beta <- FITT$par
-      # print(FITT)
-      # print(rootSolve::gradient(f = grad, x = beta))
-      # Commented lines of code are used in verification of computed analytic hessian
-      iter <- FITT$counts
-      if (FITT$convergence == 1 && !control$silent) {
-        warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")
-      }
-    } else if (method == "maxLik") {
-      #TODO
-      stop("Not yet implemented")
+  logg <- NULL
+  
+  if (method == "IRLS") {
+    
+    FITT <- singleRcaptureinternalIRLSmultipar(
+      dependent = y,
+      covariates = X,
+      eps = control$epsilon,
+      family = family,
+      maxiter = control$maxiter,
+      weights = priorWeights,
+      start = start,
+      silent = control$silent,
+      trace = control$verbose,
+      stepsize = control$stepsize,
+      hwm = hwm,
+      momentumFactor = control$momentumFactor,
+      momentumActivation = control$momentumActivation,
+      check = control$checkDiagWeights,
+      epsWeights = control$weightsEpsilon,
+      crit = control$criterion,
+      saveLog = control$saveIRLSlogs,
+      printOften = control$printEveryN
+    )
+    
+    iter <- FITT$iter
+    weights <- FITT$weights
+    beta <- FITT$coefficients
+    logg <- FITT$logg
+  } else if (method == "optim") {
+    logLike <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
+    grad <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
+    
+    weights <- priorWeights
+    methodopt <- control$optimMethod
+    
+    if (!isFALSE(control$optimPass)) {
+      ctrl <- control$optimPass
     } else {
-      stop("Method implemented.")
+      if (methodopt == "L-BFGS-B") {
+        ctrl <- list(
+          factr = control$epsilon,
+          maxit = control$maxiter,
+          trace = control$verbose,
+          trace = if (is.numeric(control$trace)) control$trace else 0
+        )
+      } else {
+        ctrl <- list(
+          reltol = control$epsilon,
+          maxit = control$maxiter,
+          trace = control$verbose
+        )
+      }
     }
+    
+    FITT <- stats::optim(fn = logLike,
+                         par = start,
+                         gr = function(x) -grad(x),
+                         method = methodopt,
+                         # hessian = TRUE,
+                         control = ctrl)
+    beta <- FITT$par
+    # print(FITT)
+    # print(rootSolve::gradient(f = grad, x = beta))
+    # Commented lines of code are used in verification of computed analytic hessian
+    iter <- FITT$counts
+    if (FITT$convergence == 1 && !control$silent) {
+      warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")
+    }
+  } else if (method == "maxLik") {
+    # Why do people use this???
+    
+    
+    # weights <- priorWeights
+    # ll <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
+    # gr <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
+    # FITT <- maxLik::maxLik(
+    #   logLik = function(x) -ll(x),
+    #   grad = function(x) matrix(gr(x), nrow = 1),
+    #   hess = family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 2),
+    #   method = "NM",
+    #   start = start,
+    #   iterlim = 10000
+    # )
+    # print(FITT)
+    stop("Currently in development")
+  } else {
+    stop("Method implemented.")
   }
 
   if (is.null(FITT)) {
@@ -269,6 +277,7 @@ estimatePopsize.fit <- function(y, X,
   list(
     beta = beta,
     weights = weights,
-    iter = iter
+    iter = iter,
+    logg = logg
   )
 }

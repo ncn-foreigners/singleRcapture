@@ -16,6 +16,8 @@
 #'   \item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
 #' }
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
+#' @param printEveryN Integer value indicating how often to print information
+#' specified in \code{verbose}, my default set to \code{1}.
 #' @param start initial parameters for regression associated with main formula 
 #' specified in function call if NULL they will be derived from simple poisson regression.
 #' @param alphaStart initial parameters for dispersion parameter if applies.
@@ -51,27 +53,31 @@
 #' which momentum will apply.
 #' @param criterion Criterion used to determine convergence in \code{IRLS}, 
 #' multiple values may be provided. By default \code{c("coef", "abstol")}.
+#' @param saveIRLSlogs Logical value indicating if information specified in
+#' \code{verbose} should be saved to output object, by default \code{FALSE}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
 #' @export
 controlMethod <- function(epsilon = 1e-8,
-                           maxiter = 1000,
-                           verbose = 0,
-                           start = NULL,
-                           alphaStart = NULL,
-                           omegaStart = NULL,
-                           piStart = NULL,
-                           optimMethod = "L-BFGS-B",
-                           silent = FALSE,
-                           optimPass = FALSE,
-                           stepsize = 1,
-                           checkDiagWeights = TRUE,
-                           weightsEpsilon = .Machine$double.eps^.75,
-                           momentumFactor = 0,
-                           useZtpoissonAsStart = FALSE,
-                           momentumActivation = 5,
-                           criterion = c("coef", "abstol", "reltol")) {
+                          maxiter = 1000,
+                          verbose = 0,
+                          printEveryN = 1,
+                          start = NULL, # TODO:: only use one start
+                          alphaStart = NULL,
+                          omegaStart = NULL,
+                          piStart = NULL,
+                          optimMethod = "L-BFGS-B",
+                          silent = FALSE,
+                          optimPass = FALSE,
+                          stepsize = 1,
+                          checkDiagWeights = TRUE,
+                          weightsEpsilon = .Machine$double.eps^.75,
+                          momentumFactor = 0,
+                          saveIRLSlogs = FALSE,
+                          useZtpoissonAsStart = FALSE,
+                          momentumActivation = 5,
+                          criterion = c("coef", "abstol", "reltol")) {
   if (!missing(criterion) && all(c("abstol", "reltol") %in% criterion)) {
     stop("Choosing both absolute tolerance and relative tolerance for convergence criterion is not allowed.")
   }
@@ -82,6 +88,7 @@ controlMethod <- function(epsilon = 1e-8,
     epsilon = epsilon,
     maxiter = maxiter,
     verbose = verbose,
+    printEveryN = printEveryN,
     start = start,
     alphaStart = alphaStart,
     omegaStart = omegaStart,
@@ -94,6 +101,7 @@ controlMethod <- function(epsilon = 1e-8,
     weightsEpsilon = weightsEpsilon,
     momentumFactor = momentumFactor,
     momentumActivation = momentumActivation,
+    saveIRLSlogs = saveIRLSlogs,
     useZtpoissonAsStart = useZtpoissonAsStart,
     criterion = if (missing(criterion)) c("coef", "abstol") else criterion
   )

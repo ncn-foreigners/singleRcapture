@@ -8,6 +8,7 @@ controlMethod(
   epsilon = 1e-08,
   maxiter = 1000,
   verbose = 0,
+  printEveryN = 1,
   start = NULL,
   alphaStart = NULL,
   omegaStart = NULL,
@@ -19,6 +20,7 @@ controlMethod(
   checkDiagWeights = TRUE,
   weightsEpsilon = .Machine$double.eps^0.75,
   momentumFactor = 0,
+  saveIRLSlogs = FALSE,
   useZtpoissonAsStart = FALSE,
   momentumActivation = 5,
   criterion = c("coef", "abstol", "reltol")
@@ -39,6 +41,9 @@ controlMethod(
 \item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
 }
 if \code{optim} method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
+
+\item{printEveryN}{Integer value indicating how often to print information
+specified in \code{verbose}, my default set to \code{1}.}
 
 \item{start}{initial parameters for regression associated with main formula
 specified in function call if NULL they will be derived from simple poisson regression.}
@@ -79,6 +84,9 @@ the update will be made as:
 \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{
 beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}}
 
+\item{saveIRLSlogs}{Logical value indicating if information specified in
+\code{verbose} should be saved to output object, by default \code{FALSE}.}
+
 \item{useZtpoissonAsStart}{boolean value indicating whether to chose starting
 parameters from \code{ztpoisson} regression this one is useful mostly for
 various one inflated models.}
@@ -97,7 +105,7 @@ List with selected parameters, it is also possible to call list directly.
 for regression fitting in \code{estimatePopsize.fit} and \code{estimatePopsize}.
 }
 \seealso{
-\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlModel]{controlModel()}} \code{\link[=controlPopVar]{controlPopVar()}}
+\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}} \code{\link[=controlModel]{controlModel()}} \code{\link[=controlPopVar]{controlPopVar()}}
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz

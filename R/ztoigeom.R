@@ -83,7 +83,7 @@ ztoigeom <- function(...) {
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]])
+      xx <- solve(weight[[x]]) #more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -122,8 +122,8 @@ ztoigeom <- function(...) {
         G0 <- z * lambda / (1 + lambda * omega) - (1 - z) / (1 - omega) # omega derivative
         G0 <- G0 * weight * omega * (1 - omega)
         if (NbyK) {
-          XX <- sapply(as.data.frame(X[1:nrow(eta), ]), FUN = function(x) {all(x == 0)})
-          return(cbind(as.data.frame(X[1:nrow(eta), !(XX)]) * G1, as.data.frame(X[-(1:nrow(eta)), XX]) * G0))
+          XX <- 1:(attr(X, "hwm")[1])
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -178,7 +178,6 @@ ztoigeom <- function(...) {
     omega <- invlink(eta)
     lambda <- omega[, 1]
     omega <- omega[, 2]
-    mu <- mu.eta(eta = eta)
     # idealOmega <- ifelse(y == 1, 1, 0) memmory allocation not needed
     idealLambda <- ifelse(y > 1, y - 1, 0)
     diff <- ifelse(
@@ -186,7 +185,7 @@ ztoigeom <- function(...) {
       -log(omega + (1 - omega) / (1 + lambda)),
       (y - 1) * log(idealLambda) - y * log(1 + idealLambda) - log(1 - omega) + log(1 + lambda) - (y - 1) * log(lambda / (1 + lambda))
     )
-    sign(y - mu) * sqrt(2 * wt * diff)
+    sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

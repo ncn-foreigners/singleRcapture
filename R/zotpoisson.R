@@ -78,7 +78,6 @@ zotpoisson <- function(...) {
 
   devResids <- function(y, eta, wt, ...) {
     lambda <- invlink(eta)
-    mu <- mu.eta(eta = eta)
     
     inverseFunction <- function(y) {stats::uniroot(
       f = function(x) {mu.eta(x) - y}, 
@@ -86,18 +85,20 @@ zotpoisson <- function(...) {
       tol = .Machine$double.eps
     )$root}
     
-    etaSat <- vector("numeric", length = length(y))
-    
-    etaSat[y == 2] <- -Inf
-    etaSat[y > 2] <- sapply(y[y > 2], FUN = inverseFunction)
+    # only compute predictors in saturated model for unique values of y
+    # this is faster because stats::uniroot in slow whereas lamW::lambertW0 is really fast
+    # so this is not worth it in ztpoisson and yes this is what I have to do because R does 
+    # not have dictionaries :( Also I checked it with rbenchmark::benchmark with many replications
+    yUnq <- unique(y)
+    etaSat <- sapply(yUnq, FUN = function(x) ifelse(x == 2, -Inf, inverseFunction(x)))
+    etaSat <- sapply(y, FUN = function(x) etaSat[yUnq == x])
     lambdaSat <- exp(etaSat)
-    print(lambdaSat)
     
     lFit <- y * eta - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda))
     lSat <- ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
     y * etaSat - lambdaSat - log(1 - exp(-lambdaSat) - lambdaSat * exp(-lambdaSat)))
     
-    sign(y - mu) * sqrt(-2 * wt * (lFit - lSat))
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (lFit - lSat))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {

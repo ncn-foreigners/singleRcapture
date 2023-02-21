@@ -10,16 +10,16 @@ chao <- function(...) {
   mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = lambda,
-            "trunc" = 1 / (1 + exp(-eta))
+    "nontrunc" = lambda,
+    "trunc" = 1 / (1 + exp(-eta))
     )
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = lambda,
-            "trunc" = (1 / (1 + exp(-eta))) * (1 / (1 + exp(eta)))
+    "nontrunc" = lambda,
+    "trunc" = (1 / (1 + exp(-eta))) * (1 / (1 + exp(eta)))
     )
   }
   
@@ -68,8 +68,7 @@ chao <- function(...) {
         eta <- as.matrix(X) %*% beta
         lambda <- invlink(eta)
         L1 <- lambda / 2
-        term <- -(L1 / ((1 + L1) ^ 2))
-        t(as.data.frame(X) * weight * term) %*% as.matrix(X)
+        -t(as.data.frame(X) * weight * (L1 / ((1 + L1) ^ 2))) %*% as.matrix(X)
       }
     )
   }
