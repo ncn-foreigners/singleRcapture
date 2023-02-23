@@ -6,19 +6,17 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   invlink <- function (x) {matrix(c(exp(x[,1]),exp(x[,2])), ncol = 2, dimnames = dimnames(x))}
 
   mu.eta <- function(eta, type = "trunc", ...) {
-    A <- invlink(eta)
-    lambda <- A[, 1]
-    A <- A[, 2]
+    A <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     switch (type,
     "nontrunc" = lambda,
-    "trunc" = (lambda - lambda * ((1 + A * lambda) ^ (-1 - 1 / A))) / (1 - (1 + A * lambda) ^ (-1 / A) - lambda * ((1 + A * lambda) ^ (-1 - 1 / A)))
+    "trunc" = (lambda - lambda * ((1 + A * lambda) ^ (-1-1/A))) / (1 - (1 + A * lambda) ^ (-1/A) - lambda * ((1 + A * lambda) ^ (-1-1/A)))
     )
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
-    A <- invlink(eta)
-    lambda <- A[, 1]
-    A <- A[, 2]
+    A <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     switch (type,
             "nontrunc" = lambda * (1 + A * lambda),
             "trunc" = {
@@ -33,8 +31,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   
   compExpect <- function (eta) {
     alpha <- invlink(matrix(eta, ncol = 2))
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    lambda <- alpha[,1]
+    alpha <- alpha[,2]
     z <- 1 / alpha
     res <- res1 <- 0
     k <- 1
@@ -53,9 +51,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   Wfun <- function(prior, eta, ...) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    alpha <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     z <- 1 / alpha
     M <- 1 + lambda * alpha
     S <- 1 / M
@@ -86,9 +83,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    alpha <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     z <- 1 / alpha
     M <- 1 + lambda * alpha
     S <- 1 / M
@@ -128,9 +124,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     switch (deriv,
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- invlink(eta)
-        lambda <- alpha[, 1]
-        alpha <- alpha[, 2]
+        alpha <- exp(eta[, 2])
+        lambda <- exp(eta[, 1])
         z <- 1 / alpha
         S <- 1 / (1 + lambda * alpha)
 
@@ -140,9 +135,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- invlink(eta)
-        lambda <- alpha[, 1]
-        alpha <- alpha[, 2]
+        alpha <- exp(eta[, 2])
+        lambda <- exp(eta[, 1])
         # z is inverse of alpha in documentation
         z <- 1 / alpha
         S <- (1 + lambda * alpha) ^ -1
@@ -168,9 +162,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       function(beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- invlink(eta)
-        lambda <- alpha[, 1]
-        alpha <- alpha[, 2]
+        alpha <- exp(eta[, 2])
+        lambda <- exp(eta[, 1])
         # z is inverse of alpha in documentation
         z <- 1 / alpha
         M <- 1 + lambda * alpha
@@ -227,39 +220,61 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   devResids <- function (y, eta, wt, ...) {
-    # alpha <- invlink(eta)
-    # lambda <- alpha[, 1]
-    # alpha <- alpha[, 2]
+    # lambda <- exp(eta[, 1])
+    # alpha <- exp(eta[, 2])
+    
+    # I won't be able to do this before eurostat conference it has to be delayed
     # 
-    # logLikFit <- wt * (lgamma(y + 1/alpha) - lgamma(1/alpha) -
+    # logLikFit <- (lgamma(y + 1/alpha) - lgamma(1/alpha) -
     # log(factorial(y)) - (y + 1/alpha) * log(1+alpha * lambda) +
-    # y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ^ (-1/alpha) - 
-    # lambda * ((1+alpha * lambda) ^ (1-1/alpha)))) #This is already set up just write the derivatives
+    # y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ^ (-1/alpha) -
+    # lambda * ((1+alpha * lambda) ^ (-1-1/alpha))))
     # 
+    # 
+    # # TODO:: alpha goes to 0 check if this is not analytic
     # yUnq <- unique(y) # see comments in zotpoisson
     # findL <- function(yNow) {
-    #   rootSolve::multiroot(
-    #     start = c(.5, log(yNow), 1),# maybe pick better starting points
-    #     f = function(x) { 
-    #       # TODO
-    #     }
-    #   )$f.root
+    #   root <- rootSolve::multiroot(
+    #     start = c(1, mean(lambda), mean(alpha)),# maybe pick better starting points
+    #     f = function(x) {# TODO:: provide analytic jacobian matrix will make it faster and more reliable
+    #       s <- log(x[1]) # this is the lagrange multiplier and has no constraints of positivity
+    #       l <- x[2]
+    #       a <- x[3] # including constraints
+    #       
+    #       # musi być gdzieś błąd w pochodnej tutaj
+    #       # może daj jakobian i będzie stabilniej
+    #       # c(log(l-l*((1+a*l)^(-1-1/a)))-log(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))-log(yNow),#sder
+    #       #   yNow/l-(1+a*yNow)/(1+a*l)+s/l+s*(1+a)*((1+a*l)^(-2-1/a))/(1-(1+a*l)^(-1-1/a))-(1+s)*l*(1+a)*((1+a*l)^(-2-1/a))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a))),#lambda der
+    #       #   (digamma(1/a)-digamma(yNow+1/a))/(a^2)-l*(yNow+1/a)/(1+a*l)+log(1+a*l)/(a^2)+
+    #       #   yNow/a-s*((1+a*l)^(-1-1/a))*(log(1+a*l)/(a^2)-l*(1+1/a)/(1+a*l))/(1-(1+a*l)^(-1-1/a))+
+    #       #   (1+s)*((log(1+a*l)/(a^2)-l/(a*(1+a*l)))/((1+a*l)^(1/a))+l*((1+a*l)^(-1-1/a))*
+    #       #   (log(1+a*l)/(a^2)-l*(1+1/a)/(1+a*l)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a))))#alpha der
+    #       c(log(l-l*(a*l+1)^(-1/a-1))-log(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-log(yNow),#sder
+    #         -((-1/a-1)*a*(-s-1)*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(s*(-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1))/(l-l*(a*l+1)^(-1/a-1))+(a*(-yNow-1/a))/(a*l+1)+yNow/l,#lambda der
+    #         ((-s-1)*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)-(l*s*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(l-l*(l*a+1)^(-1/a-1))+(log(l*a+1)-digamma(1/a+yNow)+digamma(1/a))/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a)
+    #     }, maxiter = 10000, positive = TRUE
+    #   )$root
+    #   print(root)
+    #   root <- log(root)
+    #   
+    #   (lgamma(yNow + exp(-root[3])) - lgamma(exp(-root[3])) -
+    #   log(factorial(yNow)) - (yNow + exp(-root[3])) * log(1+exp(root[2] + root[3])) +
+    #   yNow * (root[2]+root[3]) - log(1 - (1+exp(root[2] + root[3])) ^ (-exp(-root[3])) -
+    #   exp(root[2]) * ((1+exp(root[2] + root[3])) ^ (-1-exp(-root[3])))))
     # }
     # logLikIdeal <- sapply(yUnq, FUN = function(x) {
-    #   ifelse(y[x] == 1, 0, findL(x))
+    #   ifelse(x == 2, 0, findL(x))
     # })
     # 
     # logLikIdeal <- sapply(y, FUN = function(x) logLikIdeal[yUnq == x])
     # 
     # sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (logLikFit - logLikIdeal))
-    
     NULL
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    z <- invlink(eta)
-    lambda <- z[, 1]
-    z <- 1 / z[, 2]
+    z <- exp(-eta[, 2])
+    lambda <- exp(eta[, 1])
     S <- 1 / (1 + lambda / z)
     prob <- 1 - S ^ z - lambda * (S ^ (1 + z))
     N <- (pw * (1 - lambda * (S ^ (1 + z))) / prob)
@@ -270,9 +285,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    alpha <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     z <- 1 / alpha
     M <- 1 + lambda / z
     S <- 1 / M
@@ -301,16 +315,14 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    alpha <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    alpha <- exp(eta[, 2])
+    lambda <- exp(eta[, 1])
     lb <- stats::pnbinom(lower, mu = lambda, size = 1 / alpha)
     ub <- stats::pnbinom(upper, mu = lambda, size = 1 / alpha)
     p_u <- stats::runif(n, lb, ub)

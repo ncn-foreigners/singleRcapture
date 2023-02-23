@@ -80,13 +80,13 @@ We implemented a method for `plot` function to visualise the model fit and other
 usefull diagnostic information. One of which is `rootogram`, a type of plot
 that compares fitted and observed marginal frequencies:
 
-```{r plot, fig.show="hold", out.width="50%"}
+```{r plot, fig.show="hold", out.width="75%"}
 plot(model, plotType = "rootogram")
 ```
 
 The possible values for `plotType` argument are:
 
-- `QQ` - the normal quantile-quantile plot for pearson residuals.
+- `qq` - the normal quantile-quantile plot for pearson residuals.
 - `marginal` - a `matplot` comparing fitted and observed marginal frequencies.
 - `fitresid` - plot of linear predictor values contrasted with pearson residuals.
 - `bootHist` - histogram of bootstrap sample.
@@ -94,8 +94,9 @@ The possible values for `plotType` argument are:
 - `dfpopContr` - contrasting two deletion effects to identify presence of influential observations.
 - `dfpopBox` - boxplot of results from dfpopsize function see its documentation.
 - `scaleLoc` - scale-location plot.
-- `Cooks` - plot of `cooks.values` for distributions for which it is defined.
+- `cooks` - plot of `cooks.values` for distributions for which it is defined.
 - `hatplot` - plot of `hatvalues`.
+- `strata` - plot of confidence intervals for selected su populations.
 
 a user can also pass arguments to specify additional information such as plot 
 title, subtitle etc. similar to calling `plot` on some data. For more info
@@ -119,7 +120,7 @@ and by only omitting it in pop size estimation (this is what is called the
 contribution of an observation). If observation is not influential these two 
 actions should have the approximately the same effect:
 
-```{r, fig.show="hold", out.width="50%"}
+```{r, fig.show="hold", out.width="75%"}
 plot(model, plotType = "dfpopContr")
 ```
 
@@ -127,11 +128,11 @@ it is easy to deduce from the plot above that we have influential observations i
 our dataset (one in particular).
 
 Lastly `singleRcapture` offers some posthoc procedures for example a function 
-`stratifyPopEst` that estimates sizes of user specified sub populations and
+`stratifyPopsize` that estimates sizes of user specified sub populations and
 returns them in a `data.frame`:
 
 ```{r}
-stratifyPopEst(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
+stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
     stratas = list(
     "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
     "Males from Turkey" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$nation == "Turkey",
@@ -143,7 +144,7 @@ stratifyPopEst(model, alpha = c(.01, .02, .03, .05), # different significance le
 `stratas` argument may be specified in various ways for example: 
 
 ```{r}
-stratifyPopEst(model, stratas = ~ gender / age)
+stratifyPopsize(model, stratas = ~ gender / age)
 ```
 
 `singleRcapture` package also includes the option to estimate standard error of
@@ -158,20 +159,57 @@ modelInflated <- estimatePopsize(
     popVar = "bootstrap",
     model = "oiztgeom",
     method = "IRLS",
-    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check doccumentation of controlMethod
-    controlPopVar = controlPopVar( # control parameters for population size estimation check doccumentation of controlPopVar
+    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check documentation of controlMethod
+    controlPopVar = controlPopVar( # control parameters for population size estimation check documentation of controlPopVar
         B = 1250, # number of boostrap samples
         alpha = .01, # significance level 
-        bootType = "semiparametric" # type of bootstrap see doccumentation for estimatePopsize
+        bootType = "semiparametric" # type of bootstrap see documentation for estimatePopsize
     )
 )
 summary(modelInflated)
 ```
 
-```{r, fig.show="hold", out.width="50%"}
+```{r, fig.show="hold", out.width="75%"}
 plot(modelInflated, plotType = "bootHist", labels = TRUE, ylim = c(0, 300))
 ```
 
+and for models with more than one distribution parameter we allow all parameters
+to be covariate dependent for exapmle if we wish to modify the model above:
+
+```{r}
+modelInflated2 <- estimatePopsize(
+    formula = capture ~ nation  + age,
+    data = netherlandsimmigrant,
+    popVar = "bootstrap",
+    model = "oiztgeom",
+    method = "IRLS",
+    controlMethod = controlMethod(stepsize = .2),
+    controlPopVar = controlPopVar(
+        B = 1250,
+        alpha = .01,
+        bootType = "semiparametric",
+        covType = "Fisher" # use fisher information matrix to construct cross covariance matrix instead of observed information matrix
+    ),
+    controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
+)
+```
+
+the results are significantly different
+(the warning issued concerns the second derivative test for existence of local 
+minimum, here it was inconclusive but we manually checked that fitting process
+found the optimal regression coefficients it's here to provide more information
+to the user):
+
+```{r, fig.show="hold", out.width="75%"}
+plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
+```
+
+and information criteria support the second model:
+
+```{r}
+cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
+    "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), "\n", sep = "")
+```
 
 ## Funding
 

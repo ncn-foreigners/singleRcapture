@@ -224,10 +224,11 @@ popSizeEst <- function(object, ...) {
 #' in \code{singleRcapture} package this is a fitter \code{singleR} class object.
 #' @param stratas A specification of sub populations either by:
 #' \itemize{
-#' \item formula -- TODO.
-#' \item logical vector with number of entries equal to number of rows in the dataset.
+#' \item formula -- a formula to be applied to \code{model.frame} extracted from
+#' the object .
+#' \item Logical vector with number of entries equal to number of rows in the dataset.
 #' \item A (named) list where each element is a logical vector, names of the list
-#' will be used to specify row names in returned object.
+#' will be used to specify names variable in returned object.
 #' \item Vector of names of explanatory variables. For \code{singleR} method
 #' for this function this specification of \code{stratas} parameter will
 #' result in every level of explanatory variable having its own sub population
@@ -253,7 +254,7 @@ popSizeEst <- function(object, ...) {
 #' 
 #' \loadmathjax
 #' @details In single source capture-recapture models the most frequently used
-#' estimate for population size is Horwitz-Thompson type estimate
+#' estimate for population size is Horwitz-Thompson type estimate:
 #' 
 #' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
 #'
@@ -278,8 +279,8 @@ popSizeEst <- function(object, ...) {
 #' @return A \code{data.frame} object with row names being the names of specified 
 #' sub populations either provided or inferred.
 #' @export
-stratifyPopEst <- function(object, stratas, alpha, ...) {
-  UseMethod("stratifyPopEst")
+stratifyPopsize <- function(object, stratas, alpha, ...) {
+  UseMethod("stratifyPopsize")
 }
 #' @title Statistical tests of goodness of fit.
 #'
@@ -750,11 +751,12 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   
   res1
 }
-#' @method stratifyPopEst singleR
-#' @rdname stratifyPopEst
+#' @method stratifyPopsize singleR
+#' @rdname stratifyPopsize
 #' @importFrom stats vcov
+#' @importFrom stats contrasts
 #' @exportS3Method
-stratifyPopEst.singleR <- function(object, stratas, alpha, cov = NULL, ...) {
+stratifyPopsize.singleR <- function(object, stratas, alpha, cov = NULL, ...) {
   # if stratas is unspecified get all levels of factors in modelFrame
   if (missing(stratas)) {
     stratas <- names(which(attr(object$terms, "dataClasses") == "factor"))
@@ -888,15 +890,11 @@ stratifyPopEst.singleR <- function(object, stratas, alpha, cov = NULL, ...) {
     obs, est, 100 * obs / est, stdErr, 
     cnfStudent[, 1], cnfStudent[, 2], 
     cnfChao[, 1], cnfChao[, 2],
-    row.names = names(stratas)
+    names(stratas), alpha
   )
-  if (length(unique(alpha)) == 1) {
-    nma <- c(as.character(100 * alpha / 2), as.character(100 * (1 - alpha / 2)))
-  } else {
-    nma <- c("LowerBounds", "UpperBounds")
-  }
-  colnames(result) <- c("Observed", "Estimated", "ObservedProcentage", "StdError",
-  paste0("Studentized - ", nma, "%"), paste0("Chao - ", nma, "%"))
+  nma <- c("LowerBound", "UpperBound")
+  colnames(result) <- c("Observed", "Estimated", "ObservedPercentage", "StdError",
+  paste0("normal", nma), paste0("logNormal", nma), "name", "confLevel")
   
   result
 }

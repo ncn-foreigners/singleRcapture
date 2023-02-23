@@ -6,8 +6,9 @@
 \usage{
 \method{plot}{singleR}(
   x,
-  plotType = c("QQ", "marginal", "fitresid", "bootHist", "rootogram", "dfpopContr",
-    "dfpopBox", "scaleLoc", "Cooks", "hatplot"),
+  plotType = c("qq", "marginal", "fitresid", "bootHist", "rootogram", "dfpopContr",
+    "dfpopBox", "scaleLoc", "cooks", "hatplot", "strata"),
+  confIntStrata = c("normal", "logNormal"),
   ...
 )
 }
@@ -17,7 +18,7 @@
 \item{plotType}{Character parameter specifying type of plot to be made.
 The following list presents and briefly explains possible type of plots:
 \itemize{
-\item \code{QQ} -- The quantile-quantile plot for pearson residuals
+\item \code{qq} -- The quantile-quantile plot for pearson residuals
 (or standardised pearson residuals if these are available for the model) i.e.
 empirical quantiles from residuals are plotted against theoretical quantiles
 from standard distribution.
@@ -44,9 +45,13 @@ population size estimate.
 \item \code{scaleLoc} -- The scale - location plot i.e. square root of
 absolute values of (standardised) pearson residuals against linear predictors
 for each column of linear predictors.
-\item \code{Cooks} -- Plot of cooks distance for detecting influential observations.
+\item \code{cooks} -- Plot of cooks distance for detecting influential observations.
 \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
+\item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
 }}
+
+\item{confIntStrata}{Confidence interval type to use for strata plot.
+Currently supported values are \code{"normal"} and \code{"logNormal"}.}
 
 \item{...}{Additional optional arguments passed to the following functions:
 \itemize{
@@ -77,7 +82,7 @@ for each column of linear predictors.
 \itemize{
 \item \code{plot.default} -- with \code{x, y, xlab, ylab, main, sub} parameters fixed.
 }
-\item For \code{plotType = "Cooks"}
+\item For \code{plotType = "cooks"}
 \itemize{
 \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
 }
@@ -85,6 +90,10 @@ for each column of linear predictors.
 \itemize{
 \item \code{hatvalues.singleR}
 \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
+},
+\item For \code{plotType = "strata"}
+\itemize{
+\item \code{stratifyPopsize.singleR}
 }
 }}
 }

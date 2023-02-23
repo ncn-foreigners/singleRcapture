@@ -110,13 +110,13 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 #> Observed proportion: 14.8% (N obs = 1880)
 #> Std. Error 2809.508
 #> 95% CI for the population size:
-#>              lowerBound upperBound
-#> Studentized    7184.917   18197.99
-#> Logtransform   8430.749   19723.38
+#>           lowerBound upperBound
+#> normal      7184.917   18197.99
+#> logNormal   8430.749   19723.38
 #> 95% CI for the share of observed population:
-#>              lowerBound upperBound
-#> Studentized   10.330814   26.16592
-#> Logtransform   9.531836   22.29932
+#>           lowerBound upperBound
+#> normal     10.330814   26.16592
+#> logNormal   9.531836   22.29932
 ```
 
 We implemented a method for `plot` function to visualise the model fit
@@ -127,11 +127,11 @@ type of plot that compares fitted and observed marginal frequencies:
 plot(model, plotType = "rootogram")
 ```
 
-<img src="man/figures/README-plot-1.png" width="50%" />
+<img src="man/figures/README-plot-1.png" width="75%" />
 
 The possible values for `plotType` argument are:
 
--   `QQ` - the normal quantile-quantile plot for pearson residuals.
+-   `qq` - the normal quantile-quantile plot for pearson residuals.
 -   `marginal` - a `matplot` comparing fitted and observed marginal
     frequencies.
 -   `fitresid` - plot of linear predictor values contrasted with pearson
@@ -143,9 +143,10 @@ The possible values for `plotType` argument are:
 -   `dfpopBox` - boxplot of results from dfpopsize function see its
     documentation.
 -   `scaleLoc` - scale-location plot.
--   `Cooks` - plot of `cooks.values` for distributions for which it is
+-   `cooks` - plot of `cooks.values` for distributions for which it is
     defined.
 -   `hatplot` - plot of `hatvalues`.
+-   `strata` - plot of confidence intervals for selected su populations.
 
 a user can also pass arguments to specify additional information such as
 plot title, subtitle etc. similar to calling `plot` on some data. For
@@ -183,65 +184,65 @@ approximately the same effect:
 plot(model, plotType = "dfpopContr")
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="50%" />
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="75%" />
 
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
 
 Lastly `singleRcapture` offers some posthoc procedures for example a
-function `stratifyPopEst` that estimates sizes of user specified sub
+function `stratifyPopsize` that estimates sizes of user specified sub
 populations and returns them in a `data.frame`:
 
 ``` r
-stratifyPopEst(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
+stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
     stratas = list(
     "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
     "Males from Turkey" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$nation == "Turkey",
     "Younger males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == "<40yrs",
     "Older males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == ">40yrs"
 ))
-#>                      Observed Estimated ObservedProcentage  StdError
-#> Females from Surinam       20   932.371           2.145069  956.1229
-#> Males from Turkey          78  1291.514           6.039425  741.1843
-#> Younger males            1391  7337.175          18.958251 1281.9295
-#> Older males                91  1542.882           5.898055  782.2326
-#>                      Studentized - LowerBounds% Studentized - UpperBounds%
-#> Females from Surinam               -1530.438420                   3395.180
-#> Males from Turkey                   -432.738939                   3015.766
-#> Younger males                       4555.271881                  10119.078
-#> Older males                            9.733753                   3076.029
-#>                      Chao - LowerBounds% Chao - UpperBounds%
-#> Females from Surinam            119.3464            8398.972
-#> Males from Turkey               405.4748            4574.882
-#> Younger males                  5135.1856           10834.174
-#> Older males                     630.7808            3996.215
+#>   Observed Estimated ObservedPercentage  StdError normalLowerBound
+#> 1       20   932.371           2.145069  956.1229     -1530.438420
+#> 2       78  1291.514           6.039425  741.1843      -432.738939
+#> 3     1391  7337.175          18.958251 1281.9295      4555.271881
+#> 4       91  1542.882           5.898055  782.2326         9.733753
+#>   normalUpperBound logNormalLowerBound logNormalUpperBound                 name
+#> 1         3395.180            119.3464            8398.972 Females from Surinam
+#> 2         3015.766            405.4748            4574.882    Males from Turkey
+#> 3        10119.078           5135.1856           10834.174        Younger males
+#> 4         3076.029            630.7808            3996.215          Older males
+#>   confLevel
+#> 1      0.01
+#> 2      0.02
+#> 3      0.03
+#> 4      0.05
 ```
 
 `stratas` argument may be specified in various ways for example:
 
 ``` r
-stratifyPopEst(model, stratas = ~ gender / age)
-#>                        Observed Estimated ObservedProcentage  StdError
-#> gender==female              398 3811.3954          10.442370 1154.7825
-#> gender==male               1482 8880.0563          16.689083 1812.6286
-#> genderfemale:age<40yrs      378 3169.5475          11.925992  881.2932
-#> gendermale:age<40yrs       1391 7337.1748          18.958251 1281.9295
-#> genderfemale:age>40yrs       20  641.8478           3.116003  408.1451
-#> gendermale:age>40yrs         91 1542.8815           5.898055  782.2326
-#>                        Studentized - 2.5% Studentized - 97.5% Chao - 2.5%
-#> gender==female                1548.063241            6074.727   2188.5341
-#> gender==male                  5327.369600           12432.743   6090.8584
-#> genderfemale:age<40yrs        1442.244687            4896.850   1903.7278
-#> gendermale:age<40yrs          4824.639108            9849.710   5306.6899
-#> genderfemale:age>40yrs        -158.101825            1441.797    212.4088
-#> gendermale:age>40yrs             9.733753            3076.029    630.7808
-#>                        Chao - 97.5%
-#> gender==female             6905.147
-#> gender==male              13357.226
-#> genderfemale:age<40yrs     5485.554
-#> gendermale:age<40yrs      10420.570
-#> genderfemale:age>40yrs     2029.756
-#> gendermale:age>40yrs       3996.215
+stratifyPopsize(model, stratas = ~ gender / age)
+#>   Observed Estimated ObservedPercentage  StdError normalLowerBound
+#> 1      398 3811.3954          10.442370 1154.7825      1548.063241
+#> 2     1482 8880.0563          16.689083 1812.6286      5327.369600
+#> 3      378 3169.5475          11.925992  881.2932      1442.244687
+#> 4     1391 7337.1748          18.958251 1281.9295      4824.639108
+#> 5       20  641.8478           3.116003  408.1451      -158.101825
+#> 6       91 1542.8815           5.898055  782.2326         9.733753
+#>   normalUpperBound logNormalLowerBound logNormalUpperBound
+#> 1         6074.727           2188.5341            6905.147
+#> 2        12432.743           6090.8584           13357.226
+#> 3         4896.850           1903.7278            5485.554
+#> 4         9849.710           5306.6899           10420.570
+#> 5         1441.797            212.4088            2029.756
+#> 6         3076.029            630.7808            3996.215
+#>                     name confLevel
+#> 1         gender==female      0.05
+#> 2           gender==male      0.05
+#> 3 genderfemale:age<40yrs      0.05
+#> 4   gendermale:age<40yrs      0.05
+#> 5 genderfemale:age>40yrs      0.05
+#> 6   gendermale:age>40yrs      0.05
 ```
 
 `singleRcapture` package also includes the option to estimate standard
@@ -256,11 +257,11 @@ modelInflated <- estimatePopsize(
     popVar = "bootstrap",
     model = "oiztgeom",
     method = "IRLS",
-    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check doccumentation of controlMethod
-    controlPopVar = controlPopVar( # control parameters for population size estimation check doccumentation of controlPopVar
+    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check documentation of controlMethod
+    controlPopVar = controlPopVar( # control parameters for population size estimation check documentation of controlPopVar
         B = 1250, # number of boostrap samples
         alpha = .01, # significance level 
-        bootType = "semiparametric" # type of bootstrap see doccumentation for estimatePopsize
+        bootType = "semiparametric" # type of bootstrap see documentation for estimatePopsize
     )
 )
 summary(modelInflated)
@@ -320,7 +321,53 @@ summary(modelInflated)
 plot(modelInflated, plotType = "bootHist", labels = TRUE, ylim = c(0, 300))
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="50%" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="75%" />
+
+and for models with more than one distribution parameter we allow all
+parameters to be covariate dependent for exapmle if we wish to modify
+the model above:
+
+``` r
+modelInflated2 <- estimatePopsize(
+    formula = capture ~ nation  + age,
+    data = netherlandsimmigrant,
+    popVar = "bootstrap",
+    model = "oiztgeom",
+    method = "IRLS",
+    controlMethod = controlMethod(stepsize = .2),
+    controlPopVar = controlPopVar(
+        B = 1250,
+        alpha = .01,
+        bootType = "semiparametric",
+        covType = "Fisher" # use fisher information matrix to construct cross covariance matrix instead of observed information matrix
+    ),
+    controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
+)
+#> Warning in estimatePopsize(formula = capture ~ nation + age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.
+#> NOTE: Second derivative test failing does not necessarily mean that the maximum of score function that was found numericaly is invalid since R^k is not a bounded space.
+#> Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments.
+```
+
+the results are significantly different:
+
+``` r
+plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
+```
+
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="75%" />
+
+and information criteria support the second model
+(the warning issued concerns the second derivative test for existence of local 
+minimum, here it was inconclusive but we manually checked that fitting process
+found the optimal regression coefficients it's here to provide more information
+to the user):
+
+``` r
+cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
+    "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), "\n", sep = "")
+#>  First model: AIC = 1676.961 BIC = 1726.813
+#> Second model: AIC = 1675.318 BIC = 1725.169
+```
 
 ## Funding
 

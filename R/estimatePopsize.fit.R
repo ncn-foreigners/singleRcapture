@@ -239,9 +239,6 @@ estimatePopsize.fit <- function(y, X,
                          # hessian = TRUE,
                          control = ctrl)
     beta <- FITT$par
-    # print(FITT)
-    # print(rootSolve::gradient(f = grad, x = beta))
-    # Commented lines of code are used in verification of computed analytic hessian
     iter <- FITT$counts
     if (FITT$convergence == 1 && !control$silent) {
       warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")

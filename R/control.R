@@ -177,7 +177,7 @@ controlPopVar <- function(alpha = .05,
                                        "nonparametric"),
                           B = 500,
                           confType = c("percentilic",
-                                       "studentized",
+                                       "normal",
                                        "basic"), # TODO: add all
                           keepbootStat = TRUE,
                           traceBootstrapSize = FALSE,

@@ -74,7 +74,6 @@ dependent vector and model matrix as a part of output.}
 \item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
 \item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
 \item \code{estimatePopsize.fit} -- possibly for picking starting points from zero truncated poisson regression.
-\item \code{stats::glm.fit} -- for picking starting points from simple poisson regression.
 }}
 }
 \value{

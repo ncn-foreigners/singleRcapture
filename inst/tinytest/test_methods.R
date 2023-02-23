@@ -852,7 +852,7 @@ expect_equal(
 )
 
 expect_silent(
-  plot(Model, "QQ")
+  plot(Model, "qq")
 )
 
 expect_silent(
@@ -884,7 +884,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model, "Cooks")
+  plot(Model, "cooks")
 )
 
 expect_silent(
@@ -892,7 +892,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model1, "QQ")
+  plot(Model1, "qq")
 )
 
 expect_silent(
@@ -924,7 +924,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model1, "Cooks")
+  plot(Model1, "cooks")
 )
 
 expect_silent(
@@ -932,7 +932,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model2, "QQ")
+  plot(Model2, "qq")
 )
 
 expect_silent(
@@ -964,7 +964,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model2, "Cooks")
+  plot(Model2, "cooks")
 )
 
 expect_silent(
@@ -972,7 +972,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model3, "QQ")
+  plot(Model3, "qq")
 )
 
 expect_silent(
@@ -1004,7 +1004,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model3, "Cooks")
+  plot(Model3, "cooks")
 )
 
 expect_silent(
@@ -1012,7 +1012,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model4, "QQ")
+  plot(Model4, "qq")
 )
 
 expect_silent(
@@ -1036,7 +1036,7 @@ expect_silent(
 )
 
 expect_error(
-  plot(Model4, "Cooks")
+  plot(Model4, "cooks")
 )
 
 expect_silent(
@@ -1044,7 +1044,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model5, "QQ")
+  plot(Model5, "qq")
 )
 
 expect_silent(
@@ -1068,7 +1068,7 @@ expect_silent(
 )
 
 expect_error(
-  plot(Model5, "Cooks")
+  plot(Model5, "cooks")
 )
 
 expect_silent(

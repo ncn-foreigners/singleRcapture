@@ -185,12 +185,14 @@
 #'
 #' @return A object of class \code{family} containing objects:
 #' \itemize{
-#' \item \code{makeMinusLogLike, makeGradient, makeHessian} -- A factory functions for creating 
+#' \item \code{makeMinusLogLike} -- A factory function for creating 
 #' \mjeqn{\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
 #' \frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^{T}\partial\boldsymbol{\beta}}
-#' }{l(beta), dl/dbeta, d^2l/dbeta^Tdbeta} functions respectively from 
+#' }{l(beta), dl/dbeta, d^2l/dbeta^Tdbeta} functions from 
 #' \mjeqn{\boldsymbol{y}}{y} vector and \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} 
-#' (or just \mjeqn{\boldsymbol{X}}{X} if applied to model with single linear predictor).
+#' (or just \mjeqn{\boldsymbol{X}}{X} if applied to model with single linear predictor)
+#' the argument \code{deriv} with possible values in \code{0, 1, 2} provides which
+#' derivative to return with \code{0} being just the minus log-likelihood.
 #' \item \code{linkfun, linkinv} -- A link function and its inverse.
 #' \item \code{mu.eta, variance} -- Functions of linear predictors that
 #' return expected value and variance. There is a \code{type} argument with

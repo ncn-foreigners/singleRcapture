@@ -50,7 +50,6 @@ NULL
 #'   \item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
 #'   \item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
 #'   \item \code{estimatePopsize.fit} -- possibly for picking starting points from zero truncated poisson regression.
-#'   \item \code{stats::glm.fit} -- for picking starting points from simple poisson regression.
 #' } 
 #' 
 #' @details The generalized linear model is characterised by equation
@@ -382,15 +381,7 @@ NULL
 #' silent = TRUE), controlModel = controlModel(omegaFormula = ~ .))
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
 #' }
-#' @importFrom stats glm.fit
-#' @importFrom stats poisson
-#' @importFrom stats binomial
-#' @importFrom stats model.frame
-#' @importFrom stats model.matrix
-#' @importFrom stats optim
-#' @importFrom stats pnorm
-#' @importFrom stats model.response
-#' @importFrom stats family
+#' @importFrom stats model.frame model.matrix model.response
 #' @export
 estimatePopsize <- function(formula,
                              data,
@@ -563,10 +554,10 @@ estimatePopsize <- function(formula,
       "NOTE: Second derivative test failing does not necessarily mean that the maximum of score function that was found numericaly is invalid since R^k is not a bounded space.\n",
       "Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments."
     )
-    warning(warningMessage)
+    if (!isTRUE(controlMethod$silent)) warning(warningMessage)
     #cat("The eigen values were: ", eig$values) # Add some option that will give much more information everywhere including here
     if (controlPopVar$covType == "observedInform") {
-      warning("Switching from observed information matrix to Fisher information matrix because hessian of log-likelihood is not negative define.")
+      if (!isTRUE(controlMethod$silent)) warning("Switching from observed information matrix to Fisher information matrix because hessian of log-likelihood is not negative define.")
       controlPopVar$covType <- "Fisher"
     }
   }

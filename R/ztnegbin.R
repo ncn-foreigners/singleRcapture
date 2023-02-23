@@ -9,9 +9,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   invlink <- function (x) {matrix(c(exp(x[,1]),exp(x[,2])), ncol = 2, dimnames = dimnames(x))}
 
   mu.eta <- function(eta, type = "trunc", ...) {
-    A <- invlink(eta)
-    lambda <- A[, 1]
-    A <- A[, 2]
+    lambda <- exp(eta[, 1])
+    A <- exp(eta[, 2])
     switch (type,
     nontrunc = lambda,
     trunc = lambda / (1 - (1 + A * lambda) ^ (-1 / A))
@@ -19,9 +18,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
-    A <- invlink(eta)
-    lambda <- A[, 1]
-    A <- A[, 2]
+    lambda <- exp(eta[, 1])
+    A <- exp(eta[, 2])
     P0 <- (1 + A * lambda) ^ (-1 / A)
     switch (type,
     nontrunc = lambda * (1 + A * lambda),
@@ -55,7 +53,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     while ((k < nSim) & !all(finished)) {
       k <- k + 1 # 1 is the first possible y value for 0 truncated distribution
       prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
-      toAdd <- c(compdigamma(y = k, alpha = alpha) * prob, comptrigamma(y = k, alpha = alpha) * prob)
+      if (!is.finite(prob)) prob <- 0
+      toAdd <- c(compdigamma(y = k, alpha = alpha), comptrigamma(y = k, alpha = alpha)) * prob
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }
@@ -93,9 +92,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    lambda <- exp(eta[, 1])
+    alpha <- exp(eta[, 2])
     z <- 1 / alpha
     S <- 1 / (1 + lambda / z)
     G <- 1 / (1 - (1 + lambda / z) ^ (-z))
@@ -112,8 +110,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       ncol = 2)
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]]) #more stable
+      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      xx <- solve(weight[[x]]) #more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -134,9 +132,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     switch (deriv,
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- invlink(eta)
-        lambda <- alpha[, 1]
-        alpha <- alpha[, 2]
+        lambda <- exp(eta[, 1])
+        alpha <- exp(eta[, 2])
         z <- 1 / alpha
         
         -sum(weight * (lgamma(y + z) - lgamma(z) - log(factorial(y)) - 
@@ -145,9 +142,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- invlink(eta)
-        lambda <- alpha[, 1]
-        alpha <- alpha[, 2]
+        lambda <- exp(eta[, 1])
+        alpha <- exp(eta[, 2])
         # z is inverse of alpha in documentation
         z <- 1 / alpha
         S <- 1 / (1 + lambda / z)
@@ -174,9 +170,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       function(beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- invlink(eta)
-        lambda <- alpha[, 1]
-        alpha <- alpha[, 2]
+        lambda <- exp(eta[, 1])
+        alpha <- exp(eta[, 2])
         # z is inverse of alpha in documentation
         z <- 1 / alpha
         M <- ((1 + lambda / z) ^ z) - 1
@@ -222,17 +217,16 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   devResids <- function (y, eta, wt, ...) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    lambda <- exp(eta[, 1])
+    alpha <- exp(eta[, 2])
     
-    logLikFit <- wt * (lgamma(y + 1/alpha) - lgamma(1/alpha) -
+    logLikFit <- (lgamma(y + 1/alpha) - lgamma(1/alpha) -
     log(factorial(y)) - (y + 1/alpha) * log(1+alpha * lambda) +
     y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ^ (-1/alpha)))
     
     yUnq <- unique(y) # see comments in zotpoisson
     findL <- function(yNow) {
-      rootSolve::multiroot(
+      root <- rootSolve::multiroot(
         start = c(.5, log(yNow), 1),# maybe pick better starting points
         f = function(x) { # TODO:: provide analytic jacobian matrix will make it faster and more reliable
           s <- x[1] # this is the lagrange multiplier and has no constraints of positivity
@@ -243,11 +237,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
           c(l*prob - yNow,# s der
           yNow/l+(1+yNow*a)/(1+l*a)+s*yNow*l-(yNow-l)/(l*(1+l*a))-s*yNow*(yNow-l)/(l*(1+l*a)),# lambda der
           (1+yNow*a)*l+(yNow-l)*(1+s*yNow)*((1+a*l)*log(1+a*l)-a*l)+l*(1+a*l)*(digamma(1/a)+log(a)+log(yNow+1/a))-(digamma(yNow+1/a)+1)*(1+a*l)*l)#alpha der
-        }
-      )$f.root
+        }, maxiter = 1000 # 100 by default
+      )$root # That was a dumb mistake  but its fixed before it was ever on main
+      
+      (lgamma(yNow + exp(-root[3])) - lgamma(exp(-root[3])) -
+      log(factorial(yNow)) - (yNow + exp(-root[3])) * log(1+exp(root[3]) * exp(root[2])) +
+      yNow * (root[2] + root[3]) - log(1 - (1+exp(root[3]) * exp(root[2])) ^ (-exp(-root[3]))))
     }
     logLikIdeal <- sapply(yUnq, FUN = function(x) {
-      ifelse(y[x] == 1, 0, findL(x))
+      ifelse(x == 1, 0, findL(x))
     })
     
     logLikIdeal <- sapply(y, FUN = function(x) logLikIdeal[yUnq == x])
@@ -268,9 +266,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    z <- invlink(eta)
-    lambda <- z[, 1]
-    z <- z[, 2]
+    lambda <- exp(eta[, 1])
+    z <- exp(eta[, 2])
     pr <- 1 - (1 + z * lambda) ^ (- 1 / z)
     S <- 1 / (1 + z * lambda)
 
@@ -286,17 +283,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    lambda <- exp(eta[, 1])
+    alpha <- exp(eta[, 2])
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0)
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    alpha <- invlink(eta)
-    lambda <- alpha[, 1]
-    alpha <- alpha[, 2]
+    lambda <- exp(eta[, 1])
+    alpha <- exp(eta[, 2])
     lb <- stats::pnbinom(lower, mu = lambda, size = 1 / alpha)
     ub <- stats::pnbinom(upper, mu = lambda, size = 1 / alpha)
     p_u <- stats::runif(n, lb, ub)

@@ -42,10 +42,10 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
     confidenceInterval <- data.frame(t(data.frame(
-      "Studentized" = c(lowerBound = max(N - sc * sd, 
+      "normal" = c(lowerBound = max(N - sc * sd, 
                                          sizeObserved), 
                         upperBound = N + sc * sd),
-      "Logtransform" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
+      "logNormal" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
                                           sizeObserved), 
                          upperBound = sizeObserved + (N - sizeObserved) * G)
     )))
@@ -72,12 +72,12 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     )
 
     if (N < stats::quantile(strappedStatistic, .05)) {
-      warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+      warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")
     } else if (N > stats::quantile(strappedStatistic, .95)) {
-      warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+      warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")
     }
     if (max(strappedStatistic) > N ^ 1.5) {
-      warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)")
+      warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")
     }
     
     variation <- stats::var(strappedStatistic)
@@ -92,14 +92,14 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                             c(siglevel / 2,
                                               1 - siglevel / 2))
       names(confidenceInterval) <- c("lowerBound", "upperBound")
-    } else if (control$confType == "studentized") {
+    } else if (control$confType == "normal") {
       G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
       
       confidenceInterval <- data.frame(t(data.frame(
-        "Studentized" = c(lowerBound = max(N - sc * sd, 
+        "normal" = c(lowerBound = max(N - sc * sd, 
                                            sizeObserved), 
                           upperBound = N + sc * sd),
-        "Logtransform" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
+        "logNormal" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
                                             sizeObserved), 
                            upperBound = sizeObserved + (N - sizeObserved) * G)
       )))
@@ -147,7 +147,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   
   # Lowering stepsize to about .3 usually helps a great deal in IRLS fitting
   if (!silent && family$family == "zotnegbin" && stepsize == 1) {
-    cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity, consider lowering stepsize control parameter if fitting fails.")
+    cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity.\nConsider lowering stepsize control parameter if fitting fails.\n")
   }
   
   mu.eta <- family$mu.eta
@@ -220,15 +220,16 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   while (!converged & (iter < maxiter)) {
     halfstepsizing <- FALSE
     mu <- mu.eta(eta = eta, ...)
-    # if (!validmu(mu)) {
-    #   stop("Fit error infinite values reached consider another model,
-    #         mu is too close to zero/infinity")
-    # }
+    if (!validmu(mu)) {
+      stop("Fit error infinite values reached consider another model,
+            mu is too close to zero/infinity.\n")
+    }
+    if (any(!is.finite(family$linkinv(matrix(covariates %*% beta, ncol = length(family$etaNames)))))) stop("Infinite values of distribution parameters obtained for some IRLS iteration.\n")
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
     if (any(!is.finite(W))) {
       if (!silent) {
-        warning("NA's or NaN's or infinite values in weights matrixes detected IRLS may not work propperly.")
+        warning("NA's or NaN's or infinite values in weights matrixes detected IRLS may not work propperly.\n")
       }
       W[!is.finite(W)] <- epsWeights
     }
@@ -241,7 +242,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     }
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
     if (any(is.nan(z))) {
-      stop("Pseudo residuals could not be computed at current iteration, possibly infinite or non numeric values in weights appeared.")
+      stop("Pseudo residuals could not be computed at current iteration, possibly infinite or non numeric values in weights appeared.\n")
     }
     XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
@@ -284,11 +285,11 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         }
 
         if (isTRUE(max(abs(h)) < .Machine$double.eps)) {
+          halfstepsizing <- FALSE
           if (isTRUE(L < LPrev)) {
             if (!silent) {
               warning("IRLS half-stepping terminated because the step is too small.")
             }
-            halfstepsizing <- FALSE
             L <- LPrev
             beta <- betaPrev
           }
