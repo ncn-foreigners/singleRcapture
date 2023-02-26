@@ -28,7 +28,8 @@ Imports:
     MASS,
     lamW,
     mathjaxr,
-    sandwich
+    sandwich,
+    rootSolve
 Suggests: 
     rmarkdown,
     knitr,

@@ -1,12 +1,13 @@
 #' @title Control parameters for regression
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' \loadmathjax
-#' @description \code{control.method} constructs a list with all necessary control parameters
-#' for regression fitting in \code{estimate_popsize.fit} and \code{estimate_popsize}.
+#' @description \code{controlMethod} constructs a list with all necessary control parameters
+#' for regression fitting in \code{estimatePopsize.fit} and \code{estimatePopsize}.
 #'
-#' @param epsilon Relative tolerance for fitting algorithms by default 1e-8.
+#' @param epsilon Tolerance for fitting algorithms by default 1e-8.
 #' @param maxiter Maximum number of iterations.
-#' @param verbose Value indicating whether to trace steps of fitting algorithm for \code{IRLS} fitting method different values of verbose give the following information:
+#' @param verbose Value indicating whether to trace steps of fitting algorithm for 
+#' \code{IRLS} fitting method different values of verbose give the following information:
 #' \itemize{
 #'   \item 1 -- Returns information on the number of current iteration and current log-likelihood.
 #'   \item 2 -- Returns information on vector of regression parameters at current iteration (and all of the above).
@@ -15,46 +16,79 @@
 #'   \item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
 #' }
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
-#' @param start initial parameters for regression associated with main formula specified in function call if NULL they will be derived from simple poisson regression.
+#' @param printEveryN Integer value indicating how often to print information
+#' specified in \code{verbose}, my default set to \code{1}.
+#' @param start initial parameters for regression associated with main formula 
+#' specified in function call if NULL they will be derived from simple poisson regression.
 #' @param alphaStart initial parameters for dispersion parameter if applies.
 #' @param omegaStart initial parameters for inflation parameter if applies.
 #' @param piStart initial parameters for probability parameter if applies.
 #' @param silent Logical, indicating whether warnings in \code{IRLS} method should be suppressed.
-#' @param optimPass Optional list of parameters passed to stats::optim(..., control = optimPass) if FALSE then list of control parameters will be inferred from other parameters.
-#' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default except for negative binomial and one inflated models where Nelder-Mead is used.
-#' @param stepsize Only for \code{IRLS}, scaling of stepsize lower value means slower convergence but more accuracy by default 1. In general if fitting algorithm fails lowering this value tends to be most effective at correcting it.
-#' @param checkDiagWeights Logical value indicating whether to check if diagonal elements of working weights matrixes in \code{IRLS} are sufficiently positive so that these matrixes are positive defined. By default \code{TRUE}.
-#' @param weightsEpsilon Small number to ensure positivity of weights matrixes. Only matters if \code{checkDiagWeights} is set to \code{TRUE}. By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}
-#' @param momentumFactor Experimental parameter in \code{IRLS} only allowing for taking previous step into account at current step, i.e instead of updating regression parameters as:
-#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
+#' @param optimPass Optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
+#' if FALSE then list of control parameters will be inferred from other parameters.
+#' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default 
+#' except for negative binomial and one inflated models where Nelder-Mead is used.
+#' @param stepsize Only for \code{IRLS}, scaling of stepsize lower value means slower 
+#' convergence but more accuracy by default 1. In general if fitting algorithm fails 
+#' lowering this value tends to be most effective at correcting it.
+#' @param checkDiagWeights Logical value indicating whether to check if diagonal 
+#' elements of working weights matrixes in \code{IRLS} are sufficiently positive 
+#' so that these matrixes are positive defined. By default \code{TRUE}.
+#' @param weightsEpsilon Small number to ensure positivity of weights matrixes. 
+#' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
+#' By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}
+#' @param momentumFactor Experimental parameter in \code{IRLS} only allowing for 
+#' taking previous step into account at current step, i.e instead of 
+#' updating regression parameters as:
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
 #' the update will be made as:
-#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}
-#' @param useZtpoissonAsStart boolean value indicating whether to chose starting parameters from ztpoisson regression this one is expecially usefull for various one inflated models.
-#' @param momentumActivation the value of log-likelihood reduction bellow which momentum will apply.
+#' \mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{
+#' beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}
+#' @param useZtpoissonAsStart boolean value indicating whether to chose starting 
+#' parameters from \code{ztpoisson} regression this one is useful mostly for 
+#' various one inflated models.
+#' @param momentumActivation the value of log-likelihood reduction bellow 
+#' which momentum will apply.
+#' @param criterion Criterion used to determine convergence in \code{IRLS}, 
+#' multiple values may be provided. By default \code{c("coef", "abstol")}.
+#' @param saveIRLSlogs Logical value indicating if information specified in
+#' \code{verbose} should be saved to output object, by default \code{FALSE}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.pop.var()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
 #' @export
-control.method <- function(epsilon = 1e-8,
-                           maxiter = 1000,
-                           verbose = 0,
-                           start = NULL,
-                           alphaStart = NULL,
-                           omegaStart = NULL,
-                           piStart = NULL,
-                           optimMethod = "L-BFGS-B",
-                           silent = FALSE,
-                           optimPass = FALSE,
-                           stepsize = 1,
-                           checkDiagWeights = TRUE,
-                           weightsEpsilon = .Machine$double.eps^.75,
-                           momentumFactor = 0,
-                           useZtpoissonAsStart = FALSE,
-                           momentumActivation = 5) {
+controlMethod <- function(epsilon = 1e-8,
+                          maxiter = 1000,
+                          verbose = 0,
+                          printEveryN = 1,
+                          start = NULL, # TODO:: only use one start
+                          alphaStart = NULL,
+                          omegaStart = NULL,
+                          piStart = NULL,
+                          optimMethod = "L-BFGS-B",
+                          silent = FALSE,
+                          optimPass = FALSE,
+                          stepsize = 1,
+                          checkDiagWeights = TRUE,
+                          weightsEpsilon = .Machine$double.eps^.75,
+                          momentumFactor = 0,
+                          saveIRLSlogs = FALSE,
+                          useZtpoissonAsStart = FALSE,
+                          momentumActivation = 5,
+                          criterion = c("coef", "abstol", "reltol")) {
+  if (!missing(criterion) && all(c("abstol", "reltol") %in% criterion)) {
+    stop("Choosing both absolute tolerance and relative tolerance for convergence criterion is not allowed.")
+  }
+  if (!missing(criterion) && all(!(c("coef", "abstol", "reltol") %in% criterion))) {
+    stop("At least one convergence criterion has to be chosen")
+  }
   list(
     epsilon = epsilon,
     maxiter = maxiter,
     verbose = verbose,
+    printEveryN = printEveryN,
     start = start,
     alphaStart = alphaStart,
     omegaStart = omegaStart,
@@ -67,14 +101,16 @@ control.method <- function(epsilon = 1e-8,
     weightsEpsilon = weightsEpsilon,
     momentumFactor = momentumFactor,
     momentumActivation = momentumActivation,
-    useZtpoissonAsStart = useZtpoissonAsStart
+    saveIRLSlogs = saveIRLSlogs,
+    useZtpoissonAsStart = useZtpoissonAsStart,
+    criterion = if (missing(criterion)) c("coef", "abstol") else criterion
   )
 }
 #' @title Control parameters specific to some models
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
-#' @description \code{control.model} constructs a list with all necessary control parameters
-#' in \code{estimate_popsize} that are either specific to selected model or don't fit
+#' @description \code{controlModel} constructs a list with all necessary control parameters
+#' in \code{estimatePopsize} that are either specific to selected model or don't fit
 #' anywhere else.
 #' 
 #' Specifying additional formulas should be done by using only right hand side of
@@ -93,13 +129,12 @@ control.method <- function(epsilon = 1e-8,
 #' @param piFormula Formula for probability parameter in pseudo hurdle zero 
 #' truncated and zero truncated pseudo hurdle models.
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.method()] [singleRcapture::control.pop.var()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlMethod()] [singleRcapture::controlPopVar()]
 #' @export
-control.model <- function(weightsAsCounts = FALSE,
-                          omegaFormula = ~ 1,
-                          alphaFormula = ~ 1,
-                          piFormula = ~ 1
-                          ) {
+controlModel <- function(weightsAsCounts = FALSE,
+                         omegaFormula = ~ 1,
+                         alphaFormula = ~ 1,
+                         piFormula = ~ 1) {
   # This is not fully completed yet.
   list(
     weightsAsCounts = weightsAsCounts,
@@ -123,7 +158,7 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.
 #' @param bootstrapVisualTrace Boolean value indicating whether to plot bootstrap statistics in real time.
 #' @param fittingMethod Method used for fitting models from bootstrap samples.
-#' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{control.method} but for fitting models from bootstrap samples.
+#' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{controlMethod} but for fitting models from bootstrap samples.
 #' @param sd Indicates how to compute standard deviation of population size estimator either as:
 #' \loadmathjax
 #' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
@@ -133,26 +168,25 @@ control.model <- function(weightsAsCounts = FALSE,
 #' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimate_popsize()] [singleRcapture::control.model()] [singleRcapture::control.method()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlMethod()]
 #' @export
-control.pop.var <- function(alpha = .05,
-                            trcount = 0,
-                            bootType = c("parametric",
-                                         "semiparametric",
-                                         "nonparametric"),
-                            B = 500,
-                            confType = c("percentilic",
-                                         "studentized",
-                                         "basic"), # TODO: add all
-                            keepbootStat = TRUE,
-                            traceBootstrapSize = FALSE,
-                            bootstrapVisualTrace = FALSE,
-                            fittingMethod = NULL,
-                            bootstrapFitcontrol = NULL,
-                            sd = c("sqrtVar", "normalMVUE"),
-                            covType = c("observedInform",
-                                        "Fisher")
-                            ) {
+controlPopVar <- function(alpha = .05,
+                          trcount = 0,
+                          bootType = c("parametric",
+                                       "semiparametric",
+                                       "nonparametric"),
+                          B = 500,
+                          confType = c("percentilic",
+                                       "normal",
+                                       "basic"), # TODO: add all
+                          keepbootStat = TRUE,
+                          traceBootstrapSize = FALSE,
+                          bootstrapVisualTrace = FALSE,
+                          fittingMethod = NULL,
+                          bootstrapFitcontrol = NULL,
+                          sd = c("sqrtVar", "normalMVUE"),
+                          covType = c("observedInform",
+                                      "Fisher")) {
   list(
     alpha = alpha,
     trcount = trcount,

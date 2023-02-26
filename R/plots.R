@@ -4,10 +4,12 @@
 #' @description Simple diagnostic plots for \code{singleR} class objects.
 #'
 #' @param x Object of \code{singleR} class.
+#' @param confIntStrata Confidence interval type to use for strata plot.
+#' Currently supported values are \code{"normal"} and \code{"logNormal"}.
 #' @param plotType Character parameter specifying type of plot to be made.
 #' The following list presents and briefly explains possible type of plots:
 #' \itemize{
-#'   \item \code{QQ} -- The quantile-quantile plot for pearson residuals 
+#'   \item \code{qq} -- The quantile-quantile plot for pearson residuals 
 #'   (or standardised pearson residuals if these are available for the model) i.e. 
 #'   empirical quantiles from residuals are plotted against theoretical quantiles 
 #'   from standard distribution.
@@ -34,8 +36,9 @@
 #'   \item \code{scaleLoc} -- The scale - location plot i.e. square root of 
 #'   absolute values of (standardised) pearson residuals against linear predictors
 #'   for each column of linear predictors.
-#'   \item \code{Cooks} -- Plot of cooks distance for detecting influential observations.
+#'   \item \code{cooks} -- Plot of cooks distance for detecting influential observations.
 #'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
+#'   \item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
 #' }
 #' @param ... Additional optional arguments passed to the following functions:
 #' \itemize{
@@ -66,7 +69,7 @@
 #'   \itemize{
 #'   \item \code{plot.default} -- with \code{x, y, xlab, ylab, main, sub} parameters fixed.
 #'   }
-#'   \item For \code{plotType = "Cooks"}
+#'   \item For \code{plotType = "cooks"}
 #'   \itemize{
 #'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
 #'   }
@@ -74,29 +77,25 @@
 #'   \itemize{
 #'   \item \code{hatvalues.singleR}
 #'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
+#'   },
+#'   \item For \code{plotType = "strata"}
+#'   \itemize{
+#'   \item \code{stratifyPopsize.singleR}
 #'   }
 #' }
 #' 
 #' @method plot singleR
 #' @return No return value only the plot being made.
-#' @importFrom stats ppoints
-#' @importFrom graphics abline
-#' @importFrom graphics barplot
-#' @importFrom graphics hist
-#' @importFrom graphics lines
-#' @importFrom graphics matplot 
-#' @importFrom graphics legend
-#' @importFrom stats qqline
-#' @importFrom stats qqnorm
-#' @importFrom graphics boxplot
-#' @importFrom graphics panel.smooth
-#' @seealso [estimate_popsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
+#' @importFrom stats ppoints qqline qqnorm
+#' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows
+#' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
 #' @export
 plot.singleR <- function(x, 
-                         plotType = c("QQ", "marginal", "fitresid",
+                         plotType = c("qq", "marginal", "fitresid",
                                       "bootHist", "rootogram", "dfpopContr",
-                                      "dfpopBox", "scaleLoc", "Cooks",
-                                      "hatplot"), 
+                                      "dfpopBox", "scaleLoc", "cooks",
+                                      "hatplot", "strata"),
+                         confIntStrata = c("normal", "logNormal"),
                          ...) {
   if ((plotType == "bootHist") && (!is.numeric(x$populationSize$boot))) {
     stop("Trying to plot bootstrap results with no bootstrap performed")
@@ -112,7 +111,7 @@ plot.singleR <- function(x,
     res <- residuals.singleR(x, type = type)[, 1]
   }
   switch(plotType,
-  QQ = {
+  qq = {
     stats::qqnorm(res);
     stats::qqline(res);
   },
@@ -163,10 +162,10 @@ plot.singleR <- function(x,
            lty = 2)
   },
   dfpopContr = {
-    dfpop <- dfpopsize(x, observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
-    contr <- x$model$pointEst(pw = x$prior.weights[x$which$est], 
-                              eta = x$linear.predictors,
-                              contr = TRUE);
+    dfpop <- dfpopsize(x, 
+    observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
+    contr <- x$model$pointEst(pw = x$priorWeights[x$which$est], # TODO:: implement a function to get a contribution
+    eta = x$linearPredictors, contr = TRUE);
     plot(x = dfpop, y = contr,
          main = "Observation deletion effect on point estimate of\npopulation size estimate vs observation contribution",
          xlab = "Deletion effect", ylab = "Observation contribution", 
@@ -181,7 +180,7 @@ plot.singleR <- function(x,
   },
   scaleLoc = {
     if (x$model$parNum == 1) {
-      lp <- x$linear.predictors
+      lp <- x$linearPredictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
       }
@@ -195,20 +194,20 @@ plot.singleR <- function(x,
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
-        plot(y = sqrt(abs(res)), x = x$linear.predictors[, k],
+        plot(y = sqrt(abs(res)), x = x$linearPredictors[, k],
              xlab = "Linear predictors",
              ylab = expression(sqrt("Pearson resid.")),
              main = "Scale-Location plot",
              sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
              ...);
-        graphics::panel.smooth(y = sqrt(abs(res)), x = x$linear.predictors[, k], iter = 0)
+        graphics::panel.smooth(y = sqrt(abs(res)), x = x$linearPredictors[, k], iter = 0)
       }
       graphics::par(par);
     }
   },
   fitresid = {
     if (x$model$parNum == 1) {
-      lp <- x$linear.predictors
+      lp <- x$linearPredictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
         res <- res[x$which$reg]
@@ -224,19 +223,19 @@ plot.singleR <- function(x,
       par <- graphics::par(no.readonly = TRUE);
       par(mfrow = c(x$model$parNum, 1));
       for (k in 1:x$model$parNum) {
-        plot(y = res, x = x$linear.predictors[, k],
+        plot(y = res, x = x$linearPredictors[, k],
              xlab = "Linear predictors",
              ylab = "Response residuals",
              main = "Residuals vs Fitted",
              sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
              ...);
         abline(lty = 2, col = "darkgrey", h = 0);
-        graphics::panel.smooth(y = res, x = x$linear.predictors[, k], iter = 0)
+        graphics::panel.smooth(y = res, x = x$linearPredictors[, k], iter = 0)
       }
       graphics::par(par);
     }
   },
-  Cooks = {
+  cooks = {
     A <- cooks.distance.singleR(x);
     plot(A,
          main = "Cook's distance",
@@ -257,6 +256,45 @@ plot.singleR <- function(x,
            ...)
     }
     graphics::par(par);
+  },
+  strata = {
+    if (missing(confIntStrata)) confIntStrata <- "logNormal"
+    result <- stratifyPopsize(x, ...)
+    est <- result[, 2]
+    obs <- result[, 1]
+    nm <- result[, 9]
+    if (confIntStrata == "logNormal") cnf <- result[, 7:8] 
+    else cnf <- result[, 5:6]
+    # OY ####
+    # plot(x = 1:NROW(result), est,
+    #      ylim = range(cnf),
+    #      xlab = "", ylab="Sub population size estimate",
+    #      main="Confidence intervals and point estimates for specified sub populations\nObserved population sizes are presented as navy coloured points",
+    #      xaxt = "n", pch = 19
+    # )
+    # points(x = 1:NROW(result), obs, col = "navy", pch = 19)
+    # axis(side = 1, at = 1:NROW(result), labels = FALSE)
+    # text(x = 1:NROW(result), y=par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, adj = 1,
+    #      nm, srt = 30, cex = .75,
+    #      xpd = TRUE)
+    # arrows(1:NROW(result), cnf[ ,1], 1:NROW(result), cnf[ ,2], 
+    #        length=0.05, angle=90, code=3)
+    # OX ####
+    
+    tilt <- 0 # maybe add to parameters??
+    plot(y = 1:NROW(result), x = est,
+         xlim = range(cnf),
+         xlab = "Sub population size estimate", ylab="",
+         main="Confidence intervals and point estimates for specified sub populations\nObserved population sizes are presented as navy coloured points",
+         yaxt = "n", pch = 19
+    )
+    points(y = 1:NROW(result), x = obs, col = "navy", pch = 19)
+    axis(side = 2, at = 1:NROW(result), labels = FALSE)
+    text(y = 1:NROW(result), x=par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, adj = 1,
+         nm, srt = tilt, cex = .6,
+         xpd = TRUE)
+    arrows(cnf[ ,1], 1:NROW(result), cnf[ ,2], 1:NROW(result), 
+           length=0.05, angle=90, code=3)
   })
   invisible()
 }

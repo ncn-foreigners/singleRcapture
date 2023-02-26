@@ -1,4 +1,6 @@
 #' @rdname singleRmodels
+#' @importFrom stats glm.fit
+#' @importFrom stats poisson
 #' @export
 chao <- function(...) {
   link <- function(x) {log(x / 2)}
@@ -8,23 +10,23 @@ chao <- function(...) {
   mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = lambda,
-            "trunc" = 1 / (1 + exp(-eta))
+    "nontrunc" = lambda,
+    "trunc" = 1 / (1 + exp(-eta))
     )
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-            "nontrunc" = lambda,
-            "trunc" = (1 / (1 + exp(-eta))) * (1 / (1 + exp(eta)))
+    "nontrunc" = lambda,
+    "trunc" = (1 / (1 + exp(-eta))) * (1 / (1 + exp(eta)))
     )
   }
   
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
     L1 <- lambda / 2
-    (L1 / ((1 + L1) ** 2))
+    (L1 / ((1 + L1) ^ 2))
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
@@ -33,72 +35,58 @@ chao <- function(...) {
     (L1 * (y - 1) + y) / (L1 + 1) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1, ...) {
+  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
+    
+    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
+    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
 
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- invlink(eta)
-      L1 <- lambda / 2
-      -sum(weight * (z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))))
-    }
-  }
-
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
-    y <- as.numeric(y)
-    z <- y - 1
-    if (is.null(weight)) {
-      weight <- 1
-    }
-
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- invlink(eta)
-      L1 <- lambda / 2
-      if (NbyK) {
-        return(as.data.frame(X) * (z - L1 / (1 + L1)) * weight)
+    switch (deriv,
+      function(beta) {
+        eta <- as.matrix(X) %*% beta
+        lambda <- invlink(eta)
+        L1 <- lambda / 2
+        -sum(weight * (z * log(L1 / (1 + L1)) + (1 - z) * log(1 / (1 + L1))))
+      },
+      function(beta) {
+        eta <- as.matrix(X) %*% beta
+        lambda <- invlink(eta)
+        L1 <- lambda / 2
+        if (NbyK) {
+          return(as.data.frame(X) * (z - L1 / (1 + L1)) * weight)
+        }
+        if (vectorDer) {
+          return(matrix((z - L1 / (1 + L1)) * weight, ncol = 1))
+        }
+        t(X) %*% ((z - L1 / (1 + L1)) * weight)
+      },
+      function(beta) {
+        eta <- as.matrix(X) %*% beta
+        lambda <- invlink(eta)
+        L1 <- lambda / 2
+        -t(as.data.frame(X) * weight * (L1 / ((1 + L1) ^ 2))) %*% as.matrix(X)
       }
-      if (vectorDer) {
-        return(matrix((z - L1 / (1 + L1)) * weight, ncol = 1))
-      }
-      t(X) %*% ((z - L1 / (1 + L1)) * weight)
-    }
-  }
-
-  hessian <- function(y, X, weight = 1, ...) {
-    y <- as.numeric(y)
-    z <- y - 1
-    if (is.null(weight)) {
-      weight <- 1
-    }
-
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- invlink(eta)
-      L1 <- lambda / 2
-      term <- -(L1 / ((1 + L1) ** 2))
-      t(as.data.frame(X) * weight * term) %*% as.matrix(X)
-    }
+    )
   }
 
   validmu <- function(mu) {
     (sum(!is.finite(mu)) == 0) && all(1 > mu)
   }
 
-  dev.resids <- function(y, eta, wt, ...) {
+  devResids <- function(y, eta, wt, ...) {
     z <- y - 1
     mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
-    ((-1) ** y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
+    ((-1) ^ y) * sqrt(-2 * wt * (z * log(mu1) + (1 - z) * log(1 - mu1)))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- invlink(eta)
-    N <- ((1 + 1 / (lambda + (lambda ** 2) / 2)) * pw)
+    N <- ((1 + 1 / (lambda + (lambda ^ 2) / 2)) * pw)
     if(!contr) {
       N <- sum(N)
     }
@@ -108,13 +96,13 @@ chao <- function(...) {
   popVar <- function (pw, eta, cov, Xvlm, ...) {
     lambda <- invlink(eta)
     Xvlm <- as.data.frame(Xvlm)
-    prob <- lambda * exp(-lambda) + (lambda ** 2) * exp(-lambda) / 2
+    prob <- lambda * exp(-lambda) + (lambda ^ 2) * exp(-lambda) / 2
 
-    f1 <- colSums(-Xvlm * pw * ((lambda + (lambda ** 2)) /
-                  ((lambda + (lambda ** 2) / 2) ** 2)))
+    f1 <- colSums(-Xvlm * pw * ((lambda + (lambda ^ 2)) /
+                  ((lambda + (lambda ^ 2) / 2) ^ 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
-    f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ** 2))
+    f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ^ 2))
 
     f1 + f2
   }
@@ -134,11 +122,19 @@ chao <- function(...) {
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, ],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      makeGradient = gradient,
-      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,
@@ -148,7 +144,7 @@ chao <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
@@ -156,7 +152,8 @@ chao <- function(...) {
       family = "chao",
       parNum = 1,
       etaNames = "lambda",
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

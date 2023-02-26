@@ -39,10 +39,10 @@ marginalFreq <- function(object,
   probFun <- object$model$densityFunction
   
   res <- sapply(
-    1:nrow(object$linear.predictors), 
+    1:nrow(object$linearPredictors), 
     FUN = function(x) {object$model$densityFunction(
       x = range, 
-      eta = matrix(object$linear.predictors[x, ], 
+      eta = matrix(object$linearPredictors[x, ], 
                    ncol = object$model$parNum)
     )}
   )

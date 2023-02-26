@@ -18,14 +18,14 @@ ztgeom <- function(...) {
   variance <- function(eta, type = "nontrunc", ...) {
     mu <- mu.eta(eta)
     switch (type,
-      nontrunc = mu ** 2 - mu - 1 / mu + 2,
+      nontrunc = mu ^ 2 - mu - 1 / mu + 2,
       trunc = (mu + 1) / mu
     )
   }
   
   Wfun <- function(prior, eta, ...) {
     lambda <- exp(eta)
-    lambda * (1 + lambda) / ((1 + lambda) ** 2)
+    lambda * (1 + lambda) / ((1 + lambda) ^ 2)
   }
   
   funcZ <- function(eta, weight, y, ...) {
@@ -33,77 +33,58 @@ ztgeom <- function(...) {
     (y  / mu - 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, ...) {
+  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     if (is.null(weight)) {
       weight <- 1
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    function(arg) {
-      beta <- arg
-      eta <- as.matrix(X) %*% beta
-      lambda <- exp(eta)
-      
-      -sum(weight * ((y - 1) * log(lambda) - y * log(1 + lambda)))
-    }
-  }
-  
-  
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    y <- as.numeric(y)
-    X <- as.matrix(X)
+    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
+    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
     
-    function(beta) {
-      eta <- X %*% beta
-      lambda <- exp(eta)
-      S <- 1 / (1 + lambda)
-      
-      # Beta derivative
-      if (NbyK) {
-        return(as.data.frame(X) * (y * S - 1)  * weight)
-      }
-      if (vectorDer) {
-        return(matrix((y * S - 1) * weight, ncol = 1))
-      }
-      G1 <- t((y * S - 1)  * weight) %*% X
-      
-      G1
-    }
-  }
-  
-  hessian <- function(y, X, weight = 1, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-    y <- as.numeric(y)
-    X <- as.matrix(X)
-    
-    function(beta) {
-      eta <- X %*% beta
-      lambda <- exp(eta)
-      S <- 1 / (1 + lambda)
-      
-      # second beta derivative
-      
-      G11 <- -t(as.data.frame(X) * lambda * y * (S ** 2) * weight) %*% X
-      
-      G11
-    }
+    switch (deriv,
+      function(arg) {
+        beta <- arg
+        eta <- as.matrix(X) %*% beta
+        lambda <- exp(eta)
+        
+        -sum(weight * ((y - 1) * log(lambda) - y * log(1 + lambda)))
+      },
+      function(beta) {
+        eta <- X %*% beta
+        lambda <- exp(eta)
+        S <- 1 / (1 + lambda)
+        
+        # Beta derivative
+        if (NbyK) {
+          return(as.data.frame(X) * (y * S - 1)  * weight)
+        }
+        if (vectorDer) {
+          return(matrix((y * S - 1) * weight, ncol = 1))
+        }
+        t((y * S - 1)  * weight) %*% X
+      },
+      function(beta) {
+        eta <- X %*% beta
+        lambda <- exp(eta)
+        S <- 1 / (1 + lambda)
+        
+        # second beta derivative
+        
+        -t(as.data.frame(X) * lambda * y * (S ^ 2) * weight) %*% X
+      },
+    )
   }
   
   validmu <- function(mu) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
   
-  dev.resids <- function (y, eta, wt, ...) {
+  devResids <- function (y, eta, wt, ...) {
     mu <- invlink(eta)
     mu1 <- mu.eta(eta = eta)
-    hm1y <- y - 1 # thats an analytic inverse for geometric
-    #log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
+    hm1y <- y - 1 # that's an analytic inverse for geometric
     loghm1y <- ifelse(y > 1, log(hm1y), 0)
     sign(y - mu1) * sqrt(-2 * wt * ((y - 1) * eta - y * log(mu1) - (y - 1) * loghm1y + y * log(y)))
   }
@@ -123,11 +104,11 @@ ztgeom <- function(...) {
     pr <- 1 - 1 / (1 + lambda)
     
     bigTheta <- -(pw * as.numeric(lambda / 
-                 ((1 - (1 + lambda)) ** 2))) %*% as.matrix(Xvlm)
+                 ((1 - (1 + lambda)) ^ 2))) %*% as.matrix(Xvlm)
     bigTheta <- as.vector(bigTheta)
     
     f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <- sum(pw * (1 - pr) / (pr ** 2))
+    f2 <- sum(pw * (1 - pr) / (pr ^ 2))
     
     f1 + f2
   }
@@ -146,11 +127,19 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
     stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, ],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      makeGradient = gradient,
-      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,
@@ -160,7 +149,7 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
@@ -168,7 +157,8 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       family = "ztgeom",
       parNum = 1,
       etaNames = "lambda",
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

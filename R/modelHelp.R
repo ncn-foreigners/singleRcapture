@@ -6,7 +6,7 @@
 #' functions that specify variable parts of population size estimation,
 #' regression, diagnostics and other necessary information that depends
 #' on the model. These functions are used as \code{model} argument in
-#' \code{estimate_popsize} function.
+#' \code{estimatePopsize} function.
 #' 
 #' @param nSim If working weights cannot be computed analytically this argument
 #' specifies maximum number of simulations allowed to find them numerically. 
@@ -181,16 +181,18 @@
 #' \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
 #' }{}
 #' 
-#' @seealso [estimate_popsize()]
+#' @seealso [estimatePopsize()]
 #'
 #' @return A object of class \code{family} containing objects:
 #' \itemize{
-#' \item \code{makeMinusLogLike, makeGradient, makeHessian} -- A factory functions for creating 
+#' \item \code{makeMinusLogLike} -- A factory function for creating 
 #' \mjeqn{\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
 #' \frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^{T}\partial\boldsymbol{\beta}}
-#' }{l(beta), dl/dbeta, d^2l/dbeta^Tdbeta} functions respectively from 
+#' }{l(beta), dl/dbeta, d^2l/dbeta^Tdbeta} functions from 
 #' \mjeqn{\boldsymbol{y}}{y} vector and \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} 
-#' (or just \mjeqn{\boldsymbol{X}}{X} if applied to model with single linear predictor).
+#' (or just \mjeqn{\boldsymbol{X}}{X} if applied to model with single linear predictor)
+#' the argument \code{deriv} with possible values in \code{0, 1, 2} provides which
+#' derivative to return with \code{0} being just the minus log-likelihood.
 #' \item \code{linkfun, linkinv} -- A link function and its inverse.
 #' \item \code{mu.eta, variance} -- Functions of linear predictors that
 #' return expected value and variance. There is a \code{type} argument with
@@ -205,7 +207,7 @@
 #' link function).
 #' \item \code{funcZ, Wfun} -- Functions that create pseudo residuals and
 #' working weights used in IRLS algorithm.
-#' \item \code{dev.resids} -- Function that given the linear predictors
+#' \item \code{devResids} -- Function that given the linear predictors
 #' prior weights vector and response vector returns deviance residuals.
 #' Not all family functions have these functions implemented yet.
 #' \item \code{pointEst, popVar} -- Functions that given prior weights

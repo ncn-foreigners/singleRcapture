@@ -3,32 +3,33 @@
 \docType{data}
 \name{farmsubmission}
 \alias{farmsubmission}
-\title{All farm submissions}
+\title{British farm submissions data}
 \format{
 Data frame with 12,036 rows and 4 columns.
 \describe{
-\item{TOTAL_SUB}{Number of submissions}
-\item{log_size}{logarithm of size of farm}
-\item{log_distance}{logarith of distance to nearest AHVLA center}
-\item{C_TYPE}{Type of farm 1 for dairy and 0 for beef}
+\item{\code{TOTAL_SUB}}{Number of submissions of animal material.}
+\item{\code{log_size}}{Numerical value equal to logarithm of size of farm.}
+\item{\code{log_distance}}{Numerical value equal to logarith of distance to nearest AHVLA center.}
+\item{\code{C_TYPE}}{Factor describing type of activity on farm that animals are
+used for. Either \code{Dairy} or \code{Beef}}
 }
 }
 \usage{
 data("farmsubmission")
 }
 \description{
-All farm submissions
-}
-\details{
 Data on British animal farms submissions to AHVLA. British farms
-are able to submit samples to AHVLA if cause of death of an animal
+are able to submit samples to AHVLA if cause of death for an animal
 cannot be determined and private veterinary surgeon decides to submit them,
-unless there is notifiable disease suspected then it is not required.
-This is data on such farms and their submissions.
-This data set contains farms that have submitted anything at all
+unless there is notifiable disease suspected then such a submission is not
+required.
+
+This data set contains information about such farms.
+All submissions from farms are included in this data frame
 not only carcasses but also blood samples etc.
 }
 \references{
-B{\"o}hning, D., Vidal‐Diez, A., Lerdsuwansri, R., Viwatwongkasem, C., and Arnold, M. (2013). "A generalization of Chao's estimator for covariate information". \emph{Biometrics}, 69(4), 1033-1042. doi:10.1111/biom.12082
+This data set and its description was provided in publication:
+Böhning, D., Vidal Diez, A., Lerdsuwansri, R., Viwatwongkasem, C., and Arnold, M. (2013). "A generalization of Chao's estimator for covariate information". \emph{Biometrics}, 69(4), 1033-1042. doi:10.1111/biom.12082
 }
 \keyword{datasets}

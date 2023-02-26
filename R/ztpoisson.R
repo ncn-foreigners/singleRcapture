@@ -1,5 +1,7 @@
 #' @rdname singleRmodels
 #' @importFrom lamW lambertW0
+#' @importFrom stats glm.fit
+#' @importFrom stats poisson
 #' @export
 ztpoisson <- function(...) {
   link <- log
@@ -11,22 +13,22 @@ ztpoisson <- function(...) {
   mu.eta <- function(eta, type = "trunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = lambda,
-      "trunc" = lambda / (1 - exp(-lambda))
+    "nontrunc" = lambda,
+    "trunc" = lambda / (1 - exp(-lambda))
     )
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
     lambda <- invlink(eta)
     switch (type,
-      "nontrunc" = lambda,
-      "trunc" = mu.eta(eta = eta) * (1 + lambda - mu.eta(eta = eta))
+    "nontrunc" = lambda,
+    "trunc" = mu.eta(eta = eta) * (1 + lambda - mu.eta(eta = eta))
     )
   }
   
   Wfun <- function(prior, eta, ...) {
     lambda <- invlink(eta)
-    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ** 2)), 
+    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ^ 2)), 
            ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -34,66 +36,49 @@ ztpoisson <- function(...) {
     (y - mu.eta(eta)) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1, ...) {
+  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
-    function(beta) {
-      eta <- as.matrix(X) %*% beta
-      lambda <- exp(eta)
-      -sum(weight * (y * eta - log(exp(lambda) - 1) - log(factorial(y))))
-    }
-  }
-
-  gradient <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, ...) {
-    y <- as.numeric(y)
-    if (is.null(weight)) {
-      weight <- 1
-    }
-
-    function(beta) {
-      lambda <- exp(as.matrix(X) %*% beta)
-      mu <- lambda / (1 - exp(-lambda))
-      if (NbyK) {
-        return(as.data.frame(X) * weight * (y - mu))
+    
+    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
+    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    
+    switch (deriv,
+      function(beta) {
+        eta <- as.matrix(X) %*% beta
+        -sum(weight * (y * eta - log(exp(exp(eta)) - 1) - log(factorial(y))))
+      },
+      function(beta) {
+        lambda <- exp(as.matrix(X) %*% beta)
+        if (NbyK) {
+          return(as.data.frame(X) * weight * (y - lambda / (1 - exp(-lambda))))
+        }
+        if (vectorDer) {
+          return(matrix(weight * (y - lambda / (1 - exp(-lambda))), ncol = 1))
+        }
+        t(as.matrix(X)) %*% (weight * (y - lambda / (1 - exp(-lambda))))
+      },
+      function(beta) {
+        lambda <- exp(as.matrix(X) %*% beta)
+        eml <- exp(-lambda)
+        coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2)
+        
+        -(t(as.matrix(X) * as.numeric(weight * (1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2)) * lambda))) %*% as.matrix(X)
       }
-      if (vectorDer) {
-        return(matrix(weight * (y - mu), ncol = 1))
-      }
-      t(as.matrix(X)) %*% (weight * (y - mu))
-    }
-  }
-
-  hessian <- function(y, X, weight = 1, ...) {
-    if (is.null(weight)) {
-      weight <- 1
-    }
-
-    function(beta) {
-      lambda <- exp(as.matrix(X) %*% beta)
-      eml <- exp(-lambda)
-      coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ** 2)
-
-      dmu <- weight * as.numeric(coefficient) # This was probably the dumbest mistake I've made in last 8 months
-      dlam <- as.matrix(X * as.numeric(lambda))
-
-      -((t(as.matrix(X) * dmu)) %*% dlam)
-    }
+    )
   }
 
   validmu <- function(mu) {
     (sum(!is.finite(mu)) == 0) && all(0 < mu)
   }
 
-  dev.resids <- function(y, eta, wt, ...) {
-    mu <- invlink(eta)
-    mu1 <- mu.eta(eta = eta)
+  devResids <- function(y, eta, wt, ...) {
+    lambda <- invlink(eta)
     #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
     hm1y <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
-    log1mexphm1y <- ifelse(y > 1, log(1 - exp(-hm1y)), 0)
-    loghm1y <- ifelse(y > 1, log(hm1y), 0)
-    sign(y - mu1) * sqrt(-2 * wt * (y * eta - mu - log(1 - exp(-mu)) - y * loghm1y + hm1y + log1mexphm1y))
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (y * eta - lambda - log(1 - exp(-lambda)) - y * ifelse(y > 1, log(hm1y), 0) + hm1y + ifelse(y > 1, log(1 - exp(-hm1y)), 0)))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -108,12 +93,11 @@ ztpoisson <- function(...) {
   popVar <- function (pw, eta, cov, Xvlm, ...) {
     Xvlm <- as.data.frame(Xvlm)
     lambda <- invlink(eta)
-    ml <- (1 - exp(-lambda)) ** 2
 
-    f1 <- colSums(-Xvlm * pw * (exp(log(lambda) - lambda) / ml))
+    f1 <- colSums(-Xvlm * pw * (exp(log(lambda) - lambda) / ((1 - exp(-lambda)) ^ 2)))
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
-    f2 <- sum(pw * exp(-lambda) / ml)
+    f2 <- sum(pw * exp(-lambda) / ((1 - exp(-lambda)) ^ 2))
 
     f1 + f2
   }
@@ -132,11 +116,19 @@ ztpoisson <- function(...) {
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
   
+  getStart <- expression(
+    start <- stats::glm.fit(
+      x = variables[wch$reg, ],
+      y = observed[wch$reg],
+      family = stats::poisson(),
+      weights = priorWeights[wch$reg],
+      ...
+    )$coefficients
+  )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      makeGradient = gradient,
-      makeHessian = hessian,
       linkfun = link,
       linkinv = invlink,
       dlink = dlink,
@@ -146,7 +138,7 @@ ztpoisson <- function(...) {
       variance = variance,
       Wfun = Wfun,
       funcZ = funcZ,
-      dev.resids = dev.resids,
+      devResids = devResids,
       validmu = validmu,
       pointEst = pointEst,
       popVar= popVar,
@@ -154,7 +146,8 @@ ztpoisson <- function(...) {
       family = "ztpoisson",
       parNum = 1,
       etaNames = "lambda",
-      densityFunction = dFun
+      densityFunction = dFun,
+      getStart = getStart
     ),
     class = "family"
   )

@@ -13,16 +13,35 @@ knitr::opts_chunk$set(
 )
 ```
 
-# singleRcapture
+# Overview
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
 <!-- badges: end -->
 
-The goal of singleRcapture is to automate single source capture-recapture estimation of population size.
+Capture-recapture type experiments are used to estimate the total population size
+in situations when observing only a part of such population is feasible. In recent
+years these types of experiments have seen more interest.
 
-## Funding
+Single source models are distinct from other capture-recapture models because
+we cannot estimate the population size based on how many units were observed
+in two or three sources which is the standard approach.
 
-Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.
+Instead in single source models we utilise count data regression models on positive
+distributions (i.e. on counts greater than 0) where the dependent variable
+is the number of times a particular unit was observed in source data.
+
+This package aims to implement already existing and introduce new methods
+of estimating population size from single source to simplify the research process.
+
+Currently we've implemented most of the frequentist approaches used in literature such as:
+
+- Zero truncated poisson, geometric and negative binomial regression.
+- Zero truncated one inflated and one inflated zero truncated poisson and gemetric models. (Negative binomial is currently in development.)
+- Zero one truncated poisson geometric and negative binomial models.
+- Generalised Chao and Zelterman's models based on logistic regression.
+- Three types of bootstrap parametric, semi-parametric and non parametric.
+- And a wide range of additional functionalities associated with (vector) generalised linear models relevant to the topic.
 
 ## Installation
 
@@ -30,62 +49,168 @@ You can install the development version of singleRcapture from [GitHub](https://
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("ncn-foreigners/singleRcapture")
+remotes::install_github("ncn-foreigners/singleRcapture")
 ```
 
 ### Examples
 
-This is a basic example of zero truncated poisson model and zelterman model with netherlands imigrant data with analytic variance:
+The main function of this package is `estimatePopsize` which fitts regression
+on specified distribution and then uses fitted regression to estimate the
+population size. 
+
+Lets look at a model from 2003 publication :
+Point and interval estimation of the population size using the truncated 
+Poisson regression model Heijden, Peter GM van der et al.
+The call to `estimatePopsize` will look very simmilar to anyone who used the 
+`stats::glm` function:
 
 ```{r example}
 library(singleRcapture)
-ModelPo <- estimate_popsize(formula = capture ~ .,
-                            data = netherlandsimmigrant,
-                            pop.var = "analytic",
-                            model = "ztpoisson",
-                            method = "IRLS")
-ModelZl <- estimate_popsize(formula = capture ~ .,
-                            data = netherlandsimmigrant,
-                            pop.var = "analytic",
-                            model = "zelterman",
-                            method = "IRLS")
-summary(ModelPo)
+model <- estimatePopsize(
+  formula = capture ~ gender + age + nation + reason, # specify formula
+  data = netherlandsimmigrant,
+  popVar = "analytic", # specify 
+  model = "ztpoisson", # distribution used
+  method = "IRLS" # fitting method one of three currently supported
+)
+summary(model) # a summary method for singleR class with standard glm-like output and population size estimation resutls
 ```
+
+We implemented a method for `plot` function to visualise the model fit and other
+usefull diagnostic information. One of which is `rootogram`, a type of plot
+that compares fitted and observed marginal frequencies:
+
+```{r plot, fig.show="hold", out.width="75%"}
+plot(model, plotType = "rootogram")
+```
+
+The possible values for `plotType` argument are:
+
+- `qq` - the normal quantile-quantile plot for pearson residuals.
+- `marginal` - a `matplot` comparing fitted and observed marginal frequencies.
+- `fitresid` - plot of linear predictor values contrasted with pearson residuals.
+- `bootHist` - histogram of bootstrap sample.
+- `rootogram` - rootogram, example presented above.
+- `dfpopContr` - contrasting two deletion effects to identify presence of influential observations.
+- `dfpopBox` - boxplot of results from dfpopsize function see its documentation.
+- `scaleLoc` - scale-location plot.
+- `cooks` - plot of `cooks.values` for distributions for which it is defined.
+- `hatplot` - plot of `hatvalues`.
+- `strata` - plot of confidence intervals for selected su populations.
+
+a user can also pass arguments to specify additional information such as plot 
+title, subtitle etc. similar to calling `plot` on some data. For more info
+check `plot.singleR` method documentation.
+
+As we have seen there are some significant differences between fitted and
+observed marginal frequencies. To check our intuition let's perform
+goodness of fit test between fitted and observed marginal frequencies.
+
+To do it we call a `summary` function of `marginalFreq` function which
+computes marginal frequencies for the fitted `singleR` class object:
 
 ```{r}
-summary(ModelZl)
+summary(marginalFreq(model), df = 2, dropl5 = "group")
 ```
 
-Marginal frequencies and Goodness of fit test:
+Finally let us check if we have any influential observations. We will do this
+by comparing the deletion effect of every observation on population size estimate
+by removing it entirely from the model (from population size estimate and regression)
+and by only omitting it in pop size estimation (this is what is called the
+contribution of an observation). If observation is not influential these two 
+actions should have the approximately the same effect:
+
+```{r, fig.show="hold", out.width="75%"}
+plot(model, plotType = "dfpopContr")
+```
+
+it is easy to deduce from the plot above that we have influential observations in
+our dataset (one in particular).
+
+Lastly `singleRcapture` offers some posthoc procedures for example a function 
+`stratifyPopsize` that estimates sizes of user specified sub populations and
+returns them in a `data.frame`:
 
 ```{r}
-summary(marginalFreq(ModelPo), df = 2, dropl5 = "group")
+stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
+    stratas = list(
+    "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
+    "Males from Turkey" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$nation == "Turkey",
+    "Younger males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == "<40yrs",
+    "Older males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == ">40yrs"
+))
 ```
 
-Should goodness of fit tests prove insufficient in determining the best model graphical comparisons may also be made.
-One such technique is a rootogram and it is implemented as a part of singleR method for `plot` function:
+`stratas` argument may be specified in various ways for example: 
 
-```{r plot, fig.show="hold", out.width="47%"}
-plot(ModelPo, plotType = "rootogram", main = "Zero Truncated Poisson model")
-plot(ModelZl, plotType = "rootogram", main = "Logistic regression based Zelterman model")
+```{r}
+stratifyPopsize(model, stratas = ~ gender / age)
 ```
 
-singleRcapture also includes bootstraps and models truncated at values 0 and 1 
-and non standard confidence levels (i.e. different from usual 95%)
+`singleRcapture` package also includes the option to estimate standard error of
+population size estimate by bootstrap and common non standard argument such
+as significance levels different from usual 5%:
 
 ```{r boot}
 set.seed(123)
-zotgeomBoot <- estimate_popsize(
-    formula = TOTAL_SUB ~ .,
-    data = farmsubmission,
-    pop.var = "bootstrap",
-    model = "zotgeom",
+modelInflated <- estimatePopsize(
+    formula = capture ~ nation + gender + age,
+    data = netherlandsimmigrant,
+    popVar = "bootstrap",
+    model = "oiztgeom",
     method = "IRLS",
-    control.pop.var = control.pop.var(B = 1000, alpha = .01)
+    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check documentation of controlMethod
+    controlPopVar = controlPopVar( # control parameters for population size estimation check documentation of controlPopVar
+        B = 1250, # number of boostrap samples
+        alpha = .01, # significance level 
+        bootType = "semiparametric" # type of bootstrap see documentation for estimatePopsize
+    )
 )
-summary(zotgeomBoot)
+summary(modelInflated)
 ```
 
-```{r}
-plot(zotgeomBoot, plotType = "bootHist", labels = TRUE, ylim = c(0, 425))
+```{r, fig.show="hold", out.width="75%"}
+plot(modelInflated, plotType = "bootHist", labels = TRUE, ylim = c(0, 300))
 ```
+
+and for models with more than one distribution parameter we allow all parameters
+to be covariate dependent for exapmle if we wish to modify the model above:
+
+```{r}
+modelInflated2 <- estimatePopsize(
+    formula = capture ~ nation  + age,
+    data = netherlandsimmigrant,
+    popVar = "bootstrap",
+    model = "oiztgeom",
+    method = "IRLS",
+    controlMethod = controlMethod(stepsize = .2),
+    controlPopVar = controlPopVar(
+        B = 1250,
+        alpha = .01,
+        bootType = "semiparametric",
+        covType = "Fisher" # use fisher information matrix to construct cross covariance matrix instead of observed information matrix
+    ),
+    controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
+)
+```
+
+the results are significantly different
+(the warning issued concerns the second derivative test for existence of local 
+minimum, here it was inconclusive but we manually checked that fitting process
+found the optimal regression coefficients it's here to provide more information
+to the user):
+
+```{r, fig.show="hold", out.width="75%"}
+plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
+```
+
+and information criteria support the second model:
+
+```{r}
+cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
+    "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), "\n", sep = "")
+```
+
+## Funding
+
+Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.

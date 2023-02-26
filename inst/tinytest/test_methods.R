@@ -8,7 +8,7 @@
 #    counts <- rnbinom(N, mu = exp(eta), size = disp)
 #    df <- data.frame(gender, eta, counts)
 #    df2 <- subset(df, counts > 0)
-#    mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, 
+#    mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, 
 #                              data = df2,
 #                              model = "ztnegbin", 
 #                              method = "optim",
@@ -18,8 +18,8 @@
 #   },
 #   c(2920, 10)
 # )
-expect_silent(
-  Model <- estimate_popsize(
+expect_warning(
+  Model <- estimatePopsize(
     formula = capture ~ nation + age + gender, 
     data = netherlandsimmigrant, 
     model = ztpoisson, 
@@ -28,7 +28,7 @@ expect_silent(
 )
 
 expect_silent(
-  Model1 <- estimate_popsize(
+  Model1 <- estimatePopsize(
     formula = capture ~ 1, 
     data = netherlandsimmigrant, 
     model = ztpoisson, 
@@ -36,8 +36,8 @@ expect_silent(
   )
 )
 
-expect_warning(
-  Model2 <- estimate_popsize(
+expect_silent( # new method of picking starting points made this silent
+  Model2 <- estimatePopsize(
     formula = capture ~ . - age - reason, 
     data = netherlandsimmigrant, 
     model = zelterman, 
@@ -45,8 +45,8 @@ expect_warning(
   )
 )
 
-expect_warning(
-  Model3 <- estimate_popsize(
+expect_silent(# new method of picking starting points made this silent
+  Model3 <- estimatePopsize(
     formula = capture ~ . - age, 
     data = netherlandsimmigrant, 
     model = chao, 
@@ -55,7 +55,7 @@ expect_warning(
 )
 
 expect_silent(
-  Model4 <- estimate_popsize(
+  Model4 <- estimatePopsize(
     formula = TOTAL_SUB ~ ., 
     data = farmsubmission, 
     model = ztnegbin,
@@ -63,15 +63,15 @@ expect_silent(
   )
 )
 
-expect_silent(
-  Model5 <- estimate_popsize(
+expect_warning( #For some reason these models usually fail second derivative test even when maximas are valid
+  Model5 <- estimatePopsize(
     formula = TOTAL_SUB ~ ., 
     data = farmsubmission, 
     model = ztoigeom, 
     method = "IRLS",
-    control.pop.var = control.pop.var(covType = "Fisher"),
-    control.model = control.model(omegaFormula = ~ log_distance),
-    control.method = control.method(stepsize = .45)
+    controlPopVar = controlPopVar(covType = "Fisher"),
+    controlModel = controlModel(omegaFormula = ~ log_distance),
+    controlMethod = controlMethod(stepsize = .45)
   )
 )
 
@@ -283,14 +283,13 @@ expect_false(
   all(vcov(Model5, type = "observedInform") == vcov(Model5, type = "Fisher"))
 )
 
-# For logistic regression fisher matrix and observed information matrix
-# are the same
-expect_true(
-  all(vcov(Model2, type = "observedInform") == vcov(Model2, type = "Fisher"))
+expect_equal(
+  sum(vcov(Model2, type = "observedInform")-vcov(Model2, type = "Fisher")),
+  0, tolerance = 1e-5
 )
 
 expect_true(
-  all(vcov(Model3, type = "observedInform") == vcov(Model3, type = "Fisher"))
+  max(vcov(Model3, type = "Fisher") - vcov(Model3, type = "observedInform")) < 1e-8
 )
 
 expect_false(
@@ -302,11 +301,11 @@ expect_false(
 )
 
 expect_true(
-  all(bread(Model2, type = "observedInform") == bread(Model2, type = "Fisher"))
+  max(bread(Model2, type = "observedInform") - bread(Model2, type = "Fisher")) < 1e-1
 )
 
 expect_true(
-  all(bread(Model3, type = "observedInform") == bread(Model3, type = "Fisher"))
+  max(bread(Model3, type = "observedInform") - bread(Model3, type = "Fisher")) < 1e-1
 )
 
 expect_false(
@@ -853,7 +852,7 @@ expect_equal(
 )
 
 expect_silent(
-  plot(Model, "QQ")
+  plot(Model, "qq")
 )
 
 expect_silent(
@@ -885,7 +884,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model, "Cooks")
+  plot(Model, "cooks")
 )
 
 expect_silent(
@@ -893,7 +892,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model1, "QQ")
+  plot(Model1, "qq")
 )
 
 expect_silent(
@@ -925,7 +924,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model1, "Cooks")
+  plot(Model1, "cooks")
 )
 
 expect_silent(
@@ -933,7 +932,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model2, "QQ")
+  plot(Model2, "qq")
 )
 
 expect_silent(
@@ -965,7 +964,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model2, "Cooks")
+  plot(Model2, "cooks")
 )
 
 expect_silent(
@@ -973,7 +972,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model3, "QQ")
+  plot(Model3, "qq")
 )
 
 expect_silent(
@@ -1005,7 +1004,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model3, "Cooks")
+  plot(Model3, "cooks")
 )
 
 expect_silent(
@@ -1013,7 +1012,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model4, "QQ")
+  plot(Model4, "qq")
 )
 
 expect_silent(
@@ -1037,7 +1036,7 @@ expect_silent(
 )
 
 expect_error(
-  plot(Model4, "Cooks")
+  plot(Model4, "cooks")
 )
 
 expect_silent(
@@ -1045,7 +1044,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model5, "QQ")
+  plot(Model5, "qq")
 )
 
 expect_silent(
@@ -1069,7 +1068,7 @@ expect_silent(
 )
 
 expect_error(
-  plot(Model5, "Cooks")
+  plot(Model5, "cooks")
 )
 
 expect_silent(

@@ -10,3 +10,4 @@
 ^pkgdown$
 ^README\.Rmd$
 ^.DS_Store
+^\.github$

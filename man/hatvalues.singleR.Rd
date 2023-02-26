@@ -53,5 +53,5 @@ is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
 predictor (and mixed derivatives) and
 \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} is a model (vlm) matrix constructed using
-"main" formula and additional formulas specified in \code{control.model}.
+"main" formula and additional formulas specified in \code{controlModel}.
 }

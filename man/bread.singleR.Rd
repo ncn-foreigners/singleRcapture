@@ -11,7 +11,7 @@
 
 \item{...}{additional optional arguments passed to the following functions:
 \itemize{
-\item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{control.pop.var} specified in call for object.
+\item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{controlPopVar} specified in call for object.
 }}
 }
 \value{
@@ -21,7 +21,7 @@ A bread matrix, i.e. a hessian based estimation of variance-covariance matrix sc
 Extracting bread matrix for singleR class
 }
 \examples{
-Model <- estimate_popsize(
+Model <- estimatePopsize(
 formula = capture ~ ., 
 data = netherlandsimmigrant, 
 model = ztpoisson, 
@@ -36,7 +36,7 @@ sandwich::bread(Model, type = "Fisher")
 all(vcov(Model, "Fisher") * nrow(netherlandsimmigrant) == sandwich::bread(Model, type = "Fisher"))
 }
 \seealso{
-\code{\link[sandwich:bread]{sandwich::bread()}} \code{\link[=control.pop.var]{control.pop.var()}}
+\code{\link[sandwich:bread]{sandwich::bread()}} \code{\link[=controlPopVar]{controlPopVar()}}
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz

@@ -15,7 +15,7 @@ expected (Fisher) information matrix or observed information matrix.}
 \item{...}{Additional optional arguments passed to following functions:
 \itemize{
 \item \code{solve} -- for inverting information matrixes.
-\item \code{model.frame.singleR} -- forcreation of Xvlm matrix.
+\item \code{model.frame.singleR} -- for creation of Xvlm matrix.
 }}
 }
 \value{

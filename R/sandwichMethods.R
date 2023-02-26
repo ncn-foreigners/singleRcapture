@@ -17,8 +17,8 @@
 #' counts <- rpois(N, lambda = exp(eta))
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "optim", pop.var = "analytic")
+#' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
+#' model = "ztpoisson", method = "optim", popVar = "analytic")
 #' mod1_sims <- sandwich::estfun(mod1)
 #' head(mod1_sims) 
 #' @importFrom sandwich estfun
@@ -31,7 +31,7 @@ estfun.singleR <- function(object,...) {
   beta <- stats::coef(object)
   wts <- stats::weights(object)
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- object$model$makeGradient(y = Y, X = X, NbyK = TRUE)(beta)
+  res <- object$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
   colnames(res) <- names(beta)
   rownames(res) <- rownames(X)
   res
@@ -45,12 +45,12 @@ estfun.singleR <- function(object,...) {
 #' @param object an object representing a fitted model.
 #' @param ... additional optional arguments passed to the following functions:
 #' \itemize{
-#'   \item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{control.pop.var} specified in call for object.
+#'   \item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{controlPopVar} specified in call for object.
 #' }
 #' @return A bread matrix, i.e. a hessian based estimation of variance-covariance matrix scaled by degrees of freedom.
-#' @seealso [sandwich::bread()] [singleRcapture::control.pop.var()]
+#' @seealso [sandwich::bread()] [singleRcapture::controlPopVar()]
 #' @examples 
-#' Model <- estimate_popsize(
+#' Model <- estimatePopsize(
 #' formula = capture ~ ., 
 #' data = netherlandsimmigrant, 
 #' model = ztpoisson, 
@@ -67,7 +67,7 @@ estfun.singleR <- function(object,...) {
 #' @method bread singleR
 #' @exportS3Method
 bread.singleR <- function(object,...) {
-  stats::vcov(object, ...) * as.vector(object$df.residual + length(object$coefficients))
+  stats::vcov(object, ...) * as.vector(object$dfResidual + length(object$coefficients))
 }
 
 #' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
@@ -98,8 +98,8 @@ bread.singleR <- function(object,...) {
 #' counts <- rpois(N, lambda = exp(eta))
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimate_popsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "optim", pop.var = "analytic")
+#' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
+#' model = "ztpoisson", method = "optim", popVar = "analytic")
 #' require(sandwich)
 #' HC <- sandwich::vcovHC(mod1, type = "HC4")
 #' Fisher <- vcov(mod1, "Fisher") # variance covariance matrix obtained from 
@@ -131,7 +131,7 @@ vcovHC.singleR <- function(x,
   hat <- as.vector(hatvalues(x, ...))
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
   Y <- Y[x$which$reg] # only choose units which appear in regression
-  res <- as.vector(x$model$makeGradient(y = Y, X = X, vectorDer = TRUE)(beta))
+  res <- as.vector(x$model$makeMinusLogLike(y = Y, X = X, vectorDer = TRUE, der = 1)(beta))
   if (is.null(omega)) {
     if (type == "HC") 
       type <- "HC0"
