@@ -33,5 +33,6 @@ Suggests:
     rmarkdown,
     knitr,
     tinytest,
-    VGAM
+    VGAM,
+    covr
 VignetteBuilder: knitr
