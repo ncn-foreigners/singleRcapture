@@ -18,61 +18,51 @@
 #   },
 #   c(2920, 10)
 # )
-expect_warning(
-  Model <- estimatePopsize(
-    formula = capture ~ nation + age + gender, 
-    data = netherlandsimmigrant, 
-    model = ztpoisson, 
-    method = "IRLS"
-  )
+
+# we only check methods in this file
+Model <- estimatePopsize(
+  formula = capture ~ nation + age + gender, 
+  data = netherlandsimmigrant, 
+  model = ztpoisson, 
+  method = "IRLS"
 )
 
-expect_silent(
-  Model1 <- estimatePopsize(
-    formula = capture ~ 1, 
-    data = netherlandsimmigrant, 
-    model = ztpoisson, 
-    method = "IRLS"
-  )
+Model1 <- estimatePopsize(
+  formula = capture ~ 1, 
+  data = netherlandsimmigrant, 
+  model = ztpoisson, 
+  method = "IRLS"
 )
 
-expect_silent( # new method of picking starting points made this silent
-  Model2 <- estimatePopsize(
-    formula = capture ~ . - age - reason, 
-    data = netherlandsimmigrant, 
-    model = zelterman, 
-    method = "IRLS"
-  )
+Model2 <- estimatePopsize(
+  formula = capture ~ . - age - reason, 
+  data = netherlandsimmigrant, 
+  model = zelterman, 
+  method = "IRLS"
 )
 
-expect_silent(# new method of picking starting points made this silent
-  Model3 <- estimatePopsize(
-    formula = capture ~ . - age, 
-    data = netherlandsimmigrant, 
-    model = chao, 
-    method = "IRLS"
-  )
+Model3 <- estimatePopsize(
+  formula = capture ~ . - age, 
+  data = netherlandsimmigrant, 
+  model = chao, 
+  method = "IRLS"
 )
 
-expect_silent(
-  Model4 <- estimatePopsize(
-    formula = TOTAL_SUB ~ ., 
-    data = farmsubmission, 
-    model = ztnegbin,
-    method = "IRLS"
-  )
+Model4 <- estimatePopsize(
+  formula = TOTAL_SUB ~ ., 
+  data = farmsubmission, 
+  model = ztnegbin,
+  method = "IRLS"
 )
 
-expect_warning( #For some reason these models usually fail second derivative test even when maximas are valid
-  Model5 <- estimatePopsize(
-    formula = TOTAL_SUB ~ ., 
-    data = farmsubmission, 
-    model = ztoigeom, 
-    method = "IRLS",
-    controlPopVar = controlPopVar(covType = "Fisher"),
-    controlModel = controlModel(omegaFormula = ~ log_distance),
-    controlMethod = controlMethod(stepsize = .45)
-  )
+Model5 <- estimatePopsize(
+  formula = TOTAL_SUB ~ ., 
+  data = farmsubmission, 
+  model = ztoigeom, 
+  method = "IRLS",
+  controlPopVar = controlPopVar(covType = "Fisher"),
+  controlModel = controlModel(omegaFormula = ~ log_distance),
+  controlMethod = controlMethod(stepsize = .45)
 )
 
 # dfbetas and dfpopsize
