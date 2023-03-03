@@ -18,7 +18,7 @@ estimatePopsize function."><!-- mathjax --><script src="https://cdnjs.cloudflare
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -128,8 +128,8 @@ derivative to return with <code>0</code> being just the minus log-likelihood.</p
 <li><p><code>mu.eta, variance</code> -- Functions of linear predictors that
 return expected value and variance. There is a <code>type</code> argument with
 2 possible values <code>"trunc"</code> and <code>"nontrunc"</code> that specifies whether
-to return <em></em>\(\mathbb{E}(Y|Y&gt;0), \text{var}(Y|Y&gt;0\)
-or <em></em>\(\mathbb{E}Y, \text{var}(Y)\) respectively.</p></li>
+to return <em></em>\(\mathbb{E}(Y|Y&gt;0), \text{var}(Y|Y&gt;0)\)
+or <em></em>\(\mathbb{E}(Y), \text{var}(Y)\) respectively.</p></li>
 <li><p><code>link, family</code> -- Character specifying link functions used for the
 model and the internally used name of the model.</p></li>
 <li><p><code>valideta, validmu</code> -- For now only returns true. In near future
@@ -144,7 +144,7 @@ Not all family functions have these functions implemented yet.</p></li>
 <li><p><code>pointEst, popVar</code> -- Functions that given prior weights
 linear predictors and in the later case also estimation of
 <em></em>\(\text{cov}(\hat{\boldsymbol{\beta}})\)
-and <em></em>\(\boldsymbol{X_vlm}\) matrix return point estimate
+and <em></em>\(\boldsymbol{X_{vlm}}\) matrix return point estimate
 for population size and analytic estimation of its variance.
 There is a additional boolean parameter <code>contr</code> in the former
 function that if set to true returns contribution of each unit.</p></li>

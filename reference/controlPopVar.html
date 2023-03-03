@@ -12,7 +12,7 @@ respective standard error and variance estimation."><!-- mathjax --><script src=
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,11 +77,13 @@ respective standard error and variance estimation.</p>
 
 
 <dt>trcount</dt>
-<dd><p>Truncated count - a number to be added to point estimator and both sides of confidence intervals.</p></dd>
+<dd><p>Truncated count - a number to be added to point estimator
+and both sides of confidence intervals.</p></dd>
 
 
 <dt>bootType</dt>
-<dd><p>Bootstrap type. Default is <code>"parametric"</code>, other possible values are: <code>"semiparametric"</code> and <code>"nonparametric"</code>.</p></dd>
+<dd><p>Bootstrap type. Default is <code>"parametric"</code>,
+other possible values are: <code>"semiparametric"</code> and <code>"nonparametric"</code>.</p></dd>
 
 
 <dt>B</dt>
@@ -89,7 +91,9 @@ respective standard error and variance estimation.</p>
 
 
 <dt>confType</dt>
-<dd><p>Type of confidence interval for bootstrap confidence interval, <code>"percentile"</code> by default. Other possibility: <code>"studentized"</code> and <code>"basic"</code>.</p></dd>
+<dd><p>Type of confidence interval for bootstrap confidence interval,
+<code>"percentile"</code> by default.
+Other possibility: <code>"studentized"</code> and <code>"basic"</code>.</p></dd>
 
 
 <dt>keepbootStat</dt>
@@ -97,11 +101,13 @@ respective standard error and variance estimation.</p>
 
 
 <dt>traceBootstrapSize</dt>
-<dd><p>Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.</p></dd>
+<dd><p>Boolean value indicating whether to print size of
+bootstrapped sample after truncation for semi- and fully parametric bootstraps.</p></dd>
 
 
 <dt>bootstrapVisualTrace</dt>
-<dd><p>Boolean value indicating whether to plot bootstrap statistics in real time.</p></dd>
+<dd><p>Boolean value indicating whether to plot bootstrap
+statistics in real time.</p></dd>
 
 
 <dt>fittingMethod</dt>
@@ -109,11 +115,13 @@ respective standard error and variance estimation.</p>
 
 
 <dt>bootstrapFitcontrol</dt>
-<dd><p>Control parameters for each regression works exactly like <code>controlMethod</code> but for fitting models from bootstrap samples.</p></dd>
+<dd><p>Control parameters for each regression works exactly
+like <code>controlMethod</code> but for fitting models from bootstrap samples.</p></dd>
 
 
 <dt>sd</dt>
-<dd><p>Indicates how to compute standard deviation of population size estimator either as:
+<dd><p>Indicates how to compute standard deviation of population
+size estimator either as:
 <script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script>
 
 \[\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\]
@@ -123,7 +131,8 @@ where the ration involving gamma functions is computed by loggamma function.</p>
 
 
 <dt>covType</dt>
-<dd><p>type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.</p></dd>
+<dd><p>type of covariance matrix for regression parameters by default
+observed information matrix, more options will be here in the future.</p></dd>
 
 </dl></div>
     <div class="section level2">

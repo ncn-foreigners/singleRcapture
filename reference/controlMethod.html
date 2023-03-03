@@ -12,7 +12,7 @@ for regression fitting in estimatePopsize.fit and estimatePopsize."><!-- mathjax
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,7 +80,7 @@ for regression fitting in <code>estimatePopsize.fit</code> and <code>estimatePop
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>epsilon</dt>
-<dd><p>Tolerance for fitting algorithms by default 1e-8.</p></dd>
+<dd><p>Tolerance for fitting algorithms by default <code>1e-8</code>.</p></dd>
 
 
 <dt>maxiter</dt>
@@ -99,12 +99,12 @@ for regression fitting in <code>estimatePopsize.fit</code> and <code>estimatePop
 
 <dt>printEveryN</dt>
 <dd><p>Integer value indicating how often to print information
-specified in <code>verbose</code>, my default set to <code>1</code>.</p></dd>
+specified in <code>verbose</code>, by default set to <code>1</code>.</p></dd>
 
 
 <dt>start</dt>
 <dd><p>initial parameters for regression associated with main formula
-specified in function call if NULL they will be derived from simple poisson regression.</p></dd>
+specified in function call if <code>NULL</code> they will be derived from simple poisson regression.</p></dd>
 
 
 <dt>alphaStart</dt>
@@ -121,7 +121,7 @@ specified in function call if NULL they will be derived from simple poisson regr
 
 <dt>optimMethod</dt>
 <dd><p>method of <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> used L-BFGS-B is the default
-except for negative binomial and one inflated models where Nelder-Mead is used.</p></dd>
+except for negative binomial and one inflated models where <code>"Nelder-Mead"</code> is used.</p></dd>
 
 
 <dt>silent</dt>
@@ -134,9 +134,10 @@ if FALSE then list of control parameters will be inferred from other parameters.
 
 
 <dt>stepsize</dt>
-<dd><p>Only for <code>IRLS</code>, scaling of stepsize lower value means slower
-convergence but more accuracy by default 1. In general if fitting algorithm fails
-lowering this value tends to be most effective at correcting it.</p></dd>
+<dd><p>Only for <code>IRLS</code>, scaling of updates to <code>beta</code> vector
+lower value means slower convergence but more accuracy by default 1.
+In general if fitting algorithm fails lowering this value tends to
+be most effective at correcting it.</p></dd>
 
 
 <dt>checkDiagWeights</dt>

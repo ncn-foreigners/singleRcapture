@@ -30,7 +30,7 @@ with value 1 if kth unit was observed at least once and 0 otherwise."><!-- mathj
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -185,12 +185,7 @@ dependent vector and model matrix as a part of output.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>Returns an object of classes <code>singleR</code></p>
-<p></p>
-<p><code>glm</code></p>
-<p></p>
-<p><code>lm</code> containing:<br></p>
-
+<p>Returns an object of class <code>c("singleR", "glm", "lm")</code> containing:<br></p>
 
 
 <ul><li><p><code>y</code> -- Vector of dependent variable if specified at function call.</p></li>
@@ -202,7 +197,7 @@ dependent vector and model matrix as a part of output.</p></dd>
 <li><p><code>model</code> -- Model which estimation of population size and regression was built, object of class family.</p></li>
 <li><p><code>deviance</code> -- Deviance for the model.</p></li>
 <li><p><code>priorWeights</code> -- Prior weight provided on call.</p></li>
-<li><p><code>weights</code> -- If <code>IRLS</code> method of estimation was chosen weights returned by <code>IRLS</code>, otherwise same as priorWeights.</p></li>
+<li><p><code>weights</code> -- If <code>IRLS</code> method of estimation was chosen weights returned by <code>IRLS</code>, otherwise same as <code>priorWeights</code>.</p></li>
 <li><p><code>residuals</code> -- Vector of raw residuals.</p></li>
 <li><p><code>logL</code> -- Logarithm likelihood obtained at final iteration.</p></li>
 <li><p><code>iter</code> -- Numbers of iterations performed in fitting or if <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code> was used number of call to loglikelihhod function.</p></li>
@@ -218,6 +213,7 @@ dependent vector and model matrix as a part of output.</p></dd>
 <li><p><code>contrasts</code> -- contrasts specified in function call.</p></li>
 <li><p><code>naAction</code> -- naAction used.</p></li>
 <li><p><code>which</code> -- list indicating which observations were used in regression/population size estimation.</p></li>
+<li><p><code>fittingLog</code> -- log of fitting information for <code>"IRLS"</code> fitting if specified in <code>controlMethod</code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -230,7 +226,8 @@ where <em></em>\(\boldsymbol{X}_{k}\) is a (lm) model matrix constructed
 from appropriate formula (specified in <code>controlModel</code> parameter).
 The <em></em>\(\boldsymbol{\eta}\) is then a vector constructed as:
 \[\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1}^{T} &amp; \boldsymbol{\eta}_{2}^{T} &amp; \dotso &amp; \boldsymbol{\eta}_{p}^{T}\end{pmatrix}^{T}\]
-and the (vlm) model matrix is constructed as a block matrix:
+and in cases of models in our package the (vlm) model matrix
+is constructed as a block matrix:
 \[\boldsymbol{X}_{vlm}=
 \begin{pmatrix}
 \boldsymbol{X}_{1} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{0}\cr
@@ -238,10 +235,13 @@ and the (vlm) model matrix is constructed as a block matrix:
 \vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
 \boldsymbol{0} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{X}_{p}
 \end{pmatrix}\]
-this differs from convention in <code>VGAM</code> package but this is just a
-convention and does not affect the model, this convention is taken
-because it makes fitting with IRLS (explanation of algorithm in
-<code><a href="estimatePopsize.fit.html">estimatePopsize.fit()</a></code>) algorithm easier.
+this differs from convention in <code>VGAM</code> package (if we only consider our
+special cases of vglm models) but this is just a convention and does not
+affect the model, this convention is taken because it makes fitting with
+IRLS (explanation of algorithm in <code><a href="estimatePopsize.fit.html">estimatePopsize.fit()</a></code>) algorithm easier.
+(If <code>constraints</code> matrixes in <code>vglm</code> match the ones we implicitly
+use the <code>vglm</code> model matrix differs with respect to order of
+<code>kronecker</code> multiplication of <code>X</code> and <code>constraints</code>.)
 In this package we use observed likelihood to fit regression models.</p>
 <p>As mentioned aboce usually the population size estimation is done via:
 \[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
@@ -356,7 +356,7 @@ either by assuming that it follows a normal distribution or that variable
 <em></em>\(\ln(N-\hat{N})\) follows a normal
 distribution. These estimates may be found using either <code>summary.singleR</code>
 method or <code>popSizeEst.singleR</code> function. They're labelled as
-<code>Studentized</code> and <code>Logtransform</code> respectively.</p>
+<code>normal</code> and <code>logNormal</code> respectively.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -426,56 +426,410 @@ between observed and fitted quantities.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Model from 2003 publication </span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Model from 2003 publication </span></span></span>
 <span class="r-in"><span><span class="co"># Point and interval estimation of the</span></span></span>
 <span class="r-in"><span><span class="co"># population size using the truncated Poisson regression mode</span></span></span>
 <span class="r-in"><span><span class="co"># Heijden, Peter GM van der et al. (2003)</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span>formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">nation</span>, </span></span>
-<span class="r-in"><span>data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>, model <span class="op">=</span> <span class="va">ztpoisson</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span></span></span>
+<span class="r-in"><span>   formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">nation</span>, </span></span>
+<span class="r-in"><span>   data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>, </span></span>
+<span class="r-in"><span>   model <span class="op">=</span> <span class="va">ztpoisson</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = capture ~ gender + age + nation, data = netherlandsimmigrant, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztpoisson)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.486442 -0.486442 -0.298080  0.002093 -0.209444 13.910844 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: lambda </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      Estimate Std. Error z value  P(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)           -1.3411     0.2149  -6.241 4.35e-10 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gendermale             0.3972     0.1630   2.436 0.014832 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age&gt;40yrs             -0.9746     0.4082  -2.387 0.016972 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationAsia            -1.0926     0.3016  -3.622 0.000292 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationNorth Africa     0.1900     0.1940   0.979 0.327398    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationRest of Africa  -0.9106     0.3008  -3.027 0.002468 ** </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationSurinam         -2.3364     1.0136  -2.305 0.021159 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationTurkey          -1.6754     0.6028  -2.779 0.005445 ** </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 1712.901</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 1757.213</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 1128.553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -848.4504 on 1872 Degrees of freedom </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of calls to log-likelihood function: 94</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Population size estimation results: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 12690.35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observed proportion: 14.8% (N obs = 1880)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Std. Error 2808.169</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the population size:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      7186.444   18194.26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   8431.275   19718.32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the share of observed population:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal     10.332928   26.16037</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   9.534281   22.29793</span>
 <span class="r-in"><span><span class="co"># Graphical presentation of model fit</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, <span class="st">"rootogram"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="estimatePopsize-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Statistical test</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># see documentation for summary.singleRmargin</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">1</span>, <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test for Goodness of fit of a regression model:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Test statistics df P(&gt;X^2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chi-squared test           50.06  1 1.5e-12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> G-test                     34.31  1 4.7e-09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------------------------------------------- </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Cells with fitted frequencies of &lt; 5 have been grouped </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names of cells used in calculating test(s) statistic: 1 2 3  </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">modelSingleRcapture</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span>formula <span class="op">=</span> <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>, </span></span>
-<span class="r-in"><span>data <span class="op">=</span> <span class="va">farmsubmission</span>, model <span class="op">=</span> <span class="va">ztnegbin</span>, method <span class="op">=</span> <span class="st">"IRLS"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                                       data <span class="op">=</span> <span class="va">farmsubmission</span>, </span></span>
+<span class="r-in"><span>                                       model <span class="op">=</span> <span class="va">ztnegbin</span>, </span></span>
+<span class="r-in"><span>                                       method <span class="op">=</span> <span class="st">"IRLS"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># comparison with VGAM package, VGAM uses slightly different parametrisation</span></span></span>
 <span class="r-in"><span><span class="co"># so we use negloglink instead of loglink for size parameter</span></span></span>
 <span class="r-in"><span><span class="co"># i.e 1 / dispersion parameter</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.auckland.ac.nz/~yee/VGAM/" class="external-link">VGAM</a></span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="va">modelVGAM</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/VGAM/man/vglm.html" class="external-link">vglm</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>, </span></span>
-<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/VGAM/man/posnegbinomial.html" class="external-link">posnegbinomial</a></span><span class="op">(</span>lsize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/VGAM/man/loglink.html" class="external-link">negloglink</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>  data <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">modelVGAM</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/VGAM/man/vglm.html" class="external-link">vglm</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>     formula <span class="op">=</span> <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>, </span></span>
+<span class="r-in"><span>     family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/VGAM/man/posnegbinomial.html" class="external-link">posnegbinomial</a></span><span class="op">(</span>lsize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/VGAM/man/loglink.html" class="external-link">negloglink</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>     data <span class="op">=</span> <span class="va">farmsubmission</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">modelVGAM</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: VGAM</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: stats4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: splines</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vglm(formula = TOTAL_SUB ~ ., family = posnegbinomial(lsize = negloglink()), </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data = farmsubmission)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               Estimate Std. Error z value Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept):1 -3.17076    0.26586 -11.926  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept):2  0.58194    0.07331   7.938 2.05e-15 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_size       0.63942    0.01750  36.535  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_distance  -0.07985    0.02271  -3.515 0.000439 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy    0.65965    0.03339  19.756  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names of linear predictors: loglink(munb), negloglink(size)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -17264.37 on 24067 degrees of freedom</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of Fisher scoring iterations: 8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No Hauck-Donner effect found in any of the estimates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># Results are comparable</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">modelSingleRcapture</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztnegbin, method = "IRLS")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.713383 -0.336369 -0.142528  0.000002  0.147598  7.014713 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: lambda </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  P(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -3.17075    0.25944 -12.221  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_size      0.63942    0.01771  36.108  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_distance -0.07985    0.02228  -3.583 0.000339 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy   0.65965    0.03412  19.332  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: alpha </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value  P(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.58193    0.07297   7.975 1.52e-15 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 34538.73</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 34575.71</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 16514.42</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -17264.37 on 24067 Degrees of freedom </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of iterations: 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Population size estimation results: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 41020.34</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observed proportion: 29.3% (N obs = 12036)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Std. Error 1887.714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the population size:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      37320.49   44720.19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   37550.34   44962.26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the share of observed population:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      26.91402   32.25038</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   26.76912   32.05297</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">modelSingleRcapture</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test for Goodness of fit of a regression model:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Test statistics df P(&gt;X^2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chi-squared test           30.91 26    0.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> G-test                     19.14 26    0.83</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------------------------------------------- </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Cells with fitted frequencies of &lt; 5 have been dropped </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names of cells used in calculating test(s) statistic: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># More advanced call that specifies additional formula and shows</span></span></span>
 <span class="r-in"><span><span class="co"># in depth information about fitting procedure</span></span></span>
-<span class="r-in"><span><span class="va">pseudoHurdleModel</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span>formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">gender</span>, </span></span>
-<span class="r-in"><span>data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>, model <span class="op">=</span> <span class="va">Hurdleztgeom</span>, </span></span>
-<span class="r-in"><span>method <span class="op">=</span> <span class="st">"IRLS"</span>, controlMethod <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>controlModel <span class="op">=</span> <span class="fu"><a href="controlModel.html">controlModel</a></span><span class="op">(</span>piFormula <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pseudoHurdleModel</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">age</span>,</span></span>
+<span class="r-in"><span>    data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span></span>
+<span class="r-in"><span>    model <span class="op">=</span> <span class="va">Hurdleztgeom</span>,</span></span>
+<span class="r-in"><span>    method <span class="op">=</span> <span class="st">"IRLS"</span>,</span></span>
+<span class="r-in"><span>    controlMethod <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    controlModel <span class="op">=</span> <span class="fu"><a href="controlModel.html">controlModel</a></span><span class="op">(</span>piFormula <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 1 log-likelihood: -884.52524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -0.185410445 -0.263880409  0.056306931 -0.231199930 -0.339016183 -0.327635519 -0.196135239  0.670848267 -0.288900531</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  129.2577</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -109.6131688  -27.3297089  -33.7540534  -21.6155174   -7.4027633  -10.1007372  -10.5519638   27.6542735   15.0062187</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.50748707</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 2 log-likelihood: -838.29471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -0.78894466 -0.49414892  0.12654544 -0.41936921 -0.67177153 -0.62118201 -0.36628038  0.21382239 -0.49833888</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  46.230532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   -9.2986457  -8.4448514  11.9660050  -5.4261467  -3.1887498  -3.5831268  -3.4007904 -15.7933504 -14.6132321</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.60353421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 3 log-likelihood: -827.3607</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -1.21931395 -0.63137590  0.16239443 -0.50905713 -1.00036608 -0.83501186 -0.49385975 -0.50199082 -0.52839008</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  10.934004</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4.530848334 -0.706818772  6.094992729  0.033497974 -0.920014881 -0.578730826 -0.448704228 -5.120996903 -4.375742516</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.71581321</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 4 log-likelihood: -827.02171</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -1.28115433 -0.65547993  0.16416111 -0.51727106 -1.18177463 -0.89567550 -0.52235421 -0.63935485 -0.52639483</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.33899271</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0798924040 -0.0146700645  0.1065046364  0.0063805055 -0.1495363455 -0.0225332569 -0.0157025920  0.0209555100  0.0109299318</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.18140855</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 5 log-likelihood: -827.01869</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -1.28171634 -0.65569704  0.16448478 -0.51702657 -1.21974330 -0.89780515 -0.52284164 -0.64023545 -0.52641227</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.003018031</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0079047559230 -0.0000943199988  0.0001645958923 -0.0000297997400 -0.0077602958183  0.0000021090011  0.0030065203454  0.0025910919142  0.0020212799526</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.037968669</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 6 log-likelihood: -827.01868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -1.28177894 -0.65568567  0.16449545 -0.51701624 -1.22185057 -0.89779665 -0.52264205 -0.64032940 -0.52640247</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000088199182</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0000833660078 -0.0000339029369  0.0000351898233  0.0000184580442 -0.0001780533740  0.0000048832952  0.0002239816838  0.0000077136953  0.0000060320685</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.002107269</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 7 log-likelihood: -827.01868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -1.28177963 -0.65568706  0.16449478 -0.51701663 -1.22190033 -0.89779718 -0.52262886 -0.64033169 -0.52640214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000000061005494</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.0000004043896435 -0.0000019897800376  0.0000008423328897  0.0000011366602957 -0.0000045718813156  0.0000002750068767  0.0000076532956870  0.0000000051263633  0.0000000041137567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.000049760582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Value of analytically computed hessian at fitted regression coefficients:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              [,1]       [,2]       [,3]       [,4]       [,5]       [,6]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1,] -600.810969 -45.353941 -437.80190 -46.358405 -3.5886060 -9.9838241</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [2,]  -45.353941 -45.353941    0.00000   0.000000  0.0000000  0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [3,] -437.801899   0.000000 -437.80190   0.000000  0.0000000  0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [4,]  -46.358405   0.000000    0.00000 -46.358405  0.0000000  0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [5,]   -3.588606   0.000000    0.00000   0.000000 -3.5886060  0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6,]   -9.983824   0.000000    0.00000   0.000000  0.0000000 -9.9838241</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7,]  -17.738645  -1.130751  -11.34144  -1.395262 -0.2874866 -0.4969714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8,]  328.022452  23.801162  241.35686  24.376925  1.8706743  5.1505623</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9,]  280.048800  20.260809  211.90055  19.741967  1.4621314  4.6637716</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              [,7]        [,8]        [,9]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1,] -17.7386453  328.022452  280.048800</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [2,]  -1.1307513   23.801162   20.260809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [3,] -11.3414411  241.356857  211.900547</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [4,]  -1.3952616   24.376925   19.741967</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [5,]  -0.2874866    1.870674    1.462131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6,]  -0.4969714    5.150562    4.663772</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7,] -17.7386453    9.477659    8.492251</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8,]   9.4776585 -197.098079 -168.419176</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9,]   8.4922514 -168.419176 -168.419176</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The matrix above has the following eigen values:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -3.276146 -6.94172 -9.334715 -16.36556 -17.94965 -34.01221 -45.88974 -112.7184 -1280.665 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">pseudoHurdleModel</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># very good fit may be a little over fitted</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = capture ~ nation + age, data = netherlandsimmigrant, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     model = Hurdleztgeom, method = "IRLS", controlMethod = controlMethod(verbose = 5), </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     controlModel = controlModel(piFormula = ~gender))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.428461 -0.428461 -0.288574  0.004918 -0.181672 13.696148 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: lambda </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      Estimate Std. Error z value  P(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)           -1.2818     0.1855  -6.909 4.86e-12 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationAsia            -0.6557     0.1993  -3.289  0.00100 ** </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationNorth Africa     0.1645     0.1416   1.162  0.24542    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationRest of Africa  -0.5170     0.1978  -2.614  0.00894 ** </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationSurinam         -1.2219     0.5442  -2.245  0.02475 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nationTurkey          -0.8978     0.3436  -2.613  0.00897 ** </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age&gt;40yrs             -0.5226     0.2415  -2.164  0.03045 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: pi </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value P(&gt;|z|)   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -0.6403     0.2942  -2.177 0.02950 * </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gendermale   -0.5264     0.2043  -2.577 0.00996 **</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 1672.037</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 1721.889</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 1492.301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -827.0187 on 3751 Degrees of freedom </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of iterations: 7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Population size estimation results: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 6446.833</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observed proportion: 29.2% (N obs = 1880)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Std. Error 544.5787</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the population size:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      5379.479   7514.188</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   5498.016   7644.476</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the share of observed population:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      25.01934   34.94763</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   24.59292   34.19415</span>
+<span class="r-in"><span><span class="co"># Assessing model fit</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pseudoHurdleModel</span>, <span class="st">"rootogram"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">pseudoHurdleModel</span><span class="op">)</span>, dropl5 <span class="op">=</span> <span class="st">"group"</span>, <span class="co"># Group cells </span></span></span>
-<span class="r-in"><span><span class="co"># with low frequencies instead of dropping them.</span></span></span>
-<span class="r-in"><span>df <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="estimatePopsize-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">pseudoHurdleModel</span><span class="op">)</span>, <span class="st">"group"</span>, df <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test for Goodness of fit of a regression model:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Test statistics df P(&gt;X^2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chi-squared test            1.89  1    0.17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> G-test                      2.13  1    0.14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------------------------------------------- </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Cells with fitted frequencies of &lt; 5 have been grouped </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names of cells used in calculating test(s) statistic: 1 2 3 4  </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A advanced input with additional information for fitting procedure and</span></span></span>
 <span class="r-in"><span><span class="co"># additional formula specification.</span></span></span>
-<span class="r-in"><span><span class="va">Model</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span>formula <span class="op">=</span> <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">farmsubmission</span>, </span></span>
-<span class="r-in"><span>model <span class="op">=</span> <span class="va">oiztgeom</span>, method <span class="op">=</span> <span class="st">"IRLS"</span>, controlMethod <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>verbose <span class="op">=</span> <span class="fl">5</span>, stepsize <span class="op">=</span> <span class="fl">.2</span>, momentumFactor <span class="op">=</span> <span class="fl">1.1</span>, epsilon <span class="op">=</span> <span class="fl">1e-12</span>, </span></span>
-<span class="r-in"><span>silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, controlModel <span class="op">=</span> <span class="fu"><a href="controlModel.html">controlModel</a></span><span class="op">(</span>omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Model</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize</span><span class="op">(</span></span></span>
+<span class="r-in"><span>   formula <span class="op">=</span> <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">farmsubmission</span>, </span></span>
+<span class="r-in"><span>   model <span class="op">=</span> <span class="va">oiztgeom</span>, </span></span>
+<span class="r-in"><span>   method <span class="op">=</span> <span class="st">"IRLS"</span>, </span></span>
+<span class="r-in"><span>   controlMethod <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>stepsize <span class="op">=</span> <span class="fl">.05</span>, </span></span>
+<span class="r-in"><span>                                 momentumFactor <span class="op">=</span> <span class="fl">1.1</span>, </span></span>
+<span class="r-in"><span>                                 epsilon <span class="op">=</span> <span class="fl">1e-12</span>, </span></span>
+<span class="r-in"><span>                                 silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>   controlModel <span class="op">=</span> <span class="fu"><a href="controlModel.html">controlModel</a></span><span class="op">(</span>omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">Model</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">18</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">Model</span><span class="op">$</span><span class="va">coefficients</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test for Goodness of fit of a regression model:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Test statistics df P(&gt;X^2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chi-squared test           55.23  9 1.1e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> G-test                     23.68  9 4.8e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------------------------------------------- </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Cells with fitted frequencies of &lt; 5 have been dropped </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names of cells used in calculating test(s) statistic: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 </span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">Model</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     model = oiztgeom, method = "IRLS", controlMethod = controlMethod(stepsize = 0.05, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         momentumFactor = 1.1, epsilon = 1e-12, silent = TRUE), </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     controlModel = controlModel(omegaFormula = ~.))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.899741 -0.644342 -0.443351  0.005511  0.294785 20.721657 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: lambda </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value P(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -2.87524    0.26226 -10.963 &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_size      0.63041    0.01929  32.683 &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_distance -0.06276    0.02232  -2.812 0.00492 ** </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy   0.50371    0.04280  11.768 &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: omega </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value P(&gt;|z|)   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)   -7.2829     2.9418  -2.476 0.01330 * </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_size       0.5018     0.1604   3.129 0.00176 **</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_distance   0.1824     0.2397   0.761 0.44674   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy   -1.5773     0.6442  -2.448 0.01435 * </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 34581.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 34640.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 12326.66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -17282.67 on 24064 Degrees of freedom </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of iterations: 405</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Population size estimation results: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 27324.68</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observed proportion: 44% (N obs = 12036)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Std. Error 976.6463</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the population size:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      25410.49   29238.87</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   25527.19   29361.66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the share of observed population:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      41.16438   47.36627</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   40.99224   47.14972</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

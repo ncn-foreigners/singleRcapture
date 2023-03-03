@@ -12,7 +12,7 @@ elementrs of projection matrix."><!-- mathjax --><script src="https://cdnjs.clou
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,28 +78,28 @@ in the data and k is number of regression parameters.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Since <code>singleRcapture</code> contains not only regular glm's but also
+    <p>Since <code>singleRcapture</code> supports not only regular glm's but also
 vglm's the hatvalues returns a matrix with number of columns corresponding to
 number of linear predictors in a model, where kth column corresponds
 to elements of the diagonal of projection matrix associated with kth linear
 predictor. For glm's
 \[\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}\]
 where <em></em>\(\boldsymbol{W}=\mathbb{E}\left(\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}\partial\boldsymbol{\eta}}\right)\right)\) and <em></em>\(\boldsymbol{X}\) is a model (lm) matrix.
-For vglm's it is instead :
+For vglm's present in the package it is instead :
 \[\boldsymbol{X}_{vlm}\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\]
 where
 \[
 \boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}) &amp;
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}) &amp;
-\dotso &amp; \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}})\cr
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}) &amp;
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}) &amp;
-\dotso &amp; \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}})\cr
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &amp;
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &amp;
+\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &amp;
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &amp;
+\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
 \vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}) &amp;
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}) &amp;
-\dotso &amp; \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}})
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &amp;
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &amp;
+\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
 \end{bmatrix}\right)\]
 is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
