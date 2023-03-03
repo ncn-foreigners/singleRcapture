@@ -79,7 +79,7 @@ to obtain \mjeqn{\boldsymbol{\beta}}{beta} as:
 \mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}
 \item Assign:
 \itemize{
-\item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} < \ell_{-}\cdot\varepsilon}{l(beta)-l_-<l_- * epsilon} \code{or}
+\item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} < \ell_{-}\varepsilon}{l(beta)-l_-<l_- * epsilon} \code{or}
 \mjeqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}{||beta - beta_-||_inf< epsilon}
 \item\code{iter <- iter + 1}
 }
@@ -88,57 +88,37 @@ where \mjeqn{\varepsilon}{epsilon} is the relative tolerance level, by default \
 \item Return \mjeqn{\boldsymbol{\beta}, \boldsymbol{W}}{beta, W}, \code{iter}.
 }
 
-In this package we use different conventions for \mjeqn{\boldsymbol{X}_vlm}{X_vlm}
+In this package we use different conventions for \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm}
 matrix hence slight differences are present in algorithm description but
 results are identical.
 }
 \examples{
-
-# Set seed for reproducibility
-set.seed(123)
-
-# Set population size and 'true' regression coefficients
-N <- 7562
-beta1 <- c(1, .2, -.95, -3)
-beta2 <- c(2, 0, -.01, .3)
-
-# Generate covariates
-x1 <- rpois(n = N, lambda = 1.85)
-x2 <- rnorm(n = N)
-x3 <- rbinom(n = N, size = 1, prob = runif(n = 1))
-
-# Compute linear predictors
-eta1 <- cbind(1, x1, x2, x3) \%*\% beta1
-eta2 <- cbind(1, x1, x2, x3) \%*\% beta2
-
-# generate dependent variable
-y <- ztoipoisson()$simulate(n = N, eta = cbind(eta1, eta2))
-# optionally visualise destribution on y with barplot
-# barplot(table(y))
-# truncate data
-x1 <- x1[y>0]
-x2 <- x2[y>0]
-x3 <- x3[y>0]
-y <- y[y>0]
+# Get data
+summary(farmsubmission)
 
 # construct vglm model matrix
-X <- matrix(data = 0, nrow = 2 * length(y), ncol = 8)
-X[1:length(y), 1:4] <- model.matrix(~ 1 + x1 + x2 + x3)
-X[-(1:length(y)), 5:8] <- X[1:length(y), 1:4]
-# this arrtibute tells the function which elements of the design matrix 
+X <- matrix(data = 0, nrow = 2 * NROW(farmsubmission), ncol = 7)
+X[1:NROW(farmsubmission), 1:4] <- model.matrix(~ 1 + log_size + log_distance + C_TYPE, 
+                                               farmsubmission)
+X[-(1:NROW(farmsubmission)), 5:7] <- X[1:NROW(farmsubmission), c(1, 3, 4)]
+# this atrrtibute tells the function which elements of the design matrix 
 # correspond to which linear predictor 
-attr(X, "hwm") <- c(4, 4)
+attr(X, "hwm") <- c(4, 3)
 
-# finally call the function
-beta <- c(beta1, beta2)
+# get starting points
+start <- glm.fit(y = farmsubmission$TOTAL_SUB, 
+                 x = X[1:NROW(farmsubmission), 1:4], 
+                 family = poisson())$coefficients
+start <- c(start, start)[-6]
 
+# call function
 res <- estimatePopsize.fit(
-  y = y, X = X, 
+  y = farmsubmission$TOTAL_SUB, X = X, 
   method = "IRLS", 
   priorWeights = 1, 
-  family = ztoipoisson(), 
-  control = controlMethod(verbose = 5), 
-  start = beta + rnorm(n = length(beta), sd = .1)
+  family = ztnegbin(), 
+  control = controlMethod(verbose = 5, stepsize = .75), 
+  start = start
 )
 
 # extract results
@@ -146,8 +126,10 @@ res <- estimatePopsize.fit(
 # regression coefficient vector
 res$beta
 
-# compare with actual true coeffictient vector
-beta
+# check likelihood
+ll <- ztnegbin()$makeMinusLogLike(y = farmsubmission$TOTAL_SUB, X = X)
+
+-ll(res$beta)
 
 # number of iterations
 res$iter
@@ -155,30 +137,30 @@ res$iter
 # working weights
 head(res$weights)
 
-# call with another method
+# Compare with optim call
 
-res <- estimatePopsize.fit(
-  y = y, X = X, 
+res2 <- estimatePopsize.fit(
+  y = farmsubmission$TOTAL_SUB, X = X, 
   method = "optim", 
   priorWeights = 1, 
-  family = ztoipoisson(), 
-  start = beta + rnorm(n = length(beta), sd = .1), 
+  family = ztnegbin(), 
+  start = start, 
   control = controlMethod()
 )
 # extract results
 
 # regression coefficient vector
-res$beta
+res2$beta
 
-# compare with actual true coeffictient vector
-beta
+
+# check likelihood
+-ll(res2$beta)
 
 # number of iterations
-res$iter
+res2$iter
 
 # optim does not calculated working weights
-head(res$weights)
-
+head(res2$weights)
 }
 \references{
 Yee, T. W. (2015). Vector Generalized Linear and Additive Models:

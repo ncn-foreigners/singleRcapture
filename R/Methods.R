@@ -153,22 +153,24 @@ summary.singleR <- function(object,
 #' point estimate of population size estimation on full data set and 
 #' point estimate of population size estimation after the removal of k'th
 #' unit from the data set.
-#' @examples 
-#' \dontrun{
+#' @examples
 #' # For singleR class
 #' # Get simple model
-#' Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
-#' data = netherlandsimmigrant, 
-#' model = ztpoisson, 
-#' method = "IRLS")
+#' Model <- estimatePopsize(
+#'   formula = capture ~ nation + age + gender, 
+#'   data = netherlandsimmigrant, 
+#'   model = ztpoisson, 
+#'   method = "IRLS"
+#' )
 #' # Get df beta
 #' dfb <- dfbeta(Model)
 #' # The results
-#' dfpopsize(Model, dfbeta = dfb)
+#' res <- dfpopsize(Model, dfbeta = dfb)
+#' summary(res)
+#' plot(res)
 #' # It is also possible to not provide dfbeta then they will be
 #' # computed manually
 #' dfpopsize(Model)
-#' }
 #' @export
 dfpopsize <- function(model, ...) {
   UseMethod("dfpopsize")
@@ -422,28 +424,28 @@ vcov.singleR <- function(object,
 #' @param ... Currently does nothing.
 #' 
 #' \loadmathjax
-#' @details Since \code{singleRcapture} contains not only regular glm's but also
+#' @details Since \code{singleRcapture} supports not only regular glm's but also
 #' vglm's the hatvalues returns a matrix with number of columns corresponding to
 #' number of linear predictors in a model, where kth column corresponds
 #' to elements of the diagonal of projection matrix associated with kth linear 
 #' predictor. For glm's  
 #' \mjdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}{sqrt(W)X(X'WX)^-1X'sqrt(W)}
 #' where \mjeqn{\boldsymbol{W}=\mathbb{E}\left(\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}\partial\boldsymbol{\eta}}\right)\right)}{W = E(diag(d^2.ln(L)/d.eta^2))} and \mjeqn{\boldsymbol{X}}{X} is a model (lm) matrix. 
-#' For vglm's it is instead :
+#' For vglm's present in the package it is instead :
 #' \mjdeqn{\boldsymbol{X}_{vlm}\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}{X_vlm(X_vlm'WX_vlm)^-1X_vlm'W}
 #' where 
 #' \mjdeqn{
 #' \boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
-#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}) &
-#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}) &
-#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}})\cr
-#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}) &
-#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}) &
-#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}})\cr
+#' \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &
+#' \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &
+#' \dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
+#' \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &
+#' \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &
+#' \dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
 #' \vdots & \vdots & \ddots & \vdots\cr
-#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}) &
-#' \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}) &
-#' \dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}})
+#' \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &
+#' \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &
+#' \dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
 #' \end{bmatrix}\right)}{W = E(matrix(
 #' diag(d^2.ln(L)/d.eta_1^2), diag(d^2.ln(L)/d.eta_1 d.eta_2), ..., diag(d^2.ln(L)/d.eta_1 d.eta_p)
 #' diag(d^2.ln(L)/d.eta_2 d.eta_1), diag(d^2.ln(L)/d.eta_2^2), ..., diag(d^2.ln(L)/d.eta_2 d.eta_p)

@@ -22,10 +22,11 @@ Extracting bread matrix for singleR class
 }
 \examples{
 Model <- estimatePopsize(
-formula = capture ~ ., 
-data = netherlandsimmigrant, 
-model = ztpoisson, 
-method = "IRLS")
+  formula = capture ~ ., 
+  data = netherlandsimmigrant, 
+  model = ztpoisson, 
+  method = "IRLS"
+)
 sandwich::bread(Model)
 vcov(Model)
 # This function just scales.

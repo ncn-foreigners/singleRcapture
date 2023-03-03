@@ -17,8 +17,13 @@
 #' counts <- rpois(N, lambda = exp(eta))
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "optim", popVar = "analytic")
+#' mod1 <-  estimatePopsize(
+#'   formula = counts ~ 1 + gender, 
+#'   data = df2, 
+#'   model = "ztpoisson", 
+#'   method = "optim", 
+#'   popVar = "analytic"
+#' )
 #' mod1_sims <- sandwich::estfun(mod1)
 #' head(mod1_sims) 
 #' @importFrom sandwich estfun
@@ -51,10 +56,11 @@ estfun.singleR <- function(object,...) {
 #' @seealso [sandwich::bread()] [singleRcapture::controlPopVar()]
 #' @examples 
 #' Model <- estimatePopsize(
-#' formula = capture ~ ., 
-#' data = netherlandsimmigrant, 
-#' model = ztpoisson, 
-#' method = "IRLS")
+#'   formula = capture ~ ., 
+#'   data = netherlandsimmigrant, 
+#'   model = ztpoisson, 
+#'   method = "IRLS"
+#' )
 #' sandwich::bread(Model)
 #' vcov(Model)
 #' # This function just scales.
@@ -98,8 +104,13 @@ bread.singleR <- function(object,...) {
 #' counts <- rpois(N, lambda = exp(eta))
 #' df <- data.frame(gender, eta, counts)
 #' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, data = df2, 
-#' model = "ztpoisson", method = "optim", popVar = "analytic")
+#' mod1 <-  estimatePopsize(
+#'   formula = counts ~ 1 + gender, 
+#'   data = df2, 
+#'   model = "ztpoisson", 
+#'   method = "optim", 
+#'   popVar = "analytic"
+#' )
 #' require(sandwich)
 #' HC <- sandwich::vcovHC(mod1, type = "HC4")
 #' Fisher <- vcov(mod1, "Fisher") # variance covariance matrix obtained from 
