@@ -22,28 +22,28 @@ A method for \code{singleR} class for extracting diagonal
 elementrs of projection matrix.
 }
 \details{
-Since \code{singleRcapture} contains not only regular glm's but also
+Since \code{singleRcapture} supports not only regular glm's but also
 vglm's the hatvalues returns a matrix with number of columns corresponding to
 number of linear predictors in a model, where kth column corresponds
 to elements of the diagonal of projection matrix associated with kth linear
 predictor. For glm's
 \mjdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}{sqrt(W)X(X'WX)^-1X'sqrt(W)}
 where \mjeqn{\boldsymbol{W}=\mathbb{E}\left(\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}\partial\boldsymbol{\eta}}\right)\right)}{W = E(diag(d^2.ln(L)/d.eta^2))} and \mjeqn{\boldsymbol{X}}{X} is a model (lm) matrix.
-For vglm's it is instead :
+For vglm's present in the package it is instead :
 \mjdeqn{\boldsymbol{X}_{vlm}\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}{X_vlm(X_vlm'WX_vlm)^-1X_vlm'W}
 where
 \mjdeqn{
 \boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}) &
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}) &
-\dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}})\cr
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}) &
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}) &
-\dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}})\cr
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &
+\dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &
+\dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
 \vdots & \vdots & \ddots & \vdots\cr
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}) &
-\text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}) &
-\dotso & \text{Diag}(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}})
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &
+\dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
 \end{bmatrix}\right)}{W = E(matrix(
 diag(d^2.ln(L)/d.eta_1^2), diag(d^2.ln(L)/d.eta_1 d.eta_2), ..., diag(d^2.ln(L)/d.eta_1 d.eta_p)
 diag(d^2.ln(L)/d.eta_2 d.eta_1), diag(d^2.ln(L)/d.eta_2^2), ..., diag(d^2.ln(L)/d.eta_2 d.eta_p)

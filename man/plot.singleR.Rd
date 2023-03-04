@@ -90,7 +90,7 @@ Currently supported values are \code{"normal"} and \code{"logNormal"}.}
 \itemize{
 \item \code{hatvalues.singleR}
 \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
-},
+}
 \item For \code{plotType = "strata"}
 \itemize{
 \item \code{stratifyPopsize.singleR}

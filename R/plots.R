@@ -77,7 +77,7 @@
 #'   \itemize{
 #'   \item \code{hatvalues.singleR}
 #'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
-#'   },
+#'   }
 #'   \item For \code{plotType = "strata"}
 #'   \itemize{
 #'   \item \code{stratifyPopsize.singleR}

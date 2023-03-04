@@ -197,8 +197,8 @@
 #' \item \code{mu.eta, variance} -- Functions of linear predictors that
 #' return expected value and variance. There is a \code{type} argument with
 #' 2 possible values \code{"trunc"} and \code{"nontrunc"} that specifies whether
-#' to return \mjeqn{\mathbb{E}(Y|Y>0), \text{var}(Y|Y>0}{E(Y|Y>0), var(Y|Y>0)} 
-#' or \mjeqn{\mathbb{E}Y, \text{var}(Y)}{E(Y), var(Y)} respectively.
+#' to return \mjeqn{\mathbb{E}(Y|Y>0), \text{var}(Y|Y>0)}{E(Y|Y>0), var(Y|Y>0)} 
+#' or \mjeqn{\mathbb{E}(Y), \text{var}(Y)}{E(Y), var(Y)} respectively.
 #' \item \code{link, family} -- Character specifying link functions used for the 
 #' model and the internally used name of the model.
 #' \item \code{valideta, validmu} -- For now only returns true. In near future 
@@ -213,7 +213,7 @@
 #' \item \code{pointEst, popVar} -- Functions that given prior weights
 #' linear predictors and in the later case also estimation of 
 #' \mjeqn{\text{cov}(\hat{\boldsymbol{\beta}})}{cov(beta)}
-#' and \mjeqn{\boldsymbol{X_vlm}}{X_vlm} matrix return point estimate 
+#' and \mjeqn{\boldsymbol{X_{vlm}}}{X_vlm} matrix return point estimate 
 #' for population size and analytic estimation of its variance.
 #' There is a additional boolean parameter \code{contr} in the former
 #' function that if set to true returns contribution of each unit.

@@ -11,3 +11,4 @@
 ^README\.Rmd$
 ^.DS_Store
 ^\.github$
+^codecov\.yml$

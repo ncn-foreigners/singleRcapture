@@ -38,19 +38,21 @@ unit from the data set.
 \code{dfpopsize} does for population size estimation.
 }
 \examples{
-\dontrun{
 # For singleR class
 # Get simple model
-Model <- estimatePopsize(formula = capture ~ nation + age + gender, 
-data = netherlandsimmigrant, 
-model = ztpoisson, 
-method = "IRLS")
+Model <- estimatePopsize(
+  formula = capture ~ nation + age + gender, 
+  data = netherlandsimmigrant, 
+  model = ztpoisson, 
+  method = "IRLS"
+)
 # Get df beta
 dfb <- dfbeta(Model)
 # The results
-dfpopsize(Model, dfbeta = dfb)
+res <- dfpopsize(Model, dfbeta = dfb)
+summary(res)
+plot(res)
 # It is also possible to not provide dfbeta then they will be
 # computed manually
 dfpopsize(Model)
-}
 }

@@ -27,7 +27,7 @@ controlMethod(
 )
 }
 \arguments{
-\item{epsilon}{Tolerance for fitting algorithms by default 1e-8.}
+\item{epsilon}{Tolerance for fitting algorithms by default \code{1e-8}.}
 
 \item{maxiter}{Maximum number of iterations.}
 
@@ -43,10 +43,10 @@ controlMethod(
 if \code{optim} method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
 
 \item{printEveryN}{Integer value indicating how often to print information
-specified in \code{verbose}, my default set to \code{1}.}
+specified in \code{verbose}, by default set to \code{1}.}
 
 \item{start}{initial parameters for regression associated with main formula
-specified in function call if NULL they will be derived from simple poisson regression.}
+specified in function call if \code{NULL} they will be derived from simple poisson regression.}
 
 \item{alphaStart}{initial parameters for dispersion parameter if applies.}
 
@@ -55,16 +55,17 @@ specified in function call if NULL they will be derived from simple poisson regr
 \item{piStart}{initial parameters for probability parameter if applies.}
 
 \item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default
-except for negative binomial and one inflated models where Nelder-Mead is used.}
+except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.}
 
 \item{silent}{Logical, indicating whether warnings in \code{IRLS} method should be suppressed.}
 
 \item{optimPass}{Optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 if FALSE then list of control parameters will be inferred from other parameters.}
 
-\item{stepsize}{Only for \code{IRLS}, scaling of stepsize lower value means slower
-convergence but more accuracy by default 1. In general if fitting algorithm fails
-lowering this value tends to be most effective at correcting it.}
+\item{stepsize}{Only for \code{IRLS}, scaling of updates to \code{beta} vector
+lower value means slower convergence but more accuracy by default 1.
+In general if fitting algorithm fails lowering this value tends to
+be most effective at correcting it.}
 
 \item{checkDiagWeights}{Logical value indicating whether to check if diagonal
 elements of working weights matrixes in \code{IRLS} are sufficiently positive

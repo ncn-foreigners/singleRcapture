@@ -77,8 +77,7 @@ dependent vector and model matrix as a part of output.}
 }}
 }
 \value{
-Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
-
+Returns an object of class \code{c("singleR", "glm", "lm")} containing:\cr
 \itemize{
 \item{\code{y} -- Vector of dependent variable if specified at function call.}
 \item{\code{X} -- Model matrix if specified at function call.}
@@ -89,7 +88,7 @@ Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 \item{\code{model} -- Model which estimation of population size and regression was built, object of class family.}
 \item{\code{deviance} -- Deviance for the model.}
 \item{\code{priorWeights} -- Prior weight provided on call.}
-\item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as priorWeights.}
+\item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as \code{priorWeights}.}
 \item{\code{residuals} -- Vector of raw residuals.}
 \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
 \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
@@ -105,6 +104,7 @@ Returns an object of classes \code{singleR} \code{glm} \code{lm} containing:\cr
 \item{\code{contrasts} -- contrasts specified in function call.}
 \item{\code{naAction} -- naAction used.}
 \item{\code{which} -- list indicating which observations were used in regression/population size estimation.}
+\item{\code{fittingLog} -- log of fitting information for \code{"IRLS"} fitting if specified in \code{controlMethod}.}
 }
 }
 \description{
@@ -131,7 +131,8 @@ where \mjeqn{\boldsymbol{X}_{k}}{X_k} is a (lm) model matrix constructed
 from appropriate formula (specified in \code{controlModel} parameter).
 The \mjeqn{\boldsymbol{\eta}}{eta} is then a vector constructed as:
 \mjdeqn{\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1}^{T} & \boldsymbol{\eta}_{2}^{T} & \dotso & \boldsymbol{\eta}_{p}^{T}\end{pmatrix}^{T}}{eta = (eta_1', eta_2', ..., eta_p')'}
-and the (vlm) model matrix is constructed as a block matrix:
+and in cases of models in our package the (vlm) model matrix
+is constructed as a block matrix:
 \mjdeqn{\boldsymbol{X}_{vlm}=
 \begin{pmatrix}
 \boldsymbol{X}_{1} & \boldsymbol{0} &\dotso &\boldsymbol{0}\cr
@@ -143,10 +144,13 @@ X_1, 0, ..., 0
 0, X_2, ..., 0
 ...........
 0, 0, ..., X_p)}
-this differs from convention in \code{VGAM} package but this is just a
-convention and does not affect the model, this convention is taken
-because it makes fitting with IRLS (explanation of algorithm in
-\code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}}) algorithm easier.
+this differs from convention in \code{VGAM} package (if we only consider our
+special cases of vglm models) but this is just a convention and does not
+affect the model, this convention is taken because it makes fitting with
+IRLS (explanation of algorithm in \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}}) algorithm easier.
+(If \code{constraints} matrixes in \code{vglm} match the ones we implicitly
+use the \code{vglm} model matrix differs with respect to order of
+\code{kronecker} multiplication of \code{X} and \code{constraints}.)
 In this package we use observed likelihood to fit regression models.
 
 As mentioned aboce usually the population size estimation is done via:
@@ -290,31 +294,38 @@ either by assuming that it follows a normal distribution or that variable
 \mjeqn{\ln(N-\hat{N})}{log_e(N_true - N_estimate)} follows a normal
 distribution. These estimates may be found using either \code{summary.singleR}
 method or \code{popSizeEst.singleR} function. They're labelled as
-\code{Studentized} and \code{Logtransform} respectively.
+\code{normal} and \code{logNormal} respectively.
 }
 \examples{
-\dontrun{
 # Model from 2003 publication 
 # Point and interval estimation of the
 # population size using the truncated Poisson regression mode
 # Heijden, Peter GM van der et al. (2003)
-model <- estimatePopsize(formula = capture ~ gender + age + nation, 
-data = netherlandsimmigrant, model = ztpoisson)
+model <- estimatePopsize(
+   formula = capture ~ gender + age + nation, 
+   data = netherlandsimmigrant, 
+   model = ztpoisson
+)
 summary(model)
 # Graphical presentation of model fit
 plot(model, "rootogram")
 # Statistical test
-summary(marginalFreq(model), df = 1)
+# see documentation for summary.singleRmargin
+summary(marginalFreq(model), df = 1, "group")
 
 modelSingleRcapture <- estimatePopsize(formula = TOTAL_SUB ~ ., 
-data = farmsubmission, model = ztnegbin, method = "IRLS")
+                                       data = farmsubmission, 
+                                       model = ztnegbin, 
+                                       method = "IRLS")
 # comparison with VGAM package, VGAM uses slightly different parametrisation
 # so we use negloglink instead of loglink for size parameter
 # i.e 1 / dispersion parameter
 if (require(VGAM)) {
-  modelVGAM <- vglm(formula = TOTAL_SUB ~ ., 
-  family = posnegbinomial(lsize = negloglink()), 
-  data = farmsubmission)
+  modelVGAM <- vglm(
+     formula = TOTAL_SUB ~ ., 
+     family = posnegbinomial(lsize = negloglink()), 
+     data = farmsubmission
+  )
   summary(modelVGAM)
 }
 # Results are comparable
@@ -323,26 +334,34 @@ summary(marginalFreq(modelSingleRcapture))
 
 # More advanced call that specifies additional formula and shows
 # in depth information about fitting procedure
-pseudoHurdleModel <- estimatePopsize(formula = capture ~ nation + age + gender, 
-data = netherlandsimmigrant, model = Hurdleztgeom, 
-method = "IRLS", controlMethod = controlMethod(verbose = 5), 
-controlModel = controlModel(piFormula = ~ gender))
+pseudoHurdleModel <- estimatePopsize(
+    formula = capture ~ nation + age,
+    data = netherlandsimmigrant,
+    model = Hurdleztgeom,
+    method = "IRLS",
+    controlMethod = controlMethod(verbose = 5),
+    controlModel = controlModel(piFormula = ~ gender)
+)
 summary(pseudoHurdleModel)
-# very good fit may be a little over fitted
+# Assessing model fit
 plot(pseudoHurdleModel, "rootogram")
-summary(marginalFreq(pseudoHurdleModel), dropl5 = "group", # Group cells 
-# with low frequencies instead of dropping them.
-df = 1)
+summary(marginalFreq(pseudoHurdleModel), "group", df = 1)
 
 
 # A advanced input with additional information for fitting procedure and
 # additional formula specification.
-Model <- estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, 
-model = oiztgeom, method = "IRLS", controlMethod = controlMethod(
-verbose = 5, stepsize = .2, momentumFactor = 1.1, epsilon = 1e-12, 
-silent = TRUE), controlModel = controlModel(omegaFormula = ~ .))
+Model <- estimatePopsize(
+   formula = TOTAL_SUB ~ ., data = farmsubmission, 
+   model = oiztgeom, 
+   method = "IRLS", 
+   controlMethod = controlMethod(stepsize = .05, 
+                                 momentumFactor = 1.1, 
+                                 epsilon = 1e-12, 
+                                 silent = TRUE),
+   controlModel = controlModel(omegaFormula = ~ .)
+)
 summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
-}
+summary(Model)
 }
 \references{
 General single source capture recapture literature:

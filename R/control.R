@@ -4,7 +4,7 @@
 #' @description \code{controlMethod} constructs a list with all necessary control parameters
 #' for regression fitting in \code{estimatePopsize.fit} and \code{estimatePopsize}.
 #'
-#' @param epsilon Tolerance for fitting algorithms by default 1e-8.
+#' @param epsilon Tolerance for fitting algorithms by default \code{1e-8}.
 #' @param maxiter Maximum number of iterations.
 #' @param verbose Value indicating whether to trace steps of fitting algorithm for 
 #' \code{IRLS} fitting method different values of verbose give the following information:
@@ -17,9 +17,9 @@
 #' }
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
 #' @param printEveryN Integer value indicating how often to print information
-#' specified in \code{verbose}, my default set to \code{1}.
+#' specified in \code{verbose}, by default set to \code{1}.
 #' @param start initial parameters for regression associated with main formula 
-#' specified in function call if NULL they will be derived from simple poisson regression.
+#' specified in function call if \code{NULL} they will be derived from simple poisson regression.
 #' @param alphaStart initial parameters for dispersion parameter if applies.
 #' @param omegaStart initial parameters for inflation parameter if applies.
 #' @param piStart initial parameters for probability parameter if applies.
@@ -27,10 +27,11 @@
 #' @param optimPass Optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 #' if FALSE then list of control parameters will be inferred from other parameters.
 #' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default 
-#' except for negative binomial and one inflated models where Nelder-Mead is used.
-#' @param stepsize Only for \code{IRLS}, scaling of stepsize lower value means slower 
-#' convergence but more accuracy by default 1. In general if fitting algorithm fails 
-#' lowering this value tends to be most effective at correcting it.
+#' except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.
+#' @param stepsize Only for \code{IRLS}, scaling of updates to \code{beta} vector 
+#' lower value means slower convergence but more accuracy by default 1. 
+#' In general if fitting algorithm fails lowering this value tends to 
+#' be most effective at correcting it.
 #' @param checkDiagWeights Logical value indicating whether to check if diagonal 
 #' elements of working weights matrixes in \code{IRLS} are sufficiently positive 
 #' so that these matrixes are positive defined. By default \code{TRUE}.
@@ -150,22 +151,31 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' respective standard error and variance estimation.
 #'
 #' @param alpha Significance level, 0.05 used by default.
-#' @param trcount Truncated count - a number to be added to point estimator and both sides of confidence intervals.
-#' @param bootType Bootstrap type. Default is \code{"parametric"}, other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.
+#' @param trcount Truncated count - a number to be added to point estimator 
+#' and both sides of confidence intervals.
+#' @param bootType Bootstrap type. Default is \code{"parametric"}, 
+#' other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.
 #' @param B Number of bootstrap samples to be performed (default 500).
-#' @param confType Type of confidence interval for bootstrap confidence interval, \code{"percentile"} by default. Other possibility: \code{"studentized"} and \code{"basic"}.
+#' @param confType Type of confidence interval for bootstrap confidence interval, 
+#' \code{"percentile"} by default. 
+#' Other possibility: \code{"studentized"} and \code{"basic"}.
 #' @param keepbootStat Boolean value indicating whether to keep a vector of statistics produced by bootstrap.
-#' @param traceBootstrapSize Boolean value indicating whether to print size of bootstrapped sample after truncation for semi- and fully parametric bootstraps.
-#' @param bootstrapVisualTrace Boolean value indicating whether to plot bootstrap statistics in real time.
+#' @param traceBootstrapSize Boolean value indicating whether to print size of 
+#' bootstrapped sample after truncation for semi- and fully parametric bootstraps.
+#' @param bootstrapVisualTrace Boolean value indicating whether to plot bootstrap 
+#' statistics in real time.
 #' @param fittingMethod Method used for fitting models from bootstrap samples.
-#' @param bootstrapFitcontrol Control parameters for each regression works exactly like \code{controlMethod} but for fitting models from bootstrap samples.
-#' @param sd Indicates how to compute standard deviation of population size estimator either as:
+#' @param bootstrapFitcontrol Control parameters for each regression works exactly 
+#' like \code{controlMethod} but for fitting models from bootstrap samples.
+#' @param sd Indicates how to compute standard deviation of population 
+#' size estimator either as:
 #' \loadmathjax
 #' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
 #' for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal distribution:
 #' \mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
 #' where the ration involving gamma functions is computed by loggamma function.
-#' @param covType type of covariance matrix for regression parameters by default observed information matrix, more options will be here in the future.
+#' @param covType type of covariance matrix for regression parameters by default 
+#' observed information matrix, more options will be here in the future.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlMethod()]

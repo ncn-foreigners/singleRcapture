@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
+[![Codecov test
+coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
 <!-- badges: end -->
 
 Capture-recapture type experiments are used to estimate the total
@@ -348,7 +350,11 @@ modelInflated2 <- estimatePopsize(
 #> Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments.
 ```
 
-the results are significantly different:
+the results are significantly different (the warning issued concerns the
+second derivative test for existence of local minimum, here it was
+inconclusive but we manually checked that fitting process found the
+optimal regression coefficients it’s here to provide more information to
+the user):
 
 ``` r
 plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
@@ -356,11 +362,7 @@ plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="75%" />
 
-and information criteria support the second model
-(the warning issued concerns the second derivative test for existence of local 
-minimum, here it was inconclusive but we manually checked that fitting process
-found the optimal regression coefficients it's here to provide more information
-to the user):
+and information criteria support the second model:
 
 ``` r
 cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),

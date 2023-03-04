@@ -1,5 +1,22 @@
 # singleRcapture 0.2.0
 
+# singleRcapture 0.1.3.2 -- NTTS
+* features:
+  * Added function that implements population size estimates for stratas
+  * More warnings in fitting
+  * More options in control functions
+  * Corrected/implemented deviance residuals for more models
+  
+* changes:
+  * Now the whole package uses `cammelCase`
+  * Performance upgrades
+  * Corrected some miss calculated moments
+  * Change exported data so that factors are actually factors not just characters
+  * Removed unused dependency
+  
+* github repository
+  * Added automated `R-cmd` check
+
 # singleRcapture 0.1.3.1
 * features:
   * Basically all of documentation was redone and now features most of important 
