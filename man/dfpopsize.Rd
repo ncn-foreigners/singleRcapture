@@ -54,5 +54,5 @@ summary(res)
 plot(res)
 # It is also possible to not provide dfbeta then they will be
 # computed manually
-dfpopsize(Model)
+summary(dfpopsize(Model))
 }

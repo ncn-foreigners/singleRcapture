@@ -404,17 +404,21 @@ NULL
 #' @export
 estimatePopsize <- function(formula,
                              data,
-                             model = c("ztpoisson", "ztnegbin", "ztgeom", 
-                                       "zotpoisson", "ztoipoisson", "oiztpoisson", 
-                                       "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",  
-                                       "ztoinegbin", "oiztnegbin", "ztHurdlenegbin", 
-                                       "Hurdleztnegbin", "zotgeom", "ztoigeom",
-                                       "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
-                                       "zelterman", "chao"),
+                             model = c(
+                               "ztpoisson", "ztnegbin", "ztgeom", 
+                               "zotpoisson", "ztoipoisson", "oiztpoisson", 
+                               "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",  
+                               "ztoinegbin", "oiztnegbin", "ztHurdlenegbin", 
+                               "Hurdleztnegbin", "zotgeom", "ztoigeom",
+                               "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
+                               "zelterman", "chao"
+                             ),
                              weights = NULL,
                              subset = NULL,
                              naAction = NULL,
-                             method = c("optim", "IRLS", "maxLik"), # TODO add max lik to fit
+                             method = c("optim", 
+                                        "IRLS", 
+                                        "maxLik"),
                              popVar = c("analytic",
                                          "bootstrap",
                                          "noEst"),
@@ -453,14 +457,29 @@ estimatePopsize <- function(formula,
   # since passing simple lists as control arguments is allowed
   m1 <- controlPopVar
   m1 <- m1[sapply(m1, is.null) == FALSE]
-  m2 <- controlPopVar(fittingMethod = match.arg(method), 
-  bootstrapFitcontrol = controlMethod(epsilon = 1e-3, maxiter = 20, 
-  optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi") || grepl(x = family$family, pattern = "^oizt")) "Nelder-Mead" else "L-BFGS-B", silent = TRUE))
+  m2 <- controlPopVar(
+    fittingMethod = match.arg(method), 
+    bootstrapFitcontrol = controlMethod(
+      epsilon = 1e-3, 
+      maxiter = 20, 
+      optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
+                        grepl(x = family$family, pattern = "^ztoi")  || 
+                        grepl(x = family$family, pattern = "^oizt")) 
+        "Nelder-Mead" 
+      else 
+        "L-BFGS-B", 
+      silent = TRUE
+    )
+  )
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   controlPopVar <- append(m1, m2)
   
   m1 <- controlMethod
-  m2 <- controlMethod(optimMethod = if (grepl(x = family$family, pattern = "negbin") || grepl(x = family$family, pattern = "^ztoi")) "Nelder-Mead" else "L-BFGS-B")
+  m2 <- controlMethod(
+    optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
+                      grepl(x = family$family, pattern = "^ztoi")) 
+      "Nelder-Mead" else "L-BFGS-B"
+  )
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   controlMethod <- append(m1, m2)
   
@@ -488,7 +507,9 @@ estimatePopsize <- function(formula,
   contrasts <- attr(variables, "contrasts")
   observed <- model.response(modelFrame)
   
-  if (NCOL(observed) > 1) stop("Single source capture-recapture models support only single dependent variable")
+  if (NCOL(observed) > 1) 
+    stop("Single source capture-recapture models support only single dependent variable.")
+  
   sizeObserved <- nrow(data) + controlPopVar$trcount
 
   if (!is.null(weights)) {
@@ -499,7 +520,7 @@ estimatePopsize <- function(formula,
   weights <- 1
   
   if(!all(observed > 0)) {
-    stop("Error in function estimatePopsize, data contains zero-counts")
+    stop("Error in function estimatePopsize, data contains zero-counts.")
   }
 
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
@@ -516,7 +537,9 @@ estimatePopsize <- function(formula,
   
   
   start <- controlMethod$start #TODO:: Re-add use ztpoisson as start
-  if (isTRUE(controlMethod$useZtpoissonAsStart)) stop("useZtpoissonAsStart option is temporarily removed.")
+  if (isTRUE(controlMethod$useZtpoissonAsStart)) 
+    stop("useZtpoissonAsStart option is temporarily removed.")
+  
   if (is.null(start)) {
     eval(family$getStart)
   }
@@ -564,19 +587,29 @@ estimatePopsize <- function(formula,
   family$mu.eta(eta = eta, type = "nontrunc"))
   colnames(fitt) <- c("mu", "link")
   
-  # (Real square) Matrix is negative define iff all eigen values have negative sign
-  # This is very fast. We only use eigen values so only.values is set to true
+  # (Real square) Matrix is negative define iff all eigen values have 
+  # negative sign. This is very fast. 
+  # We only use eigen values so only.values is set to true.
   eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
   if (!all(sign(eig$values) == -1)) {
     warningMessage <- paste0(
-      "The (analytically computed) hessian of the score function is not negative define.\n",
-      "NOTE: Second derivative test failing does not necessarily mean that the maximum of score function that was found numericaly is invalid since R^k is not a bounded space.\n",
-      "Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments."
+      "The (analytically computed) hessian of the score function ",
+      "is not negative define.\nNOTE: Second derivative test failing does not 
+      necessarily mean that the maximum of score function that was found 
+      numericaly is invalid since R^k is not a bounded space.\n",
+      "Additionally in one inflated and hurdle models second ",
+      "derivative test often fails even on valid arguments."
     )
     if (!isTRUE(controlMethod$silent)) warning(warningMessage)
-    #cat("The eigen values were: ", eig$values) # Add some option that will give much more information everywhere including here
+    #cat("The eigen values were: ", eig$values) 
+    # Add some option that will give much more 
+    # information everywhere including here.
     if (controlPopVar$covType == "observedInform") {
-      if (!isTRUE(controlMethod$silent)) warning("Switching from observed information matrix to Fisher information matrix because hessian of log-likelihood is not negative define.")
+      if (!isTRUE(controlMethod$silent)) 
+        warning(paste0(
+          "Switching from observed information matrix to Fisher information",
+          " matrix because hessian of log-likelihood is not negative define."
+        ))
       controlPopVar$covType <- "Fisher"
     }
   }
@@ -586,8 +619,14 @@ estimatePopsize <- function(formula,
   resRes <- priorWeights * (observed[wch$reg] - fitt)
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
 
-  deviance <- sum(family$devResids(y = observed[wch$reg], wt = priorWeights[wch$reg],
-  eta = if (family$family == "zelterman") eta[wch$reg] else eta) ^ 2)
+  deviance <- sum(family$devResids(
+    y = observed[wch$reg], 
+    wt = priorWeights[wch$reg],
+    eta = if (family$family == "zelterman") 
+            eta[wch$reg] 
+          else 
+            eta
+  ) ^ 2)
   
   if (popVar == "noEst") {
     Pop <- NULL #TODO:: make sure methods are prepared for this
@@ -604,8 +643,14 @@ estimatePopsize <- function(formula,
       family = family,
       beta = coefficients,
       control = controlPopVar,
-      Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") variables else Xvlm,
-      W = if (method == "IRLS") weights else family$Wfun(prior = priorWeights, eta = eta),
+      Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") 
+               variables 
+             else 
+               Xvlm,
+      W = if (method == "IRLS")
+            weights 
+          else 
+            family$Wfun(prior = priorWeights, eta = eta),
       sizeObserved = sizeObserved,
       modelFrame = modelFrame,
       cov = NULL

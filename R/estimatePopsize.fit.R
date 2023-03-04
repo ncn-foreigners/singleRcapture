@@ -190,7 +190,10 @@ estimatePopsize.fit <- function(y, X,
     logg <- FITT$logg
   } else if (method == "optim") {
     logLike <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
-    grad <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
+    grad <- family$makeMinusLogLike(y = y, 
+                                    X = X, 
+                                    weight = priorWeights, 
+                                    deriv = 1)
     
     weights <- priorWeights
     methodopt <- control$optimMethod
@@ -223,7 +226,8 @@ estimatePopsize.fit <- function(y, X,
     beta <- FITT$par
     iter <- FITT$counts
     if (FITT$convergence == 1 && !control$silent) {
-      warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")
+      warning("Convergence not obtained in ", control$maxiter, 
+              " iterations of optim fitting algorithm", sep = "")
     }
   } else if (method == "maxLik") {
     # Why do people use this???

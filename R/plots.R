@@ -164,19 +164,25 @@ plot.singleR <- function(x,
   dfpopContr = {
     dfpop <- dfpopsize(x, 
     observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
-    contr <- x$model$pointEst(pw = x$priorWeights[x$which$est], # TODO:: implement a function to get a contribution
+    # TODO:: implement a function to get a contribution
+    contr <- x$model$pointEst(pw = x$priorWeights[x$which$est],
     eta = x$linearPredictors, contr = TRUE);
     plot(x = dfpop, y = contr,
-         main = "Observation deletion effect on point estimate of\npopulation size estimate vs observation contribution",
+         main = paste0("Observation deletion effect on point estimate of",
+                       "\npopulation size estimate vs observation contribution"),
          xlab = "Deletion effect", ylab = "Observation contribution", 
          ...);
     abline(a = 0, b = 1, col = "red")
   },
   dfpopBox = {
     dfpop <- dfpopsize(x, observedPop = FALSE,...);
-    graphics::boxplot(dfpop, ylab = "Deletion effect",
-                      main = "Boxplot of observation deletion effect on\npoint estimate of population size estimate", 
-                      ...)
+    graphics::boxplot(
+      dfpop, 
+      ylab = "Deletion effect",
+      main = paste0("Boxplot of observation deletion effect on",
+                    "\npoint estimate of population size estimate"), 
+      ...
+    )
   },
   scaleLoc = {
     if (x$model$parNum == 1) {
@@ -198,9 +204,12 @@ plot.singleR <- function(x,
              xlab = "Linear predictors",
              ylab = expression(sqrt("Pearson resid.")),
              main = "Scale-Location plot",
-             sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
+             sub = paste0("For linear predictors associated with: ", 
+                          x$model$etaNames[k]),
              ...);
-        graphics::panel.smooth(y = sqrt(abs(res)), x = x$linearPredictors[, k], iter = 0)
+        graphics::panel.smooth(y = sqrt(abs(res)), 
+                               x = x$linearPredictors[, k], 
+                               iter = 0)
       }
       graphics::par(par);
     }
@@ -227,10 +236,13 @@ plot.singleR <- function(x,
              xlab = "Linear predictors",
              ylab = "Response residuals",
              main = "Residuals vs Fitted",
-             sub = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
+             sub = paste0("For linear predictors associated with: ", 
+                          x$model$etaNames[k]),
              ...);
         abline(lty = 2, col = "darkgrey", h = 0);
-        graphics::panel.smooth(y = res, x = x$linearPredictors[, k], iter = 0)
+        graphics::panel.smooth(y = res, 
+                               x = x$linearPredictors[, k], 
+                               iter = 0)
       }
       graphics::par(par);
     }
@@ -252,7 +264,8 @@ plot.singleR <- function(x,
       plot(A[, k],
            xlab = "Observation index",
            ylab = "Hat values",
-           main = paste0("For linear predictors associated with: ", x$model$etaNames[k]),
+           main = paste0("For linear predictors associated with: ", 
+                         x$model$etaNames[k]),
            ...)
     }
     graphics::par(par);
@@ -285,16 +298,29 @@ plot.singleR <- function(x,
     plot(y = 1:NROW(result), x = est,
          xlim = range(cnf),
          xlab = "Sub population size estimate", ylab="",
-         main="Confidence intervals and point estimates for specified sub populations\nObserved population sizes are presented as navy coloured points",
+         main = paste0(
+           "Confidence intervals and point estimates for specified sub populations\n",
+           "Observed population sizes are presented as navy coloured points"
+         ),
          yaxt = "n", pch = 19
     )
     points(y = 1:NROW(result), x = obs, col = "navy", pch = 19)
     axis(side = 2, at = 1:NROW(result), labels = FALSE)
-    text(y = 1:NROW(result), x=par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, adj = 1,
-         nm, srt = tilt, cex = .6,
-         xpd = TRUE)
-    arrows(cnf[ ,1], 1:NROW(result), cnf[ ,2], 1:NROW(result), 
-           length=0.05, angle=90, code=3)
+    text(
+      y = 1:NROW(result), 
+      x = par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, 
+      adj = 1,
+      nm, 
+      srt = tilt, 
+      cex = .6,
+      xpd = TRUE
+    )
+    arrows(cnf[ ,1], 1:NROW(result), 
+           cnf[ ,2], 1:NROW(result), 
+           length = 0.05, 
+           angle  = 90, 
+           code   = 3)
   })
+  
   invisible()
 }
