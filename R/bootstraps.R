@@ -41,11 +41,11 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     if (famName == "zelterman") {
       Xstrap1 <- singleRinternalGetXvlmMatrix(
       X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
-      nPar = family$parNum, formulas = formulas, family$etaNames)
+      nPar = length(family$etaNames), formulas = formulas, family$etaNames)
     }
     Xstrap <- singleRinternalGetXvlmMatrix(
     X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
-    nPar = family$parNum, formulas = formulas, family$etaNames)
+    nPar = length(family$etaNames), formulas = formulas, family$etaNames)
     theta <- NULL
     try(
       theta <- estimatePopsize.fit(
@@ -66,9 +66,9 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta, ncol = family$parNum)
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
       } else {
-        theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
       }
       if (isTRUE(trace)) {print(summary(theta))}
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
@@ -115,7 +115,6 @@ semparBoot <- function(family, formulas, y, X, beta,
   names(prob) <- prob
   prob[names(yTab)] <- yTab
   prob[!(names(prob) %in% names(yTab))] <- 0
-  invLink <- family$linkinv
   yTab <- table(y)
   getX <- function(val, num) {
     sample(which(y == names(strap)[j]), size = num, replace = TRUE)
@@ -149,11 +148,11 @@ semparBoot <- function(family, formulas, y, X, beta,
     if (famName == "zelterman") {
       Xstrap1 <- singleRinternalGetXvlmMatrix(
       X = subset(Xstrap, select = attr(modelFrame, "names")[-1]),
-      nPar = family$parNum, formulas = formulas, family$etaNames)
+      nPar = length(family$etaNames), formulas = formulas, family$etaNames)
     }
     Xstrap <- singleRinternalGetXvlmMatrix(
     X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
-    nPar = family$parNum, formulas = formulas, family$etaNames)
+    nPar = length(family$etaNames), formulas = formulas, family$etaNames)
     try(
       theta <- estimatePopsize.fit(
         y = ystrap[wch$reg],
@@ -173,9 +172,9 @@ semparBoot <- function(family, formulas, y, X, beta,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta, ncol = family$parNum)
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
       } else {
-        theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
@@ -268,16 +267,16 @@ parBoot <- function(family,
     
     Xstrap <- singleRinternalGetXvlmMatrix(
     X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
-    nPar = family$parNum, formulas = formulas, family$etaNames)
+    nPar = length(family$etaNames), formulas = formulas, family$etaNames)
 
     ystrap <- dataFunc(
       n = N,
-      eta = matrix(Xstrap %*% beta, ncol = family$parNum),
+      eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
       lower = -1, upper = Inf
     )
     weightsStrap <- weightsStrap[ystrap > 0]
-    strap <- rep(FALSE, family$parNum * length(ystrap))
-    strap[rep(ystrap > 0, family$parNum)] <- TRUE
+    strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
+    strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
     hwm <- attr(Xstrap, "hwm")
     Xstrap <- subset(Xstrap, subset = strap)
     ystrap <- ystrap[ystrap > 0]
@@ -291,7 +290,7 @@ parBoot <- function(family,
     if (famName == "zelterman") {
       Xstrap1 <- Xstrap
     }
-    Xstrap <- subset(Xstrap, subset = rep(wch$reg, family$parNum))
+    Xstrap <- subset(Xstrap, subset = rep(wch$reg, length(family$etaNames)))
     attr(Xstrap, "hwm") <- hwm
     
     try(
@@ -314,9 +313,9 @@ parBoot <- function(family,
       k <- k - 1
     } else {
       if (famName != "zelterman") {
-        theta <- matrix(Xstrap %*% theta, ncol = family$parNum)
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
       } else {
-        theta <- matrix(Xstrap1 %*% theta, ncol = family$parNum)
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)

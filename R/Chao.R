@@ -150,11 +150,10 @@ chao <- function(...) {
       popVar= popVar,
       simulate = simulate,
       family = "chao",
-      parNum = 1,
       etaNames = "lambda",
       densityFunction = dFun,
       getStart = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

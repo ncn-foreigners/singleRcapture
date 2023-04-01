@@ -157,11 +157,10 @@ zotgeom <- function(...) {
       popVar= popVar,
       simulate=simulate,
       family = "zotgeom",
-      parNum = 1,
       etaNames = "lambda",
       densityFunction = dFun,
       getStart = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

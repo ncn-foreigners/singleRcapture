@@ -115,7 +115,6 @@ In this types of models it is assumed that the response vector
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:
 
-\loadmathjax
 \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
 
 where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables,
@@ -448,4 +447,6 @@ between observed and fitted quantities.
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz
+
+\loadmathjax
 }

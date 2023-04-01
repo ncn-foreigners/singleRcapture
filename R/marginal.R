@@ -43,7 +43,7 @@ marginalFreq <- function(object,
     FUN = function(x) {object$model$densityFunction(
       x = range, 
       eta = matrix(object$linearPredictors[x, ], 
-                   ncol = object$model$parNum)
+                   ncol = length(object$model$etaNames))
     )}
   )
   res <- rowSums(res)

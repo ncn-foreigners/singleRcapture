@@ -211,12 +211,12 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     )
   )
   
-  
+  parNum <- length(family$etaNames)
   W <- prior
   LPrev <- -Inf
   L <- -logLike(beta)
   eta <- covariates %*% beta
-  eta <- matrix(eta, ncol = family$parNum)
+  eta <- matrix(eta, ncol = parNum)
   while (!converged & (iter < maxiter)) {
     halfstepsizing <- FALSE
     mu <- mu.eta(eta = eta, ...)
@@ -224,7 +224,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       stop("Fit error infinite values reached consider another model,
             mu is too close to zero/infinity.\n")
     }
-    if (any(!is.finite(family$linkinv(matrix(covariates %*% beta, ncol = length(family$etaNames)))))) stop("Infinite values of distribution parameters obtained for some IRLS iteration.\n")
+    ## TODO:: Adjust for new link functions
+    if (any(!is.finite(
+      sapply(1:length(family$etaNames), FUN = function(x) {
+        family$links[[x]](eta[, x], inverse = TRUE)
+      })
+    ))) 
+      stop("Infinite values of distribution parameters obtained for some IRLS iteration.\n")
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
     if (any(!is.finite(W))) {
@@ -234,10 +240,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       W[!is.finite(W)] <- epsWeights
     }
     if (check) {
-      W[, (1:family$parNum) ^ 2] <- ifelse(
-        W[, (1:family$parNum) ^ 2] < epsWeights, 
+      W[, (1:parNum) ^ 2] <- ifelse(
+        W[, (1:parNum) ^ 2] < epsWeights, 
         epsWeights, 
-        W[, (1:family$parNum) ^ 2]
+        W[, (1:parNum) ^ 2]
       )
     }
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
@@ -257,7 +263,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0
     })
     eta <- covariates %*% beta
-    eta <- matrix(eta, ncol = family$parNum)
+    eta <- matrix(eta, ncol = parNum)
     LPrev <- L
     L <- -logLike(beta)
     
@@ -284,7 +290,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
           break
         }
 
-        if (isTRUE(max(abs(h)) < .Machine$double.eps)) {
+        if (isTRUE(max(abs(h)) < .Machine$double.eps / 10^6)) {
           halfstepsizing <- FALSE
           if (isTRUE(L < LPrev)) {
             if (!silent) {

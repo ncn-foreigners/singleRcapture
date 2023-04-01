@@ -2,7 +2,8 @@
 % Please edit documentation in R/Chao.R, R/Hurdleztgeom.R, R/Hurdleztpoisson.R,
 %   R/modelHelp.R, R/oiztgeom.R, R/oiztpoisson.R, R/zelterman.R, R/zotgeom.R,
 %   R/zotnegbin.R, R/zotpoisson.R, R/ztHurdlegeom.R, R/ztHurdlepoisson.R,
-%   R/ztgeom.R, R/ztnegbin.R, R/ztoigeom.R, R/ztoipoisson.R, R/ztpoisson.R
+%   R/ztgeom.R, R/ztnegbin.R, R/ztoigeom.R, R/ztoinegbin.R, R/ztoipoisson.R,
+%   R/ztpoisson.R
 \name{chao}
 \alias{chao}
 \alias{Hurdleztgeom}
@@ -19,6 +20,7 @@
 \alias{ztgeom}
 \alias{ztnegbin}
 \alias{ztoigeom}
+\alias{ztoinegbin}
 \alias{ztoipoisson}
 \alias{ztpoisson}
 \title{Family functions in singleRcapture package}
@@ -50,6 +52,15 @@ ztgeom(...)
 ztnegbin(nSim = 1000, epsSim = 1e-08, ...)
 
 ztoigeom(...)
+
+ztoinegbin(
+  nSim = 1000,
+  epsSim = 1e-08,
+  lambdaLink = "log",
+  alphaLink = "log",
+  omegaLink = "logit",
+  ...
+)
 
 ztoipoisson(...)
 
@@ -99,10 +110,10 @@ and \mjeqn{\boldsymbol{X_{vlm}}}{X_vlm} matrix return point estimate
 for population size and analytic estimation of its variance.
 There is a additional boolean parameter \code{contr} in the former
 function that if set to true returns contribution of each unit.
-\item \code{etaNames, parNum} -- Names and number of linear predictors.
+\item \code{etaNames} -- Names of linear predictors.
 \item \code{densityFunction} -- A function that given linear predictors
 returns value of PMF at values \code{x}. Additional argument \code{type}
-spedifies whether to return \mjeqn{\mathbb{P}(Y|Y>0)}{P(Y|Y>0)} or
+specifies whether to return \mjeqn{\mathbb{P}(Y|Y>0)}{P(Y|Y>0)} or
 \mjeqn{\mathbb{P}(Y)}{P(Y)}.
 \item \code{simulate} -- A function that generates values of dependent
 vector given linear predictors.
@@ -119,7 +130,7 @@ on the model. These functions are used as \code{model} argument in
 \loadmathjax
 
 Most of these functions are based on some "base" distribution with
-support \mjeqn{\mathbb{N}_{0}=\mathbb{N}\cup\{0\}}{N_0} that describe
+support \mjeqn{\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace}{N_0=N U \{0\}} that describe
 distribution of \mjeqn{Y}{Y} before truncation. Currently they include:
 \mjdeqn{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 \begin{array}{cc}

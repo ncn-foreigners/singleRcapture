@@ -341,11 +341,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       popVar= popVar,
       simulate = simulate,
       family = "ztnegbin",
-      parNum = 2,
       etaNames = c("lambda", "alpha"),
       densityFunction = dFun,
       getStart = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

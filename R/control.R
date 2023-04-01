@@ -18,11 +18,8 @@
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
 #' @param printEveryN Integer value indicating how often to print information
 #' specified in \code{verbose}, by default set to \code{1}.
-#' @param start initial parameters for regression associated with main formula 
-#' specified in function call if \code{NULL} they will be derived from simple poisson regression.
-#' @param alphaStart initial parameters for dispersion parameter if applies.
-#' @param omegaStart initial parameters for inflation parameter if applies.
-#' @param piStart initial parameters for probability parameter if applies.
+#' @param start initial parameters for regression coefficients
+#' if \code{NULL} they will be derived from simple poisson regression.
 #' @param silent Logical, indicating whether warnings in \code{IRLS} method should be suppressed.
 #' @param optimPass Optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 #' if FALSE then list of control parameters will be inferred from other parameters.
@@ -37,7 +34,7 @@
 #' so that these matrixes are positive defined. By default \code{TRUE}.
 #' @param weightsEpsilon Small number to ensure positivity of weights matrixes. 
 #' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
-#' By default \mjeqn{\approx 1.818989\cdot 10^{-12}}{approx. 1.818989 * 10^-12}
+#' By default \mjeqn{= 1\cdot 10^{-8}}{= 1 * 10^-10}
 #' @param momentumFactor Experimental parameter in \code{IRLS} only allowing for 
 #' taking previous step into account at current step, i.e instead of 
 #' updating regression parameters as:
@@ -64,16 +61,13 @@ controlMethod <- function(epsilon = 1e-8,
                           maxiter = 1000,
                           verbose = 0,
                           printEveryN = 1,
-                          start = NULL, # TODO:: only use one start
-                          alphaStart = NULL,
-                          omegaStart = NULL,
-                          piStart = NULL,
+                          start = NULL,
                           optimMethod = "L-BFGS-B",
                           silent = FALSE,
                           optimPass = FALSE,
                           stepsize = 1,
                           checkDiagWeights = TRUE,
-                          weightsEpsilon = .Machine$double.eps^.75,
+                          weightsEpsilon = 1e-10,
                           momentumFactor = 0,
                           saveIRLSlogs = FALSE,
                           useZtpoissonAsStart = FALSE,
@@ -91,9 +85,6 @@ controlMethod <- function(epsilon = 1e-8,
     verbose = verbose,
     printEveryN = printEveryN,
     start = start,
-    alphaStart = alphaStart,
-    omegaStart = omegaStart,
-    piStart = piStart,
     optimMethod = optimMethod,
     silent = silent,
     optimPass = optimPass,

@@ -290,12 +290,11 @@ Hurdleztgeom <- function(...) {
       pointEst = pointEst,
       popVar= popVar,
       family = "Hurdleztgeom",
-      parNum = 2,
       etaNames = c("lambda", "pi"),
       densityFunction = dFun,
       simulate = simulate,
       getStart = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

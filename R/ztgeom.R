@@ -1,8 +1,17 @@
 #' @rdname singleRmodels
 #' @export
-ztgeom <- function(...) {
-  link <- log
-  invlink <- exp
+ztgeom <- function(lambdaLink = c("log", "neglog"),
+                   ...) {
+  if (missing(lambdaLink)) lambdaLink <- "log"
+  
+  links <- list()
+  attr(links, "linkNames") <- c(lambdaLink)
+  
+  lambdaLink <- switch (lambdaLink,
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
+  )
+  
   dlink <- function(lambda) {
     1 / lambda
   }
@@ -11,7 +20,7 @@ ztgeom <- function(...) {
     lambda <- invlink(eta)
     switch (type,
       "nontrunc" = lambda,
-      "trunc" = 1 + lambda
+      "trunc"    = 1 + lambda
     )
   }
   
@@ -19,7 +28,7 @@ ztgeom <- function(...) {
     mu <- mu.eta(eta)
     switch (type,
       nontrunc = mu ^ 2 - mu - 1 / mu + 2,
-      trunc = (mu + 1) / mu
+      trunc    = (mu + 1) / mu
     )
   }
   
@@ -155,11 +164,10 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       popVar= popVar,
       simulate = simulate,
       family = "ztgeom",
-      parNum = 1,
       etaNames = "lambda",
       densityFunction = dFun,
       getStart = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

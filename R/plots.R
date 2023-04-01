@@ -101,9 +101,15 @@ plot.singleR <- function(x,
     stop("Trying to plot bootstrap results with no bootstrap performed")
   } 
   plotType <- match.arg(plotType)
+  parNum <- length(x$model$etaNames)
+  
   # TODO
   # move this to particular plots
-  if (x$model$parNum == 1) type <- "pearsonSTD" else type <- "pearson"
+  if (parNum == 1) 
+    type <- "pearsonSTD" 
+  else 
+    type <- "pearson"
+  
   if (plotType == "fitresid") {
     res <- residuals.singleR(x, type = "response")[, 1] # fitted vs residuals
     # plot should have just normal response residuals
@@ -185,7 +191,7 @@ plot.singleR <- function(x,
     )
   },
   scaleLoc = {
-    if (x$model$parNum == 1) {
+    if (parNum == 1) {
       lp <- x$linearPredictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
@@ -198,8 +204,8 @@ plot.singleR <- function(x,
       graphics::panel.smooth(y = sqrt(abs(res)), x = lp, iter = 0)
     } else {
       par <- graphics::par(no.readonly = TRUE);
-      par(mfrow = c(x$model$parNum, 1));
-      for (k in 1:x$model$parNum) {
+      par(mfrow = c(parNum, 1));
+      for (k in 1:parNum) {
         plot(y = sqrt(abs(res)), x = x$linearPredictors[, k],
              xlab = "Linear predictors",
              ylab = expression(sqrt("Pearson resid.")),
@@ -215,7 +221,7 @@ plot.singleR <- function(x,
     }
   },
   fitresid = {
-    if (x$model$parNum == 1) {
+    if (parNum == 1) {
       lp <- x$linearPredictors
       if (x$model$family == "zelterman") {
         lp <- lp[x$which$reg]
@@ -230,8 +236,8 @@ plot.singleR <- function(x,
       graphics::panel.smooth(y = res, x = lp, iter = 0)
     } else {
       par <- graphics::par(no.readonly = TRUE);
-      par(mfrow = c(x$model$parNum, 1));
-      for (k in 1:x$model$parNum) {
+      par(mfrow = c(parNum, 1));
+      for (k in 1:parNum) {
         plot(y = res, x = x$linearPredictors[, k],
              xlab = "Linear predictors",
              ylab = "Response residuals",
@@ -259,8 +265,8 @@ plot.singleR <- function(x,
   hatplot = {
     A <- hatvalues.singleR(x, ...);
     par <- graphics::par(no.readonly = TRUE);
-    par(mfrow = c(x$model$parNum, 1));
-    for (k in 1:x$model$parNum) {
+    par(mfrow = c(parNum, 1));
+    for (k in 1:parNum) {
       plot(A[, k],
            xlab = "Observation index",
            ylab = "Hat values",

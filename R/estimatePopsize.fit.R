@@ -60,8 +60,8 @@
 #' \mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}
 #' 5. Assign:
 #' \itemize{
-#' \item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} < \ell_{-}\varepsilon}{l(beta)-l_-<l_- * epsilon} \code{or} 
-#' \mjeqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}{||beta - beta_-||_inf< epsilon}
+#' \item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} \lt \varepsilon \ell_{-}}{l(beta)-l_- < l_- * epsilon} \mjeqn{\lor}{v} 
+#' \mjeqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} \lt \varepsilon}{||beta - beta_-||_inf < epsilon}
 #' \item\code{iter <- iter + 1}
 #' }
 #' where \mjeqn{\varepsilon}{epsilon} is the relative tolerance level, by default \code{1e-8}.

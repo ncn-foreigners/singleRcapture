@@ -1,3 +1,5 @@
+#' @import mathjaxr
+NULL
 #' \loadmathjax
 #' @title Family functions in singleRcapture package
 #' @author Piotr Chlebicki, Maciej Beręsewicz
@@ -15,7 +17,7 @@
 #' @param ... Additional arguments, not used for now.
 #' 
 #' @details Most of these functions are based on some "base" distribution with
-#' support \mjeqn{\mathbb{N}_{0}=\mathbb{N}\cup\{0\}}{N_0} that describe
+#' support \mjeqn{\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace}{N_0=N U \{0\}} that describe
 #' distribution of \mjeqn{Y}{Y} before truncation. Currently they include:
 #' \mjdeqn{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 #' \begin{array}{cc}
@@ -217,10 +219,10 @@
 #' for population size and analytic estimation of its variance.
 #' There is a additional boolean parameter \code{contr} in the former
 #' function that if set to true returns contribution of each unit.
-#' \item \code{etaNames, parNum} -- Names and number of linear predictors.
+#' \item \code{etaNames} -- Names of linear predictors.
 #' \item \code{densityFunction} -- A function that given linear predictors 
 #' returns value of PMF at values \code{x}. Additional argument \code{type}
-#' spedifies whether to return \mjeqn{\mathbb{P}(Y|Y>0)}{P(Y|Y>0)} or
+#' specifies whether to return \mjeqn{\mathbb{P}(Y|Y>0)}{P(Y|Y>0)} or
 #' \mjeqn{\mathbb{P}(Y)}{P(Y)}.
 #' \item \code{simulate} -- A function that generates values of dependent 
 #' vector given linear predictors.

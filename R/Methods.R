@@ -396,7 +396,7 @@ vcov.singleR <- function(object,
   X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg)
   X <- singleRinternalGetXvlmMatrix(
     X = X, 
-    nPar = object$model$parNum, 
+    nPar = length(object$model$etaNames), 
     formulas = object$formula, 
     parNames = object$model$etaNames
   )
@@ -408,7 +408,7 @@ vcov.singleR <- function(object,
       ...
     ),
     "Fisher" = {
-      if (object$call$method == "IRLS") {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights[object$which$reg], eta = object$linearPredictors)};
+      if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights[object$which$reg], eta = object$linearPredictors)};
       solve(
       singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
@@ -466,7 +466,7 @@ vcov.singleR <- function(object,
 hatvalues.singleR <- function(model, ...) {
   X <- model.frame.singleR(model, ...)
   X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$reg)
-  X <- singleRinternalGetXvlmMatrix(X = X, nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames)
+  X <- singleRinternalGetXvlmMatrix(X = X, nPar = length(model$model$etaNames), formulas = model$formula, parNames = model$model$etaNames)
   if (isTRUE(model$call$method == "IRLS")) {
     W <- model$weights
   } else {
@@ -474,7 +474,7 @@ hatvalues.singleR <- function(model, ...) {
   }
   mlt <- singleRinternalMultiplyWeight(X = X, W = W)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
-  hatvalues <- matrix(hatvalues, ncol = model$model$parNum, dimnames = list(1:(length(hatvalues) / model$model$parNum), model$model$etaNames))
+  hatvalues <- matrix(hatvalues, ncol = length(model$model$etaNames), dimnames = list(1:(length(hatvalues) / length(model$model$etaNames)), model$model$etaNames))
   hatvalues
 }
 #' @title Regression deletion diagnostics.
@@ -517,7 +517,7 @@ dfbetasingleR <- function(model,
         ...
       ),
       y = y[-k],
-      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = model$model$parNum, formulas = model$formula, parNames = model$model$etaNames),
+      X = singleRinternalGetXvlmMatrix(X = subset(X, rownames(X) != rownames(X)[k]), nPar = length(model$model$etaNames), formulas = model$formula, parNames = model$model$etaNames),
       start = cf,
       family = model$model,
       priorWeights = pw[-k],
@@ -581,7 +581,7 @@ residuals.singleR <- function(object,
   if (!(all(object$which$reg == object$which$est)) && type == "all") 
     stop("type = all is not aviable for some models")
   
-  if (type == "pearsonSTD" && object$model$parNum > 1)
+  if (type == "pearsonSTD" && length(object$model$etaNames) > 1)
     stop(paste0("Standardized pearson residuals not yet",
                 "implemented for models with multiple linear predictors"))
   
@@ -602,9 +602,9 @@ residuals.singleR <- function(object,
     response = res,
     pearson = data.frame(
       "pearson" = (if (object$model$family == "zelterman") 
-                    res$mu[object$which$reg] 
+                    res$truncated[object$which$reg] 
                    else 
-                     res$mu) / sqrt(object$model$variance(
+                     res$truncated) / sqrt(object$model$variance(
                        eta = if (object$model$family == "zelterman") 
                                 object$linearPredictors[object$which$reg, ] 
                              else 
@@ -614,9 +614,9 @@ residuals.singleR <- function(object,
     ),
     pearsonSTD = data.frame(
       "pearsonSTD" = (if (object$model$family == "zelterman") 
-                        res$mu[object$which$reg] 
+                        res$truncated[object$which$reg] 
                       else 
-                        res$mu) / sqrt((1 - hatvalues(object)) * 
+                        res$truncated) / sqrt((1 - hatvalues(object)) * 
                         object$model$variance(
                           eta = if (object$model$family == "zelterman") 
                                   object$linearPredictors[object$which$reg, ] 
@@ -632,8 +632,8 @@ residuals.singleR <- function(object,
         wt = wts[object$which$reg]
       )
     ),
-    all = {colnames(res) <- c("muResponse", 
-                              "linkResponse");
+    all = {colnames(res) <- c("truncatedResponse", 
+                              "nontruncatedResponse");
       data.frame(
         as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") 
                                             object$linearPredictors[object$which$reg, ] 
@@ -645,9 +645,9 @@ residuals.singleR <- function(object,
                                          object$model$etaNames)),
         res,
         "pearson" = as.numeric((if (object$model$family == "zelterman") 
-                                  res$mu[object$which$reg] 
+                                  res$truncated[object$which$reg] 
                                 else 
-                                  res$mu) / sqrt(
+                                  res$truncated) / sqrt(
                                     object$model$variance(
                                       eta = if (object$model$family == "zelterman") 
                                               object$linearPredictors[object$which$reg, ] 
@@ -655,11 +655,11 @@ residuals.singleR <- function(object,
                                               object$linearPredictors, 
                                       type = "trunc")
                                   )),
-        "pearsonSTD" = if (object$model$parNum == 1) as.numeric(
+        "pearsonSTD" = if (length(object$model$etaNames) == 1) as.numeric(
           (if (object$model$family == "zelterman") 
-            res$mu[object$which$reg] 
+            res$truncated[object$which$reg] 
            else 
-             res$mu) / sqrt((1 - hatvalues(object)) * 
+             res$truncated) / sqrt((1 - hatvalues(object)) * 
                             object$model$variance(
                               eta = if (object$model$family == "zelterman") 
                                 object$linearPredictors[object$which$reg, ] 
@@ -775,7 +775,7 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
                   subset = object$which$reg);
       singleRinternalGetXvlmMatrix(
         X = X, 
-        nPar = object$model$parNum, 
+        nPar = length(object$model$etaNames), 
         formulas = object$formula, 
         parNames = object$model$etaNames
       );
@@ -815,7 +815,7 @@ redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
     beta = object$coefficients,
     control = object$populationSize$control,
     Xvlm = Xvlm,
-    W = if (object$call$method == "IRLS") 
+    W = if (isTRUE(object$call$method == "IRLS")) 
           object$weights 
         else 
           object$model$Wfun(prior = object$priorWeights, 
@@ -857,11 +857,11 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
       eta = matrix(
         singleRinternalGetXvlmMatrix(
           X = subset(X, rownames(X) != rownames(X)[k]), 
-          nPar = model$model$parNum, 
+          nPar = length(model$model$etaNames), 
           formulas = model$formula, 
           parNames = model$model$etaNames
         ) %*% cf, 
-        ncol = model$model$parNum
+        ncol = length(model$model$etaNames)
       ),
       pw = pw[-k]
     ) + model$trcount
@@ -1071,7 +1071,7 @@ popSizeEst.singleR <- function(object, ...) {
 #' @method cooks.distance singleR
 #' @exportS3Method 
 cooks.distance.singleR <- function(model, ...) {
-  if (model$model$parNum > 1) 
+  if (length(model$model$etaNames) > 1) 
     stop("Cooks distance is only implemented for single parameter families.")
   
   res <- residuals(model, type = "pearsonSTD")^2

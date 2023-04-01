@@ -295,12 +295,11 @@ oiztgeom <- function(...) {
       pointEst = pointEst,
       popVar= popVar,
       family = "oiztgeom",
-      parNum = 2,
       etaNames = c("lambda", "omega"),
       densityFunction = dFun,
       simulate = simulate,
       getStart = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

@@ -3,6 +3,7 @@ NULL
 #' @title Single source capture-recapture models
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
+#' \loadmathjax
 #' @description \code{estimatePopsize} first fits appropriate (v)glm model and 
 #' then estimates full (observed and unobserved) population size.
 #' In this types of models it is assumed that the response vector 
@@ -10,7 +11,6 @@ NULL
 #' was observed in the source.
 #' Population size is then usually estimated by Horvitz-Thompson type estimator:
 #' 
-#' \loadmathjax
 #' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
 #'
 #' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, 
@@ -453,6 +453,7 @@ estimatePopsize <- function(formula,
   }
   
   returnElements <- list(y, x, modelFrame)
+  
   # adding control parameters that may possibly be missing
   # since passing simple lists as control arguments is allowed
   m1 <- controlPopVar
@@ -507,6 +508,13 @@ estimatePopsize <- function(formula,
   contrasts <- attr(variables, "contrasts")
   observed <- model.response(modelFrame)
   
+  # It is both necessary and sufficient to check X_lm matrix to know whether
+  # X_vlm matrix is full rank
+  ## TODO:: Either start using Matrix package everywhere or use QR
+  ## in fitting
+  if (qr(variables)$rank != NCOL(variables))
+    stop("The model matrix is not of full rank.")
+  
   if (NCOL(observed) > 1) 
     stop("Single source capture-recapture models support only single dependent variable.")
   
@@ -533,7 +541,7 @@ estimatePopsize <- function(formula,
     modelFrame, 
     select = colnames(modelFrame)[-(attr(terms, "response"))], 
     subset = wch$reg
-  ), nPar = family$parNum, formulas = formulas, parNames = family$etaNames)
+  ), nPar = length(family$etaNames), formulas = formulas, parNames = family$etaNames)
   
   
   start <- controlMethod$start #TODO:: Re-add use ztpoisson as start
@@ -572,7 +580,7 @@ estimatePopsize <- function(formula,
   hessian <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
   weight = priorWeights[wch$reg], deriv = 2)
 
-  eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = family$parNum)
+  eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = length(family$etaNames))
   colnames(eta) <- family$etaNames
   rownames(eta) <- rownames(variables[wch$reg])
   weights <- FITT$weights
@@ -585,7 +593,7 @@ estimatePopsize <- function(formula,
 
   fitt <- data.frame(family$mu.eta(eta = eta),
   family$mu.eta(eta = eta, type = "nontrunc"))
-  colnames(fitt) <- c("mu", "link")
+  colnames(fitt) <- c("truncated", "nontruncated")
   
   # (Real square) Matrix is negative define iff all eigen values have 
   # negative sign. This is very fast. 
