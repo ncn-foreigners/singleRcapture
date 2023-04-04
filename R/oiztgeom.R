@@ -1,15 +1,30 @@
 #' @rdname singleRmodels
 #' @importFrom lamW lambertW0
 #' @export
-oiztgeom <- function(...) {
-  # Fist for lambda second for omega
-  link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
-  invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
+oiztgeom <- function(lambdaLink = c("log", "neglog"), 
+                     omegaLink = c("logit"), 
+                     ...) {
+  if (missing(lambdaLink)) lambdaLink <- "log"
+  if (missing(omegaLink))  omegaLink <- "logit"
+  
+  links <- list()
+  attr(links, "linkNames") <- c(lambdaLink, omegaLink)
+  
+  lambdaLink <- switch (lambdaLink,
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
+  )
+  
+  omegaLink <- switch (omegaLink,
+    "logit" = singleRinternallogitLink
+  )
+  
+  links[1:2] <- c(lambdaLink, omegaLink)
+  
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     p1 <- (lambda ^ 2) * omega + lambda * omega + omega + lambda
     p1 <- p1 / (lambda ^ 2 + lambda * omega + omega + lambda)
     switch (type,
@@ -19,9 +34,8 @@ oiztgeom <- function(...) {
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     p1 <- (lambda ^ 2) * omega + lambda * omega + omega + lambda
     p1 <- p1 / (lambda ^ 2 + lambda * omega + omega + lambda)
     switch (type,
@@ -31,31 +45,52 @@ oiztgeom <- function(...) {
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- (lambda ^ 2) * omega + lambda * omega + lambda + omega
     z <- z / (lambda ^ 2 + lambda * omega + lambda + omega) # expected for I's
     Ey <- mu.eta(eta)
+    XXX <- Ey - z ## z here is the prob of 1 and XXX is expected for (1-z)*y
     
     
-    G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-    G1 <- G1 + (1 - z) * (Ey / lambda - Ey / (1 + lambda) - 1 / (omega + lambda)) #This one
-    G0 <- z * (lambda + 1) * (lambda ^ 2) / ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-    G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda))
+    G1 <- (z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / 
+    ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) + 
+    (XXX / lambda - XXX / (1 + lambda) - (1 - z) / (omega + lambda)))
+    
+    G0 <- (z * (lambda + 1) * (lambda ^ 2) / 
+    ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) - 
+    (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)))
     
     # omega^2 derivative
-    G00 <- 1 / ((lambda + omega) ^ 2) - z * ((lambda ^ 2 + lambda + 1) ^ 2) / ((omega * (lambda ^ 2 + lambda + 1) + lambda) ^ 2) - (1 - z) / ((1 - omega) ^ 2)
-    G00 <- prior * (G0 * (omega * (1 - omega) * (1 - 2 * omega)) + G00 * ((omega * (1 - omega)) ^ 2))  # second derivative of inverse logistic link
+    G00 <- (1 / ((lambda + omega) ^ 2) - z * ((lambda ^ 2 + lambda + 1) ^ 2) / 
+    ((omega * (lambda ^ 2 + lambda + 1) + lambda) ^ 2) - 
+    (1 - z) / ((1 - omega) ^ 2))
+    
+    G00 <- prior * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
+                    G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1)) ^ 2)
     
     # mixed derivative
-    G01 <- (1 - z) / ((omega + lambda) ^ 2) + z * lambda * (omega * omega * (lambda ^ 3 + 2 * (lambda ^ 2) + 4 * lambda + 2) + omega * (4 * (lambda ^ 2) + 2 * lambda) + lambda ^ 3) / (((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) ^ 2)
-    G01 <- G01 * lambda * omega * (1 - omega) * prior
+    G01 <- ((1 - z) / ((omega + lambda) ^ 2) + 
+    z * lambda * (omega * omega * (lambda ^ 3 + 2 * (lambda ^ 2) + 4 * lambda + 2) + 
+                  omega * (4 * (lambda ^ 2) + 2 * lambda) + lambda ^ 3) / 
+    (((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) ^ 2))
+    
+    G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
+    omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * prior
     
     # Beta^2 derivative
-    G11 <- z * (((omega + 2 * lambda + 1) ^ 2) / ((omega * lambda + omega + lambda ^ 2 + lambda) ^ 2) - 2 / (omega * lambda + omega + lambda ^ 2 + lambda) + (2 * omega) / (omega * (lambda ^ 2) + omega * lambda + omega + lambda) - ((2 * omega * lambda + omega + 1) ^ 2) / ((omega * (lambda ^ 2) + omega * lambda + omega + lambda) ^ 2))
-    G11 <- G11 + (1 - z) * (Ey / ((1 + lambda) ^ 2) - Ey / (lambda ^ 2) + 1 / ((omega + lambda) ^ 2)) #This one
-    G11 <- (G11 * lambda * lambda + G1 * lambda) * prior # second derivative of log link
+    G11 <- (z * (((omega + 2 * lambda + 1) ^ 2) / 
+    ((omega * lambda + omega + lambda ^ 2 + lambda) ^ 2) - 
+    2 / (omega * lambda + omega + lambda ^ 2 + lambda) + 
+    (2 * omega) / (omega * (lambda ^ 2) + omega * lambda + omega + lambda) - 
+    ((2 * omega * lambda + omega + 1) ^ 2) / 
+    ((omega * (lambda ^ 2) + omega * lambda + omega + lambda) ^ 2)) + 
+    (XXX / ((1 + lambda) ^ 2) - 
+    XXX / (lambda ^ 2) + (1 - z) / ((omega + lambda) ^ 2)))
+    
+    G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
+            G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
+    
     matrix(
       -c(G11, # lambda
          G01, # mixed
@@ -68,9 +103,8 @@ oiztgeom <- function(...) {
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- ifelse(y == 1, y, 0)
     G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
     G1 <- G1 + (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda))
@@ -86,8 +120,8 @@ oiztgeom <- function(...) {
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]])
+      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      #xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -108,28 +142,34 @@ oiztgeom <- function(...) {
     switch (deriv,
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        omega <- lambda[, 2]
-        lambda <- lambda[, 1]
-        theta <- exp(eta[, 2])
-        -sum(weight * (z * (log((lambda ^ 2) * omega + lambda * omega + lambda + omega) - log(lambda ^ 2 + lambda * omega + lambda + omega)) + 
+        omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        -sum(weight * (z * (log((lambda ^ 2) * omega + lambda * omega + lambda + omega) - 
+        log(lambda ^ 2 + lambda * omega + lambda + omega)) + 
         (1 - z) * (log(1 - omega) + y * log(lambda) - y * log(1 + lambda) - log(lambda + omega))))
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        omega <- lambda[, 2]
-        lambda <- lambda[, 1]
-        G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-        G1 <- G1 + (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda))
-        G1 <- G1 * weight * lambda
-        G0 <- z * (lambda + 1) * (lambda ^ 2) / ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-        G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)) # omega derivative
-        G0 <- G0 * weight * omega * (1 - omega)
+        omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        G1 <- (z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / 
+        ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) + 
+        (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda)))
+        
+        G0 <- (z * (lambda + 1) * (lambda ^ 2) / 
+        ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) - 
+        (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)))
+        
+        G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+        G0 <- G0 * weight * omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+        
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
           return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         } 
+        
         if (vectorDer) {
           return(cbind(G1, G0))
         }
@@ -138,33 +178,59 @@ oiztgeom <- function(...) {
       function (beta) {
           lambdaPredNumber <- attr(X, "hwm")[1]
           eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-          lambda <- invlink(eta)
-          omega <- lambda[, 2]
-          lambda <- lambda[, 1]
-          Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-          Xomega <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
-          res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
+          omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+          lambda <- lambdaLink(eta[, 1], inverse = TRUE)
           
-          G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-          G1 <- G1 + (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda))
-          G0 <- z * (lambda + 1) * (lambda ^ 2) / ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-          G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda))
+          res <- matrix(nrow = length(beta), ncol = length(beta), 
+                        dimnames = list(names(beta), names(beta)))
+          
+          G1 <- (z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / 
+          ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) + 
+          (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda)))
+          
+          G0 <- (z * (lambda + 1) * (lambda ^ 2) / 
+          ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) - 
+          (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)))
           
           # omega^2 derivative
-          G00 <- 1 / ((lambda + omega) ^ 2) - z * ((lambda ^ 2 + lambda + 1) ^ 2) / ((omega * (lambda ^ 2 + lambda + 1) + lambda) ^ 2) - (1 - z) / ((1 - omega) ^ 2)
-          G00 <- weight * (G0 * (omega * (1 - omega) * (1 - 2 * omega)) + G00 * ((omega * (1 - omega)) ^ 2))  # second derivative of inverse logistic link
-          G00 <- t(as.data.frame(Xomega * G00)) %*% as.matrix(Xomega)
+          G00 <- (1 / ((lambda + omega) ^ 2) - z * ((lambda ^ 2 + lambda + 1) ^ 2) / 
+          ((omega * (lambda ^ 2 + lambda + 1) + lambda) ^ 2) - 
+          (1 - z) / ((1 - omega) ^ 2))
+          
+          G00 <- weight * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
+                           G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1)) ^ 2)
+          
+          G00 <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00)) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
           
           # mixed derivative
-          G01 <- (1 - z) / ((omega + lambda) ^ 2) + z * lambda * (omega * omega * (lambda ^ 3 + 2 * (lambda ^ 2) + 4 * lambda + 2) + omega * (4 * (lambda ^ 2) + 2 * lambda) + lambda ^ 3) / (((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) ^ 2)
-          G01 <- G01 * lambda * omega * (1 - omega) * weight
-          G01 <- t(as.data.frame(Xlambda) * G01) %*% as.matrix(Xomega)
+          G01 <- ((1 - z) / ((omega + lambda) ^ 2) + 
+          z * lambda * (omega * omega * (lambda ^ 3 + 2 * (lambda ^ 2) + 4 * lambda + 2) + 
+                        omega * (4 * (lambda ^ 2) + 2 * lambda) + lambda ^ 3) / 
+          (((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) ^ 2))
+          
+          G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
+          omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight
+          
+          G01 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G01) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
           
           # Beta^2 derivative
-          G11 <- z * (((omega + 2 * lambda + 1) ^ 2) / ((omega * lambda + omega + lambda ^ 2 + lambda) ^ 2) - 2 / (omega * lambda + omega + lambda ^ 2 + lambda) + (2 * omega) / (omega * (lambda ^ 2) + omega * lambda + omega + lambda) - ((2 * omega * lambda + omega + 1) ^ 2) / ((omega * (lambda ^ 2) + omega * lambda + omega + lambda) ^ 2))
-          G11 <- G11 + (1 - z) * (y / ((1 + lambda) ^ 2) - y / (lambda ^ 2) + 1 / ((omega + lambda) ^ 2))
-          G11 <- (G11 * lambda * lambda + G1 * lambda) * weight # second derivative of log link
-          G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
+          G11 <- (z * (((omega + 2 * lambda + 1) ^ 2) / 
+          ((omega * lambda + omega + lambda ^ 2 + lambda) ^ 2) - 
+          2 / (omega * lambda + omega + lambda ^ 2 + lambda) + 
+          (2 * omega) / (omega * (lambda ^ 2) + omega * lambda + omega + lambda) - 
+          ((2 * omega * lambda + omega + 1) ^ 2) / 
+          ((omega * (lambda ^ 2) + omega * lambda + omega + lambda) ^ 2)) + 
+          (1 - z) * (y / ((1 + lambda) ^ 2) - 
+          y / (lambda ^ 2) + 1 / ((omega + lambda) ^ 2)))
+          
+          G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
+                  G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight # second derivative of log link
+          
+          G11 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11)) %*% 
+          X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+          
           res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
           res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
           res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(G01)
@@ -180,9 +246,8 @@ oiztgeom <- function(...) {
   }
   
   devResids <- function(y, eta, wt, ...) {
-    omega <- invlink(eta)
-    lambda <- omega[, 1]
-    omega <- omega[, 2]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     mu1 <- mu.eta(eta = eta)
     idealOmega <- ifelse(y == 1, 1, 0)
     idealLambda <- ifelse(y > 1, y - 1, 0)
@@ -195,9 +260,8 @@ oiztgeom <- function(...) {
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     N <- pw * (1 + lambda) / (lambda + omega)
     if(!contr) {
       N <- sum(N)
@@ -206,34 +270,31 @@ oiztgeom <- function(...) {
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- -pw * omega * (1 - omega) * (1 + lambda) / ((lambda + omega) ^ 2) # w.r to omega
-    bigTheta2 <- pw * lambda * (omega - 1) / ((lambda + omega) ^ 2) # w.r to lambda
+    bigTheta1 <- -pw * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * (1 + lambda) / ((lambda + omega) ^ 2) # w.r to omega
+    bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * (omega - 1) / ((lambda + omega) ^ 2) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    
-    f2 <- sum(pw * (1 + lambda) / (lambda - omega))
+    f2 <- sum(pw * (1 - omega) / (lambda + omega))
     
     f1 + f2
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
-    ifelse(x == 1, ((lambda ^ 2) * omega + lambda * omega + lambda + omega) / (lambda ^ 2 + lambda * omega + lambda + omega), 
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    ifelse(x == 1, ((lambda ^ 2) * omega + lambda * omega + lambda + omega) / 
+                    (lambda ^ 2 + lambda * omega + lambda + omega), 
            ((lambda / (1 + lambda)) ^ x) * (1 - omega) / (lambda + omega))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     CDF <- function(x) {
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 
@@ -282,23 +343,21 @@ oiztgeom <- function(...) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      linkfun = link,
-      linkinv = invlink,
-      mu.eta = mu.eta,
-      link = c("log", "logit"),
-      valideta = function (eta) {TRUE},
-      variance = variance,
-      Wfun = Wfun,
-      funcZ = funcZ,
+      densityFunction  = dFun,
+      links     = links,
+      mu.eta    = mu.eta,
+      valideta  = function (eta) {TRUE},
+      variance  = variance,
+      Wfun      = Wfun,
+      funcZ     = funcZ,
       devResids = devResids,
-      validmu = validmu,
-      pointEst = pointEst,
-      popVar= popVar,
-      family = "oiztgeom",
-      etaNames = c("lambda", "omega"),
-      densityFunction = dFun,
-      simulate = simulate,
-      getStart = getStart
+      validmu   = validmu,
+      pointEst  = pointEst,
+      popVar    = popVar,
+      family    = "oiztgeom",
+      etaNames  = c("lambda", "omega"),
+      simulate  = simulate,
+      getStart  = getStart
     ),
     class = c("singleRfamily", "family")
   )

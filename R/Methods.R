@@ -392,14 +392,7 @@ vcov.singleR <- function(object,
                                   "observedInform"), 
                          ...) {
   if (missing(type) ){type <- object$populationSize$control$covType}
-  X <- model.frame.singleR(object, ...)
-  X <- subset(X, select = colnames(X)[-(attr(object$terms, "response"))], subset = object$which$reg)
-  X <- singleRinternalGetXvlmMatrix(
-    X = X, 
-    nPar = length(object$model$etaNames), 
-    formulas = object$formula, 
-    parNames = object$model$etaNames
-  )
+  X <- model.matrix(object, "vlm")
   res <- switch(
     type,
     "observedInform" = solve(
@@ -769,10 +762,8 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
       subset(X, subset = object$which$reg)
       },
     vlm = {
-      X <- model.frame.singleR(object, ...);
-      X <- subset(X, 
-                  select = colnames(X)[-(attr(object$terms, "response"))], 
-                  subset = object$which$reg);
+      X <- model.frame(object, ...);
+      X <- X[object$which$reg, colnames(X)[-(attr(object$terms, "response"))], drop = FALSE];
       singleRinternalGetXvlmMatrix(
         X = X, 
         nPar = length(object$model$etaNames), 

@@ -47,42 +47,35 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     z <- omega + (1 - omega) / (1 + lambda) # expected for I's
     #z <- ifelse(y == 1, y, 0)
     Ey <- mu.eta(eta = eta)
-    EyTimesZ <- z
-    XXX <- Ey - (omega + (1 - omega) / (1 + lambda))
+    #Ey <- y
+    XXX <- (1 - omega) * (1 + lambda + 1 / (1 + lambda))
     
-    G00 <- prior * ((omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) * 
-    (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1)) +
-    omegaLink(eta[, 2], inverse = TRUE, deriv = 2) * 
-    (-(lambda ^ 2 * omega ^ 2 + ((2 - 2 * z) * lambda - 2 * z * lambda ^ 2) * omega +
-    z * lambda ^ 2 - z + 1) / ((omega - 1) ^ 2 * (lambda * omega + 1) ^ 2)))
+    ### TODO:: There is something wrong here
+    G00 <- prior * (omegaLink(eta[, 2], inverse = TRUE, deriv = 2) *
+    ((z * (1 - 1 / (lambda + 1))) / (omega + (1 - omega) / (lambda + 1)) -
+    (1 - z) / (1 - omega)) +
+    (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) *
+    (lambda / ((omega - 1) * (lambda * omega + 1)) -
+    (lambda * omega - z * lambda - z + 1) / ((omega - 1) ^ 2 * (lambda * omega + 1)) -
+    (lambda * (lambda * omega - z * lambda - z + 1)) / ((omega - 1) * (lambda * omega + 1) ^ 2)))
+    
+    G0 <- z * lambda / (1 + lambda * omega) - (1 - z) / (1 - omega)
+    
+    G00 <- -z * (lambda ^ 2) / ((1 + lambda * omega) ^ 2) - (1 - z) / ((1 - omega) ^ 2)
+    G00 <- prior * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
+    G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2))  # second derivative of inverse logistic link
+    
     
     G01 <- prior * z / ((1 + lambda * omega) ^ 2)
     G01 <- G01 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
     G11 <- prior * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
-    (z * (omega - 1) / ((1 + lambda) * (1 + lambda * omega)) - 
-    ((1 - z) * (lambda + 1) - XXX) / (lambda ^ 2 + lambda)) +
+    ((XXX - 1 + z) / lambda - XXX / (lambda + 1) -
+    ((1 - omega) * z) / ((lambda + 1) ^ 2 * ((1 - omega) / (lambda + 1) + omega))) +
     (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) *
-    (-((omega ^ 2 * z - omega ^ 2) * lambda ^ 4 +
-    (4 * z * omega ^ 2 - 2 * omega ^ 2 * EyTimesZ + 2 * omega ^ 2 * Ey -
-    2 * omega ^ 2 - 2 * omega) * lambda ^ 3 +
-    ((-omega ^ 2 - 4 * omega) * EyTimesZ + 2 * omega ^ 2 + 4 * omega * z +
-    (omega ^ 2 + 4 * omega) * Ey - omega ^ 2 - 4 * omega - 1) * lambda ^ 2 +
-    ((-2 * omega - 2) * EyTimesZ + 2 * omega * z + 2 * z +
-    (2 * omega + 2) * Ey - 2 * omega - 2) * lambda +
-    z - EyTimesZ + Ey - 1) / (lambda ^ 2 * (lambda + 1) ^ 2 * (omega * lambda + 1) ^ 2)))
-    
-    # G1 <- z * (omega - 1) / ((1 + lambda) * (1 + lambda * omega)) - ((1 - z) * (lambda + 1) - XXX) / (lambda ^ 2 + lambda) # this one
-    # 
-    # 
-    # G1 <- ((omega * z - omega) * lambda ^ 2 + 
-    # ((2 * omega - omega * y) * z + omega * y - omega - 1) * lambda +
-    # (1 - y) * z + y - 1) / (lambda * (lambda + 1) * (omega * lambda + 1))
-    # 
-    # G11 <- -z * (omega - 1) * (2 * lambda * omega + omega + 1) / (((1 + lambda * omega) ^ 2) * ((1 + lambda) ^ 2))
-    # G11 <- G11 + (1 - z) * (lambda ^ 2 - 2 * lambda * (Ey - 1) - Ey + 1) / ((lambda ^ 2) * ((1 + lambda) ^ 2)) # This one
-    # #G11 <- G11 + (lambda ^ 2 - 2 * lambda * (Ey - 1) - Ey + 1) / ((lambda ^ 2) * ((1 + lambda) ^ 2)) - z * (lambda ^ 2) / ((lambda ^ 2) * ((1 + lambda) ^ 2))
-    # G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior # second derivative of log link
+    ((2 * (1 - omega) * z) / ((lambda + 1) ^ 3 * ((1 - omega) / (lambda + 1) + omega)) -
+    ((1 - omega) ^ 2 * z) / ((lambda + 1) ^ 4 * ((1 - omega) / (lambda + 1) + omega) ^ 2) + 
+    XXX / (lambda + 1) ^ 2 - (XXX - 1 + z) / lambda ^ 2))
     
     matrix(
       -c(G11, # lambda
@@ -140,7 +133,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         omega  <-  omegaLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         -sum(weight * (z * log(omega + (1 - omega) / (1 + lambda)) + (1 - z) * 
-        (log(1 - omega) - log(1 + lambda) + (y - 1) * log(lambda) - (y - 1) * log(1 + lambda))))
+        (log(1 - omega) + (y - 1) * log(lambda) - y * log(1 + lambda))))
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
@@ -148,7 +141,8 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G0 <- (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1))
         
-        G1 <- z * (omega - 1) / ((1 + lambda) * (1 + lambda * omega)) - (1 - z) * (lambda + 1 - y) / (lambda ^ 2 + lambda)
+        G1 <- (1 - z) * ((y - 1) / lambda - y / (lambda + 1)) -
+        ((1 - omega) * z) / ((lambda + 1) ^ 2 * ((1 - omega) / (lambda + 1) + omega))
         
         G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
         G0 <- G0 * weight *  omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
@@ -188,12 +182,9 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight) %*% 
         as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         # Beta^2 derivative
-        G11 <- (-z * (omega - 1) * (2 * lambda * omega + omega + 1) / 
-        (((1 + lambda * omega) ^ 2) * ((1 + lambda) ^ 2)) + 
-        (1 - z) * (lambda ^ 2 - 2 * lambda * (y - 1) - y + 1) / 
-        ((lambda ^ 2) * ((1 + lambda) ^ 2)))
+        G11 <- (2*(1-omega)*z)/((lambda+1)^3*((1-omega)/(lambda+1)+omega))-((1-omega)^2*z)/((lambda+1)^4*((1-omega)/(lambda+1)+omega)^2)+(1-z)*(y/(lambda+1)^2-(y-1)/lambda^2)
         
-        dlambda <- z * (omega - 1) / ((1 + lambda) * (1 + lambda * omega)) - (1 - z) * (lambda + 1 - y) / (lambda ^ 2 + lambda)
+        dlambda <- (1-z)*((y-1)/lambda-y/(lambda+1))-((1-omega)*z)/((lambda+1)^2*((1-omega)/(lambda+1)+omega))
         
         G11 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * 
         (G11 * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) + 
