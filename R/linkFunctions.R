@@ -92,8 +92,8 @@ singleRinternalneglogLink <- function(x,
       deriv,
       -log(x),# link
       -1 / x, # first derivative of link
-      1 / (x ^ 2), # second derivative of link
-      -2 / (x ^ 3) # third derivative of link
+      1 / x ^ 2, # second derivative of link
+      -2 / x ^ 3 # third derivative of link
     )
   } else {
     res <- switch(

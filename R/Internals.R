@@ -190,10 +190,12 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         cat("The increase to minus log-likelihood will be bellow chosen value of epsilon", eps, "\n")
       }
       if ("reltol" %in% crit) {
-        cat("The relative increase to minus log-likelihood will be bellow chosen value of epsilon", eps, "value at current step", format((L - LPrev) / LPrev, scientific = FALSE, digits = dg), "\n")
+        cat("The relative increase to minus log-likelihood will be bellow chosen value of epsilon", eps, 
+            "value at current step", format((L - LPrev) / LPrev, scientific = FALSE, digits = dg), "\n")
       }
       if ("coef" %in% crit) {
-        cat("Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.\nAt current step the highest change was:", format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))
+        cat("Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.\nAt current step the highest change was:", 
+            format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))
       }
     }
   )
@@ -224,12 +226,12 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       stop("Fit error infinite values reached consider another model,
             mu is too close to zero/infinity.\n")
     }
-    ## TODO:: Adjust for new link functions
+
     if (any(!is.finite(
       sapply(1:length(family$etaNames), FUN = function(x) {
         family$links[[x]](eta[, x], inverse = TRUE)
       })
-    ))) 
+    )))
       stop("Infinite values of distribution parameters obtained for some IRLS iteration.\n")
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
@@ -348,6 +350,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (trace  > 2) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood", colnames(covariates), paste0("gradient -- ", colnames(covariates)))
   }
   
+  mu <- mu.eta(eta = eta, ...)
   if (!validmu(mu)) {
     stop("Fit error infinite values reached consider another model,
           mu is too close to zero/infinity")

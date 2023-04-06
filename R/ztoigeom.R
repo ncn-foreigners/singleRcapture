@@ -2,7 +2,7 @@
 #' @importFrom lamW lambertW0
 #' @export
 ztoigeom <- function(lambdaLink = c("log", "neglog"), 
-                     omegaLink = c("logit"), 
+                     omegaLink = c("logit", "cloglog"), 
                      ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
@@ -16,7 +16,8 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
   )
   
   omegaLink <- switch (omegaLink,
-    "logit" = singleRinternallogitLink
+    "logit" = singleRinternallogitLink,
+    "cloglog" = singleRinternalcloglogLink
   )
   
   links[1:2] <- c(lambdaLink, omegaLink)
@@ -48,29 +49,21 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     #z <- ifelse(y == 1, y, 0)
     Ey <- mu.eta(eta = eta)
     #Ey <- y
-    XXX <- (1 - omega) * (1 + lambda + 1 / (1 + lambda))
-    
-    ### TODO:: There is something wrong here
+    XXX <- (1 - omega) * (1 + lambda - 1 / (1 + lambda))
+    #XXX <- Ey - z
+      
     G00 <- prior * (omegaLink(eta[, 2], inverse = TRUE, deriv = 2) *
-    ((z * (1 - 1 / (lambda + 1))) / (omega + (1 - omega) / (lambda + 1)) -
-    (1 - z) / (1 - omega)) +
+    (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1)) +
     (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) *
-    (lambda / ((omega - 1) * (lambda * omega + 1)) -
-    (lambda * omega - z * lambda - z + 1) / ((omega - 1) ^ 2 * (lambda * omega + 1)) -
-    (lambda * (lambda * omega - z * lambda - z + 1)) / ((omega - 1) * (lambda * omega + 1) ^ 2)))
-    
-    G0 <- z * lambda / (1 + lambda * omega) - (1 - z) / (1 - omega)
-    
-    G00 <- -z * (lambda ^ 2) / ((1 + lambda * omega) ^ 2) - (1 - z) / ((1 - omega) ^ 2)
-    G00 <- prior * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
-    G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2))  # second derivative of inverse logistic link
-    
+    (-(lambda ^ 2 * omega ^ 2 + ((2 - 2 * z) * lambda - 2 * z * lambda ^ 2) * omega + 
+    z * lambda ^ 2 - z + 1) / ((omega - 1) ^ 2 * (lambda * omega + 1) ^ 2)))
     
     G01 <- prior * z / ((1 + lambda * omega) ^ 2)
-    G01 <- G01 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+    G01 <- G01 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+                lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
     G11 <- prior * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
-    ((XXX - 1 + z) / lambda - XXX / (lambda + 1) -
+    ((XXX - (lambda + 1) * (1 - z)) / (lambda * (lambda + 1)) -
     ((1 - omega) * z) / ((lambda + 1) ^ 2 * ((1 - omega) / (lambda + 1) + omega))) +
     (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) *
     ((2 * (1 - omega) * z) / ((lambda + 1) ^ 3 * ((1 - omega) / (lambda + 1) + omega)) -
@@ -94,9 +87,8 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     z <- ifelse(y == 1, y, 0)
     G0 <- (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1))
     
-    G1 <- -((omega * z - omega) * lambda ^ 2 + 
-    ((2 - omega * y) * z + omega * y - omega - 1) * lambda + 
-    (1 - y) * z + y - 1) / (lambda * (lambda + 1) * (omega * lambda + 1))
+    G1 <- ((1 - z) * ((y - 1) / lambda - y / (lambda + 1)) - 
+    ((1 - omega) * z) / ((lambda + 1) ^ 2 * ((1 - omega) / (lambda + 1) + omega)))
     
     G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     G0 <- G0 *  omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
@@ -108,8 +100,8 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) #more stable
+      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      #xx <- solve(weight[[x]]) #more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -162,7 +154,10 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         Xomega <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
-        res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
+        res <- matrix(nrow = length(beta), 
+                      ncol = length(beta), 
+                      dimnames = list(names(beta), 
+                                      names(beta)))
         
         # omega^2 derivative
         domega <- (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1))
@@ -182,13 +177,16 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight) %*% 
         as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         # Beta^2 derivative
-        G11 <- (2*(1-omega)*z)/((lambda+1)^3*((1-omega)/(lambda+1)+omega))-((1-omega)^2*z)/((lambda+1)^4*((1-omega)/(lambda+1)+omega)^2)+(1-z)*(y/(lambda+1)^2-(y-1)/lambda^2)
+        G11 <- ((2 * (1 - omega) * z) / ((lambda + 1) ^ 3 * ((1 - omega) / (lambda + 1) + omega)) -
+        ((1 - omega) ^ 2 * z) / ((lambda + 1) ^ 4 * ((1 - omega) / (lambda + 1) + omega) ^ 2) +
+        (1 - z) * (y / (lambda + 1) ^ 2 - (y - 1) / lambda ^ 2))
         
-        dlambda <- (1-z)*((y-1)/lambda-y/(lambda+1))-((1-omega)*z)/((lambda+1)^2*((1-omega)/(lambda+1)+omega))
+        G1 <- (1 - z) * ((y - 1) / lambda - y / (lambda + 1)) -
+        ((1 - omega) * z) / ((lambda + 1) ^ 2 * ((1 - omega) / (lambda + 1) + omega))
         
         G11 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * 
-        (G11 * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) + 
-        dlambda * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight)) %*% 
+        (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
+         G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight)) %*% 
         X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
@@ -232,7 +230,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     #omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- rep(0, nrow(eta)) # w.r to omega
+    bigTheta1 <- rep(0, NROW(eta)) # w.r to omega
     bigTheta2 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * pw / (lambda ^ 2) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
@@ -282,6 +280,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (isTRUE(controlMethod$useZtpoissonAsStart)) {
       start <- estimatePopsize.fit(
         y = observed[wch$reg],

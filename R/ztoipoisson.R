@@ -2,7 +2,7 @@
 #' @importFrom lamW lambertW0
 #' @export
 ztoipoisson <- function(lambdaLink = c("log", "neglog"), 
-                        omegaLink = c("logit"), 
+                        omegaLink = c("logit", "cloglog"), 
                         ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
@@ -16,7 +16,8 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
   )
   
   omegaLink <- switch(omegaLink,
-    "logit" = singleRinternallogitLink
+    "logit" = singleRinternallogitLink,
+    "cloglog" = singleRinternalcloglogLink
   )
   
   links[1:2] <- c(lambdaLink, omegaLink)
@@ -296,6 +297,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))

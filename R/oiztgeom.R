@@ -2,7 +2,7 @@
 #' @importFrom lamW lambertW0
 #' @export
 oiztgeom <- function(lambdaLink = c("log", "neglog"), 
-                     omegaLink = c("logit"), 
+                     omegaLink = c("logit", "cloglog"), 
                      ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
@@ -16,7 +16,8 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
   )
   
   omegaLink <- switch (omegaLink,
-    "logit" = singleRinternallogitLink
+    "logit"   = singleRinternallogitLink,
+    "cloglog" = singleRinternalcloglogLink
   )
   
   links[1:2] <- c(lambdaLink, omegaLink)
@@ -67,7 +68,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     (1 - z) / ((1 - omega) ^ 2))
     
     G00 <- prior * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
-                    G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1)) ^ 2)
+                    G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2)
     
     # mixed derivative
     G01 <- ((1 - z) / ((omega + lambda) ^ 2) + 
@@ -89,7 +90,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     XXX / (lambda ^ 2) + (1 - z) / ((omega + lambda) ^ 2)))
     
     G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-            G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
+            G1 *  lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
     
     matrix(
       -c(G11, # lambda
@@ -108,10 +109,12 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     z <- ifelse(y == 1, y, 0)
     G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
     G1 <- G1 + (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda))
-    G1 <- G1 * lambda
+    G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+    
+    
     G0 <- z * (lambda + 1) * (lambda ^ 2) / ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
     G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)) # omega derivative
-    G0 <- G0 * omega * (1 - omega)
+    G0 <- G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -163,7 +166,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
         (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)))
         
         G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
-        G0 <- G0 * weight * omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+        G0 <- G0 * weight *  omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
         
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
@@ -197,8 +200,8 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
           ((omega * (lambda ^ 2 + lambda + 1) + lambda) ^ 2) - 
           (1 - z) / ((1 - omega) ^ 2))
           
-          G00 <- weight * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
-                           G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1)) ^ 2)
+          G00 <- weight * (G0 *  omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
+                           G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2)
           
           G00 <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00)) %*% 
           as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
@@ -226,7 +229,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
           y / (lambda ^ 2) + 1 / ((omega + lambda) ^ 2)))
           
           G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-                  G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight # second derivative of log link
+                  G1 *  lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight # second derivative of log link
           
           G11 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11)) %*% 
           X[1:(nrow(X) / 2), 1:lambdaPredNumber]
@@ -322,10 +325,11 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, log(omg))
+        start <- c(start, omegaLink(omg / (1 - omg)))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "omega$")]
