@@ -12,12 +12,10 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     "neglog" = singleRinternalneglogLink
   )
   
-  dlink <- function(lambda) {
-    1 / lambda
-  }
+  links[1] <- c(lambdaLink)
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
       "nontrunc" = lambda,
       "trunc"    = 1 + lambda
@@ -33,13 +31,21 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- exp(eta)
-    lambda * (1 + lambda) / ((1 + lambda) ^ 2)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    
+    matrix( # returning as matrix to keep type consistency
+      1 / (lambda * (lambda + 1)) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2,
+      ncol = 1, dimnames = list(rownames(eta), c("lambda"))
+      # 0 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) first 
+      # derivative always zero after we take expected value
+    )
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    mu <- 1 + exp(eta)
-    (y  / mu - 1) / weight
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    
+    ((y - 1) / lambda - y / (1 + lambda)) * 
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight
   }
   
   minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
@@ -53,35 +59,39 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
     
     switch (deriv,
-      function(arg) {
-        beta <- arg
+      function(beta) {
         eta <- as.matrix(X) %*% beta
-        lambda <- exp(eta)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         -sum(weight * ((y - 1) * log(lambda) - y * log(1 + lambda)))
       },
       function(beta) {
         eta <- X %*% beta
-        lambda <- exp(eta)
-        S <- 1 / (1 + lambda)
-        
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        G1 <- (y - 1) / lambda - y / (1 + lambda)
+        G1 <- weight * G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
         # Beta derivative
         if (NbyK) {
-          return(as.data.frame(X) * (y * S - 1)  * weight)
+          return(as.data.frame(X) * G1)
         }
         if (vectorDer) {
-          return(matrix((y * S - 1) * weight, ncol = 1))
+          return(matrix(G1, ncol = 1))
         }
-        t((y * S - 1)  * weight) %*% X
+        t(G1) %*% X
       },
       function(beta) {
         eta <- X %*% beta
-        lambda <- exp(eta)
-        S <- 1 / (1 + lambda)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        G1 <- (y - 1) / lambda - y / (1 + lambda)
+        G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+        
+        G11 <- y / (lambda + 1) ^ 2 - (y - 1) / lambda ^ 2
+        G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
         
         # second beta derivative
         
-        -t(as.data.frame(X) * lambda * y * (S ^ 2) * weight) %*% X
+        t(as.data.frame(X) * (G1 + G11) * weight) %*% X
       },
     )
   }
@@ -91,17 +101,16 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   devResids <- function (y, eta, wt, ...) {
-    mu <- invlink(eta)
-    mu1 <- mu.eta(eta = eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     hm1y <- y - 1 # that's an analytic inverse for geometric
     loghm1y <- ifelse(y > 1, log(hm1y), 0)
-    sign(y - mu1) * sqrt(-2 * wt * ((y - 1) * eta - y * log(mu1) - (y - 1) * loghm1y + y * log(y)))
+    sign(y - 1 - lambda) * sqrt(-2 * wt * ((y - 1) * log(lambda) - y * log(1 + lambda) - 
+                                           (y - 1) * loghm1y + y * log(y)))
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    lambda <- invlink(eta)
-    pr <- 1 - 1 / (1 + lambda)
-    N <- pw / pr
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    N <- pw / (1 - 1 / (1 + lambda))
     if(!contr) {
       N <- sum(N)
     }
@@ -109,11 +118,10 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     pr <- 1 - 1 / (1 + lambda)
     
-    bigTheta <- -(pw * as.numeric(lambda / 
-                 ((1 - (1 + lambda)) ^ 2))) %*% as.matrix(Xvlm)
+    bigTheta <- -(lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * pw / lambda ^ 2) %*% as.matrix(Xvlm)
     bigTheta <- as.vector(bigTheta)
     
     f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
@@ -123,7 +131,7 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
 simulate <- function(n, eta, lower = 0, upper = Inf) {
-    lambda <- invlink(eta)
+  lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     lb <- stats::pnbinom(lower, mu=lambda, size = 1)
     ub <- stats::pnbinom(upper, mu=lambda, size = 1)
     p_u <- stats::runif(n, lb, ub)
@@ -132,7 +140,7 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))
   }
   
@@ -143,30 +151,28 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
       ...
-    )$coefficients
+    )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
   )
   
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      linkfun = link,
-      linkinv = invlink,
-      dlink = dlink,
-      mu.eta = mu.eta,
-      link = "log",
-      valideta = function (eta) {TRUE},
-      variance = variance,
-      Wfun = Wfun,
-      funcZ = funcZ,
+      densityFunction  = dFun,
+      links     = links,
+      mu.eta    = mu.eta,
+      valideta  = function (eta) {TRUE},
+      variance  = variance,
+      Wfun      = Wfun,
+      funcZ     = funcZ,
       devResids = devResids,
-      validmu = validmu,
-      pointEst = pointEst,
-      popVar= popVar,
-      simulate = simulate,
-      family = "ztgeom",
-      etaNames = "lambda",
-      densityFunction = dFun,
-      getStart = getStart
+      validmu   = validmu,
+      pointEst  = pointEst,
+      popVar    = popVar,
+      family    = "ztgeom",
+      etaNames  = c("lambda"),
+      simulate  = simulate,
+      getStart  = getStart
     ),
     class = c("singleRfamily", "family")
   )

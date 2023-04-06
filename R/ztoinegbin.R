@@ -6,7 +6,7 @@
 ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, 
                        lambdaLink = c("log", "neglog"), 
                        alphaLink = c("log", "neglog"),
-                       omegaLink = "logit", ...) {
+                       omegaLink = c("logit", "cloglog"), ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(alphaLink))  alphaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
@@ -245,6 +245,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (!is.null(controlMethod$alphaStart)) {
       start <- c(start, controlMethod$alphaStart)
     } else {

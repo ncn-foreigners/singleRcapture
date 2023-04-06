@@ -3,15 +3,22 @@
 #' @importFrom stats glm.fit
 #' @importFrom stats poisson
 #' @export
-ztpoisson <- function(...) {
-  link <- log
-  invlink <- exp
-  dlink <- function(lambda) {
-    1 / lambda
-  }
-
+ztpoisson <- function(lambdaLink = c("log", "neglog"),
+                      ...) {
+  if (missing(lambdaLink)) lambdaLink <- "log"
+  
+  links <- list()
+  attr(links, "linkNames") <- c(lambdaLink)
+  
+  lambdaLink <- switch (lambdaLink,
+                        "log"    = singleRinternallogLink,
+                        "neglog" = singleRinternalneglogLink
+  )
+  
+  links[1] <- c(lambdaLink)
+  
   mu.eta <- function(eta, type = "trunc", ...) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
     "nontrunc" = lambda,
     "trunc" = lambda / (1 - exp(-lambda))
@@ -19,7 +26,7 @@ ztpoisson <- function(...) {
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
     "nontrunc" = lambda,
     "trunc" = mu.eta(eta = eta) * (1 + lambda - mu.eta(eta = eta))
@@ -27,13 +34,25 @@ ztpoisson <- function(...) {
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- invlink(eta)
-    matrix(-lambda * ((exp(-lambda) + lambda * exp(- lambda) - 1) / ((1 - exp(-lambda)) ^ 2)), 
-           ncol = 1, dimnames = list(rownames(eta), c("lambda")))
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    Ey <- mu.eta(eta)
+    
+    G1 <- (Ey / lambda - 1 / (1 - exp(-lambda))) * 
+           lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+    
+    G11 <- (exp(2 * lambda) / (exp(lambda) - 1) ^ 2 -
+            exp(lambda) / (exp(lambda) - 1) - Ey / lambda ^ 2) *
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
+    
+    matrix(-(G11 + G1), ncol = 1, 
+           dimnames = list(rownames(eta), c("lambda")))
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    (y - mu.eta(eta)) / weight
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    
+    ((y / lambda - 1 / (1-exp(-lambda))) * 
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight)
   }
 
   minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
@@ -47,25 +66,37 @@ ztpoisson <- function(...) {
     
     switch (deriv,
       function(beta) {
-        eta <- as.matrix(X) %*% beta
-        -sum(weight * (y * eta - log(exp(exp(eta)) - 1) - log(factorial(y))))
+        lambda <- lambdaLink((as.matrix(X) %*% beta)[, 1], inverse = TRUE)
+        
+        -sum(weight * (y * log(lambda) - log(exp(lambda) - 1) - log(factorial(y))))
       },
       function(beta) {
-        lambda <- exp(as.matrix(X) %*% beta)
+        eta <- as.matrix(X) %*% beta
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        G1 <- (y / lambda - 1 / (1-exp(-lambda))) * weight * 
+               lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+        
         if (NbyK) {
-          return(as.data.frame(X) * weight * (y - lambda / (1 - exp(-lambda))))
+          return(as.data.frame(X) * G1)
         }
         if (vectorDer) {
-          return(matrix(weight * (y - lambda / (1 - exp(-lambda))), ncol = 1))
+          return(matrix(G1, ncol = 1))
         }
-        t(as.matrix(X)) %*% (weight * (y - lambda / (1 - exp(-lambda))))
+        t(as.matrix(X)) %*% G1
       },
       function(beta) {
-        lambda <- exp(as.matrix(X) %*% beta)
-        eml <- exp(-lambda)
-        coefficient <- 1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2)
+        eta <- as.matrix(X) %*% beta
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
-        -(t(as.matrix(X) * as.numeric(weight * (1 / (1 - eml) - lambda * eml / ((1 - eml) ^ 2)) * lambda))) %*% as.matrix(X)
+        G1 <- (y / lambda - 1 / (1 - exp(-lambda))) * 
+               lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+        
+        G11 <- (exp(2*lambda) / (exp(lambda) - 1) ^ 2 -
+                exp(lambda) / (exp(lambda) - 1) - y / lambda ^ 2) *
+                lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
+        
+        t(as.matrix(X) * weight * (G1 + G11)) %*% as.matrix(X)
       }
     )
   }
@@ -75,14 +106,14 @@ ztpoisson <- function(...) {
   }
 
   devResids <- function(y, eta, wt, ...) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
     hm1y <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (y * eta - lambda - log(1 - exp(-lambda)) - y * ifelse(y > 1, log(hm1y), 0) + hm1y + ifelse(y > 1, log(1 - exp(-hm1y)), 0)))
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (y * log(lambda) - lambda - log(1 - exp(-lambda)) - y * ifelse(y > 1, log(hm1y), 0) + hm1y + ifelse(y > 1, log(1 - exp(-hm1y)), 0)))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     N <- pw / (1 - exp(-lambda))
     if(!contr) {
       N <- sum(N)
@@ -92,10 +123,13 @@ ztpoisson <- function(...) {
 
   popVar <- function (pw, eta, cov, Xvlm, ...) {
     Xvlm <- as.data.frame(Xvlm)
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
 
-    f1 <- colSums(-Xvlm * pw * (exp(log(lambda) - lambda) / ((1 - exp(-lambda)) ^ 2)))
-    f1 <- t(f1) %*% as.matrix(cov) %*% f1
+    bigTheta <- -(lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * pw * 
+                  exp(lambda) / (exp(lambda) - 1) ^ 2) %*% as.matrix(Xvlm)
+    bigTheta <- as.vector(bigTheta)
+    
+    f1 <- t(bigTheta) %*% as.matrix(cov) %*% bigTheta
 
     f2 <- sum(pw * exp(-lambda) / ((1 - exp(-lambda)) ^ 2))
 
@@ -103,7 +137,7 @@ ztpoisson <- function(...) {
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     lb <- stats::ppois(lower, lambda)
     ub <- stats::ppois(upper, lambda)
     p_u <- stats::runif(n, lb, ub)
@@ -112,7 +146,7 @@ ztpoisson <- function(...) {
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    lambda <- invlink(eta)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
   }
   
@@ -123,30 +157,28 @@ ztpoisson <- function(...) {
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
       ...
-    )$coefficients
+    )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
   )
   
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      linkfun = link,
-      linkinv = invlink,
-      dlink = dlink,
-      mu.eta = mu.eta,
-      link = "log",
-      valideta = function (eta) {TRUE},
-      variance = variance,
-      Wfun = Wfun,
-      funcZ = funcZ,
+      densityFunction  = dFun,
+      links     = links,
+      mu.eta    = mu.eta,
+      valideta  = function (eta) {TRUE},
+      variance  = variance,
+      Wfun      = Wfun,
+      funcZ     = funcZ,
       devResids = devResids,
-      validmu = validmu,
-      pointEst = pointEst,
-      popVar= popVar,
-      simulate = simulate,
-      family = "ztpoisson",
-      etaNames = "lambda",
-      densityFunction = dFun,
-      getStart = getStart
+      validmu   = validmu,
+      pointEst  = pointEst,
+      popVar    = popVar,
+      family    = "ztpoisson",
+      etaNames  = c("lambda"),
+      simulate  = simulate,
+      getStart  = getStart
     ),
     class = c("singleRfamily", "family")
   )

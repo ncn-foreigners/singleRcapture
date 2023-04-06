@@ -338,6 +338,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (!is.null(controlMethod$alphaStart)) {
       start <- c(start, controlMethod$alphaStart)
     } else {

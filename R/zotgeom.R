@@ -136,7 +136,8 @@ zotgeom <- function(...) {
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
       ...
-    )$coefficients
+    )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
   )
   
   structure(
