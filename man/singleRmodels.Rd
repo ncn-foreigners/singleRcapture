@@ -31,9 +31,17 @@ Hurdleztgeom(...)
 
 Hurdleztpoisson(...)
 
-oiztgeom(...)
+oiztgeom(
+  lambdaLink = c("log", "neglog"),
+  omegaLink = c("logit", "cloglog"),
+  ...
+)
 
-oiztpoisson(...)
+oiztpoisson(
+  lambdaLink = c("log", "neglog"),
+  omegaLink = c("logit", "cloglog"),
+  ...
+)
 
 zelterman(...)
 
@@ -47,24 +55,38 @@ ztHurdlegeom(...)
 
 ztHurdlepoisson(...)
 
-ztgeom(...)
+ztgeom(lambdaLink = c("log", "neglog"), ...)
 
-ztnegbin(nSim = 1000, epsSim = 1e-08, ...)
+ztnegbin(
+  nSim = 1000,
+  epsSim = 1e-08,
+  lambdaLink = c("log", "neglog"),
+  alphaLink = c("log", "neglog"),
+  ...
+)
 
-ztoigeom(...)
+ztoigeom(
+  lambdaLink = c("log", "neglog"),
+  omegaLink = c("logit", "cloglog"),
+  ...
+)
 
 ztoinegbin(
   nSim = 1000,
   epsSim = 1e-08,
-  lambdaLink = "log",
-  alphaLink = "log",
-  omegaLink = "logit",
+  lambdaLink = c("log", "neglog"),
+  alphaLink = c("log", "neglog"),
+  omegaLink = c("logit", "cloglog"),
   ...
 )
 
-ztoipoisson(...)
+ztoipoisson(
+  lambdaLink = c("log", "neglog"),
+  omegaLink = c("logit", "cloglog"),
+  ...
+)
 
-ztpoisson(...)
+ztpoisson(lambdaLink = c("log", "neglog"), ...)
 }
 \arguments{
 \item{...}{Additional arguments, not used for now.}

@@ -229,7 +229,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
                       dimnames = list(names(beta), names(beta)))
         
         trig <- comptrigamma(y = y, alpha = alpha)
-        dig <- compdigamma(y = y, alpha = alpha)
+        dig <-  compdigamma(y = y, alpha = alpha)
         
         # 2nd log(alpha) derivative
         G00 <- ((trig + ((lambda * alpha + 1) ^ (1 / alpha) * 
