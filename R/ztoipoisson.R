@@ -162,7 +162,8 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
         omega  <-  omegaLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
 
-        res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
+        res <- matrix(nrow = length(beta), ncol = length(beta), 
+                      dimnames = list(names(beta), names(beta)))
         
         # omega^2 derivative
         domega <- (z * (1 - lambda / (exp(lambda) - 1))) / 
@@ -301,7 +302,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, omegaLink(omg / (1 - omg)))
+        start <- c(start, family$links[[2]](omg))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "omega$")]

@@ -1238,6 +1238,17 @@ print.singleR <- function(x, ...) {
   invisible(x)
 }
 
+#' @method print singleRfamily
+#' @exportS3Method 
+print.singleRfamily <- function(x, ...) {
+  ## TODO :: add formulas for mean variance and pop-est
+  cat("Family of distributions: ", x$family,
+      "\nNames of parameters: ", x$etaNames, 
+      "\nLinks: ", attr(x$links, "linkNames"), 
+      sep = "")
+}
+
+
 #' @importFrom stats fitted
 #' @method fitted singleR
 #' @exportS3Method 

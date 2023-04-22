@@ -297,7 +297,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, family$links[[2]](omg / (1 - omg)))
+        start <- c(start, family$links[[2]](omg))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "omega$")]

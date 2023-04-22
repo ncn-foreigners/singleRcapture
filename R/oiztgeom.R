@@ -328,8 +328,8 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
-        omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, omegaLink(omg / (1 - omg)))
+        omg <- (length(observed[wch$reg]) - sum(observed[wch$reg] == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
+        start <- c(start, family$links[[2]](omg))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "omega$")]

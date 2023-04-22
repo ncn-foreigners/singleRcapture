@@ -11,8 +11,8 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
   attr(links, "linkNames") <- c(lambdaLink)
   
   lambdaLink <- switch (lambdaLink,
-                        "log"    = singleRinternallogLink,
-                        "neglog" = singleRinternalneglogLink
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
   )
   
   links[1] <- c(lambdaLink)
@@ -38,13 +38,13 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     Ey <- mu.eta(eta)
     
     G1 <- (Ey / lambda - 1 / (1 - exp(-lambda))) * 
-           lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
     
     G11 <- (exp(2 * lambda) / (exp(lambda) - 1) ^ 2 -
-            exp(lambda) / (exp(lambda) - 1) - Ey / lambda ^ 2) *
-            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
+    exp(lambda) / (exp(lambda) - 1) - Ey / lambda ^ 2) *
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
-    matrix(-(G11 + G1), ncol = 1, 
+    matrix(-prior * (G11 + G1), ncol = 1, 
            dimnames = list(rownames(eta), c("lambda")))
   }
   
