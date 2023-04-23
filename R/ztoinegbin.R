@@ -6,7 +6,7 @@
 ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, 
                        lambdaLink = c("log", "neglog"), 
                        alphaLink = c("log", "neglog"),
-                       omegaLink = c("logit", "cloglog"), ...) {
+                       omegaLink = c("logit", "cloglog", "probit"), ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(alphaLink))  alphaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
@@ -27,7 +27,9 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
   )
   
   omegaLink <- switch(omegaLink,
-    "logit" = singleRinternallogitLink
+    "logit" = singleRinternallogitLink,
+    "cloglog" = singleRinternalcloglogLink,
+    "probit" = singleRinternalprobitLink
   )
   
   links[1:3] <- c(lambdaLink, alphaLink, omegaLink)
@@ -294,7 +296,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
             function(beta) {

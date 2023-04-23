@@ -2,7 +2,7 @@
 #' @importFrom lamW lambertW0
 #' @export
 ztoipoisson <- function(lambdaLink = c("log", "neglog"), 
-                        omegaLink = c("logit", "cloglog"), 
+                        omegaLink = c("logit", "cloglog", "probit"), 
                         ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
@@ -17,7 +17,8 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
   
   omegaLink <- switch(omegaLink,
     "logit" = singleRinternallogitLink,
-    "cloglog" = singleRinternalcloglogLink
+    "cloglog" = singleRinternalcloglogLink,
+    "probit" = singleRinternalprobitLink
   )
   
   links[1:2] <- c(lambdaLink, omegaLink)
@@ -122,7 +123,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
       function(beta) {

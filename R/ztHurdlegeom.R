@@ -1,7 +1,7 @@
 #' @rdname singleRmodels
 #' @export
 ztHurdlegeom <- function(lambdaLink = c("log", "neglog"), 
-                         piLink = c("logit", "cloglog"), 
+                         piLink = c("logit", "cloglog", "probit"), 
                          ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(piLink))  piLink <- "logit"
@@ -16,7 +16,8 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
   
   piLink <- switch(piLink,
     "logit" = singleRinternallogitLink,
-    "cloglog" = singleRinternalcloglogLink
+    "cloglog" = singleRinternalcloglogLink,
+    "probit" = singleRinternalprobitLink
   )
   
   links[1:2] <- c(lambdaLink, piLink)
@@ -100,7 +101,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
       function(beta) {
@@ -250,6 +251,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$piStart)) {
       cc <- colnames(Xvlm)
       cc <- cc[grepl(x = cc, pattern = "pi$")]
@@ -262,6 +264,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
       start <- c(start, controlMethod$piStart)
     }
   )
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,

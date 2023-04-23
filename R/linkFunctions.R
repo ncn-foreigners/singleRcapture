@@ -55,6 +55,32 @@ singleRinternallogLink <- function(x,
   res
 }
 
+# half log link for chao
+singleRinternalloghalfLink <- function(x,
+                                   inverse = FALSE,
+                                   deriv = 0) {
+  deriv <- deriv + 1
+  if (isFALSE(inverse)) {
+    res <- switch(
+      deriv,
+      log(x / 2),# link
+      1 / x, # first derivative of link
+      -1 / (x ^ 2), # second derivative of link
+      2 / (x ^ 3) # third derivative of link
+    )
+  } else {
+    res <- switch(
+      deriv,
+      2 * exp(x), # inverse link
+      2 * exp(x), # first derivative of inverse link
+      2 * exp(x), # second derivative of inverse link
+      2 * exp(x) # third derivative of inverse link
+    )
+  }
+  
+  res
+}
+
 # cloglog
 
 singleRinternalcloglogLink <- function(x,
@@ -81,6 +107,32 @@ singleRinternalcloglogLink <- function(x,
   
   res
 }
+
+# probit
+
+singleRinternalprobitLink <- function(x,
+                                      inverse = FALSE,
+                                      deriv = 0) {
+  deriv <- deriv + 1
+  if (isFALSE(inverse)) {
+    res <- switch(deriv,
+      qnorm(x),# link
+      1/dnorm(qnorm(x)), # first derivative of link
+      qnorm(x) / (dnorm(qnorm(x))) ^ 2, # second derivative of link
+      (1 + 2 * qnorm(x) ^ 2) / dnorm(qnorm(x)) ^ 3 # third derivative of link
+    )
+  } else {
+    res <- switch(deriv,
+      pnorm(x), # inverse link
+      dnorm(x), # first derivative of inverse link
+      -(x * exp(-x ^ 2 / 2)) / (2 * pi) ^ .5, # second derivative of inverse link
+      ((x ^ 2 - 1) * exp(-x ^ 2 / 2)) / (2 * pi) ^ .5 # third derivative of inverse link
+    )
+  }
+  
+  res
+}
+
 
 # neglog link
 singleRinternalneglogLink <- function(x,
