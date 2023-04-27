@@ -479,7 +479,9 @@ estimatePopsize <- function(formula,
   m2 <- controlMethod(
     optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
                       grepl(x = family$family, pattern = "^ztoi")) 
-      "Nelder-Mead" else "L-BFGS-B"
+      "Nelder-Mead" else "L-BFGS-B",
+    maxiter = if (isTRUE(method == "IRLS")) 100
+              else 1000
   )
   m2 <- m2[names(m2) %in% names(m1) == FALSE]
   controlMethod <- append(m1, m2)

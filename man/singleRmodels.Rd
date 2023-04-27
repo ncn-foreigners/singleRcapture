@@ -25,35 +25,51 @@
 \alias{ztpoisson}
 \title{Family functions in singleRcapture package}
 \usage{
-chao(...)
+chao(lambdaLink = "loghalf", ...)
 
-Hurdleztgeom(...)
+Hurdleztgeom(
+  lambdaLink = c("log", "neglog"),
+  piLink = c("logit", "cloglog", "probit"),
+  ...
+)
 
-Hurdleztpoisson(...)
+Hurdleztpoisson(
+  lambdaLink = c("log", "neglog"),
+  piLink = c("logit", "cloglog", "probit"),
+  ...
+)
 
 oiztgeom(
   lambdaLink = c("log", "neglog"),
-  omegaLink = c("logit", "cloglog"),
+  omegaLink = c("logit", "cloglog", "probit"),
   ...
 )
 
 oiztpoisson(
   lambdaLink = c("log", "neglog"),
-  omegaLink = c("logit", "cloglog"),
+  omegaLink = c("logit", "cloglog", "probit"),
   ...
 )
 
-zelterman(...)
+zelterman(lambdaLink = "loghalf", ...)
 
-zotgeom(...)
+zotgeom(lambdaLink = c("log", "neglog"), ...)
 
 zotnegbin(nSim = 1000, epsSim = 1e-08, ...)
 
-zotpoisson(...)
+zotpoisson(lambdaLink = c("log", "neglog"), ...)
 
-ztHurdlegeom(...)
+ztHurdlegeom(
+  lambdaLink = c("log", "neglog"),
+  piLink = c("logit", "cloglog", "probit"),
+  ...
+)
 
-ztHurdlepoisson(...)
+ztHurdlepoisson(
+  lambdaLink = c("log", "neglog"),
+  piLink = c("logit", "cloglog", "probit"),
+  ...
+)
 
 ztgeom(lambdaLink = c("log", "neglog"), ...)
 
@@ -67,7 +83,7 @@ ztnegbin(
 
 ztoigeom(
   lambdaLink = c("log", "neglog"),
-  omegaLink = c("logit", "cloglog"),
+  omegaLink = c("logit", "cloglog", "probit"),
   ...
 )
 
@@ -76,13 +92,13 @@ ztoinegbin(
   epsSim = 1e-08,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
-  omegaLink = c("logit", "cloglog"),
+  omegaLink = c("logit", "cloglog", "probit"),
   ...
 )
 
 ztoipoisson(
   lambdaLink = c("log", "neglog"),
-  omegaLink = c("logit", "cloglog"),
+  omegaLink = c("logit", "cloglog", "probit"),
   ...
 )
 

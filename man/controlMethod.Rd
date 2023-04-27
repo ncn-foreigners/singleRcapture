@@ -15,7 +15,7 @@ controlMethod(
   optimPass = FALSE,
   stepsize = 1,
   checkDiagWeights = TRUE,
-  weightsEpsilon = 1e-10,
+  weightsEpsilon = 1e-08,
   momentumFactor = 0,
   saveIRLSlogs = FALSE,
   useZtpoissonAsStart = FALSE,

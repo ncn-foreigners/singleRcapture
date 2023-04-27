@@ -109,7 +109,8 @@ singleRinternalcloglogLink <- function(x,
 }
 
 # probit
-
+#' @importFrom stats dnorm
+#' @importFrom stats pnorm
 singleRinternalprobitLink <- function(x,
                                       inverse = FALSE,
                                       deriv = 0) {

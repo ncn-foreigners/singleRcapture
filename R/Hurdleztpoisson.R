@@ -229,7 +229,6 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   devResids <- function(y, eta, wt, ...) {
-    # TODO
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     

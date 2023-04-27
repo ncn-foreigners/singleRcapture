@@ -76,17 +76,25 @@ summary.singleR <- function(object,
   } else if (is.function(cov)) {
     cov <- cov(object, ...)
   }
+  
   pers <- residuals.singleR(object, type = resType)
+  
   cf <- coef(object)
   se <- sqrt(diag(cov))
+  
   wValues <- cf / se
+  
   pValues <- switch (test,
-  "t" = 2 *    stats::pt(q = -abs(wValues), df = dfResidual),
-  "z" = 2 * stats::pnorm(q = abs(wValues), lower.tail = FALSE)
+    "t" = 2 *    stats::pt(q = -abs(wValues), df = dfResidual),
+    "z" = 2 * stats::pnorm(q = abs(wValues), lower.tail = FALSE)
   )
+  
   crr <- if (isFALSE(correlation)) {NULL} else {cov / outer(se, se)}
+  
   if(isTRUE(correlation)) {rownames(crr) <- colnames(crr) <- names(cf)}
+  
   cnfint <- if(isTRUE(confint)) {confint.singleR(object, ...)} else {NULL}
+  
   if (is.numeric(object$populationSize$boot)) {
     n <- length(object$populationSize$boot)
     m <- sum((object$populationSize$boot - mean(object$populationSize$boot)) ^ 3) / n
@@ -1242,10 +1250,10 @@ print.singleR <- function(x, ...) {
 #' @exportS3Method 
 print.singleRfamily <- function(x, ...) {
   ## TODO :: add formulas for mean variance and pop-est
-  cat("Family of distributions: ", x$family,
-      "\nNames of parameters: ", x$etaNames, 
-      "\nLinks: ", attr(x$links, "linkNames"), 
-      sep = "")
+  cat("Family of distributions:", x$family,
+      "\nNames of parameters:", x$etaNames, 
+      "\nLinks:", attr(x$links, "linkNames"), 
+      sep = " ")
 }
 
 
@@ -1253,11 +1261,11 @@ print.singleRfamily <- function(x, ...) {
 #' @method fitted singleR
 #' @exportS3Method 
 fitted.singleR <- function(object,
-                           type = c("mu", 
-                                    "link"), # maybe add marginal frequencies/other options
+                           type = c("truncated", 
+                                    "nontruncated"),
                            ...) {
-  if (missing(type)) type <- "mu"
-  object$fitt.values[[type]] # fitted should return either E(Y) or E(Y|Y>0) otherwise we're breaking R conventions
+  if (missing(type)) type <- "truncated"
+  object$fitt.values[[type]]
 }
 # TODO:: update
 #' #' simulate
