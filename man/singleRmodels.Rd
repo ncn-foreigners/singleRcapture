@@ -55,7 +55,13 @@ zelterman(lambdaLink = "loghalf", ...)
 
 zotgeom(lambdaLink = c("log", "neglog"), ...)
 
-zotnegbin(nSim = 1000, epsSim = 1e-08, ...)
+zotnegbin(
+  nSim = 1000,
+  epsSim = 1e-08,
+  lambdaLink = c("log", "neglog"),
+  alphaLink = c("log", "neglog"),
+  ...
+)
 
 zotpoisson(lambdaLink = c("log", "neglog"), ...)
 
@@ -105,13 +111,21 @@ ztoipoisson(
 ztpoisson(lambdaLink = c("log", "neglog"), ...)
 }
 \arguments{
+\item{lambdaLink}{Link for poisson parameter, \code{"log"} by default}
+
 \item{...}{Additional arguments, not used for now.}
+
+\item{piLink}{Link for probability parameter,  \code{"logit"} by default}
+
+\item{omegaLink}{Link for inflation parameter, \code{"logit"} by default}
 
 \item{nSim}{If working weights cannot be computed analytically this argument
 specifies maximum number of simulations allowed to find them numerically.}
 
 \item{epsSim}{f working weights cannot be computed analytically this argument
 specifies precision level for finding them numerically.}
+
+\item{alphaLink}{Link for dispersion parameter, \code{"log"} by default}
 }
 \value{
 A object of class \code{family} containing objects:
@@ -124,14 +138,13 @@ A object of class \code{family} containing objects:
 (or just \mjeqn{\boldsymbol{X}}{X} if applied to model with single linear predictor)
 the argument \code{deriv} with possible values in \code{0, 1, 2} provides which
 derivative to return with \code{0} being just the minus log-likelihood.
-\item \code{linkfun, linkinv} -- A link function and its inverse.
+\item \code{links} -- List with link functions.
 \item \code{mu.eta, variance} -- Functions of linear predictors that
 return expected value and variance. There is a \code{type} argument with
 2 possible values \code{"trunc"} and \code{"nontrunc"} that specifies whether
 to return \mjeqn{\mathbb{E}(Y|Y>0), \text{var}(Y|Y>0)}{E(Y|Y>0), var(Y|Y>0)}
 or \mjeqn{\mathbb{E}(Y), \text{var}(Y)}{E(Y), var(Y)} respectively.
-\item \code{link, family} -- Character specifying link functions used for the
-model and the internally used name of the model.
+\item \code{family} -- Character that specifies name of the model.
 \item \code{valideta, validmu} -- For now only returns true. In near future
 will be used to check whether applied linear predictors are valid (i.e. are
 transormed into some elements of parameter space the subjected to inverse
@@ -155,6 +168,7 @@ specifies whether to return \mjeqn{\mathbb{P}(Y|Y>0)}{P(Y|Y>0)} or
 \mjeqn{\mathbb{P}(Y)}{P(Y)}.
 \item \code{simulate} -- A function that generates values of dependent
 vector given linear predictors.
+\item \code{getStart} -- Expression for generating starting points.
 }
 }
 \description{
