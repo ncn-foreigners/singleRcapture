@@ -109,8 +109,8 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #print(weight[[x]])
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]]) # more stable
+      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      xx <- solve(weight[[x]]) # more stable
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)

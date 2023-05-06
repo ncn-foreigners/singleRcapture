@@ -10,9 +10,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(alphaLink))  alphaLink <- "log"
   if (missing(omegaLink))  omegaLink <- "logit"
-  ## TODO:: there is an error in W and variance/deviance are not yet completed
-  ## -- apart from that this is completed
-  
+
   links <- list()
   attr(links, "linkNames") <- c(lambdaLink, alphaLink, omegaLink)
   
@@ -36,24 +34,24 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
   
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    #TODO
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
     switch (type,
-      nontrunc = omega * (1 + alpha * lambda) ^ (-1 / alpha) + (1 - omega) * lambda,
+      nontrunc = omega * (1 - (1 + alpha * lambda) ^ (-1 / alpha)) + (1 - omega) * lambda,
       trunc = omega + (1 - omega) * lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
     )
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
-    #TODO
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
     switch (type,
-      nontrunc = 2 * mu.eta(eta = eta, type = type) ^ 2,
-      trunc = 2 * mu.eta(eta = eta, type = type) ^ 2
+      nontrunc = omega * (1 - (1 + alpha * lambda) ^ (-1 / alpha)) + 
+      (1 - omega) * (lambda + (1 + alpha) * lambda ^ 2),
+      trunc = omega + (1 - omega) * (lambda + (1 + alpha) * lambda ^ 2) / 
+      (1 - (1 + alpha * lambda) ^ (-1 / alpha))
     ) - mu.eta(eta = eta, type = type) ^ 2
   }
   
@@ -86,7 +84,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
       k <- k + 1 # but here we compute the (1 - z) * psi function which takes 0 at y = 1
       prob <- (1 - omega) * stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
       if (!is.finite(prob)) {prob <- 0}
-      toAdd <- c( compdigamma(y = k, alpha = alpha), 
+      toAdd <- c( compdigamma(y = k, alpha = alpha),
                  comptrigamma(y = k, alpha = alpha)) * prob
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
@@ -99,7 +97,10 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
     
-    z  <- omega + (1 - omega) * lambda / (1 + alpha * lambda) ^ (1 / alpha + 1)
+    z  <- omega + (1 - omega) * lambda * 
+    ((1 + alpha * lambda) ^ (-1 / alpha - 1)) / 
+    (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+    
     XXX <- mu.eta(eta, type = "trunc") - z
     
     Edig  <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpectG1(x)})
@@ -108,39 +109,44 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     
     
     # omega
-    G0 <- (z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1))) /
-    (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) -
+    G0 <- z * ((alpha * lambda+1) ^ (1 / alpha + 1) + (-alpha - 1) *
+    lambda - 1) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+    (-alpha - 1) * lambda - 1) * omega + lambda) -
     (1 - z) / (1 - omega)
     
-    G00 <- -(z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1)) ^ 2) /
-    (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) ^ 2 -
+    G00 <- (-z * ((alpha * lambda + 1) ^ (1 / alpha + 1) +
+    (-alpha - 1) * lambda - 1) ^ 2) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+    (-alpha - 1) * lambda - 1) * omega + lambda) ^ 2 -
     (1 - z) / (1 - omega) ^ 2
     
     G00 <- G00 * omegaLink(eta[, 3], inverse = TRUE, deriv = 1) ^ 2 +
             G0 * omegaLink(eta[, 3], inverse = TRUE, deriv = 2)
     
     # omega alpha
-    G01 <- -z * lambda * (lambda * alpha + 1) ^ (1 / alpha) * 
-    ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha ^ 2 -
-    lambda * alpha) / (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) *
-    (omega * lambda * alpha + omega) + (1 - omega) * lambda) ^ 2)
+    G01 <- (-z) * lambda * ((alpha * lambda + 1) ^ (1 / alpha + 1) *
+    log(alpha * lambda + 1) + (-alpha ^ 2 - alpha) * lambda * 
+    (alpha * lambda + 1) ^ (1 / alpha) + alpha ^ 2 * lambda) /
+    (alpha ^ 2 * (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+    (-alpha - 1) * lambda - 1) * omega + lambda) ^ 2)
     
     G01 <- G01 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
                  omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
     
     # omega lambda
-    G02 <- (z * (lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha)) /
-    ((alpha * lambda + 1) ^ (1 / alpha) * (alpha * omega * lambda + omega) +
-    (1 - omega) * lambda) ^ 2
+    G02 <- z * ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1) /
+    (((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) * omega + lambda) ^ 2
     
     G02 <- G02 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                   omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
     
     # alpha
     
-    G1 <- ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1))) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) +
+    G1 <- ((1 - omega) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) *
+    log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) *
+    (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+    (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+    (omega * lambda * alpha + omega) - omega * lambda * alpha + 
+    (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
     (1 - z) * ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     ((lambda * alpha + 1) ^ (1 / alpha) * (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) +
     log(lambda * alpha + 1) / alpha ^ 2) + (lambda * (-(1 - z) / alpha - XXX)) /
@@ -156,36 +162,63 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) - (2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
     2 * lambda / (alpha ^ 2 * (lambda * alpha + 1))) - 
     (lambda ^ 2 * (-(1 - z) / alpha - XXX)) / 
-    (lambda * alpha + 1) ^ 2 - XXX / alpha ^ 2 + Etrig + 
-    ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1)) ^ 2) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) -
-    ((1 - omega) ^ 2 * z * lambda ^ 2 * (lambda * alpha + 1) ^ (-2 / alpha - 2) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1)) ^ 2) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) ^ 2 +
-    ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * 
-    (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 *(lambda * alpha + 1)) -
-    (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) /
-    ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega)
-    
+    (lambda * alpha + 1) ^ 2 - XXX / alpha ^ 2 + Etrig - 
+    ((omega - 1) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) *
+    log(lambda * alpha + 1) * ((lambda * (1 / alpha + 1)) / (lambda * alpha + 1) -
+    log(lambda * alpha + 1) / alpha ^ 2) + (lambda * alpha + 1) ^ (1 / alpha) * 
+    (-lambda * alpha ^ 2 - lambda * alpha) * (lambda / (alpha * (lambda * alpha + 1)) - 
+    log(lambda * alpha + 1) / alpha ^ 2) + (-2 * lambda * alpha - lambda) * 
+    (lambda * alpha + 1) ^ (1 / alpha) + lambda * (lambda * alpha + 1) ^ (1 / alpha) +
+    2 * lambda * alpha)) / (alpha ^ 2 * (lambda * alpha + 1) * 
+    ((lambda * alpha + 1) ^ (1 / alpha) * (omega * lambda * alpha + omega) - 
+    omega * lambda * alpha + (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
+    ((omega - 1) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) +
+    (lambda * alpha + 1) ^ (1 / alpha) * (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2) *
+    ((lambda * alpha + 1) ^ (1 / alpha) * (omega * lambda * alpha + omega) *
+    (lambda / (alpha * (lambda * alpha + 1)) - log(lambda * alpha + 1) / alpha ^ 2) + 
+    omega * lambda * (lambda * alpha + 1) ^ (1 / alpha) - omega * lambda)) / 
+    (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+    (omega * lambda * alpha + omega) - omega * lambda * alpha + (1 - omega) * lambda - omega) ^ 2 *
+    ((lambda * alpha + 1) ^ (1 / alpha) - 1)) + ((omega - 1) * z * lambda * 
+    (lambda * alpha + 1) ^ (1 / alpha - 1) * (lambda / (alpha * (lambda * alpha + 1)) -
+    log(lambda * alpha + 1) / alpha ^ 2) * ((lambda * alpha + 1) ^ (1 / alpha + 1) * 
+    log(lambda * alpha + 1) + (lambda * alpha+ 1 ) ^ (1 / alpha) *
+    (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+    (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) * (omega * lambda * alpha + omega) -
+    omega * lambda * alpha + (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2) +
+    (2 * (omega - 1) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) * 
+    log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) * 
+    (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+    (alpha ^ 3 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+    (omega * lambda * alpha + omega) - omega * lambda * alpha + (1 - omega) * lambda - omega) *
+    ((lambda * alpha + 1) ^ (1 / alpha) - 1)) + ((omega - 1) * z * lambda ^ 2 * 
+    ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) + 
+    (lambda * alpha + 1) ^ (1 / alpha) * (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+    (alpha ^ 2 * (lambda * alpha + 1) ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) *
+    (omega * lambda * alpha + omega) - omega * lambda * alpha + 
+    (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1))
+
     G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
             G1 * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
     
     # alpha lambda
-    G12 <- (z * ((1 - omega) * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1)) + (1 - omega) * lambda * (-1 / alpha - 1) *
-    alpha * (lambda * alpha + 1) ^ (-1 / alpha - 2) * 
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 2)) /
-    (lambda * alpha + 1)) + ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 2)) / alpha + 
-    (1 - omega) * lambda * (-1 / alpha - 1) * (lambda * alpha + 1) ^ (-1 / alpha - 2))) /
-    ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) -
-    ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    ((1 - omega) * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 
-    (1 - omega) * lambda * (-1 / alpha - 1) * alpha * (lambda * alpha + 1) ^ (-1 / alpha - 2)) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1))) /((1 - omega) * lambda * 
-    (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) ^ 2 +
+    G12 <- ((omega * (lambda * alpha + 1) ^ (1 + 1 / alpha) -
+    lambda * (omega * alpha + omega - 1) - omega) * 
+    (((lambda * alpha + 1) ^ (1 / alpha) - 1) * 
+    ((omega - 1) * z * (lambda - 1) * (lambda * alpha + 1) ^ (1 / alpha) *
+    (lambda * alpha - (lambda * alpha + 1) * log(lambda * alpha + 1)) -
+    (omega - 1) * z * lambda * alpha ^ 2 * ((lambda - 1) * 
+    (lambda * alpha + 1) ^ (1 / alpha) + 1)) - (omega - 1) * z * 
+    (lambda * alpha + 1) ^ (1 / alpha) * ((lambda - 1) * (lambda * alpha + 1) ^ (1 / alpha) + 1) *
+    (lambda * alpha - (lambda * alpha + 1) * log(lambda * alpha + 1))) -
+    (omega - 1) * z * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) - 1) *
+    ((lambda - 1) * (lambda * alpha + 1) ^ (1 / alpha) + 1) * 
+    (omega * (lambda * alpha + 1) ^ (1 / alpha) * 
+    (lambda * alpha * (alpha + 1) - (lambda * alpha + 1) * log(lambda * alpha + 1)) -
+    omega * lambda * alpha ^ 2)) / (alpha ^ 2 * (lambda * alpha + 1) ^ 2 * 
+    ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2 *
+    (omega * (lambda * alpha + 1) ^ (1 + 1 / alpha) -
+    lambda * (omega * alpha + omega - 1) - omega) ^ 2) +
     (1 - z) * (-((lambda * alpha + 1) ^ (-2 / alpha - 1) *
     (log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1)))) /
     (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha)) ^ 2 - ((lambda * alpha + 1) ^ (-1 / alpha - 1) *
@@ -195,28 +228,33 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     (lambda * (-(1 - z) / alpha - XXX) * alpha) / (lambda * alpha + 1) ^ 2
     
     G12 <- G12 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
-      alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+                  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     #lambda
     G2 <- (1 - z) * (-(alpha * lambda + 1) ^ (-1 / alpha - 1) / 
     (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha))) + 
     (alpha * (-XXX - (1 - z) / alpha)) / (alpha * lambda + 1) + XXX / lambda + 
-    (z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) +
-    (-1 / alpha - 1) * alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2))) /
-    ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega)
+    ((omega - 1) * z * ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1)) /
+    ((alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) * 
+    (alpha * omega * lambda + omega) + 
+    ((-alpha - 1) * omega + 1) * lambda - omega) * 
+    ((alpha * lambda + 1) ^ (1 / alpha) - 1))
     
     G22 <- (1 - z) * (-((-1 / alpha - 1) * alpha * (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
     (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) + (alpha * lambda + 1) ^ (-2 / alpha - 2) /
     (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) ^ 2) - XXX / lambda ^ 2 - 
-    (alpha ^ 2 * (-XXX - (1 - z) / alpha)) / (alpha * lambda + 1) ^ 2 + 
-    (z * (2 * (-1 / alpha - 1) * alpha *
-    (1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 2) +
-    (-1 / alpha - 2) * (-1 / alpha - 1) * alpha ^ 2 * (1 - omega) * lambda * 
-    (alpha * lambda + 1) ^ (-1 / alpha - 3))) / 
-    ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega) -
-    (z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) + (-1 / alpha - 1) * 
-    alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) ^ 2) /
-    ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega) ^ 2
+    (alpha ^ 2 * (-XXX - (1 - z) / alpha)) / (alpha * lambda + 1) ^ 2 - 
+    ((omega - 1) * z * ((alpha * lambda + 1) ^ (1 / alpha) *
+    (((alpha ^ 2 - 1) * omega - alpha + 1) * lambda ^ 2 + 
+    ((-6 * alpha ^ 2 - 5 * alpha - 1) * omega + 4 * alpha) * lambda +
+    (-6 * alpha - 4) * omega + 2) + (alpha * lambda + 1) ^ (2 / alpha) *
+    (((-2 * alpha ^ 2 - alpha) * omega + alpha) * lambda ^ 2 +
+    ((6 * alpha ^ 2 + 4 * alpha) * omega - 2 * alpha) * lambda + (6 * alpha + 5) * omega - 1) +
+    (alpha * lambda + 1) ^ (3 / alpha) * ((alpha ^ 2 + alpha) * omega * lambda ^ 2 +
+    (-2 * alpha ^ 2 - alpha + 1) * omega * lambda + (-2 * alpha - 2) * omega) +
+    ((2 * alpha ^ 2 + 2 * alpha) * omega - 2 * alpha) * lambda + (2 * alpha + 1) * omega - 1)) /
+    ((alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha) * (alpha * omega * lambda + omega) +
+    ((-alpha - 1) * omega + 1) * lambda - omega) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2)
     
     
     G22 <- G22 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
@@ -244,13 +282,17 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     
     dig <-  compdigamma(y = y, alpha = alpha)
     
-    G0 <- (z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1))) /
-    (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) -
+    G0 <- z * ((alpha * lambda+1) ^ (1 / alpha + 1) + (-alpha - 1) *
+    lambda - 1) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+    (-alpha - 1) * lambda - 1) * omega + lambda) -
     (1 - z) / (1 - omega)
     
-    G1 <- ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1))) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) +
+    G1 <- ((1 - omega) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) *
+    log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) *
+    (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+    (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+    (omega * lambda * alpha + omega) - omega * lambda * alpha + 
+    (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
     (1 - z) * ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     ((lambda * alpha + 1) ^ (1 / alpha) * (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) +
     log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) /
@@ -259,15 +301,17 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     G2 <- (1 - z) * (-(alpha * lambda + 1) ^ (-1 / alpha - 1) / 
     (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) + (alpha * (-y - 1 / alpha)) /
     (alpha * lambda + 1) + y / lambda) + 
-    (z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) +
-    (-1 / alpha - 1) * alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2))) /
-    ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega)
+    ((omega - 1) * z * ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1)) /
+    ((alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) * 
+    (alpha * omega * lambda + omega) + 
+    ((-alpha - 1) * omega + 1) * lambda - omega) * 
+    ((alpha * lambda + 1) ^ (1 / alpha) - 1))
     
     G0 <- G0 *  omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
     G1 <- G1 *  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
     G2 <- G2 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
-    uMatrix <- matrix(c(G2, G1, G0), ncol = 3)
+    uMatrix <- cbind(G2, G1, G0)
     
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
       matrix(as.numeric(weight[x, ]), ncol = 3)
@@ -304,7 +348,8 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               omega  <-  omegaLink(eta[, 3], inverse = TRUE)
               
               -sum(weight * (z * log(omega + (1 - omega) *
-              lambda / (1 + alpha * lambda) ^ (1 / alpha + 1)) + 
+              lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1) / 
+              (1 - (1 + lambda * alpha) ^ (-1 / alpha))) + 
               (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
               lgamma(1 / alpha) - log(factorial(y)) - 
               (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
@@ -318,13 +363,17 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               
               dig <-  compdigamma(y = y, alpha = alpha)
               
-              G0 <- (z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1))) /
-              (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) -
+              G0 <- z * ((alpha * lambda+1) ^ (1 / alpha + 1) + (-alpha - 1) *
+              lambda - 1) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+              (-alpha - 1) * lambda - 1) * omega + lambda) -
               (1 - z) / (1 - omega)
               
-              G1 <- ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-              (lambda * alpha + 1))) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) +
+              G1 <- ((1 - omega) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) *
+              log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) *
+              (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+              (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+              (omega * lambda * alpha + omega) - omega * lambda * alpha + 
+              (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
               (1 - z) * ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
               ((lambda * alpha + 1) ^ (1 / alpha) * (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) +
               log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) /
@@ -333,9 +382,11 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               G2 <- (1 - z) * (-(alpha * lambda + 1) ^ (-1 / alpha - 1) / 
               (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) + (alpha * (-y - 1 / alpha)) /
               (alpha * lambda + 1) + y / lambda) + 
-              (z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) +
-              (-1 / alpha - 1) * alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2))) /
-              ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega)
+              ((omega - 1) * z * ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1)) /
+              ((alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) * 
+              (alpha * omega * lambda + omega) + 
+              ((-alpha - 1) * omega + 1) * lambda - omega) * 
+              ((alpha * lambda + 1) ^ (1 / alpha) - 1))
               
               
               G0 <- G0 * weight *  omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
@@ -378,37 +429,42 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               dig <-  compdigamma(y = y, alpha = alpha)
               
               # omega
-              G0 <- (z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1))) /
-              (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) -
+              G0 <- z * ((alpha * lambda+1) ^ (1 / alpha + 1) + (-alpha - 1) *
+              lambda - 1) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+              (-alpha - 1) * lambda - 1) * omega + lambda) -
               (1 - z) / (1 - omega)
               
-              G00 <- -(z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1)) ^ 2) /
-              (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) ^ 2 -
+              G00 <- (-z * ((alpha * lambda + 1) ^ (1 / alpha + 1) +
+              (-alpha - 1) * lambda - 1) ^ 2) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+              (-alpha - 1) * lambda - 1) * omega + lambda) ^ 2 -
               (1 - z) / (1 - omega) ^ 2
               
               G00 <- G00 * omegaLink(eta[, 3], inverse = TRUE, deriv = 1) ^ 2 +
                       G0 * omegaLink(eta[, 3], inverse = TRUE, deriv = 2)
               
               # omega alpha
-              G01 <- -(z * lambda * (lambda * alpha + 1) ^ (1 / alpha) * 
-              ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha ^ 2 -
-              lambda * alpha)) / (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) *
-              (omega * lambda * alpha + omega) + (1 - omega) * lambda) ^ 2)
+              G01 <- (-z) * lambda * ((alpha * lambda + 1) ^ (1 / alpha + 1) *
+              log(alpha * lambda + 1) + (-alpha ^ 2 - alpha) * lambda * 
+              (alpha * lambda + 1) ^ (1 / alpha) + alpha ^ 2 * lambda) /
+              (alpha ^ 2 * (((alpha * lambda + 1) ^ (1 / alpha + 1) +
+              (-alpha - 1) * lambda - 1) * omega + lambda) ^ 2)
               
               G01 <- G01 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
                            omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
               
               # omega lambda
-              G02 <- (z * (lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha)) /
-              ((alpha * lambda + 1) ^ (1 / alpha) * (alpha * omega * lambda + omega) +
-              (1 - omega) * lambda) ^ 2
+              G02 <- z * ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1) /
+              (((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) * omega + lambda) ^ 2
               
               G02 <- G02 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
               # alpha
-              G1 <- ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-              (lambda * alpha + 1))) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) +
+              G1 <- ((1 - omega) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) *
+              log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) *
+              (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+              (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+              (omega * lambda * alpha + omega) - omega * lambda * alpha + 
+              (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
               (1 - z) * ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
               ((lambda * alpha + 1) ^ (1 / alpha) * (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) +
               log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) /
@@ -423,36 +479,63 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               (alpha * (lambda * alpha + 1) ^ 2)) / ((lambda * alpha + 1) ^ (1 / alpha) * 
               (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) - (2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
               (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) - (lambda ^ 2 * (-1 / alpha - y)) / 
-              (lambda * alpha + 1) ^ 2 - y / alpha ^ 2 + trig) + 
-              ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-              (lambda * alpha + 1)) ^ 2) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) -
-              ((1 - omega) ^ 2 * z * lambda ^ 2 * (lambda * alpha + 1) ^ (-2 / alpha - 2) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-              (lambda * alpha + 1)) ^ 2) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) ^ 2 +
-              ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * 
-              (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 *(lambda * alpha + 1)) -
-              (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) /
-              ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega)
+              (lambda * alpha + 1) ^ 2 - y / alpha ^ 2 + trig) - 
+              ((omega - 1) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) *
+              log(lambda * alpha + 1) * ((lambda * (1 / alpha + 1)) / (lambda * alpha + 1) -
+              log(lambda * alpha + 1) / alpha ^ 2) + (lambda * alpha + 1) ^ (1 / alpha) * 
+              (-lambda * alpha ^ 2 - lambda * alpha) * (lambda / (alpha * (lambda * alpha + 1)) - 
+              log(lambda * alpha + 1) / alpha ^ 2) + (-2 * lambda * alpha - lambda) * 
+              (lambda * alpha + 1) ^ (1 / alpha) + lambda * (lambda * alpha + 1) ^ (1 / alpha) +
+              2 * lambda * alpha)) / (alpha ^ 2 * (lambda * alpha + 1) * 
+              ((lambda * alpha + 1) ^ (1 / alpha) * (omega * lambda * alpha + omega) - 
+              omega * lambda * alpha + (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
+              ((omega - 1) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) +
+              (lambda * alpha + 1) ^ (1 / alpha) * (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2) *
+              ((lambda * alpha + 1) ^ (1 / alpha) * (omega * lambda * alpha + omega) *
+              (lambda / (alpha * (lambda * alpha + 1)) - log(lambda * alpha + 1) / alpha ^ 2) + 
+              omega * lambda * (lambda * alpha + 1) ^ (1 / alpha) - omega * lambda)) / 
+              (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+              (omega * lambda * alpha + omega) - omega * lambda * alpha + (1 - omega) * lambda - omega) ^ 2 *
+              ((lambda * alpha + 1) ^ (1 / alpha) - 1)) + ((omega - 1) * z * lambda * 
+              (lambda * alpha + 1) ^ (1 / alpha - 1) * (lambda / (alpha * (lambda * alpha + 1)) -
+              log(lambda * alpha + 1) / alpha ^ 2) * ((lambda * alpha + 1) ^ (1 / alpha + 1) * 
+              log(lambda * alpha + 1) + (lambda * alpha+ 1 ) ^ (1 / alpha) *
+              (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+              (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) * (omega * lambda * alpha + omega) -
+              omega * lambda * alpha + (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2) +
+              (2 * (omega - 1) * z * lambda * ((lambda * alpha + 1) ^ (1 / alpha + 1) * 
+              log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) * 
+              (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+              (alpha ^ 3 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+              (omega * lambda * alpha + omega) - omega * lambda * alpha + (1 - omega) * lambda - omega) *
+              ((lambda * alpha + 1) ^ (1 / alpha) - 1)) + ((omega - 1) * z * lambda ^ 2 * 
+              ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) + 
+              (lambda * alpha + 1) ^ (1 / alpha) * (-lambda * alpha ^ 2 - lambda * alpha) + lambda * alpha ^ 2)) /
+              (alpha ^ 2 * (lambda * alpha + 1) ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) *
+              (omega * lambda * alpha + omega) - omega * lambda * alpha + 
+              (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1))
               
               G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
                       G1 * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
               
               # alpha lambda
-              G12 <- (z * ((1 - omega) * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-              (lambda * alpha + 1)) + (1 - omega) * lambda * (-1 / alpha - 1) *
-              alpha * (lambda * alpha + 1) ^ (-1 / alpha - 2) * 
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 2)) /
-              (lambda * alpha + 1)) + ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 2)) / alpha + 
-              (1 - omega) * lambda * (-1 / alpha - 1) * (lambda * alpha + 1) ^ (-1 / alpha - 2))) /
-              ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) -
-              ((1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              ((1 - omega) * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 
-              (1 - omega) * lambda * (-1 / alpha - 1) * alpha * (lambda * alpha + 1) ^ (-1 / alpha - 2)) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-              (lambda * alpha + 1))) /((1 - omega) * lambda * 
-              (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega) ^ 2 +
+              G12 <- ((omega * (lambda * alpha + 1) ^ (1 + 1 / alpha) -
+              lambda * (omega * alpha + omega - 1) - omega) * 
+              (((lambda * alpha + 1) ^ (1 / alpha) - 1) * 
+              ((omega - 1) * z * (lambda - 1) * (lambda * alpha + 1) ^ (1 / alpha) *
+              (lambda * alpha - (lambda * alpha + 1) * log(lambda * alpha + 1)) -
+              (omega - 1) * z * lambda * alpha ^ 2 * ((lambda - 1) * 
+              (lambda * alpha + 1) ^ (1 / alpha) + 1)) - (omega - 1) * z * 
+              (lambda * alpha + 1) ^ (1 / alpha) * ((lambda - 1) * (lambda * alpha + 1) ^ (1 / alpha) + 1) *
+              (lambda * alpha - (lambda * alpha + 1) * log(lambda * alpha + 1))) -
+              (omega - 1) * z * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) - 1) *
+              ((lambda - 1) * (lambda * alpha + 1) ^ (1 / alpha) + 1) * 
+              (omega * (lambda * alpha + 1) ^ (1 / alpha) * 
+              (lambda * alpha * (alpha + 1) - (lambda * alpha + 1) * log(lambda * alpha + 1)) -
+              omega * lambda * alpha ^ 2)) / (alpha ^ 2 * (lambda * alpha + 1) ^ 2 * 
+              ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2 *
+              (omega * (lambda * alpha + 1) ^ (1 + 1 / alpha) -
+              lambda * (omega * alpha + omega - 1) - omega) ^ 2) +
               (1 - z) * (-((lambda * alpha + 1) ^ (-2 / alpha - 1) *
               (log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1)))) /
               (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha)) ^ 2 - ((lambda * alpha + 1) ^ (-1 / alpha - 1) *
@@ -468,21 +551,29 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               G2 <- (1 - z) * (-(alpha * lambda + 1) ^ (-1 / alpha - 1) / 
               (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) + (alpha * (-y - 1 / alpha)) /
               (alpha * lambda + 1) + y / lambda) + 
-              (z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) +
-              (-1 / alpha - 1) * alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2))) /
-              ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega)
+              ((omega - 1) * z * ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1)) /
+              ((alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) * 
+              (alpha * omega * lambda + omega) + 
+              ((-alpha - 1) * omega + 1) * lambda - omega) * 
+              ((alpha * lambda + 1) ^ (1 / alpha) - 1))
               
               G22 <- (1 - z) * (-((-1 / alpha - 1) * alpha * (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
               (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) + (alpha * lambda + 1) ^ (-2 / alpha - 2) /
               (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) ^ 2 - (alpha ^ 2 * (-y - 1 / alpha)) /
-              (alpha * lambda + 1) ^ 2 - y / lambda ^ 2) + (z * (2 * (-1 / alpha - 1) * alpha *
-              (1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 2) +
-              (-1 / alpha - 2) * (-1 / alpha - 1) * alpha ^ 2 * (1 - omega) * lambda * 
-              (alpha * lambda + 1) ^ (-1 / alpha - 3))) / 
-              ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega) -
-              (z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) + (-1 / alpha - 1) * 
-              alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) ^ 2) /
-              ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega) ^ 2
+              (alpha * lambda + 1) ^ 2 - y / lambda ^ 2) - ((omega - 1) * z * 
+              ((alpha * lambda + 1) ^ (1 / alpha) * (((alpha ^ 2 - 1) * omega - alpha + 1) * lambda ^ 2 +
+              ((-6 * alpha ^ 2 - 5 * alpha - 1) * omega + 4 * alpha) * lambda +
+              (-6 * alpha - 4) * omega + 2) + (alpha * lambda + 1) ^ (2 / alpha) *
+              (((-2 * alpha ^ 2 - alpha) * omega + alpha) * lambda ^ 2 + 
+              ((6 * alpha ^ 2 + 4 * alpha) * omega - 2 * alpha) * lambda +
+              (6 * alpha + 5) * omega - 1) + (alpha * lambda + 1) ^ (3 / alpha) *
+              ((alpha ^ 2 + alpha) * omega * lambda ^ 2 + 
+              (-2 * alpha ^ 2 - alpha + 1) * omega * lambda + (-2 * alpha - 2) * omega) +
+              ((2 * alpha ^ 2 + 2 * alpha) * omega - 2 * alpha) * lambda +
+              (2 * alpha + 1) * omega - 1)) / ((alpha * lambda + 1) ^ 2 *
+              ((alpha * lambda + 1) ^ (1 / alpha) * (alpha * omega * lambda + omega) +
+              ((-alpha - 1) * omega + 1) * lambda - omega) ^ 2 * 
+              ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2)
                
               G22 <- G22 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
                       G2 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
@@ -578,7 +669,8 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     
     ifelse(x == 1, 
-    omega + (1 - omega) * lambda / (1 + alpha * lambda) ^ (1 / alpha + 1), 
+    omega + (1 - omega) * 
+    stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha) / (1 - P0), 
     (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0))
   }
   
@@ -599,10 +691,10 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     ub <- CDF(upper)
     p_u <- stats::runif(n, lb, ub)
     sims <- rep(0, n)
-    cond <- CDF(sims) <= p_u
+    cond <- CDF(sims) < p_u
     while (any(cond)) {
       sims[cond] <- sims[cond] + 1
-      cond <- CDF(sims) <= p_u
+      cond <- CDF(sims) < p_u
     }
     sims
   }
