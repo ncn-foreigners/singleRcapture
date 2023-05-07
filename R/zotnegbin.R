@@ -78,9 +78,9 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     prob <- 1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
     lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)
     
-    Edig <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
+    Edig  <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
     Etrig <- Edig[2, ]
-    Edig <- Edig[1, ]
+    Edig  <- Edig[1, ]
     
     G0 <- Ey / alpha + Edig -
     (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
@@ -259,7 +259,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-        # z is inverse of alpha in documentation
         res <- matrix(nrow = length(beta), ncol = length(beta), 
                       dimnames = list(names(beta), names(beta)))
         

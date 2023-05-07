@@ -161,8 +161,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]]) #more stable
+      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
+      xx <- solve(weight[[x]]) #more stable
       xx %*% uMatrix[x, ]
     })
     
@@ -297,65 +297,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
   }
 
   devResids <- function (y, eta, wt, ...) {
-    ## TODO:: fix before pushing to main
-    # lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    # alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    # 
-    # logLikFit <- (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
-    # (y + 1 / alpha) * log(1 + alpha * lambda) + y * log(lambda * alpha) -
-    # log(1 - (1 + alpha * lambda) ^ (-1 / alpha)))
-    # 
-    # yUnq <- unique(y) # see comments in zotpoisson
-    # findL <- function(yNow) {
-    #   print("--------")
-    #   print(yNow)
-    #   print("--------")
-    #   root <- rootSolve::multiroot(
-    #     start = c(.5, log(yNow), 1),# maybe pick better starting points
-    #     f = function(x) { # TODO:: provide analytic jacobian matrix will make it faster and more reliable
-    #       s <- x[1] # this is the lagrange multiplier and has no constraints of positivity
-    #       l <- exp(x[2])
-    #       a <- exp(x[3]) # including constraints
-    #       prob <- 1 - (1+a*l)^(-1/a)
-    #       PP <- log(1+a*l)-a*l/(1+a*l)
-    #       prob <- 1 / prob
-    #       c(l - yNow * (1 - (1+a*l)^(-1/a)),# s der
-    #         yNow/l-(1+a*yNow)/(1+a*l)-(yNow-l)/(l*(1+a*l))+
-    #         s*(yNow/l-yNow/l^2*(yNow-l)/(1+a*l)),# lambda der
-    #         (-digamma(yNow+1/a)+digamma(1/a))+log(a)+log(l+1/a)-1+
-    #         (1+yNow*a)/(1+l*a)+(yNow/l-1)*PP+s*l*PP*(yNow/l)^2*(1-l/yNow))
-    #     }, maxiter = 1000, verbose = TRUE, atol = 1e-10,
-    #     jacfunc = function(x) {
-    #       
-    #       d1221 <- yNow/l-(yNow*(yNow-l))/(l^2*(a*l+1))
-    #       
-    #       d1331 <- (yNow*(log(l*a+1)/a^2-l/(a*(l*a+1))))/(l*a+1)^(1/a)
-    #       
-    #       d2332 <- (s*yNow*(yNow-l))/(l*(l*a+1)^2)
-    #       
-    #       d33 <- ((l*s*yNow^2+(l-l^2*s)*yNow)*a^3+(l^2*trigamma(1/a+y_Now)-l^2*trigamma(1/a)+yNow)*a^2+
-    #       (2*l*trigamma(1/a+y_Now)-2*l*trigamma(1/a))*a+trigamma(1/a+y_Now)-trigamma(1/a))/(a^2*(l*a+1)^2)
-    #       
-    #       matrix(data = c(
-    #         0, d1221, d1331,
-    #         d1221, -(s*yNow*(a^2*l^3+4*a*l^2+(2-3*a*yNow)*l-2*yNow))/(l^3*(a*l+1)^2), d2332,
-    #         d1331, d2332, d33
-    #       ), ncol = 3, nrow = 3)
-    #     }
-    #   )$root
-    # 
-    #   (lgamma(yNow + exp(-root[3])) - lgamma(exp(-root[3])) +
-    #   (yNow + exp(-root[3])) * exp(root[3]) * log(1 - exp(root[2]) / yNow) + 
-    #    yNow * (root[2] + root[3]) + log(yNow) - root[2]) # last part follows from y=mu
-    # }
-    # logLikIdeal <- sapply(yUnq, FUN = function(x) {
-    #   ifelse(x == 1, 0, findL(x))
-    # })
-    # 
-    # logLikIdeal <- sapply(y, FUN = function(x) logLikIdeal[yUnq == x])
-    # 
-    # sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (logLikFit - logLikIdeal))
-    
+    # TODO:: implement theoritical results
     0
   }
 

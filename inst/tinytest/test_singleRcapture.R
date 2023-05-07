@@ -557,7 +557,7 @@ expect_silent(
     model = "zotpoisson",
     popVar = "bootstrap",
     method = "IRLS",
-    controlMethod = controlMethod(epsilon = 1e-6),
+    controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),# testing silent
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )

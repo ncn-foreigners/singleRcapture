@@ -52,7 +52,7 @@ chao <- function(lambdaLink = "loghalf",
 
   minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     y <- as.numeric(y)
-    z <- y
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }

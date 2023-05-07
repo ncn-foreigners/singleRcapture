@@ -1109,17 +1109,23 @@ print.summarysingleR <- function(x,
   
   cat("\nCoefficients:\n")
   
-  cond <- sapply(
+  cond <- matrix(sapply(
     x$model$etaNames, 
     FUN = function(k) {
       sapply(strsplit(rownames(x$coefficients), 
                       split = ":"), 
              FUN = function(x) x[[length(x)]] == k)
     }
+  ), 
+  ncol = length(x$model$etaNames), 
+  dimnames = list(
+    NULL,
+    x$model$etaNames
+    )
   )
   
   for (k in x$model$etaNames) {
-    if (!all(cond[,k] == FALSE)) {
+    if (!all(cond[, k] == FALSE)) {
       cat("-----------------------\nFor linear predictors associated with:", k, "\n")
       # Base library has no str_length and no proper sub_string this is a 
       # slightly convoluted way of making do without them

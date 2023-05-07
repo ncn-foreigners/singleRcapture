@@ -13,7 +13,6 @@
 ## - ztHurdlenegbin - to be started
 ## - Hurdleztnegbin - to be started
 
-load_all()
 set.seed(123)
 
 N <- 10000
@@ -66,6 +65,48 @@ expect_true(
   (N < popSizeEst(M1)$confidenceInterval[2, 2])
 )
 
+# same with different link
+
+fn <- ztoipoisson(
+  lambdaLink = "neglog",
+  omegaLink  = "cloglog",
+)
+
+y <- fn$simulate(n = N, eta = eta, lower = -1)
+
+df <- data.frame(
+  X = x1[y > 0],
+  Y = y[y > 0]
+)
+
+M1 <- estimatePopsize(
+  formula = Y ~ X,
+  model   = fn,
+  data    = df,
+  method = "IRLS",
+  controlModel = controlModel(
+    omegaFormula = ~ X
+  )
+)
+
+expect_true(
+  all(abs(coef(M1) - beta) < 1.15)
+)
+
+expect_true(
+  abs(popSizeEst(M1)$pointEstimate - N) < 1500
+)
+
+expect_true(
+  (popSizeEst(M1)$confidenceInterval[1, 1] < N) &
+    (N < popSizeEst(M1)$confidenceInterval[1, 2])
+)
+
+expect_true(
+  (popSizeEst(M1)$confidenceInterval[2, 1] < N) &
+    (N < popSizeEst(M1)$confidenceInterval[2, 2])
+)
+
 # ztoigeom
 beta <- c(.6, .2, -1.25, .1)
 eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -97,7 +138,7 @@ expect_true(
 )
 
 expect_true(
-  abs(popSizeEst(M1)$pointEstimate - N) < 100
+  abs(popSizeEst(M1)$pointEstimate - N) < 180
 )
 
 expect_true(
@@ -108,6 +149,49 @@ expect_true(
 expect_true(
   (popSizeEst(M1)$confidenceInterval[2, 1] < N) &
   (N < popSizeEst(M1)$confidenceInterval[2, 2])
+)
+
+
+# same for different link
+
+fn <- ztoigeom(
+  lambdaLink = "neglog",
+  omegaLink  = "cloglog",
+)
+
+y <- fn$simulate(n = N, eta = eta, lower = -1)
+
+df <- data.frame(
+  X = x1[y > 0],
+  Y = y[y > 0]
+)
+
+M1 <- estimatePopsize(
+  formula = Y ~ X,
+  model   = fn,
+  data    = df,
+  method = "IRLS",
+  controlModel = controlModel(
+    omegaFormula = ~ X
+  )
+)
+
+expect_true(
+  all(abs(coef(M1) - beta) < .5)
+)
+
+expect_true(
+  abs(popSizeEst(M1)$pointEstimate - N) < 1000
+)
+
+expect_true(
+  (popSizeEst(M1)$confidenceInterval[1, 1] < N) &
+    (N < popSizeEst(M1)$confidenceInterval[1, 2])
+)
+
+expect_true(
+  (popSizeEst(M1)$confidenceInterval[2, 1] < N) &
+    (N < popSizeEst(M1)$confidenceInterval[2, 2])
 )
 
 

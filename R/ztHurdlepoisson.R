@@ -122,6 +122,7 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
         G1 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight *
         (1 - z) * (-lambda / (-lambda - 1 + exp(lambda)) + y / lambda - 1)
         
@@ -160,9 +161,11 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
         (1 - z) * (-lambda / (-lambda - 1 + exp(lambda)) + y / lambda - 1)
         
         # PI^2 derivative
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- 
+          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         # Beta^2 derivative
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- 
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- 0
         res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- 0
         
@@ -234,7 +237,9 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
   dFun <- function (x, eta, type = "trunc") {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, PI, (1 - PI) * (lambda ^ x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
+    ifelse(x == 1, PI, 
+    (1 - PI) * (lambda ^ x) * exp(-lambda) / 
+    (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

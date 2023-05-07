@@ -301,7 +301,9 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
             L <- LPrev
             beta <- betaPrev
           } else {
-            warning("IRLS half-stepping terminated because change to score function was too small.")
+            if (!silent) {
+              warning("IRLS half-stepping terminated because change to score function was too small.")
+            }
           }
           break
         }

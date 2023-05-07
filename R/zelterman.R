@@ -47,12 +47,12 @@ zelterman <- function(lambdaLink = "loghalf",
     
     #(y - (lambda / 2) / (1 + lambda / 2))  / weight
     (y / lambda - 1 / (2 + lambda)) * 
-      lambdaLink(eta, inverse = TRUE, deriv = 1) / weight
+    lambdaLink(eta, inverse = TRUE, deriv = 1) / weight
   }
   
   minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
     y <- as.numeric(y)
-    z <- y
+    z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
@@ -65,7 +65,7 @@ zelterman <- function(lambdaLink = "loghalf",
               eta <- as.matrix(X) %*% beta
               lambda <- lambdaLink(eta, inverse = TRUE)
               -sum(weight * (z * log((lambda / 2) / (1 + lambda / 2)) + 
-                               (1 - z) * log(1 / (1 + lambda / 2))))
+                            (1 - z) * log(1 / (1 + lambda / 2))))
             },
             function(beta) {
               eta <- as.matrix(X) %*% beta
