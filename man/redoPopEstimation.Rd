@@ -10,11 +10,11 @@ redoPopEstimation(object, ...)
 \method{redoPopEstimation}{singleR}(object, cov = NULL, ...)
 }
 \arguments{
-\item{object}{Object for which update of population size estimation results will be done.}
+\item{object}{object for which update of population size estimation results will be done.}
 
-\item{...}{Additional optional arguments, currently not used in \code{singleR} class method.}
+\item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
 
-\item{cov}{An updated covariance matrix estimate.}
+\item{cov}{an updated covariance matrix estimate.}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated

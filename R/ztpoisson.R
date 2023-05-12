@@ -178,7 +178,15 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       family    = "ztpoisson",
       etaNames  = c("lambda"),
       simulate  = simulate,
-      getStart  = getStart
+      getStart  = getStart,
+      extraInfo = list(
+        mean       = "lambda",
+        variance   = "lambda",
+        popSizeEst = "(1+exp(-lambda)) ^ -1",
+        meanTr     = "lambda / (1 - exp(-lambda))",
+        varianceTr = 
+          "(lambda / (1 - exp(-lambda))) * (1 + lambda - lambda / (1 - exp(-lambda)))"
+      )
     ),
     class = c("singleRfamily", "family")
   )

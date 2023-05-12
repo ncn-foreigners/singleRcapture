@@ -13,9 +13,9 @@
 )
 }
 \arguments{
-\item{x}{Object of \code{singleR} class.}
+\item{x}{object of \code{singleR} class.}
 
-\item{plotType}{Character parameter specifying type of plot to be made.
+\item{plotType}{character parameter specifying type of plot to be made.
 The following list presents and briefly explains possible type of plots:
 \itemize{
 \item \code{qq} -- The quantile-quantile plot for pearson residuals
@@ -50,10 +50,10 @@ for each column of linear predictors.
 \item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
 }}
 
-\item{confIntStrata}{Confidence interval type to use for strata plot.
+\item{confIntStrata}{confidence interval type to use for strata plot.
 Currently supported values are \code{"normal"} and \code{"logNormal"}.}
 
-\item{...}{Additional optional arguments passed to the following functions:
+\item{...}{additional optional arguments passed to the following functions:
 \itemize{
 \item For \code{plotType = "bootHist"}
 \itemize{

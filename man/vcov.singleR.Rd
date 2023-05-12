@@ -7,16 +7,12 @@
 \method{vcov}{singleR}(object, type = c("Fisher", "observedInform"), ...)
 }
 \arguments{
-\item{object}{Object of singleR class.}
+\item{object}{object of singleR class.}
 
-\item{type}{Type of estimate for covariance matrix for now either
+\item{type}{type of estimate for covariance matrix for now either
 expected (Fisher) information matrix or observed information matrix.}
 
-\item{...}{Additional optional arguments passed to following functions:
-\itemize{
-\item \code{solve} -- for inverting information matrixes.
-\item \code{model.frame.singleR} -- for creation of Xvlm matrix.
-}}
+\item{...}{additional arguments for method functions}
 }
 \value{
 A covariance matrix for fitted coefficients, rows and columns of which
@@ -27,9 +23,10 @@ A \code{vcov} method for \code{singleR} class.
 }
 \details{
 Returns a estimated covariance matrix for model coefficients
-calculated from analytic hessian or Fisher information matrix.
+calculated from analytic hessian or Fisher information matrix usually
+utilising asymptotic effectiveness of maximum likelihood estimates.
 Covariance type is taken from control parameter that have been provided
-on call that created \code{object} if argumetns \code{type} was not specified.
+on call that created \code{object} if arguments \code{type} was not specified.
 }
 \seealso{
 \code{\link[=vcovHC.singleR]{vcovHC.singleR()}} \code{\link[sandwich:sandwich]{sandwich::sandwich()}}

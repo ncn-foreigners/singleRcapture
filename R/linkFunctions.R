@@ -1,8 +1,5 @@
 # internal functions
 
-## TODO::
-## - probit
-
 # logit link
 singleRinternallogitLink <- function(x,
                                      inverse = FALSE,

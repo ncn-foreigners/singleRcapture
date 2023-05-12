@@ -11,69 +11,70 @@ NULL
 #' was observed in the source.
 #' Population size is then usually estimated by Horvitz-Thompson type estimator:
 #' 
-#' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+#' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 #'
-#' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, 
-#' with value 1 if kth unit was observed at least once and 0 otherwise.
+#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, with 
+#' value 1 if kth unit was observed at least once and 0 otherwise.
 #'
-#' @param data Data frame or object coercible to data.frame class containing 
+#' @param data data frame or object coercible to data.frame class containing 
 #' data for the regression and population size estimation.
-#' @param formula Formula for the model to be fitted, only applied to the "main" 
+#' @param formula formula for the model to be fitted, only applied to the "main" 
 #' linear predictor. Only single response models are available.
-#' @param model Model for regression and population estimate full description in [singleRmodels()]. 
-#' @param weights Optional object of a priori weights used in fitting the model.
-#' @param subset A logical vector indicating which observations should be used 
+#' @param model model for regression and population estimate full description in [singleRmodels()]. 
+#' @param weights optional object of a priori weights used in fitting the model.
+#' @param subset a logical vector indicating which observations should be used 
 #' in regression and population size estimation. It will be evaluated on \code{data} argument provided on call.
 #' @param naAction Not yet implemented.
-#' @param method Method for fitting values currently supported: iteratively 
+#' @param method method for fitting values currently supported: iteratively 
 #' reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).
-#' @param popVar A method of constructing confidence interval either analytic or bootstrap.
-#' Bootstrap confidence interval type may be specified in \code{controlPopVar.} 
-#' There is also the third possible value of \code{noEst} which skips the 
-#' population size estimate all together.
-#' @param controlMethod A list indicating parameters to use in fitting the model 
+#' @param popVar a method of constructing confidence interval either analytic 
+#' or bootstrap. Bootstrap confidence interval type may be specified in 
+#' \code{controlPopVar.} There is also the third possible value of \code{noEst} 
+#' which skips the population size estimate all together.
+#' @param controlMethod a list indicating parameters to use in fitting the model 
 #' may be constructed with \code{singleRcapture::controlMethod} function. 
 #' More information included in [controlMethod()].
-#' @param controlModel A list indicating additional formulas for regression 
+#' @param controlModel a list indicating additional formulas for regression 
 #' (like formula for inflation parameter/dispersion parameter) may be 
 #' constructed with \code{singleRcapture::controlModel} function. 
 #' More information will eventually be included in [controlModel()].
-#' @param controlPopVar A list indicating parameters to use in estimating variance 
+#' @param controlPopVar a list indicating parameters to use in estimating variance 
 #' of population size estimation may be constructed with 
 #' \code{singleRcapture::controlPopVar} function. 
 #' More information included in [controlPopVar()].
-#' @param modelFrame,x,y Logical value indicating whether to return model matrix, 
+#' @param modelFrame,x,y logical value indicating whether to return model matrix, 
 #' dependent vector and model matrix as a part of output.
-#' @param contrasts Not yet implemented.
-#' @param ... Additional optional arguments passed to the following functions:
-#' \itemize{
-#'   \item \code{stats::model.frame} -- for creating data frame with all information about model specified with "main" formula.
-#'   \item \code{stats::model.matrix} -- for creating model matrix (the lm matrix).
-#'   \item \code{estimatePopsize.fit} -- possibly for picking starting points from zero truncated poisson regression.
-#' } 
+#' @param contrasts not yet implemented.
+#' @param ... additional optional arguments passed to other methods eg. 
+#' \code{estimatePopsize.fit}.
 #' 
 #' @details The generalized linear model is characterised by equation
-#' \mjdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}{eta=X*beta}
-#' where \mjeqn{\boldsymbol{X}}{X} is the (lm) model matrix. The vector 
+#' \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
+#' where \mjseqn{\boldsymbol{X}} is the (lm) model matrix. The vector 
 #' generalized linear model is similarly characterised by equations
-#' \mjdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}{eta_k=X_k*beta_k}
-#' where \mjeqn{\boldsymbol{X}_{k}}{X_k} is a (lm) model matrix constructed
+#' \mjsdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}
+#' where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model matrix constructed
 #' from appropriate formula (specified in \code{controlModel} parameter).
-#' The \mjeqn{\boldsymbol{\eta}}{eta} is then a vector constructed as:
-#' \mjdeqn{\boldsymbol{\eta}=\begin{pmatrix}\boldsymbol{\eta}_{1}^{T} & \boldsymbol{\eta}_{2}^{T} & \dotso & \boldsymbol{\eta}_{p}^{T}\end{pmatrix}^{T}}{eta = (eta_1', eta_2', ..., eta_p')'}
+#' The \mjseqn{\boldsymbol{\eta}} is then a vector constructed as:
+#' \mjsdeqn{\boldsymbol{\eta}=\begin{pmatrix}
+#' \boldsymbol{\eta}_{1}^{T} & 
+#' \boldsymbol{\eta}_{2}^{T} & 
+#' \dotso & 
+#' \boldsymbol{\eta}_{p}^{T}
+#' \end{pmatrix}^{T}}
+#' 
 #' and in cases of models in our package the (vlm) model matrix 
 #' is constructed as a block matrix:
-#' \mjdeqn{\boldsymbol{X}_{vlm}=
+#' 
+#' \mjsdeqn{\boldsymbol{X}_{vlm}=
 #' \begin{pmatrix}
 #' \boldsymbol{X}_{1} & \boldsymbol{0} &\dotso &\boldsymbol{0}\cr
 #' \boldsymbol{0} & \boldsymbol{X}_{2} &\dotso &\boldsymbol{0}\cr
 #' \vdots & \vdots & \ddots & \vdots\cr
 #' \boldsymbol{0} & \boldsymbol{0} &\dotso &\boldsymbol{X}_{p}
-#' \end{pmatrix}}{X_vlm = matrix(
-#' X_1, 0, ..., 0
-#' 0, X_2, ..., 0
-#' ...........
-#' 0, 0, ..., X_p)}
+#' \end{pmatrix}}
+#' 
 #' this differs from convention in \code{VGAM} package (if we only consider our 
 #' special cases of vglm models) but this is just a convention and does not 
 #' affect the model, this convention is taken because it makes fitting with 
@@ -84,11 +85,12 @@ NULL
 #' In this package we use observed likelihood to fit regression models.
 #' 
 #' As mentioned aboce usually the population size estimation is done via:
-#' \mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+#' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 #'
-#' where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables, 
+#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, 
 #' with value 1 if k'th unit was observed at least once and 0 otherwise.
-#' The \mjeqn{\mathbb{P}(Y_{k}>0)}{P(Y_k > 0)} are estimated by maximum likelihood.
+#' The \mjseqn{\mathbb{P}(Y_{k}>0)} are estimated by maximum likelihood.
 #' 
 #' The following assumptions are usually present when using 
 #' the method of estimation described above:
@@ -96,34 +98,32 @@ NULL
 #' relationship between independent variables and dependent ones and
 #' dependent variable being generated by appropriate distribution.
 #' 2. No unobserved heterogeneity. If this assumption is broken there
-#' are some possible (admittedly imperfect) workarounds see details in [singleRmodels()].
+#' are some possible (admittedly imperfect) workarounds see details in 
+#' [singleRmodels()].
 #' 3. The population size is constant in relevant time frame.
 #' 4. Depending on confidence interval construction (asymptotic) normality
-#' of \mjeqn{\hat{N}}{N} statistic is assumed.
+#' of \mjseqn{\hat{N}} statistic is assumed.
 #' 
-#' There are two ways of estimating variance of estimate \mjeqn{\hat{N}}{N},
+#' There are two ways of estimating variance of estimate \mjseqn{\hat{N}},
 #' the first being \code{"analytic"} usually done by application of 
-#' law of total variance to \mjeqn{\hat{N}}{N}:
-#' \mjdeqn{\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
+#' law of total variance to \mjseqn{\hat{N}}:
+#' \mjsdeqn{\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
 #' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
-#' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}{
-#' var(N)=E(var(N|I_1,...,I_N))+var(E(N|I_1,...,I_N))}
-#' and then by \mjeqn{\delta}{delta} method to 
-#' \mjeqn{\hat{N}|I_{1},\dotso I_{N}}{N|I_1,...,I_N}:
-#' \mjdeqn{\mathbb{E}\left(\text{var}
+#' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}
+#' and then by \mjseqn{\delta} method to 
+#' \mjseqn{\hat{N}|I_{1},\dotso I_{N}}:
+#' \mjsdeqn{\mathbb{E}\left(\text{var}
 #' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
 #' \left.\left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
 #' \text{cov}\left(\boldsymbol{\beta}\right)
 #' \left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)
-#' \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}{E(var(N|I_1,...,I_N))=
-#' (d(N|I_1,...,I_N)/d.beta)'cov(beta)(d(N|I_1,...,I_N)/d.beta)}
-#' and the 
-#' \mjeqn{\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}{var(E(N|I_1,...,I_N))}
+#' \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}
+#' 
+#' and the \mjseqn{\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}
 #' term may be derived analytically (if we assume independence of
-#' observations) since 
-#' \mjeqn{\hat{N}|I_{1},\dots,I_{n}}{N|I_1,...,I_N} is just a constant. 
+#' observations) since \mjseqn{\hat{N}|I_{1},\dots,I_{n}} is just a constant. 
 #' In general this gives us:
-#' \mjdeqn{
+#' \mjsdeqn{
 #' \begin{aligned}
 #' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)&=
 #' \text{var}\left(\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}\right)\cr
@@ -134,23 +134,17 @@ NULL
 #' &\approx\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)^{2}}(1-\mathbb{P}(Y_{k}>0))\cr
 #' &=\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}>0)}{\mathbb{P}(Y_{k}>0)^{2}}
 #' \end{aligned}
-#' }{(var(E(N|I_1,...,I_N)) = var(sum_k=1^N I_k / P(Y_k > 0))
-#' = sum_k=1^N var(I_k / P(Y_k > 0))
-#' = sum_k=1^N var(I_k) / P(Y_k > 0)^2
-#' = sum_k=1^N P(Y_k > 0)(1-P(Y_k > 0)) / P(Y_k > 0)^2
-#' = sum_k=1^N (1-P(Y_k > 0)) / P(Y_k > 0)
-#' ~~ sum_k=1^N (1-P(Y_k > 0)) I_k / P(Y_k > 0)^2
-#' = sum_k=1^N_obs (1-P(Y_k > 0)) / P(Y_k > 0)^2)}
-#' Where the approximation on 6th line appears because in 5th line we sum over all
-#' units, that includes unobserved units, since \mjeqn{I_{k}}{I_k} are independent
-#' and \mjeqn{I_{k}\sim b(\mathbb{P}(Y_{k}>0))}{
-#' I_k follows bernoulli distribution with p = \mathbb{P}(Y_{k}>0)} the 6th line
+#' }
+#' 
+#' Where the approximation on 6th line appears because in 5th line we sum over 
+#' all units, that includes unobserved units, since \mjseqn{I_{k}} are 
+#' independentand \mjseqn{I_{k}\sim b(\mathbb{P}(Y_{k}>0))} the 6th line
 #' is an unbiased estimator of the 5th line.
 #' 
 #' The other method for estimating variance is \code{"bootstrap"}, but since
-#' \mjeqn{N_{obs}=\sum_{k=1}^{N}I_{k}}{N_obs = sum_k=1^N I_k} is also a random
-#' variable bootstrap will not be as simple as just drawing \mjeqn{N_{obs}}{N_obs}
-#' units from data with replacement and just computing \mjeqn{\hat{N}}{N}.
+#' \mjseqn{N_{obs}=\sum_{k=1}^{N}I_{k}} is also a random
+#' variable bootstrap will not be as simple as just drawing \mjseqn{N_{obs}}
+#' units from data with replacement and just computing \mjseqn{\hat{N}}.
 #' 
 #' Method described above is refered to in literature as \code{"nonparametric"}
 #' bootstrap (see [controlPopVar()]), due to ignoring variability in observed
@@ -158,51 +152,54 @@ NULL
 #' 
 #' A more sophisticated bootstrap procedure may be described as follows:
 #' 1. Compute the probability distribution as: 
-#' \mjdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, \frac{\boldsymbol{f}_{1}}{\hat{N}}, \dotso, \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{f_0 / N, f_1 / N, ..., f_max(y) / N}
-#' where \mjeqn{\boldsymbol{f}_{n}}{f_n} denotes observed marginal frequency of
+#' \mjsdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, 
+#' \frac{\boldsymbol{f}_{1}}{\hat{N}}, 
+#' \dotso, 
+#' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}
+#' where \mjseqn{\boldsymbol{f}_{n}} denotes observed marginal frequency of
 #' units being observed exactly n times, round the quantitites above to nearest 
 #' integer if necessary.
-#' 2. Draw \mjeqn{\hat{N}}{N} units from the distribution above 
-#' (if \mjeqn{\hat{N}}{N} is not an integer than draw \mjeqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{floor(N) + b(N-floor(N))}).
-#' 3. Truncated units with \mjeqn{y=0}{y=0}.
+#' 2. Draw \mjseqn{\hat{N}} units from the distribution above 
+#' (if \mjseqn{\hat{N}} is not an integer than draw \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
+#' 3. Truncated units with \mjseqn{y=0}.
 #' 4. If there are covariates draw them from original data with replacement from 
 #' uniform distribution. For example if unit drawn to new data has 
-#' \mjeqn{y=2}{y=2} choose one of covariate vectors from original data that 
+#' \mjseqn{y=2} choose one of covariate vectors from original data that 
 #' was associated with unit for which was observed 2 times.
-#' 5. Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-#' and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new}, with starting 
-#' point \mjeqn{\hat{\boldsymbol{\beta}}}{beta} to make it slightly faster, 
-#' use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
+#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}}
+#' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting 
+#' point \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, 
+#' use them to compute \mjseqn{\hat{N}_{new}}.
 #' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
-#' it is necessary to assume that the have a correct estimate \mjeqn{\hat{N}}{N}
+#' it is necessary to assume that the have a correct estimate \mjseqn{\hat{N}}
 #' in order to use this type of bootstrap.
 #' 
 #' Lastly there is \code{"paramteric"} bootstrap where we assume that the 
-#' probabilistic model used to obtain \mjeqn{\hat{N}}{N} is correct the 
+#' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
 #' bootstrap procedure may then be described as:
-#' 1. Draw \mjeqn{\hat{N}}{N} covariate information vectors with replacement from
+#' 1. Draw \mjseqn{\hat{N}} covariate information vectors with replacement from
 #' data according to probability distribution 
-#' \mjdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}{([N_k] + M_k)/[N]}
-#' where \mjeqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}{M_k ~ b(N_k - [N_k])}, 
-#' \mjeqn{N_{k}}{N_{k}} is the contribution of kth unit i.e. 
-#' \mjeqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}}{I_l/P(Y_k>0)} and
-#' \mjeqn{\lfloor \cdot\rfloor}{[]} is the floor function.
-#' 2. Determine \mjeqn{\boldsymbol{\eta}}{eta} matrix using estimate 
-#' \mjeqn{\hat{\boldsymbol{\beta}}}{beta}.
-#' 3. Generate \mjeqn{\boldsymbol{y}}{y} (dependent variable) vector using
-#' \mjeqn{\boldsymbol{\eta}}{eta} and probability mass function associated with
+#' \mjsdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}
+#' where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}, 
+#' \mjseqn{N_{k}} is the contribution of kth unit i.e. 
+#' \mjseqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}} and
+#' \mjseqn{\lfloor \cdot\rfloor} is the floor function.
+#' 2. Determine \mjseqn{\boldsymbol{\eta}} matrix using estimate 
+#' \mjseqn{\hat{\boldsymbol{\beta}}}.
+#' 3. Generate \mjseqn{\boldsymbol{y}} (dependent variable) vector using
+#' \mjseqn{\boldsymbol{\eta}} and probability mass function associated with
 #' chosen model.
-#' 4. Truncated units with \mjeqn{y=0}{y=0} and construct 
-#' \mjeqn{\boldsymbol{y}_{new}}{y_new} and 
-#' \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}.
-#' 5. Regress \mjeqn{\boldsymbol{y}_{new}}{y_new} on 
-#' \mjeqn{\boldsymbol{X}_{vlm new}}{X_vlmNew}
-#' and obtain \mjeqn{\hat{\boldsymbol{\beta}}_{new}}{beta_new} 
-#' use them to compute \mjeqn{\hat{N}_{new}}{N_new}.
+#' 4. Truncated units with \mjseqn{y=0} and construct 
+#' \mjseqn{\boldsymbol{y}_{new}} and 
+#' \mjseqn{\boldsymbol{X}_{vlm new}}.
+#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on 
+#' \mjseqn{\boldsymbol{X}_{vlm new}}
+#' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}
+#' use them to compute \mjseqn{\hat{N}_{new}}.
 #' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType}
 #' specified in [controlPopVar()]
@@ -213,10 +210,10 @@ NULL
 #' violated. In such cases post-hoc procedures are implemented in this package
 #' to address this issue.
 #' 
-#' Lastly confidence intervals for \mjeqn{\hat{N}}{N} are computed (in analytic case)
+#' Lastly confidence intervals for \mjseqn{\hat{N}} are computed (in analytic case)
 #' either by assuming that it follows a normal distribution or that variable
-#' \mjeqn{\ln(N-\hat{N})}{log_e(N_true - N_estimate)} follows a normal 
-#' distribution. These estimates may be found using either \code{summary.singleR}
+#' \mjseqn{\ln(N-\hat{N})} follows a normal distribution. 
+#' These estimates may be found using either \code{summary.singleR}
 #' method or \code{popSizeEst.singleR} function. They're labelled as 
 #' \code{normal} and \code{logNormal} respectively.
 #'
@@ -277,7 +274,8 @@ NULL
 #' Yee, T. W. (2015). Vector Generalized Linear and Additive Models: 
 #' With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 #'
-#' @returns Returns an object of class \code{c("singleR", "glm", "lm")} containing:\cr
+#' @returns Returns an object of class \code{c("singleR", "glm", "lm")}
+#' with type \code{list} containing:\cr
 #' \itemize{
 #'  \item{\code{y} -- Vector of dependent variable if specified at function call.}
 #'  \item{\code{X} -- Model matrix if specified at function call.}
@@ -351,10 +349,12 @@ NULL
 #' # see documentation for summary.singleRmargin
 #' summary(marginalFreq(model), df = 1, "group")
 #' 
-#' modelSingleRcapture <- estimatePopsize(formula = TOTAL_SUB ~ ., 
-#'                                        data = farmsubmission, 
-#'                                        model = ztnegbin, 
-#'                                        method = "IRLS")
+#' modelSingleRcapture <- estimatePopsize(
+#'     formula = TOTAL_SUB ~ ., 
+#'     data = farmsubmission, 
+#'     model = ztnegbin, 
+#'     method = "IRLS"
+#' )
 #' # comparison with VGAM package, VGAM uses slightly different parametrisation
 #' # so we use negloglink instead of loglink for size parameter
 #' # i.e 1 / dispersion parameter
@@ -387,18 +387,21 @@ NULL
 #' 
 #' 
 #' # A advanced input with additional information for fitting procedure and
-#' # additional formula specification.
+#' # additional formula specification and different link for inflation parameter.
 #' Model <- estimatePopsize(
-#'    formula = TOTAL_SUB ~ ., data = farmsubmission, 
-#'    model = oiztgeom, 
+#'    formula = TOTAL_SUB ~ ., 
+#'    data = farmsubmission, 
+#'    model = oiztgeom(omegaLink = "cloglog"), 
 #'    method = "IRLS", 
-#'    controlMethod = controlMethod(stepsize = .05, 
-#'                                  momentumFactor = 1.1, 
-#'                                  epsilon = 1e-12, 
-#'                                  silent = TRUE),
+#'    controlMethod = controlMethod(
+#'       stepsize = .15, 
+#'       momentumFactor = 1.8,
+#'       epsilon = 1e-12, 
+#'       silent = TRUE
+#'    ),
 #'    controlModel = controlModel(omegaFormula = ~ .)
 #' )
-#' summary(marginalFreq(Model), df = 18 - length(Model$coefficients) - 1)
+#' summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 #' summary(Model)
 #' @importFrom stats model.frame model.matrix model.response
 #' @export
@@ -465,7 +468,7 @@ estimatePopsize <- function(formula,
       maxiter = 20, 
       optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
                         grepl(x = family$family, pattern = "^ztoi")  || 
-                        grepl(x = family$family, pattern = "^oizt")) 
+                        grepl(x = family$family, pattern = "^oizt"))
         "Nelder-Mead" 
       else 
         "L-BFGS-B", 

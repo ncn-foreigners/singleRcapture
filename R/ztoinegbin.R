@@ -769,7 +769,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
       }
     }
   )
-  
+
   structure(
     list(
       makeMinusLogLike = minusLogLike,

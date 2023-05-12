@@ -8,7 +8,7 @@ controlMethod(
   epsilon = 1e-08,
   maxiter = 1000,
   verbose = 0,
-  printEveryN = 1,
+  printEveryN = 1L,
   start = NULL,
   optimMethod = "L-BFGS-B",
   silent = FALSE,
@@ -24,59 +24,63 @@ controlMethod(
 )
 }
 \arguments{
-\item{epsilon}{Tolerance for fitting algorithms by default \code{1e-8}.}
+\item{epsilon}{tolerance for fitting algorithms by default \code{1e-8}.}
 
-\item{maxiter}{Maximum number of iterations.}
+\item{maxiter}{maximum number of iterations.}
 
-\item{verbose}{Value indicating whether to trace steps of fitting algorithm for
+\item{verbose}{value indicating whether to trace steps of fitting algorithm for
 \code{IRLS} fitting method different values of verbose give the following information:
 \itemize{
-\item 1 -- Returns information on the number of current iteration and current log-likelihood.
-\item 2 -- Returns information on vector of regression parameters at current iteration (and all of the above).
-\item 3 -- Returns information on reduction of log-likelihood at current iteration (and all of the above).
-\item 4 -- Returns information on value of log-likelihood function gradient at current iteration (and all of the above).
-\item 5 -- Returns information on convergence criterion and values that are taken into account when considering convergence (and all of the above).
+\item 1 -- Returns information on the number of current
+iteration and current log-likelihood.
+\item 2 -- Returns information on vector of regression parameters
+at current iteration (and all of the above).
+\item 3 -- Returns information on reduction of log-likelihood
+at current iteration (and all of the above).
+\item 4 -- Returns information on value of log-likelihood function gradient
+at current iteration (and all of the above).
+\item 5 -- Returns information on convergence criterion and values that are
+taken into account when considering convergence (and all of the above).
 }
 if \code{optim} method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
 
-\item{printEveryN}{Integer value indicating how often to print information
+\item{printEveryN}{integer value indicating how often to print information
 specified in \code{verbose}, by default set to \code{1}.}
 
 \item{start}{initial parameters for regression coefficients
-if \code{NULL} they will be derived from simple poisson regression.}
+if \code{NULL} they will be derived internally.}
 
 \item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default
 except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.}
 
-\item{silent}{Logical, indicating whether warnings in \code{IRLS} method should be suppressed.}
+\item{silent}{logical, indicating whether warnings in \code{IRLS} method should be suppressed.}
 
-\item{optimPass}{Optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
+\item{optimPass}{optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 if FALSE then list of control parameters will be inferred from other parameters.}
 
-\item{stepsize}{Only for \code{IRLS}, scaling of updates to \code{beta} vector
+\item{stepsize}{only for \code{IRLS}, scaling of updates to \code{beta} vector
 lower value means slower convergence but more accuracy by default 1.
 In general if fitting algorithm fails lowering this value tends to
 be most effective at correcting it.}
 
-\item{checkDiagWeights}{Logical value indicating whether to check if diagonal
+\item{checkDiagWeights}{logical value indicating whether to check if diagonal
 elements of working weights matrixes in \code{IRLS} are sufficiently positive
 so that these matrixes are positive defined. By default \code{TRUE}.}
 
-\item{weightsEpsilon}{Small number to ensure positivity of weights matrixes.
+\item{weightsEpsilon}{small number to ensure positivity of weights matrixes.
 Only matters if \code{checkDiagWeights} is set to \code{TRUE}.
-By default \mjeqn{= 1\cdot 10^{-8}}{= 1 * 10^-10}}
+By default \mjseqn{= 1\cdot 10^{-8}}}
 
-\item{momentumFactor}{Experimental parameter in \code{IRLS} only allowing for
+\item{momentumFactor}{experimental parameter in \code{IRLS} only allowing for
 taking previous step into account at current step, i.e instead of
 updating regression parameters as:
-\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-\cdot \text{step}_{(a)}}{beta_a = beta_a-1 + stepsize * step_a}
+\mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+\cdot \text{step}_{(a)}}
 the update will be made as:
-\mjdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-\cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{
-beta_a = beta_a-1 + stepsize * (step_a + momentum * step_a-1)}}
+\mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+\cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}}
 
-\item{saveIRLSlogs}{Logical value indicating if information specified in
+\item{saveIRLSlogs}{logical value indicating if information specified in
 \code{verbose} should be saved to output object, by default \code{FALSE}.}
 
 \item{useZtpoissonAsStart}{boolean value indicating whether to chose starting
@@ -86,15 +90,16 @@ various one inflated models.}
 \item{momentumActivation}{the value of log-likelihood reduction bellow
 which momentum will apply.}
 
-\item{criterion}{Criterion used to determine convergence in \code{IRLS},
+\item{criterion}{criterion used to determine convergence in \code{IRLS},
 multiple values may be provided. By default \code{c("coef", "abstol")}.}
 }
 \value{
 List with selected parameters, it is also possible to call list directly.
 }
 \description{
-\code{controlMethod} constructs a list with all necessary control parameters
-for regression fitting in \code{estimatePopsize.fit} and \code{estimatePopsize}.
+\code{controlMethod} constructs a list with all necessary
+control parameters for regression fitting in
+\code{estimatePopsize.fit} and \code{estimatePopsize}.
 }
 \seealso{
 \code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}} \code{\link[=controlModel]{controlModel()}} \code{\link[=controlPopVar]{controlPopVar()}}

@@ -31,17 +31,15 @@ research process.
 Currently we’ve implemented most of the frequentist approaches used in
 literature such as:
 
--   Zero truncated poisson, geometric and negative binomial regression.
--   Zero truncated one inflated and one inflated zero truncated poisson
-    and gemetric models. (Negative binomial is currently in
-    development.)
--   Zero one truncated poisson geometric and negative binomial models.
--   Generalised Chao and Zelterman’s models based on logistic
-    regression.
--   Three types of bootstrap parametric, semi-parametric and non
-    parametric.
--   And a wide range of additional functionalities associated with
-    (vector) generalised linear models relevant to the topic.
+- Zero truncated poisson, geometric and negative binomial regression.
+- Zero truncated one inflated and one inflated zero truncated poisson
+  and gemetric models. (Negative binomial is currently in development.)
+- Zero one truncated poisson geometric and negative binomial models.
+- Generalised Chao and Zelterman’s models based on logistic regression.
+- Three types of bootstrap parametric, semi-parametric and non
+  parametric.
+- And a wide range of additional functionalities associated with
+  (vector) generalised linear models relevant to the topic.
 
 ## Installation
 
@@ -67,58 +65,58 @@ will look very simmilar to anyone who used the `stats::glm` function:
 ``` r
 library(singleRcapture)
 model <- estimatePopsize(
-  formula = capture ~ gender + age + nation + reason, # specify formula
+  formula = capture ~ gender + age + nation, # specify formula
   data = netherlandsimmigrant,
   popVar = "analytic", # specify 
   model = "ztpoisson", # distribution used
-  method = "IRLS" # fitting method one of three currently supported
+  method = "IRLS", # fitting method one of three currently supported
+  controlMethod = controlMethod(silent = TRUE) # ignore convergence at half step warning
 )
 summary(model) # a summary method for singleR class with standard glm-like output and population size estimation resutls
 #> 
 #> Call:
-#> estimatePopsize(formula = capture ~ gender + age + nation + reason, 
-#>     data = netherlandsimmigrant, model = "ztpoisson", method = "IRLS", 
-#>     popVar = "analytic")
+#> estimatePopsize(formula = capture ~ gender + age + nation, data = netherlandsimmigrant, 
+#>     model = "ztpoisson", method = "IRLS", popVar = "analytic", 
+#>     controlMethod = controlMethod(silent = TRUE))
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.488779 -0.486085 -0.297859  0.002075 -0.210439 13.921578 
+#> -0.486442 -0.486442 -0.298080  0.002093 -0.209444 13.910844 
 #> 
 #> Coefficients:
 #> -----------------------
 #> For linear predictors associated with: lambda 
 #>                      Estimate Std. Error z value  P(>|z|)    
-#> (Intercept)          -1.33179    0.25486  -5.226 1.74e-07 ***
-#> gendermale            0.39741    0.16305   2.437 0.014796 *  
-#> age>40yrs            -0.97463    0.40824  -2.387 0.016969 *  
-#> nationAsia           -1.09241    0.30164  -3.622 0.000293 ***
-#> nationNorth Africa    0.18997    0.19400   0.979 0.327471    
-#> nationRest of Africa -0.91129    0.30097  -3.028 0.002463 ** 
-#> nationSurinam        -2.33665    1.01357  -2.305 0.021146 *  
-#> nationTurkey         -1.67453    0.60291  -2.777 0.005479 ** 
-#> reasonOther reason   -0.01093    0.16153  -0.068 0.946048    
+#> (Intercept)           -1.3411     0.2149  -6.241 4.35e-10 ***
+#> gendermale             0.3972     0.1630   2.436 0.014832 *  
+#> age>40yrs             -0.9746     0.4082  -2.387 0.016972 *  
+#> nationAsia            -1.0926     0.3016  -3.622 0.000292 ***
+#> nationNorth Africa     0.1900     0.1940   0.979 0.327398    
+#> nationRest of Africa  -0.9106     0.3008  -3.027 0.002468 ** 
+#> nationSurinam         -2.3364     1.0136  -2.305 0.021159 *  
+#> nationTurkey          -1.6754     0.6028  -2.779 0.005445 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> AIC: 1714.896
-#> BIC: 1764.747
-#> Residual deviance: 1128.549
+#> AIC: 1712.901
+#> BIC: 1757.213
+#> Residual deviance: 1128.553
 #> 
-#> Log-likelihood: -848.4481 on 1871 Degrees of freedom 
+#> Log-likelihood: -848.4504 on 1872 Degrees of freedom 
 #> Number of iterations: 8
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 12691.45
+#> Point estimate 12690.35
 #> Observed proportion: 14.8% (N obs = 1880)
-#> Std. Error 2809.508
+#> Std. Error 2808.167
 #> 95% CI for the population size:
 #>           lowerBound upperBound
-#> normal      7184.917   18197.99
-#> logNormal   8430.749   19723.38
+#> normal      7186.446   18194.26
+#> logNormal   8431.276   19718.31
 #> 95% CI for the share of observed population:
 #>           lowerBound upperBound
-#> normal     10.330814   26.16592
-#> logNormal   9.531836   22.29932
+#> normal     10.332930   26.16036
+#> logNormal   9.534284   22.29793
 ```
 
 We implemented a method for `plot` function to visualise the model fit
@@ -133,22 +131,22 @@ plot(model, plotType = "rootogram")
 
 The possible values for `plotType` argument are:
 
--   `qq` - the normal quantile-quantile plot for pearson residuals.
--   `marginal` - a `matplot` comparing fitted and observed marginal
-    frequencies.
--   `fitresid` - plot of linear predictor values contrasted with pearson
-    residuals.
--   `bootHist` - histogram of bootstrap sample.
--   `rootogram` - rootogram, example presented above.
--   `dfpopContr` - contrasting two deletion effects to identify presence
-    of influential observations.
--   `dfpopBox` - boxplot of results from dfpopsize function see its
-    documentation.
--   `scaleLoc` - scale-location plot.
--   `cooks` - plot of `cooks.values` for distributions for which it is
-    defined.
--   `hatplot` - plot of `hatvalues`.
--   `strata` - plot of confidence intervals for selected su populations.
+- `qq` - the normal quantile-quantile plot for pearson residuals.
+- `marginal` - a `matplot` comparing fitted and observed marginal
+  frequencies.
+- `fitresid` - plot of linear predictor values contrasted with pearson
+  residuals.
+- `bootHist` - histogram of bootstrap sample.
+- `rootogram` - rootogram, example presented above.
+- `dfpopContr` - contrasting two deletion effects to identify presence
+  of influential observations.
+- `dfpopBox` - boxplot of results from dfpopsize function see its
+  documentation.
+- `scaleLoc` - scale-location plot.
+- `cooks` - plot of `cooks.values` for distributions for which it is
+  defined.
+- `hatplot` - plot of `hatvalues`.
+- `strata` - plot of confidence intervals for selected su populations.
 
 a user can also pass arguments to specify additional information such as
 plot title, subtitle etc. similar to calling `plot` on some data. For
@@ -166,7 +164,7 @@ summary(marginalFreq(model), df = 2, dropl5 = "group")
 #> Test for Goodness of fit of a regression model:
 #> 
 #>                  Test statistics df P(>X^2)
-#> Chi-squared test           50.06  2 1.4e-11
+#> Chi-squared test           50.06  2 1.3e-11
 #> G-test                     34.31  2 3.6e-08
 #> 
 #> -------------------------------------------------------------- 
@@ -204,15 +202,15 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
     "Older males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == ">40yrs"
 ))
 #>   Observed Estimated ObservedPercentage  StdError normalLowerBound
-#> 1       20   932.371           2.145069  956.1229     -1530.438420
-#> 2       78  1291.514           6.039425  741.1843      -432.738939
-#> 3     1391  7337.175          18.958251 1281.9295      4555.271881
-#> 4       91  1542.882           5.898055  782.2326         9.733753
+#> 1       20  931.4685           2.147147  955.0668      -1528.62062
+#> 2       78 1291.2513           6.040652  741.0066       -432.58790
+#> 3     1391 7337.0716          18.958518 1282.1412       4554.70930
+#> 4       91 1542.1889           5.900704  781.4751         10.52593
 #>   normalUpperBound logNormalLowerBound logNormalUpperBound                 name
-#> 1         3395.180            119.3464            8398.972 Females from Surinam
-#> 2         3015.766            405.4748            4574.882    Males from Turkey
-#> 3        10119.078           5135.1856           10834.174        Younger males
-#> 4         3076.029            630.7808            3996.215          Older males
+#> 1         3391.558            119.2661            8389.170 Females from Surinam
+#> 2         3015.090            405.4127            4573.791    Males from Turkey
+#> 3        10119.434           5134.8117           10834.789        Younger males
+#> 4         3073.852            630.7551            3992.676          Older males
 #>   confLevel
 #> 1      0.01
 #> 2      0.02
@@ -225,19 +223,19 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 ``` r
 stratifyPopsize(model, stratas = ~ gender / age)
 #>   Observed Estimated ObservedPercentage  StdError normalLowerBound
-#> 1      398 3811.3954          10.442370 1154.7825      1548.063241
-#> 2     1482 8880.0563          16.689083 1812.6286      5327.369600
-#> 3      378 3169.5475          11.925992  881.2932      1442.244687
-#> 4     1391 7337.1748          18.958251 1281.9295      4824.639108
-#> 5       20  641.8478           3.116003  408.1451      -158.101825
-#> 6       91 1542.8815           5.898055  782.2326         9.733753
+#> 1      398  3811.092          10.443201 1153.9742       1549.34401
+#> 2     1482  8879.260          16.690579 1812.0803       5327.64833
+#> 3      378  3169.827          11.924942  880.9485       1443.19944
+#> 4     1391  7337.072          18.958518 1282.1412       4824.12101
+#> 5       20   641.265           3.118835  407.5266       -157.47248
+#> 6       91  1542.189           5.900704  781.4751         10.52593
 #>   normalUpperBound logNormalLowerBound logNormalUpperBound
-#> 1         6074.727           2188.5341            6905.147
-#> 2        12432.743           6090.8584           13357.226
-#> 3         4896.850           1903.7278            5485.554
-#> 4         9849.710           5306.6899           10420.570
-#> 5         1441.797            212.4088            2029.756
-#> 6         3076.029            630.7808            3996.215
+#> 1         6072.840           2189.0441            6902.137
+#> 2        12430.873           6090.7756           13354.885
+#> 3         4896.454           1904.3123            5484.620
+#> 4         9850.022           5306.3301           10421.086
+#> 5         1440.002            212.3382            2026.727
+#> 6         3073.852            630.7551            3992.676
 #>                     name confLevel
 #> 1         gender==female      0.05
 #> 2           gender==male      0.05
@@ -247,8 +245,7 @@ stratifyPopsize(model, stratas = ~ gender / age)
 #> 6   gendermale:age>40yrs      0.05
 ```
 
-`singleRcapture` package also includes the option to estimate standard
-error of population size estimate by bootstrap and common non standard
+`singleRcapture` package also includes option to use common non standard
 argument such as significance levels different from usual 5%:
 
 ``` r
@@ -256,37 +253,33 @@ set.seed(123)
 modelInflated <- estimatePopsize(
     formula = capture ~ nation + gender + age,
     data = netherlandsimmigrant,
-    popVar = "bootstrap",
     model = "oiztgeom",
     method = "IRLS",
-    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check documentation of controlMethod
-    controlPopVar = controlPopVar( # control parameters for population size estimation check documentation of controlPopVar
-        B = 1250, # number of boostrap samples
+    # control parameters for population size estimation check documentation of controlPopVar
+    controlPopVar = controlPopVar(
         alpha = .01, # significance level 
-        bootType = "semiparametric" # type of bootstrap see documentation for estimatePopsize
     )
 )
 summary(modelInflated)
 #> 
 #> Call:
 #> estimatePopsize(formula = capture ~ nation + gender + age, data = netherlandsimmigrant, 
-#>     model = "oiztgeom", method = "IRLS", popVar = "bootstrap", 
-#>     controlMethod = controlMethod(stepsize = 0.2), controlPopVar = controlPopVar(B = 1250, 
-#>         alpha = 0.01, bootType = "semiparametric"))
+#>     model = "oiztgeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, 
+#>         ))
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.416300 -0.416300 -0.292541  0.004086 -0.188313 13.733512 
+#> -0.416299 -0.416299 -0.292541  0.004089 -0.188310 13.733694 
 #> 
 #> Coefficients:
 #> -----------------------
 #> For linear predictors associated with: lambda 
 #>                      Estimate Std. Error z value  P(>|z|)    
-#> (Intercept)           -1.5518     0.2395  -6.480 9.19e-11 ***
+#> (Intercept)           -1.5518     0.2395  -6.480 9.18e-11 ***
 #> nationAsia            -0.8294     0.2573  -3.224  0.00126 ** 
-#> nationNorth Africa     0.2082     0.1854   1.123  0.26147    
-#> nationRest of Africa  -0.6800     0.2578  -2.638  0.00834 ** 
-#> nationSurinam         -1.5370     0.6403  -2.401  0.01637 *  
+#> nationNorth Africa     0.2082     0.1854   1.123  0.26146    
+#> nationRest of Africa  -0.6801     0.2578  -2.638  0.00834 ** 
+#> nationSurinam         -1.5371     0.6403  -2.401  0.01637 *  
 #> nationTurkey          -1.1880     0.4336  -2.740  0.00614 ** 
 #> gendermale             0.3145     0.1466   2.145  0.03194 *  
 #> age>40yrs             -0.6692     0.3116  -2.148  0.03171 *  
@@ -302,52 +295,55 @@ summary(modelInflated)
 #> Residual deviance: 941.3779
 #> 
 #> Log-likelihood: -829.4807 on 3751 Degrees of freedom 
-#> Number of iterations: 52
+#> Number of iterations: 7
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 7559.606
+#> Point estimate 7559.579
 #> Observed proportion: 24.9% (N obs = 1880)
-#> Boostrap sample skewness: 0.3109832
-#> 0 skewness is expected for normally distributed vairable
-#> ---
-#> Bootstrap Std. Error 3194.534
+#> Std. Error 1646.449
 #> 99% CI for the population size:
-#> lowerBound upperBound 
-#>   4517.296  18967.029 
+#>           lowerBound upperBound
+#> normal      3318.608   11800.55
+#> logNormal   4612.408   13685.56
 #> 99% CI for the share of observed population:
-#> lowerBound upperBound 
-#>   9.911937  41.617818
+#>           lowerBound upperBound
+#> normal      15.93146   56.65025
+#> logNormal   13.73710   40.75962
 ```
 
-``` r
-plot(modelInflated, plotType = "bootHist", labels = TRUE, ylim = c(0, 300))
-```
-
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="75%" />
-
-and for models with more than one distribution parameter we allow all
-parameters to be covariate dependent for exapmle if we wish to modify
-the model above:
+and the option to estimate standard error of population size estimate by
+bootstrap, models with more than one distribution parameter being
+dependent on covariates and some non standard link functions for
+example:
 
 ``` r
 modelInflated2 <- estimatePopsize(
     formula = capture ~ nation  + age,
     data = netherlandsimmigrant,
     popVar = "bootstrap",
-    model = "oiztgeom",
+    model = oiztgeom(omegaLink = "cloglog"),
     method = "IRLS",
-    controlMethod = controlMethod(stepsize = .2),
     controlPopVar = controlPopVar(
-        B = 1250,
-        alpha = .01,
-        bootType = "semiparametric",
-        covType = "Fisher" # use fisher information matrix to construct cross covariance matrix instead of observed information matrix
+        B = 500,# number of boostrap samples
+        alpha = .01, # significance level 
+        bootType = "semiparametric", # type of bootstrap see documentation for estimatePopsize
+        # control regression fitting on bootstrap samples
+        bootstrapFitcontrol = controlMethod(
+          epsilon = .Machine$double.eps, 
+          silent = TRUE, 
+          stepsize = 2.5
+        )
     ),
     controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
 )
 #> Warning in estimatePopsize(formula = capture ~ nation + age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.
-#> NOTE: Second derivative test failing does not necessarily mean that the maximum of score function that was found numericaly is invalid since R^k is not a bounded space.
+#> NOTE: Second derivative test failing does not 
+#>       necessarily mean that the maximum of score function that was found 
+#>       numericaly is invalid since R^k is not a bounded space.
 #> Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments.
+#> Warning in estimatePopsize(formula = capture ~ nation + age, data =
+#> netherlandsimmigrant, : Switching from observed information matrix to Fisher
+#> information matrix because hessian of log-likelihood is not negative define.
 ```
 
 the results are significantly different (the warning issued concerns the
@@ -360,16 +356,12 @@ the user):
 plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" />
 
 and information criteria support the second model:
 
-``` r
-cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
-    "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), "\n", sep = "")
-#>  First model: AIC = 1676.961 BIC = 1726.813
-#> Second model: AIC = 1675.318 BIC = 1725.169
-```
+    #>  First model: AIC = 1676.961 BIC = 1726.813
+    #> Second model: AIC = 1675.318 BIC = 1725.169
 
 ## Funding
 

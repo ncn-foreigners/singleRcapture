@@ -147,7 +147,8 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   
   # Lowering stepsize to about .3 usually helps a great deal in IRLS fitting
   if (!silent && family$family == "zotnegbin" && stepsize == 1) {
-    cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity.\nConsider lowering stepsize control parameter if fitting fails.\n")
+    cat("Zero one truncated negative binomial distribution is prone to taking alpha parameter to infinity.",
+        "\nConsider lowering stepsize control parameter if fitting fails.\n")
   }
   
   mu.eta <- family$mu.eta
@@ -223,8 +224,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     halfstepsizing <- FALSE
     mu <- mu.eta(eta = eta, ...)
     if (!validmu(mu)) {
-      stop("Fit error infinite values reached consider another model,
-            mu is too close to zero/infinity.\n")
+      stop(paste0(
+        "Fit error infinite values reached consider another model,",
+        "mu is too close to zero/infinity.\n"
+      ))
     }
 
     if (any(!is.finite(
@@ -232,12 +235,20 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         family$links[[x]](eta[, x], inverse = TRUE)
       })
     )))
-      stop("Infinite values of distribution parameters obtained for some IRLS iteration.\n")
+      stop(paste0(
+        "Infinite values of distribution ",
+        "parameters obtained for some IRLS iteration.\n"
+      ))
+    
     WPrev <- W
     W <- Wfun(prior = prior, eta = eta, y = dependent)
+    
     if (any(!is.finite(W))) {
       if (!silent) {
-        warning("NA's or NaN's or infinite values in weights matrixes detected IRLS may not work propperly.\n")
+        warning(paste0(
+          "NA's or NaN's or infinite values in weights matrixes ",
+          "detected IRLS may not work propperly.\n"
+        ))
       }
       W[!is.finite(W)] <- epsWeights
     }
@@ -250,7 +261,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     }
     z <- eta + Zfun(eta = eta, weight = W, y = dependent)
     if (any(is.nan(z))) {
-      stop("Pseudo residuals could not be computed at current iteration, possibly infinite or non numeric values in weights appeared.\n")
+      stop(paste0(
+        "Pseudo residuals could not be computed at current iteration, ",
+        "possibly infinite or non numeric values in weights appeared.\n"
+      ))
     }
     XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
@@ -270,10 +284,19 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     L <- -logLike(beta)
     
     if ((iter - 1) %% printOften == 0) {
-      if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
-      if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
-      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
-      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+      if (trace > 0) {cat(sep = "", "Iteration number ", iter, 
+                          " log-likelihood: ", 
+                          format(L, scientific = FALSE, 
+                                 digits = dg))}
+      if (trace > 1) {cat(sep = " ", "\nParameter vector: ", 
+                          format(beta, scientific = FALSE, 
+                                 digits = dg))}
+      if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", 
+                          format(L - LPrev, scientific = FALSE, 
+                                 digits = dg))}
+      if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", 
+                          format(grad(beta), scientific = FALSE, 
+                                 digits = dg))}
       eval(traceGreaterThanFourMessegeExpr)
       eval(addToLog)
     }
@@ -309,10 +332,19 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         }
       }
       if ((iter - 1) %% printOften == 0) {
-        if (trace > 0) {cat(sep = "", "Iteration number ", iter, " log-likelihood: ", format(L, scientific = FALSE, digits = dg))}
-        if (trace > 1) {cat(sep = " ", "\nParameter vector: ", format(beta, scientific = FALSE, digits = dg))}
-        if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", format(L - LPrev, scientific = FALSE, digits = dg))}
-        if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", format(grad(beta), scientific = FALSE, digits = dg))}
+        if (trace > 0) {cat(sep = "", "Iteration number ", iter, 
+                            " log-likelihood: ", 
+                            format(L, scientific = FALSE, 
+                                   digits = dg))}
+        if (trace > 1) {cat(sep = " ", "\nParameter vector: ", 
+                            format(beta, scientific = FALSE, 
+                                   digits = dg))}
+        if (trace > 2) {cat(sep = " ", "\nlog-likelihood reduction: ", 
+                            format(L - LPrev, scientific = FALSE, 
+                                   digits = dg))}
+        if (trace > 3) {cat(sep = " ", "\nValue of gradient at current step:\n", 
+                            format(grad(beta), scientific = FALSE, 
+                                   digits = dg))}
         eval(traceGreaterThanFourMessegeExpr)
         eval(addToLog)
       }
@@ -349,9 +381,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   }
   
   if (isTRUE(saveLog)) {
-    if (trace == 1) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood")
-    if (trace == 2) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood", colnames(covariates))
-    if (trace  > 2) colnames(logg) <- c("iterationNumber", "halfStep", "Log-likelihood", colnames(covariates), paste0("gradient -- ", colnames(covariates)))
+    if (trace == 1) colnames(logg) <- c("iterationNumber", "halfStep", 
+                                        "Log-likelihood")
+    if (trace == 2) colnames(logg) <- c("iterationNumber", "halfStep", 
+                                        "Log-likelihood", colnames(covariates))
+    if (trace  > 2) colnames(logg) <- c("iterationNumber", "halfStep", 
+                                        "Log-likelihood", colnames(covariates), 
+                                        paste0("gradient -- ", colnames(covariates)))
   }
   
   mu <- mu.eta(eta = eta, ...)
@@ -463,7 +499,11 @@ singleRinternalMultiplyWeight <- function (X, W, ...) {
 }
 # TODO
 cholFroW <- function(W, prior) {
-  if (NROW(W) != NROW(prior)) stop("Error in estimatePopsize.fit, working weights and prior weights suggest different number of observations.")
+  if (NROW(W) != NROW(prior)) 
+    stop(paste0(
+      "Error in estimatePopsize.fit, working ",
+      "weights and prior weights suggest different number of observations."
+    ))
   L <- list()
   for (k in 1:NROW(W)) {
     L[[k]] <- chol(matrix(prior[k] * W[k,], ncol = 2, nrow = 2))

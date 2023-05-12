@@ -393,7 +393,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
       family    = "ztnegbin",
       etaNames  = c("lambda", "alpha"),
       simulate  = simulate,
-      getStart  = getStart
+      getStart  = getStart,
+      extraInfo = list(
+        mean       = "lambda",
+        variance   = "lambda * (1 + alpha * lambda)",
+        popSizeEst = "1 / (1 - (1 + alpha * lambda) ^ (- 1 / alpha))",
+        meanTr     = "lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))",
+        varianceTr =
+          "(lambda + alpha * (lambda ^ 2) - alpha * (lambda ^ 2) * (1 + alpha * lambda) ^ (-1 / alpha)) / ((1 - (1 + alpha * lambda) ^ (-1 / alpha)) ^ 2)"
+      )
     ),
     class = c("singleRfamily", "family")
   )

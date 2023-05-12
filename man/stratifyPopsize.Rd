@@ -10,10 +10,10 @@ stratifyPopsize(object, stratas, alpha, ...)
 \method{stratifyPopsize}{singleR}(object, stratas, alpha, cov = NULL, ...)
 }
 \arguments{
-\item{object}{An object on which the population size estimates should be based
+\item{object}{an object on which the population size estimates should be based
 in \code{singleRcapture} package this is a fitter \code{singleR} class object.}
 
-\item{stratas}{A specification of sub populations either by:
+\item{stratas}{a specification of sub populations either by:
 \itemize{
 \item formula -- a formula to be applied to \code{model.frame} extracted from
 the object .
@@ -29,19 +29,19 @@ will itself create sub populations based on levels of factor variables
 in \code{model.frame}.
 }}
 
-\item{alpha}{Significance level for confidence intervals --
+\item{alpha}{significance level for confidence intervals --
 Either a single numeric value or a vector of length equal to number of
 sub populations specified in \code{stratas}.
 If missing it is set to \code{.05} in \code{singleR} method.}
 
-\item{...}{A vector of arguments to be passed to other functions.
+\item{...}{a vector of arguments to be passed to other functions.
 For \code{singleR} method for this functions arguments in \code{...} are
 passed to either \code{cov} if argument provided was a function or
 \code{vcov} if \code{cov} argument was missing at call.
 
 \loadmathjax}
 
-\item{cov}{For \code{singleR} method an estimate of variance-covariance matrix
+\item{cov}{for \code{singleR} method an estimate of variance-covariance matrix
 for estimate of regression parameters. It is possible to pass a function
 such as for example \code{sandwich::vcovHC} which will be called as:
 \code{foo(object, ...)} and a user may specify additional arguments of a
@@ -60,19 +60,20 @@ based on a capture-recapture model for the whole population.
 In single source capture-recapture models the most frequently used
 estimate for population size is Horwitz-Thompson type estimate:
 
-\mjdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{N = Sum_k=1^N I_k/P(Y_k > 0) = Sum_k=1^N_obs 1/(1-P(Y_k = 0))}
+\mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 
-where \mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} are indicator variables,
+where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables,
 with value 1 if kth unit was observed at least once and 0 otherwise and
 the inverse probabilistic weights weights for units observed in the data
-\mjeqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}{1/P(Y_k > 0)}
+\mjseqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}
 are estimated using fitted linear predictors.
 
 The estimates for different sub populations are made by changing the
-\mjeqn{I_{k}=I_{Y_{k} > 0}}{I_k=I_(Y_k > 0)} indicator variables
-to refer not to the population as a whole but to the sub populations that
-are being considered i.e. by changing values from 1 to 0 if kth unit is not
-a member of sub population that is being considered at the moment.
+\mjseqn{I_{k}=I_{Y_{k} > 0}} indicator variables to refer not to the
+population as a whole but to the sub populations that are being considered
+i.e. by changing values from 1 to 0 if kth unit is not a member of sub
+population that is being considered at the moment.
 
 The estimation of variance for these estimates and estimation of variance for
 estimate of population size for the whole population follow the same relation

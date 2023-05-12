@@ -16,35 +16,35 @@
 )
 }
 \arguments{
-\item{object}{Object of singleR class.}
+\item{object}{object of singleR class.}
 
-\item{test}{Type of test for significance of parameters \code{"t"} for t-test
+\item{test}{type of test for significance of parameters \code{"t"} for t-test
 and \code{"z"} for normal approximation of students t distribution, by
 default \code{"z"} is used if there are more than 30 degrees of freedom
 and \code{"t"} is used in other cases.}
 
-\item{resType}{Type of residuals to summarise any value that is allowed in
+\item{resType}{type of residuals to summarise any value that is allowed in
 \code{residuals.signleR} except for \code{"all"} is allowed. By default
 pearson residuals are used.}
 
-\item{correlation}{Logical value indicating whether correlation matrix should
+\item{correlation}{logical value indicating whether correlation matrix should
 be computed from covariance matrix by default \code{FALSE}.}
 
-\item{confint}{Logical value indicating whether confidence intervals for
+\item{confint}{logical value indicating whether confidence intervals for
 regression parameters should be constructed. By default \code{FALSE}.}
 
-\item{cov}{Covariance matrix corresponding to regression parameters.
+\item{cov}{covariance matrix corresponding to regression parameters.
 It is possible to give \code{cov} argument as a function of \code{object}.
 If not specified it will be constructed using \code{vcov.singleR} method.
 (i.e using Cramer-Rao lower bound)}
 
-\item{popSizeEst}{A \code{popSizeEstResults} class object.
+\item{popSizeEst}{a \code{popSizeEstResults} class object.
 If not specified population size estimation results will be drawn from
 \code{object}. If any post-hoc procedures, such as sandwich covariance matrix
 estimation or bias reduction, were taken it is possible to include them in
 population size estimation results by calling \code{redoPopEstimation}.}
 
-\item{...}{Additional optional arguments passed to the following functions:
+\item{...}{additional optional arguments passed to the following functions:
 \itemize{
 \item \code{vcov.singleR} -- if no \code{cov} argument was provided.
 \item \code{cov} -- if \code{cov} parameter specified at call was a function.

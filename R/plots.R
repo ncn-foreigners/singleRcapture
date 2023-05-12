@@ -3,10 +3,10 @@
 #'
 #' @description Simple diagnostic plots for \code{singleR} class objects.
 #'
-#' @param x Object of \code{singleR} class.
-#' @param confIntStrata Confidence interval type to use for strata plot.
+#' @param x object of \code{singleR} class.
+#' @param confIntStrata confidence interval type to use for strata plot.
 #' Currently supported values are \code{"normal"} and \code{"logNormal"}.
-#' @param plotType Character parameter specifying type of plot to be made.
+#' @param plotType character parameter specifying type of plot to be made.
 #' The following list presents and briefly explains possible type of plots:
 #' \itemize{
 #'   \item \code{qq} -- The quantile-quantile plot for pearson residuals 
@@ -40,7 +40,7 @@
 #'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
 #'   \item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
 #' }
-#' @param ... Additional optional arguments passed to the following functions:
+#' @param ... additional optional arguments passed to the following functions:
 #' \itemize{
 #'   \item For \code{plotType = "bootHist"}
 #'   \itemize{
@@ -171,8 +171,11 @@ plot.singleR <- function(x,
     dfpop <- dfpopsize(x, 
     observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
     # TODO:: implement a function to get a contribution
-    contr <- x$model$pointEst(pw = x$priorWeights[x$which$est],
-    eta = x$linearPredictors, contr = TRUE);
+    contr <- x$model$pointEst(
+      pw = x$priorWeights[x$which$est],
+      eta = x$linearPredictors, 
+      contr = TRUE
+    );
     plot(x = dfpop, y = contr,
          main = paste0("Observation deletion effect on point estimate of",
                        "\npopulation size estimate vs observation contribution"),

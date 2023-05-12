@@ -7,14 +7,14 @@
 \method{confint}{singleR}(object, parm, level = 0.95, ...)
 }
 \arguments{
-\item{object}{Object of singleR class.}
+\item{object}{object of singleR class.}
 
-\item{parm}{Names of parameters for which confidence intervals are to be
+\item{parm}{names of parameters for which confidence intervals are to be
 computed, if missing all parameters will be considered.}
 
-\item{level}{Confidence level for intervals.}
+\item{level}{confidence level for intervals.}
 
-\item{...}{Currently does nothing.}
+\item{...}{currently does nothing.}
 }
 \value{
 An object with named columns that include upper and
