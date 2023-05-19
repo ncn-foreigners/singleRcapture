@@ -1,16 +1,31 @@
 #' @rdname singleRmodels
 #' @importFrom lamW lambertW0
 #' @export
-ztHurdlepoisson <- function(...) {
-  # Fist for lambda second for PI
-  link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
-  invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
+ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"), 
+                            piLink = c("logit", "cloglog", "probit"), 
+                            ...) {
+  if (missing(lambdaLink)) lambdaLink <- "log"
+  if (missing(piLink))  piLink <- "logit"
+  
+  links <- list()
+  attr(links, "linkNames") <- c(lambdaLink, piLink)
+  
+  lambdaLink <- switch(lambdaLink,
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
+  )
+  
+  piLink <- switch(piLink,
+    "logit" = singleRinternallogitLink,
+    "cloglog" = singleRinternalcloglogLink,
+    "probit" = singleRinternalprobitLink
+  )
+  
+  links[1:2] <- c(lambdaLink, piLink)
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    # TODO
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
     "nontrunc" = (1 - exp(-lambda)) * (PI + lambda - PI * lambda),
     "trunc" = PI + (1 - PI) * (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
@@ -18,33 +33,39 @@ ztHurdlepoisson <- function(...) {
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
-    # TODO
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
-            "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ^ 2 + lambda - lambda * exp(-lambda)),
-            "trunc" = (PI + (1 - PI) * (lambda + lambda ^ 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ^ 2
+    "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ^ 2 + lambda - lambda * exp(-lambda)),
+    "trunc" = (PI + (1 - PI) * (lambda + lambda ^ 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ^ 2
     )
   }
   
   Wfun <- function(prior, eta, ...) {
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- PI
+    YY <- mu.eta(eta) - PI ## expected for (1-z)Y
     #z <- ifelse(y == 1, y, 0)
-    term <- -(PI * (1 - PI))
-    G00 <- term * prior
-    term <- (1 - z) * ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2)
-    G11 <- lambda * term * prior
-    G01 <- rep(0, nrow (eta))
+    
+    G00 <- -piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * 
+    ((PI - z) / ((PI - 1) ^ 2 * PI) + (PI - z) / ((PI - 1) * PI ^ 2) -
+    1 / ((PI - 1) * PI)) + piLink(eta[, 2], inverse = TRUE, deriv = 2) * 
+    (z / PI - (1 - z) / (1 - PI))
+    
+    G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
+    ((-YY * exp(2 * lambda) + 
+    ((1 - z) * lambda ^ 3 + (z - 1) * lambda ^ 2 + 2 * YY * lambda + 2 * YY) * exp(lambda) +
+    (-YY - z + 1) * lambda ^ 2 - YY * 2 * lambda - YY)) / 
+    (lambda ^ 2 * (exp(lambda) - lambda - 1) ^ 2) +
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
+    (-(1 - z) * lambda / (-lambda - 1 + exp(lambda)) + YY / lambda - 1)
     
     matrix(
-      -c(G11, # lambda
-         G01, # mixed
-         G01, # mixed
-         G00  # pi
+      -c(G11 * prior, # lambda
+         rep(0, NROW(eta)) * prior, # mixed
+         rep(0, NROW(eta)) * prior, # mixed
+         G00 * prior  # pi
       ),
       dimnames = list(rownames(eta), c("lambda", "mixed", "mixed", "pi")),
       ncol = 4
@@ -52,12 +73,15 @@ ztHurdlepoisson <- function(...) {
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
-    z <- ifelse(y == 1, y, 0)
-    G1 <- ifelse(z, 0 , (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
-    G0 <- (z - PI) # PI derivative
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    z <- as.numeric(y == 1)
+    
+    G1 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
+          (1 - z) * (-lambda / (-lambda - 1 + exp(lambda)) + y / lambda - 1)
+    
+    G0 <- piLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+          (z / PI - (1 - z) / (1 - PI))
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -83,25 +107,28 @@ ztHurdlepoisson <- function(...) {
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        PI <- lambda[, 2]
-        lambda <- lambda[, 1]
+        PI     <- piLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         logistic <- -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI)))
-        zot <- -sum(ifelse(z, 0, weight * (y * log(lambda) - lambda - log(factorial(y)) - log(1 - exp(-lambda) - lambda * exp(-lambda)))))
+        zot <- -sum(weight * (1 - z) * (y * log(lambda) - lambda - log(factorial(y)) - log(1 - exp(-lambda) - lambda * exp(-lambda))))
         zot + logistic
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        PI <- lambda[, 2]
-        lambda <- lambda[, 1]
-        G1 <- weight * ifelse(z, 0 , (y - lambda - lambda * lambda / (exp(lambda) - lambda - 1)))
-        G0 <- (z - PI) * weight# PI derivative
+        PI     <- piLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        G1 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight *
+        (1 - z) * (-lambda / (-lambda - 1 + exp(lambda)) + y / lambda - 1)
+        
+        G0 <- piLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+              weight * (z / PI - (1 - z) / (1 - PI))
+        
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
           return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
@@ -113,16 +140,32 @@ ztHurdlepoisson <- function(...) {
       },
       function (beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        PI <- lambda[, 2]
-        lambda <- lambda[, 1]
-        XPI <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        PI     <- piLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        res <- matrix(nrow = length(beta), ncol = length(beta), 
+                      dimnames = list(names(beta), names(beta)))
+        
+        G00 <- -piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * 
+        ((PI - z) / ((PI - 1) ^ 2 * PI) + (PI - z) / ((PI - 1) * PI ^ 2) -
+        1 / ((PI - 1) * PI)) + piLink(eta[, 2], inverse = TRUE, deriv = 2) * 
+        (z / PI - (1 - z) / (1 - PI))
+        
+        G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
+        ((z - 1) * (y * exp(2 * lambda) + 
+        (-lambda ^ 3 + lambda ^ 2 - 2 * y * lambda - 2 * y) * exp(lambda) +
+        (y - 1) * lambda ^ 2 + 2 * y * lambda + y)) / 
+        (lambda ^ 2 * (exp(lambda) - lambda - 1) ^ 2) +
+        lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
+        (1 - z) * (-lambda / (-lambda - 1 + exp(lambda)) + y / lambda - 1)
         
         # PI^2 derivative
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- -t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * PI * (1 - PI) * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- 
+          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         # Beta^2 derivative
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * lambda * ifelse(z, 0, ((2 + lambda ^ 2) * exp(lambda) - exp(2 * lambda) - 1) / ((exp(lambda) - lambda - 1) ^ 2)) * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- 
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
         res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- 0
         res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- 0
         
@@ -136,15 +179,14 @@ ztHurdlepoisson <- function(...) {
   }
   
   devResids <- function(y, eta, wt, ...) {
-    PI <- invlink(eta)
-    lambda <- PI[, 1]
-    PI <- PI[, 2]
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
     # when pi = 0 distribution collapses to zotpoisson
     inverseFunction <- function(y) {stats::uniroot(
       f = function(x) {
-        lambda <- exp(x)
-        (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda)) - y
+        l <- exp(x)
+        (l - l * exp(-l)) / (1 - exp(-l) - l * exp(-l)) - y
       }, 
       lower = -log(y), upper = y * 10, 
       tol = .Machine$double.eps
@@ -159,14 +201,15 @@ ztHurdlepoisson <- function(...) {
     diff <- ifelse(
       y == 1,
       -log(PI), ifelse(y == 2, log(2),
-      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)))
+      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
+      (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)))
     )
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    lambda <- invlink(eta)
-    lambda <- lambda[, 1]
+    #PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     N <- pw * (1 - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     if(!contr) {
       N <- sum(N)
@@ -175,12 +218,12 @@ ztHurdlepoisson <- function(...) {
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
     bigTheta1 <- rep(0, nrow(eta)) # w.r to PI
-    bigTheta2 <-as.numeric(pw * lambda * (1 - exp(lambda)) / ((1 + lambda - exp(lambda)) ^ 2)) # w.r to lambda
+    bigTheta2 <- -as.numeric(pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
+    (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2) # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
@@ -192,16 +235,16 @@ ztHurdlepoisson <- function(...) {
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
-    ifelse(x == 1, PI, (1 - PI) * (lambda ^ x) * exp(-lambda) / (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    ifelse(x == 1, PI, 
+    (1 - PI) * (lambda ^ x) * exp(-lambda) / 
+    (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    lambda <- invlink(eta)
-    PI <- lambda[, 2]
-    lambda <- lambda[, 1]
+    PI     <- piLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     CDF <- function(x) {
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 
@@ -230,6 +273,7 @@ ztHurdlepoisson <- function(...) {
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$piStart)) {
       cc <- colnames(Xvlm)
       cc <- cc[grepl(x = cc, pattern = "pi$")]
@@ -246,25 +290,22 @@ ztHurdlepoisson <- function(...) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      linkfun = link,
-      linkinv = invlink,
-      mu.eta = mu.eta,
-      link = c("log", "logit"),
-      valideta = function (eta) {TRUE},
-      variance = variance,
-      Wfun = Wfun,
-      funcZ = funcZ,
+      densityFunction  = dFun,
+      links     = links,
+      mu.eta    = mu.eta,
+      valideta  = function (eta) {TRUE},
+      variance  = variance,
+      Wfun      = Wfun,
+      funcZ     = funcZ,
       devResids = devResids,
-      validmu = validmu,
-      pointEst = pointEst,
-      popVar= popVar,
-      family = "ztHurdlepoisson",
-      parNum = 2,
+      validmu   = validmu,
+      pointEst  = pointEst,
+      popVar    = popVar,
+      family    = "ztHurdlepoisson",
       etaNames = c("lambda", "pi"),
-      densityFunction = dFun,
-      simulate = simulate,
-      getStart = getStart
+      simulate  = simulate,
+      getStart  = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

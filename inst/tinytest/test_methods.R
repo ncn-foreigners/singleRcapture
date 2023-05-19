@@ -83,126 +83,58 @@ expect_silent(
   dfb3 <- dfbeta(Model3)
 )
 
-expect_equivalent(
-  max(abs(dfpopsize(Model, dfbeta = dfb))),
-  4236.412,
-  tolerance = .1
+expect_true(
+  abs(max(abs(dfpopsize(Model, dfbeta = dfb))) - 4236.412) < .1
 )
 
-expect_equivalent(
-  max(abs(dfpopsize(Model1, dfbeta = dfb1))),
-  88.35,
-  tolerance = .1
+expect_true(
+  abs(mean(abs(dfpopsize(Model, dfbeta = dfb))) - 19.19) < .1
 )
 
-expect_equivalent(
-  max(abs(dfpopsize(Model2, dfbeta = dfb2))),
-  3648.162,
-  tolerance = .1
+expect_true(
+  abs(max(abs(dfpopsize(Model1, dfbeta = dfb1))) - 88.349) < .2
 )
 
-expect_equivalent(
-  max(abs(dfpopsize(Model3, dfbeta = dfb3))),
-  3681.764,
-  tolerance = .1
+expect_true(
+  abs(mean(abs(dfpopsize(Model1, dfbeta = dfb1))) - 8.1945) < .1
 )
+
+expect_true(
+  abs(max(abs(dfpopsize(Model2, dfbeta = dfb2))) - 3648.17) < .2
+)
+
+expect_true(
+  abs(mean(abs(dfpopsize(Model2, dfbeta = dfb2))) - 16.59) < .1
+)
+
+expect_true(
+  abs(max(abs(dfpopsize(Model3, dfbeta = dfb3))) - 3681.764) < .2
+)
+
+expect_true(
+  abs(mean(abs(dfpopsize(Model3, dfbeta = dfb3))) - 17.18) < .1
+)
+
 
 # Extractors
 
-expect_equivalent(
-  AIC(Model),
-  1712.901,
-  tolerance = .1
+expect_true(
+  max(abs(
+    c(AIC(Model), AIC(Model1), AIC(Model2), AIC(Model3), AIC(Model4), AIC(Model5)) -
+      c(1712.901, 1805.904, 1131.723, 1133.006, 34538.73, 34580.82)
+  )) < 1
 )
 
-expect_equivalent(
-  AIC(Model1),
-  1805.904,
-  tolerance = .1
-)
-
-expect_equivalent(
-  AIC(Model2),
-  1131.723,
-  tolerance = .1
-)
-
-expect_equivalent(
-  AIC(Model3),
-  1131.006,
-  tolerance = .1
-)
-
-expect_equivalent(
-  AIC(Model4),
-  34538.73,
-  tolerance = .1
-)
-
-expect_equivalent(
-  AIC(Model5),
-  34580.82,
-  tolerance = .1
-)
-
-expect_equivalent(
-  BIC(Model),
-  1757.213,
-  tolerance = .1
-)
-
-expect_equivalent(
-  BIC(Model1),
-  1811.443,
-  tolerance = .1
-)
-
-expect_equivalent(
-  BIC(Model2),
-  1170.3,
-  tolerance = .1
-)
-
-expect_equivalent(
-  BIC(Model3),
-  1177.094,
-  tolerance = .1
-)
-
-expect_equivalent(
-  BIC(Model4),
-  34575.71,
-  tolerance = .1
-)
-
-expect_equivalent(
-  BIC(Model5),
-  34625.2,
-  tolerance = .1
+expect_true(
+  max(abs(
+    c(BIC(Model), BIC(Model1), BIC(Model2), BIC(Model3), BIC(Model4), BIC(Model5)) -
+      c(1757.213, 1811.443, 1170.3, 1177.094, 34575.71, 34625.2)
+  )) < 1
 )
 
 expect_silent(
-  extractAIC(Model)
-)
-
-expect_silent(
-  extractAIC(Model1)
-)
-
-expect_silent(
-  extractAIC(Model2)
-)
-
-expect_silent(
-  extractAIC(Model3)
-)
-
-expect_silent(
-  extractAIC(Model4)
-)
-
-expect_silent(
-  extractAIC(Model5)
+  c(extractAIC(Model), extractAIC(Model1), extractAIC(Model2), 
+    extractAIC(Model3), extractAIC(Model4), extractAIC(Model5))
 )
 
 # Sandwich
@@ -291,11 +223,11 @@ expect_false(
 )
 
 expect_true(
-  max(bread(Model2, type = "observedInform") - bread(Model2, type = "Fisher")) < 1e-1
+  max(bread(Model2, type = "observedInform") - bread(Model2, type = "Fisher")) < 1e-4
 )
 
 expect_true(
-  max(bread(Model3, type = "observedInform") - bread(Model3, type = "Fisher")) < 1e-1
+  max(bread(Model3, type = "observedInform") - bread(Model3, type = "Fisher")) < 1e-4
 )
 
 expect_false(
@@ -769,76 +701,22 @@ expect_silent(
   popSizeEst(Model5)
 )
 
-expect_equal(
-  popSizeEst(Model)$pointEstimate,
-  12690,
-  tolerance = .5
+expect_true(
+  all(
+    c(popSizeEst(Model)$pointEstimate, popSizeEst(Model1)$pointEstimate, 
+      popSizeEst(Model2)$pointEstimate, popSizeEst(Model3)$pointEstimate,
+      popSizeEst(Model4)$pointEstimate, popSizeEst(Model5)$pointEstimate) -
+      c(12690, 7080, 15816.14, 15713.14, 41020.3, 29478.72) < 1
+  )
 )
 
-expect_equal(
-  popSizeEst(Model1)$pointEstimate,
-  7080,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model2)$pointEstimate,
-  15816.14,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model3)$pointEstimate,
-  15713.14,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model4)$pointEstimate,
-  41020.3,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model5)$pointEstimate,
-  29478.72,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model)$variance,
-  7885812,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model1)$variance,
-  133774.1,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model2)$variance,
-  9093464,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model3)$variance,
-  9096077,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model4)$variance,
-  3563463,
-  tolerance = .5
-)
-
-expect_equal(
-  popSizeEst(Model5)$variance,
-  431426.9,
-  tolerance = .5
+expect_true(
+  all(
+    c(popSizeEst(Model)$variance, popSizeEst(Model1)$variance, 
+      popSizeEst(Model2)$variance, popSizeEst(Model3)$variance,
+      popSizeEst(Model4)$variance, popSizeEst(Model5)$variance) -
+      c(7885812, 133774.1, 9093464, 9096077, 3563463, 431426.9) < 100
+  )
 )
 
 expect_silent(
@@ -1077,5 +955,5 @@ expect_silent(
 expect_equivalent(
   up$confidenceInterval[1, ],
   data.frame(6611.906, 18768.8),
-  tolerance = .5
+  tolerance = .05
 )

@@ -9,19 +9,22 @@ marginalFreq(
   includeones = TRUE,
   includezeros = TRUE,
   onecount = NULL,
-  range
+  range,
+  ...
 )
 }
 \arguments{
-\item{object}{Object of \code{singleR} class.}
+\item{object}{object of \code{singleR} class.}
 
-\item{includeones}{Logical value indicating whether to include the estimated number of zero counts.}
+\item{includeones}{logical value indicating whether to include the estimated number of zero counts.}
 
-\item{includezeros}{Logical value indicating whether to include one counts in the zero-one truncated models.}
+\item{includezeros}{logical value indicating whether to include one counts in the zero-one truncated models.}
 
-\item{onecount}{A numeric value indicating number of one counts if null \code{trcount} from object will be assumed to be a number one counts.}
+\item{onecount}{a numeric value indicating number of one counts if null \code{trcount} from object will be assumed to be a number one counts.}
 
-\item{range}{Optional argument specifying range of selected Y values.}
+\item{range}{optional argument specifying range of selected Y values.}
+
+\item{...}{currently does nothing.}
 }
 \value{
 A list with observed name of the fitted model family degrees of freedom and observed and fitted marginal frequencies.
@@ -30,14 +33,16 @@ A list with observed name of the fitted model family degrees of freedom and obse
 A function that given a fitted \code{singleR} class object
 computed marginal frequencies by as sum of probability density functions
 for each unit in data at each point i.e. kth element of marginal frequency
-table is given by \mjeqn{\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|
-\eta_{j})}{sum_j=1^N_obs P(Y_j=k|eta_{j})}. For k=0 only
-(if specified at call) they are computed as \mjeqn{\hat{N}-N_{obs}}{N-N_obs}
-because \mjeqn{\boldsymbol{f}_{0}}{f_0} is assumed to the unobserved part of the
-studied population.
+table is given by \mjseqn{\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|\eta_{j})}.
+For k=0 only (if specified at call) they are computed as
+\mjseqn{\hat{N}-N_{obs}} because \mjseqn{\boldsymbol{f}_{0}} is assumed to
+the unobserved part of the studied population.
 
 These frequencies are useful in diagnostics for count data regression, such
 as assessment of fit.
+}
+\seealso{
+\code{\link[=estimatePopsize]{estimatePopsize()}} -- where example of usage is provided
 }
 \author{
 Piotr Chlebicki

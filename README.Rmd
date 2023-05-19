@@ -68,11 +68,12 @@ The call to `estimatePopsize` will look very simmilar to anyone who used the
 ```{r example}
 library(singleRcapture)
 model <- estimatePopsize(
-  formula = capture ~ gender + age + nation + reason, # specify formula
+  formula = capture ~ gender + age + nation, # specify formula
   data = netherlandsimmigrant,
   popVar = "analytic", # specify 
   model = "ztpoisson", # distribution used
-  method = "IRLS" # fitting method one of three currently supported
+  method = "IRLS", # fitting method one of three currently supported
+  controlMethod = controlMethod(silent = TRUE) # ignore convergence at half step warning
 )
 summary(model) # a summary method for singleR class with standard glm-like output and population size estimation resutls
 ```
@@ -148,51 +149,50 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 stratifyPopsize(model, stratas = ~ gender / age)
 ```
 
-`singleRcapture` package also includes the option to estimate standard error of
-population size estimate by bootstrap and common non standard argument such
-as significance levels different from usual 5%:
+`singleRcapture` package also includes option to use common non standard 
+argument such as significance levels different from usual 5%:
 
 ```{r boot}
 set.seed(123)
 modelInflated <- estimatePopsize(
-    formula = capture ~ nation + gender + age,
+    formula = capture ~ gender + age,
     data = netherlandsimmigrant,
-    popVar = "bootstrap",
     model = "oiztgeom",
     method = "IRLS",
-    controlMethod = controlMethod(stepsize = .2), # control parameters for regression fitting check documentation of controlMethod
-    controlPopVar = controlPopVar( # control parameters for population size estimation check documentation of controlPopVar
-        B = 1250, # number of boostrap samples
+    # control parameters for population size estimation check documentation of controlPopVar
+    controlPopVar = controlPopVar(
         alpha = .01, # significance level 
-        bootType = "semiparametric" # type of bootstrap see documentation for estimatePopsize
     )
 )
 summary(modelInflated)
 ```
 
-```{r, fig.show="hold", out.width="75%"}
-plot(modelInflated, plotType = "bootHist", labels = TRUE, ylim = c(0, 300))
-```
-
-and for models with more than one distribution parameter we allow all parameters
-to be covariate dependent for exapmle if we wish to modify the model above:
+and the option to estimate standard error of population size estimate by 
+bootstrap, models with more than one distribution parameter being dependent 
+on covariates and some non standard link functions for example:
 
 ```{r}
 modelInflated2 <- estimatePopsize(
-    formula = capture ~ nation  + age,
+    formula = capture ~ age,
     data = netherlandsimmigrant,
     popVar = "bootstrap",
-    model = "oiztgeom",
+    model = oiztgeom(omegaLink = "cloglog"),
     method = "IRLS",
-    controlMethod = controlMethod(stepsize = .2),
     controlPopVar = controlPopVar(
-        B = 1250,
-        alpha = .01,
+        B = 500,# number of boostrap samples
+        alpha = .01, # significance level 
+        # type of bootstrap see documentation for estimatePopsize
         bootType = "semiparametric",
-        covType = "Fisher" # use fisher information matrix to construct cross covariance matrix instead of observed information matrix
+        # control regression fitting on bootstrap samples
+        bootstrapFitcontrol = controlMethod(
+          epsilon = .Machine$double.eps, 
+          silent = TRUE, 
+          stepsize = 2
+        )
     ),
     controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
 )
+popSizeEst(modelInflated2)
 ```
 
 the results are significantly different
@@ -202,16 +202,17 @@ found the optimal regression coefficients it's here to provide more information
 to the user):
 
 ```{r, fig.show="hold", out.width="75%"}
-plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
+plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 200))
 ```
 
-and information criteria support the second model:
+and information criteria support the favour model:
 
-```{r}
+```{r,echo=FALSE}
 cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
-    "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), "\n", sep = "")
+    "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), 
+    "\n", sep = "")
 ```
 
 ## Funding
 
-Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.
+Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.   

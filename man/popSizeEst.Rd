@@ -10,9 +10,9 @@ popSizeEst(object, ...)
 \method{popSizeEst}{singleR}(object, ...)
 }
 \arguments{
-\item{object}{Object with population size estimates.}
+\item{object}{object with population size estimates.}
 
-\item{...}{Additional optional arguments, currently not used in \code{singleR} class method.}
+\item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
 }
 \value{
 An object of class \code{popSizeEstResults} containing population size estimation results.

@@ -1,56 +1,90 @@
 #' @rdname singleRmodels
 #' @importFrom lamW lambertW0
 #' @export
-oiztpoisson <- function(...) {
-  # Fist for lambda second for omega
-  link <- function (x) {matrix(c(log(x[,1]),log(x[,2]/ (1 - x[,2]))), ncol = 2, dimnames = dimnames(x))}
-  invlink <- function (x) {matrix(c(exp(x[,1]),1/(exp(-x[,2]) + 1)), ncol = 2, dimnames = dimnames(x))}
+oiztpoisson <- function(lambdaLink = c("log", "neglog"), 
+                        omegaLink = c("logit", "cloglog", "probit"), 
+                        ...) {
+  if (missing(lambdaLink)) lambdaLink <- "log"
+  if (missing(omegaLink))  omegaLink <- "logit"
+  
+  links <- list()
+  attr(links, "linkNames") <- c(lambdaLink, omegaLink)
+  
+  lambdaLink <- switch(lambdaLink,
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
+  )
+  
+  omegaLink <- switch(omegaLink,
+    "logit" = singleRinternallogitLink,
+    "cloglog" = singleRinternalcloglogLink,
+    "probit" = singleRinternalprobitLink
+  )
+  
+  links[1:2] <- c(lambdaLink, omegaLink)
   
   mu.eta <- function(eta, type = "trunc", ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
     "nontrunc" = omega + lambda * (1 - omega),
-    "trunc" = ((exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) +
-    (1 - omega) * lambda * (exp(lambda) - 1) / (exp(lambda) - 1 + omega)))
+    "trunc" = exp(lambda) * (omega + lambda - omega * lambda) / (exp(lambda) - 1 + omega)
+    )
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
     "nontrunc" = omega + (1 - omega) * lambda * (lambda + 1),
     "trunc" = ((exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) +
-    (1 - omega) * lambda * ((1 + lambda) * exp(lambda) - 1) / (exp(lambda) - 1 + omega))) - mu.eta(type = type, eta = eta) ^ 2
+    (1 - omega) * lambda * ((1 + lambda) * exp(lambda) - 1) / (exp(lambda) - 1 + omega))
+    ) - mu.eta(type = type, eta = eta) ^ 2
   }
   
   Wfun <- function(prior, y, eta, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
-    theta <- exp(eta[, 2])
-    temp <- exp(lambda) * omega + lambda * (1 - omega)
-    temp1 <- exp(lambda) * omega + 1 - omega
-    temp2 <- exp(lambda) + 1 - omega
-    z <- temp / temp2 # expected for I's
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    
+    z <- (exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) # expected for I's
     #z <- ifelse(y == 1, y, 0)
-    G00 <- z * (-(1 - omega) * omega * ((exp(lambda) - lambda) ^ 2) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2) +
-                  (1 - omega) * (exp(lambda) - lambda) / (omega * (exp(lambda) - lambda) + lambda) - omega * (exp(lambda) - lambda) / (omega * (exp(lambda) - lambda) + lambda))
-    G00 <- G00 - (1 - z)
-    G00 <- G00 - ((1 - 2 * omega) * (exp(lambda) - 1 + omega) - omega * (1 - omega)) / ((exp(lambda) - 1 + omega) ^ 2)
-    G00 <- G00 * (1 - omega) * omega * prior
+    Ey <- mu.eta(eta)
+    XXX <- Ey - z ## z here is the prob of 1 and XXX is expected for (1-z)*y
+    
+    G1 <- (z  * (exp(lambda) * omega + 1 - omega) / 
+    (exp(lambda) * omega + lambda - omega * lambda) + 
+    XXX / lambda - exp(lambda) / (exp(lambda) - 1 + omega))
+    
+    G0 <- ((z * (exp(lambda) - lambda)) / (exp(lambda) * omega + lambda * (1 - omega)) - 
+           1 / (omega + exp(lambda) - 1) - (1 - z) / (1 - omega))
+    
+    # omega^2 derivative
+    G00 <- (-(z * (exp(lambda) - lambda) ^ 2) /
+    (exp(lambda) * omega + lambda * (1 - omega)) ^2 +
+    1 / (omega + exp(lambda) - 1) ^ 2 - (1 - z) / (1 - omega) ^ 2)
     
     # mixed derivative
-    G01 <- lambda * exp(lambda) / ((exp(lambda) - 1 + omega) ^ 2)
-    G01 <- G01 + z * lambda * exp(lambda) * (lambda - 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
-    G01 <- G01 * (1 - omega) * omega
-    G01 <- G01 * prior
+    G01 <- (z * (exp(lambda) - 1)) / (omega * exp(lambda) + (1 - omega) * lambda) -
+    (z * (exp(lambda) - lambda) * (omega * exp(lambda) - omega + 1)) /
+    (omega * exp(lambda) + (1 - omega) * lambda) ^ 2 + 
+    exp(lambda) / (exp(lambda) + omega - 1) ^ 2
     
-    G11 <- z * omega * exp(lambda) * (omega * (lambda + exp(lambda) - 1 - (lambda ^ 2)) + lambda ^ 2 - lambda + 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
-    G11 <- G11 - exp(lambda) * (omega * lambda + omega + exp(lambda) - lambda - 1) / ((omega + exp(lambda) - 1) ^ 2)
-    G11 <- G11 * prior * lambda
+    # Beta^2 derivative
+    G11 <- (exp(2 * lambda) / (exp(lambda) + omega - 1) ^ 2 +
+    (omega * z * exp(lambda)) / (omega * exp(lambda) + (1 - omega) * lambda) -
+    (z * (omega * exp(lambda) - omega + 1) ^ 2) / 
+    (omega * exp(lambda) + (1 - omega) * lambda) ^ 2 -
+    exp(lambda) / (exp(lambda) + omega - 1) - XXX / lambda ^ 2)
+    
+    G00 <- prior * (G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
+                     G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2))
+    
+    G01 <- prior * G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
+           omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+    
+    G11 <- prior * (G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) + 
+           G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2)
+    
     matrix(
       -c(G11, # lambda
          G01, # mixed
@@ -63,19 +97,19 @@ oiztpoisson <- function(...) {
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
-    theta <- exp(eta[, 2])
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- ifelse(y == 1, y, 0)
-    G1 <- z  * (exp(lambda) * omega + 1 - omega) / (exp(lambda) * omega + lambda - omega * lambda)
-    G1 <- G1 + (1 - z) * y / lambda
-    G1 <- G1 - exp(lambda) / (exp(lambda) - 1 + omega)
-    G1 <- G1 * lambda # log link
-    G0 <- z * (exp(lambda) - lambda) / (lambda + omega * (exp(lambda) - lambda))
-    G0 <- G0 - (1 - z) / (1 - omega)
-    G0 <- G0 - 1 / (exp(lambda) - 1 + omega)
-    G0 <- G0 * omega * (1 - omega) # logit link
+    
+    G1 <- (z  * (exp(lambda) * omega + 1 - omega) / 
+    (exp(lambda) * omega + lambda - omega * lambda) + 
+    (1 - z) * y / lambda - exp(lambda) / (exp(lambda) - 1 + omega))
+    G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+    
+    G0 <- ((z * (exp(lambda) - lambda)) / (exp(lambda) * omega + lambda * (1 - omega)) - 
+            1 / (omega + exp(lambda) - 1) - (1 - z) / (1 - omega))
+    
+    G0 <- G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -101,31 +135,33 @@ oiztpoisson <- function(...) {
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        omega <- lambda[, 2]
-        lambda <- lambda[, 1]
+        omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
         -sum(weight * (z * (log(exp(lambda) * omega + (1 - omega) * lambda)) +
-                         (1 - z) * (log(1 - omega) + y * log(lambda) - log(factorial(y))) - 
-                         log(exp(lambda) - 1 + omega)))
+        (1 - z) * (log(1 - omega) + y * log(lambda) - log(factorial(y))) - 
+        log(exp(lambda) - 1 + omega)))
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        omega <- lambda[, 2]
-        lambda <- lambda[, 1]
-        G1 <- z  * (exp(lambda) * omega + 1 - omega) / (exp(lambda) * omega + lambda - omega * lambda)
-        G1 <- G1 + (1 - z) * y / lambda
-        G1 <- G1 - exp(lambda) / (exp(lambda) - 1 + omega)
-        G1 <- G1 * weight * lambda # log link
-        G0 <- z * (exp(lambda) - lambda) / (lambda + omega * (exp(lambda) - lambda))
-        G0 <- G0 - (1 - z) / (1 - omega)
-        G0 <- G0 - 1 / (exp(lambda) - 1 + omega)
-        G0 <- G0 * weight * omega * (1 - omega) # logit link
+        omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        G1 <- (z  * (exp(lambda) * omega + 1 - omega) / 
+        (exp(lambda) * omega + lambda - omega * lambda) + 
+        (1 - z) * y / lambda - exp(lambda) / (exp(lambda) - 1 + omega))
+        
+        G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+        
+        G0 <- ((z * (exp(lambda) - lambda)) / (exp(lambda) * omega + lambda * (1 - omega)) - 
+               1 / (omega + exp(lambda) - 1) - (1 - z) / (1 - omega))
+        
+        G0 <- G0 * weight * omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
         
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
@@ -140,40 +176,65 @@ oiztpoisson <- function(...) {
       function (beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        lambda <- invlink(eta)
-        omega <- lambda[, 2]
-        lambda <- lambda[, 1]
-        Xlambda <- X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-        Xomega <- X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
-        res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
+        omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
+        res <- matrix(nrow = length(beta), ncol = length(beta), 
+                      dimnames = list(names(beta), names(beta)))
         
         temp <- exp(lambda) * omega + lambda * (1 - omega)
         temp1 <- exp(lambda) * omega + 1 - omega
         temp2 <- exp(lambda) + 1 - omega
         
+        G1 <- (z  * (exp(lambda) * omega + 1 - omega) / 
+        (exp(lambda) * omega + lambda - omega * lambda) + 
+        (1 - z) * y / lambda - exp(lambda) / (exp(lambda) - 1 + omega))
+        
+        G0 <- ((z * (exp(lambda) - lambda)) / (exp(lambda) * omega + lambda * (1 - omega)) - 
+                1 / (omega + exp(lambda) - 1) - (1 - z) / (1 - omega))
+        
         # omega^2 derivative
-        G00 <- z * (-(1 - omega) * omega * ((exp(lambda) - lambda) ^ 2) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2) +
-                      (1 - 2 * omega) * (exp(lambda) - lambda) / (omega * (exp(lambda) - lambda) + lambda))
-        G00 <- G00 - (1 - z)
-        G00 <- G00 - ((1 - 2 * omega) * (exp(lambda) - 1 + omega) - omega * (1 - omega)) / ((exp(lambda) - 1 + omega) ^ 2)
-        G00 <- G00 * (1 - omega) * omega
-        G00 <- t(as.data.frame(Xomega * G00 * weight)) %*% as.matrix(Xomega)
+        G00 <- (-(z * (exp(lambda) - lambda) ^ 2) /
+        (exp(lambda) * omega + lambda * (1 - omega)) ^2 +
+        1 / (omega + exp(lambda) - 1) ^ 2 - (1 - z) / (1 - omega) ^ 2)
         
         # mixed derivative
-        G01 <- lambda * exp(lambda) / ((exp(lambda) - 1 + omega) ^ 2)
-        G01 <- G01 + z * lambda * exp(lambda) * (lambda - 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
-        G01 <- G01 * (1 - omega) * omega
-        G01 <- t(as.data.frame(Xlambda) * G01 * weight) %*% as.matrix(Xomega)
+        G01 <- (z * (exp(lambda) - 1)) / (omega * exp(lambda) + (1 - omega) * lambda) -
+        (z * (exp(lambda) - lambda) * (omega * exp(lambda) - omega + 1)) /
+        (omega * exp(lambda) + (1 - omega) * lambda) ^ 2 + 
+        exp(lambda) / (exp(lambda) + omega - 1) ^ 2
         
         # Beta^2 derivative
-        G11 <- z * omega * exp(lambda) * (omega * (lambda + exp(lambda) - 1 - lambda ^ 2) + lambda ^ 2 - lambda + 1) / ((omega * (exp(lambda) - lambda) + lambda) ^ 2)
-        G11 <- G11 - exp(lambda) * (omega * lambda + omega + exp(lambda) - lambda - 1) / ((omega + exp(lambda) - 1) ^ 2)
-        G11 <- G11 * weight * lambda
-        G11 <- t(as.data.frame(Xlambda * G11)) %*% Xlambda
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- G00
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- G11
-        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(G01)
-        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- G01
+        G11 <- (exp(2 * lambda) / (exp(lambda) + omega - 1) ^ 2 +
+        (omega * z * exp(lambda)) / (omega * exp(lambda) + (1 - omega) * lambda) -
+        (z * (omega * exp(lambda) - omega + 1) ^ 2) / 
+        (omega * exp(lambda) + (1 - omega) * lambda) ^ 2 -
+        exp(lambda) / (exp(lambda) + omega - 1) - (y * (1 - z)) / lambda ^ 2)
+        
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- (
+          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * 
+           (G00 * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) + 
+            G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2)) * weight)) %*% 
+            as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        )
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- (
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] *
+            (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 +
+             G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight)) %*% 
+            X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        )
+        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G01 * 
+            omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight) %*% 
+            as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        )
+        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- (
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G01 * 
+            omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight) %*% 
+            as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        )
         
         res
       }
@@ -185,9 +246,8 @@ oiztpoisson <- function(...) {
   }
   
   devResids <- function(y, eta, wt, ...) {
-    omega <- invlink(eta)
-    lambda <- omega[, 1]
-    omega <- omega[, 2]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     mu1 <- mu.eta(eta = eta)
     idealOmega <- ifelse(y == 1, 1, 0)
     idealLambda <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
@@ -200,10 +260,8 @@ oiztpoisson <- function(...) {
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    lambda <- invlink(eta)
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     N <- pw / (1 - (1 - omega) * exp(-lambda))
     if(!contr) {
       N <- sum(N)
@@ -212,37 +270,34 @@ oiztpoisson <- function(...) {
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    coefficient <- (1 - (1 - omega) * exp(-lambda))
-    bigTheta1 <- -pw * exp(-lambda) / (coefficient ^ 2)# w.r to omega
-    bigTheta1 <- bigTheta1 * omega * (1 - omega)
-    bigTheta2 <- -pw * lambda * exp(-lambda) * (1 - omega) / (coefficient ^ 2) # w.r to lambda
-    bigTheta2 <- bigTheta2 * lambda
+    bigTheta1 <- -pw * omegaLink(eta[, 2], inverse = TRUE,deriv = 1) * 
+      exp(lambda)/(omega + exp(lambda) - 1) ^ 2# w.r to omega
+    bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
+      ((omega - 1) * exp(lambda)) / (exp(lambda) + omega - 1) ^ 2 # w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (1 - omega) * exp(-lambda) / (coefficient ^ 2))
+    f2 <- sum(pw * (1 - omega) * exp(-lambda) / ((1 - (1 - omega) * exp(-lambda)) ^ 2))
     
     f1 + f2
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
-    ifelse(x == 1, exp(lambda) * omega + (1 - omega) * lambda,
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    ifelse(x == 1, 
+           exp(lambda) * omega + (1 - omega) * lambda,
            (1 - omega) * (lambda ^ x) / factorial(x)) / (exp(lambda) - 1 + omega)
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    lambda <- invlink(eta)
-    omega <- lambda[, 2]
-    lambda <- lambda[, 1]
+    omega  <-  omegaLink(eta[, 2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     CDF <- function(x) {
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 
@@ -269,10 +324,11 @@ oiztpoisson <- function(...) {
       weights = priorWeights[wch$reg],
       ...
     )$coefficients,
+    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, log(omg))
+        start <- c(start, family$links[[2]](omg))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "omega$")]
@@ -290,25 +346,22 @@ oiztpoisson <- function(...) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      linkfun = link,
-      linkinv = invlink,
-      mu.eta = mu.eta,
-      link = c("log", "logit"),
-      valideta = function (eta) {TRUE},
-      variance = variance,
-      Wfun = Wfun,
-      funcZ = funcZ,
+      densityFunction  = dFun,
+      links     = links,
+      mu.eta    = mu.eta,
+      valideta  = function (eta) {TRUE},
+      variance  = variance,
+      Wfun      = Wfun,
+      funcZ     = funcZ,
       devResids = devResids,
-      validmu = validmu,
-      pointEst = pointEst,
-      popVar= popVar,
-      family = "oiztpoisson",
-      parNum = 2,
-      etaNames = c("lambda", "omega"),
-      densityFunction = dFun,
-      simulate = simulate,
-      getStart = getStart
+      validmu   = validmu,
+      pointEst  = pointEst,
+      popVar    = popVar,
+      family    = "oiztpoisson",
+      etaNames  = c("lambda", "omega"),
+      simulate  = simulate,
+      getStart  = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }

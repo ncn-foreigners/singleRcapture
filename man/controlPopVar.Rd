@@ -20,40 +20,45 @@ controlPopVar(
 )
 }
 \arguments{
-\item{alpha}{Significance level, 0.05 used by default.}
+\item{alpha}{significance level, 0.05 used by default.}
 
-\item{trcount}{Truncated count - a number to be added to point estimator
+\item{trcount}{truncated count - a number to be added to point estimator
 and both sides of confidence intervals.}
 
-\item{bootType}{Bootstrap type. Default is \code{"parametric"},
+\item{bootType}{bootstrap type. Default is \code{"parametric"},
 other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.}
 
-\item{B}{Number of bootstrap samples to be performed (default 500).}
+\item{B}{number of bootstrap samples to be performed (default 500).}
 
-\item{confType}{Type of confidence interval for bootstrap confidence interval,
+\item{confType}{type of confidence interval for bootstrap confidence interval,
 \code{"percentile"} by default.
 Other possibility: \code{"studentized"} and \code{"basic"}.}
 
-\item{keepbootStat}{Boolean value indicating whether to keep a vector of statistics produced by bootstrap.}
+\item{keepbootStat}{boolean value indicating whether to keep a vector of
+statistics produced by bootstrap.}
 
-\item{traceBootstrapSize}{Boolean value indicating whether to print size of
+\item{traceBootstrapSize}{boolean value indicating whether to print size of
 bootstrapped sample after truncation for semi- and fully parametric bootstraps.}
 
-\item{bootstrapVisualTrace}{Boolean value indicating whether to plot bootstrap
+\item{bootstrapVisualTrace}{boolean value indicating whether to plot bootstrap
 statistics in real time.}
 
-\item{fittingMethod}{Method used for fitting models from bootstrap samples.}
+\item{fittingMethod}{method used for fitting models from bootstrap samples.}
 
-\item{bootstrapFitcontrol}{Control parameters for each regression works exactly
+\item{bootstrapFitcontrol}{control parameters for each regression works exactly
 like \code{controlMethod} but for fitting models from bootstrap samples.}
 
-\item{sd}{Indicates how to compute standard deviation of population
+\item{sd}{indicates how to compute standard deviation of population
 size estimator either as:
 \loadmathjax
-\mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{sd=sqrt(var(N))}
-for sqrt or for normalMVUE as the unbiased minimal variance estimator for normal distribution:
-\mjdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}\sqrt{\frac{N_{obs}}{2}}}{sd=sqrt(var(N))sqrt(N_obs/2)Gamma(N_obs-1/2)/Gamma(N_obs/2)}
-where the ration involving gamma functions is computed by loggamma function.}
+\mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
+for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}} has a normal
+distribution) or for \code{normalMVUE} as  the unbiased minimal variance
+estimator for normal distribution:
+\mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
+\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}
+\sqrt{\frac{N_{obs}}{2}}}
+where the ration involving gamma functions is computed by log gamma function.}
 
 \item{covType}{type of covariance matrix for regression parameters by default
 observed information matrix, more options will be here in the future.}

@@ -1,5 +1,28 @@
 # singleRcapture 0.2.0
 
+# singleRcapture 0.1.4
+
+* features
+  * Added `ztoinegbin`, `oiztnegbin` and `ztHurdlenegbin` models
+  * Added an optional arguments to all family-functions to specify a link 
+  function for distribution parameters
+  * Updated and standardised documentation
+  * Added more warnings
+  * Added some more methods for `singleR` class in some commonly used `glm` 
+  functions, in particular `texreg::screenreg` should work well now
+
+* changes
+  * Changed some default arguments
+  * Added option to save logs from `IRLS` fitting
+
+* bugfixes
+  * Fixed some issues with intercept only models
+  * Fixed some slight miscalculations in information matrixes for one inflated
+  models making fitting them much more reliable
+
+* github repository
+  * More and better `Rcmd` tests
+
 # singleRcapture 0.1.3.2 -- NTTS
 * features:
   * Added function that implements population size estimates for stratas

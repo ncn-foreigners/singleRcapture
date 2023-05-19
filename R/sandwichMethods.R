@@ -1,79 +1,31 @@
 # ALL CODE IN THIS FILE WAS DEVELOPED BASED ON CODE IN sandwich PACKAGE
 
-#' @title Empirical Estimating Functions
-#' @author Piotr Chlebicki, Maciej Beręsewicz
-#' 
-#' An S3method for \code{sandwich::estfun} to handle \code{singleR} objects.
-#' 
-#' @param object an object representing a fitted model.
-#' @param ... additional optional arguments.
-#' @return A \code{matrix} with \code{n} rows and \code{k} columns where \code{k} denotes number of variables.
-#' @seealso [sandwich::estfun()]
-#' @examples 
-#' set.seed(1)
-#' N <- 10000
-#' gender <- rbinom(N, 1, 0.2)
-#' eta <- -1 + 0.5*gender
-#' counts <- rpois(N, lambda = exp(eta))
-#' df <- data.frame(gender, eta, counts)
-#' df2 <- subset(df, counts > 0)
-#' mod1 <-  estimatePopsize(
-#'   formula = counts ~ 1 + gender, 
-#'   data = df2, 
-#'   model = "ztpoisson", 
-#'   method = "optim", 
-#'   popVar = "analytic"
-#' )
-#' mod1_sims <- sandwich::estfun(mod1)
-#' head(mod1_sims) 
+# Same story as with bread
 #' @importFrom sandwich estfun
 #' @method estfun singleR
+#' @rdname vcovHC.singleR
 #' @exportS3Method
-estfun.singleR <- function(object,...) {
-  Y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
-  Y <- Y[object$which$reg]
-  X <- stats::model.matrix(object, type = "vlm")
-  beta <- stats::coef(object)
-  wts <- stats::weights(object)
+estfun.singleR <- function(x,...) {
+  Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
+  Y <- Y[x$which$reg]
+  X <- stats::model.matrix(x, type = "vlm")
+  beta <- stats::coef(x)
+  wts <- stats::weights(x)
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- object$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
+  res <- x$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
   colnames(res) <- names(beta)
   rownames(res) <- rownames(X)
   res
 }
 
-#' @title Extracting bread matrix for singleR class
-#' @author Piotr Chlebicki, Maciej Beręsewicz
-#' 
-#' An S3class for \code{sandwich::bread} to handle \code{singleR} objects. This function was developed based on \code{sandwich:::bread.glm}
-#' 
-#' @param object an object representing a fitted model.
-#' @param ... additional optional arguments passed to the following functions:
-#' \itemize{
-#'   \item \code{stats::vcov} -- for extracting "the usual" variance-covariance matrix, \code{vcov.singleR} has one additional argument \code{type} with values \code{"Fisher"} \code{"observedInform"}, defaults to the one specified in \code{controlPopVar} specified in call for object.
-#' }
-#' @return A bread matrix, i.e. a hessian based estimation of variance-covariance matrix scaled by degrees of freedom.
-#' @seealso [sandwich::bread()] [singleRcapture::controlPopVar()]
-#' @examples 
-#' Model <- estimatePopsize(
-#'   formula = capture ~ ., 
-#'   data = netherlandsimmigrant, 
-#'   model = ztpoisson, 
-#'   method = "IRLS"
-#' )
-#' sandwich::bread(Model)
-#' vcov(Model)
-#' # This function just scales.
-#' all(vcov(Model) * nrow(netherlandsimmigrant) == sandwich::bread(Model))
-#' # We can choose Fisher information matrix instead of default observed information matrix.
-#' vcov(Model, "Fisher")
-#' sandwich::bread(Model, type = "Fisher")
-#' all(vcov(Model, "Fisher") * nrow(netherlandsimmigrant) == sandwich::bread(Model, type = "Fisher"))
+# this literally does the same as every other bread method, there's no need for
+# separate documentation just link it to vcovHC
 #' @importFrom sandwich bread
 #' @method bread singleR
+#' @rdname vcovHC.singleR
 #' @exportS3Method
-bread.singleR <- function(object,...) {
-  stats::vcov(object, ...) * as.vector(object$dfResidual + length(object$coefficients))
+bread.singleR <- function(x,...) {
+  stats::vcov(x, ...) * as.vector(x$dfResidual + length(x$coefficients))
 }
 
 #' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
@@ -87,11 +39,12 @@ bread.singleR <- function(object,...) {
 #' @param type a character string specifying the estimation type, same as in \code{sandwich::vcovHC.default}. HC3 is the default value.
 #' @param omega a vector or a function depending on the arguments residuals (i.e. the derivative of log-likelihood with respect to each linear predictor), diaghat (the diagonal of the corresponding hat matrix) and df (the residual degrees of freedom), same as in \code{sandwich::vcovHC.default}.
 #' @param sandwich logical. Should the sandwich estimator be computed? If set to FALSE only the meat matrix is returned. Same as in [sandwich::vcovHC()]
-#' @param ... additional optional arguments passed to the following functions:
+#' @param ... for \code{vcovHC} additional optional arguments passed to the following functions:
 #' \itemize{
-#'   \item estfun -- for empirical estimating functions.
-#'   \item hatvalues -- for diagonal elements of projection matrix.
-#'   \item sandwich -- only if \code{sandwich} argument in function call was set to \code{TRUE}.
+#'   \item \code{estfun} -- for empirical estimating functions.
+#'   \item \code{hatvalues} -- for diagonal elements of projection matrix.
+#'   \item \code{sandwich} -- only if \code{sandwich} argument in function call was set to \code{TRUE}.
+#'   \item \code{vcov} -- when calling \code{bread} internally.
 #' }
 #'
 #' @return Variance-covariance matrix estimation corrected for heteroscedasticity of regression errors.
@@ -122,6 +75,11 @@ bread.singleR <- function(object,...) {
 #' # updated results
 #' summary(mod1, cov = HC,
 #' popSizeEst = redoPopEstimation(mod1, cov = HC))
+#' # estimating equations
+#' mod1_sims <- sandwich::estfun(mod1)
+#' head(mod1_sims)
+#' # bread method
+#' all(vcov(mod1, "Fisher") * nrow(df2) == sandwich::bread(mod1, type = "Fisher"))
 #' @importFrom sandwich vcovHC
 #' @method vcovHC singleR
 #' @exportS3Method

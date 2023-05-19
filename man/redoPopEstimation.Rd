@@ -10,11 +10,11 @@ redoPopEstimation(object, ...)
 \method{redoPopEstimation}{singleR}(object, cov = NULL, ...)
 }
 \arguments{
-\item{object}{Object for which update of population size estimation results will be done.}
+\item{object}{object for which update of population size estimation results will be done.}
 
-\item{...}{Additional optional arguments, currently not used in \code{singleR} class method.}
+\item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
 
-\item{cov}{An updated covariance matrix estimate.}
+\item{cov}{an updated covariance matrix estimate.}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated
@@ -27,10 +27,12 @@ reduction) to population size estimation and standard error estimation.
 }
 \examples{
 # Create simple model
-Model <- estimatePopsize(formula = capture ~ nation + gender, 
-data = netherlandsimmigrant, 
-model = ztpoisson, 
-method = "IRLS")
+Model <- estimatePopsize(
+  formula = capture ~ nation + gender, 
+  data = netherlandsimmigrant, 
+  model = ztpoisson, 
+  method = "IRLS"
+)
 # Apply heteroscedasticity consistent covariance matrix estimation
 require(sandwich)
 cov <- vcovHC(Model, type = "HC3")

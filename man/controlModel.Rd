@@ -12,28 +12,28 @@ controlModel(
 )
 }
 \arguments{
-\item{weightsAsCounts}{For now does nothing. The plan is to have this indicate whether
+\item{weightsAsCounts}{for now does nothing. The plan is to have this indicate whether
 \code{prior.weights} are to be treated as counts for sub populations and adjust all
 necessary methods and functionalities, like adjustments in bootstrap or
 decreasing weights in \code{dfbeta} instead or deleting rows from data,
 to accommodate this form of data.}
 
-\item{omegaFormula}{Formula for inflation parameter in one inflated zero
+\item{omegaFormula}{formula for inflation parameter in one inflated zero
 truncated and zero truncated one inflated models.}
 
-\item{alphaFormula}{Formula for dispersion parameter in negative binomial
+\item{alphaFormula}{formula for dispersion parameter in negative binomial
 based models.}
 
-\item{piFormula}{Formula for probability parameter in pseudo hurdle zero
+\item{piFormula}{formula for probability parameter in pseudo hurdle zero
 truncated and zero truncated pseudo hurdle models.}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly.
 }
 \description{
-\code{controlModel} constructs a list with all necessary control parameters
-in \code{estimatePopsize} that are either specific to selected model or don't fit
-anywhere else.
+\code{controlModel} constructs a list with all necessary
+control parameters in \code{estimatePopsize} that are either specific to
+selected model or don't fit anywhere else.
 
 Specifying additional formulas should be done by using only right hand side of
 the formula also for now all variables from additional formulas should also be

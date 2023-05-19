@@ -34,41 +34,51 @@
 #' \itemize{
 #' \item \code{converged <- FALSE}
 #' \item \code{iter <- 1}
-#' \item \mjeqn{\boldsymbol{\beta}}{beta}\code{ <- start}
-#' \item \mjeqn{\boldsymbol{W}}{W}\code{ <- prior}
-#' \item \mjeqn{\ell}{l}\code{ <- }\mjeqn{\ell(\boldsymbol{\beta})}{l(beta)}
+#' \item \mjseqn{\boldsymbol{\beta}}\code{ <- start}
+#' \item \mjseqn{\boldsymbol{W}}\code{ <- prior}
+#' \item \mjseqn{\ell}\code{ <- }\mjseqn{\ell(\boldsymbol{\beta})}
 #' }
 #' 2. If \code{converged} or \code{iter > Maxiter} move to step 7.
 #' 3. Store values from previous algorithm step:
 #' \itemize{
-#' \item \mjeqn{\boldsymbol{W}_{-}}{W_-}\code{ <- }\mjeqn{\boldsymbol{W}}{W}
-#' \item \mjeqn{\ell_{-}}{l_-}\code{ <- }\mjeqn{\ell}{l}
-#' \item \mjeqn{\boldsymbol{\beta}_{-}}{beta_-}\code{ <- }\mjeqn{\boldsymbol{\beta}}{beta}
+#' \item \mjseqn{\boldsymbol{W}_{-}}\code{ <- }\mjseqn{\boldsymbol{W}}
+#' \item \mjseqn{\ell_{-}}\code{ <- }\mjseqn{\ell}
+#' \item \mjseqn{\boldsymbol{\beta}_{-}}\code{ <- }\mjseqn{\boldsymbol{\beta}}
 #' } and assign values at current step:
 #' \itemize{
-#' \item \mjeqn{\boldsymbol{\eta}}{eta}\code{ <- }\mjeqn{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{X_vlm * beta}
-#' \item \mjeqn{Z_{i}}{Z_i}\code{ <- }\mjeqn{\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}}{eta_i + (dl/deta_i)(E(d^2l/deta_i^Tdeta_i))^-1}
-#' \item \mjeqn{\boldsymbol{W}_{ij}}{W_ij}\code{ <- }\mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{E(d^2l/deta_j^Tdeta_i)}
+#' \item \mjseqn{\boldsymbol{\eta}}\code{ <- }\mjseqn{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
+#' \item \mjseqn{Z_{i}}\code{ <- }
+#' \mjseqn{\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
+#' \mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
+#' \partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}}
+#' \item \mjseqn{\boldsymbol{W}_{ij}}\code{ <- }
+#' \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{
+#' \partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}
 #' }
-#' where \mjeqn{\ell_{i}}{l_i} is the ith component of log likelihood function, 
-#' \mjeqn{\eta_{i}}{eta_i} is the vector of linear predictors associated with 
-#' ith row and  \mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)}{E(d^2l_i/deta_i^Tdeta_i)} 
-#' corresponds to weights associated with ith row and \mjeqn{\boldsymbol{W}}{W} 
-#' is a block matrix, made of diagonal matrixes \mjeqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{E(d^2l/deta_j^Tdeta_i)}.
-#' 4. Regress \mjeqn{\boldsymbol{Z}}{Z} on \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm} 
-#' to obtain \mjeqn{\boldsymbol{\beta}}{beta} as:
-#' \mjdeqn{\boldsymbol{\beta}=\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{(X_vlm^T W X_vlm)^-1(X_vlm^T W Z)}
+#' where \mjseqn{\ell_{i}} is the ith component of log likelihood function, 
+#' \mjseqn{\eta_{i}} is the vector of linear predictors associated with 
+#' ith row and  \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)}
+#' corresponds to weights associated with ith row and \mjseqn{\boldsymbol{W}}
+#' is a block matrix, made of diagonal matrixes 
+#' \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{
+#' \partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}
+#' 4. Regress \mjseqn{\boldsymbol{Z}} on \mjseqn{\boldsymbol{X}_{vlm}}
+#' to obtain \mjseqn{\boldsymbol{\beta}} as:
+#' \mjsdeqn{\boldsymbol{\beta}=
+#' \left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
+#' \boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}
 #' 5. Assign:
 #' \itemize{
-#' \item\code{converged <- }\mjeqn{\ell(\boldsymbol{\beta})-\ell_{-} < \ell_{-}\varepsilon}{l(beta)-l_-<l_- * epsilon} \code{or} 
-#' \mjeqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}{||beta - beta_-||_inf< epsilon}
+#' \item\code{converged <- }
+#' \mjseqn{\ell(\boldsymbol{\beta})-\ell_{-} \lt \varepsilon \ell_{-}} \mjseqn{\lor}
+#' \mjseqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} \lt \varepsilon}
 #' \item\code{iter <- iter + 1}
 #' }
-#' where \mjeqn{\varepsilon}{epsilon} is the relative tolerance level, by default \code{1e-8}.
+#' where \mjseqn{\varepsilon} is the relative tolerance level, by default \code{1e-8}.
 #' 6. Return to step 2.
-#' 7. Return \mjeqn{\boldsymbol{\beta}, \boldsymbol{W}}{beta, W}, \code{iter}.
+#' 7. Return \mjseqn{\boldsymbol{\beta}, \boldsymbol{W}}, \code{iter}.
 #' 
-#' In this package we use different conventions for \mjeqn{\boldsymbol{X}_{vlm}}{X_vlm}
+#' In this package we use different conventions for \mjseqn{\boldsymbol{X}_{vlm}}
 #' matrix hence slight differences are present in algorithm description but
 #' results are identical.
 #' 
@@ -139,7 +149,9 @@
 #' # check likelihood
 #' -ll(res2$beta)
 #' 
-#' # number of iterations
+#' # number of calls to log lik function
+#' # since optim does not return the number of
+#' # iterations
 #' res2$iter
 #' 
 #' # optim does not calculated working weights
@@ -190,7 +202,10 @@ estimatePopsize.fit <- function(y, X,
     logg <- FITT$logg
   } else if (method == "optim") {
     logLike <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
-    grad <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
+    grad <- family$makeMinusLogLike(y = y, 
+                                    X = X, 
+                                    weight = priorWeights, 
+                                    deriv = 1)
     
     weights <- priorWeights
     methodopt <- control$optimMethod
@@ -223,7 +238,8 @@ estimatePopsize.fit <- function(y, X,
     beta <- FITT$par
     iter <- FITT$counts
     if (FITT$convergence == 1 && !control$silent) {
-      warning("Convergence not obtained in ", control$maxiter, " iterations of optim fitting algorithm", sep = "")
+      warning("Convergence not obtained in ", control$maxiter, 
+              " iterations of optim fitting algorithm", sep = "")
     }
   } else if (method == "maxLik") {
     # Why do people use this???

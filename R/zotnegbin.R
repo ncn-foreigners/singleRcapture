@@ -1,46 +1,67 @@
 #' @rdname singleRmodels
 #' @export
-zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
-  # Fist for lambda second for alpha
-  link <- function (x) {matrix(c(log(x[,1]),log(x[,2])), ncol = 2, dimnames = dimnames(x))}
-  invlink <- function (x) {matrix(c(exp(x[,1]),exp(x[,2])), ncol = 2, dimnames = dimnames(x))}
-
+zotnegbin <- function(nSim = 1000, epsSim = 1e-8, 
+                      lambdaLink = c("log", "neglog"), 
+                      alphaLink = c("log", "neglog"),
+                      ...) {
+  if (missing(lambdaLink)) lambdaLink <- "log"
+  if (missing(alphaLink))  alphaLink <- "log"
+  
+  links <- list()
+  attr(links, "linkNames") <- c(lambdaLink, alphaLink)
+  
+  lambdaLink <- switch(lambdaLink,
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
+  )
+  
+  alphaLink <- switch(alphaLink,
+    "log"    = singleRinternallogLink,
+    "neglog" = singleRinternalneglogLink
+  )
+  
+  links[1:2] <- c(lambdaLink, alphaLink)
+  
   mu.eta <- function(eta, type = "trunc", ...) {
-    A <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     switch (type,
     "nontrunc" = lambda,
-    "trunc" = (lambda - lambda * ((1 + A * lambda) ^ (-1-1/A))) / (1 - (1 + A * lambda) ^ (-1/A) - lambda * ((1 + A * lambda) ^ (-1-1/A)))
+    "trunc" = (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
+      (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
+      lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
     )
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
-    A <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     switch (type,
-            "nontrunc" = lambda * (1 + A * lambda),
-            "trunc" = {
-              EX2 <- lambda * (1 + A * lambda) + lambda ^ 2;
-              prob <- (1 - (1 + A * lambda) ^ (-1 / A) - lambda * ((1 + A * lambda) ^ (-1 - 1 / A)));
-              term <- lambda * ((1 + A * lambda) ^ (-1 - 1 / A));
-              EX <- (lambda - lambda * ((1 + A * lambda) ^ (-1 - 1 / A))) / (1 - (1 + A * lambda) ^ (-1 / A) - lambda * ((1 + A * lambda) ^ (-1 - 1 / A)));
-              (EX2 - term) / prob - EX ^ 2
-            }
+    "nontrunc" = lambda * (1 + alpha * lambda),
+    "trunc" = (lambda * (1 + alpha * lambda) + lambda ^ 2 - 
+    lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
+    (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
+    lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) - 
+    mu.eta(eta, type = "trunc") ^ 2
     )
   }
   
   compExpect <- function (eta) {
-    alpha <- invlink(matrix(eta, ncol = 2))
-    lambda <- alpha[,1]
-    alpha <- alpha[,2]
-    z <- 1 / alpha
+    lambda <- lambdaLink(eta[1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[2], inverse = TRUE)
     res <- res1 <- 0
     k <- 1
     repeat{
       k <- k + 1 # 2 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda) - stats::dnbinom(x = 1, size = 1 / alpha, mu = lambda))
-      toAdd <- (digamma(k + z) - digamma(z)) * z * prob
-      toAdd1 <- (trigamma(k + z) - trigamma(z)) * (z ^ 2) * prob
+      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / 
+      (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda) - 
+      stats::dnbinom(x = 1, size = 1 / alpha, mu = lambda))
+      
+      toAdd <- prob * (digamma(1 / alpha) - digamma(k + 1 / alpha)) / alpha ^ 2
+      
+      toAdd1 <- (2 * (digamma(k + 1 / alpha) - digamma(1 / alpha)) / alpha ^ 3 +
+      (trigamma(k + 1 / alpha) - trigamma(1 / alpha)) / alpha ^ 4) * prob
+      
       res <- res + toAdd
       res1 <- res1 + toAdd1
       if ((k == nSim) | ((abs(toAdd) < 1e-8) & (abs(toAdd1) < 1e-8))) {
@@ -51,55 +72,124 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
   
   Wfun <- function(prior, eta, ...) {
-    alpha <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
-    z <- 1 / alpha
-    M <- 1 + lambda * alpha
-    S <- 1 / M
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     Ey <- mu.eta(eta = eta)
-    prob <- 1 - S ^ z - lambda * (S ^ (1 + z))
-    # The following vectors are meant to decrease compitation time
-    Edig <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
-    Etrig <- Edig[2,]
-    Edig <- Edig[1,]
-    G11 <- lambda * ((-(alpha ^ 3) * Ey * (lambda ^ 2) * ((M^z - 1) ^ 2) + (alpha ^ 2) * lambda * ((lambda ^ 2) * (M ^ z) - lambda * ((M ^ z) - 1) * (1 - 2 * Ey + M ^ z) - 2 * Ey * ((M^z - 1) ^ 2)) + (lambda ^ 2) * (M ^ z) + alpha * ((lambda ^ 3) * (M ^ z) + (lambda ^ 2) * (1 - Ey + M^z) - 2 * lambda * (M^z - 1) * (M^z - Ey) - Ey * ((M^z - 1) ^ 2)) - ((M^z - 1) ^ 2)) / ((M ^ 2) * ((M^z + lambda * (alpha * (M^z - 1) - 1) - 1) ^ 2))) * prior
-    G01 <- lambda * (-alpha * (Ey + z) * S + lambda * (alpha ^ 2) * (Ey + z) * (M ^ -2) + ((-1 - z) * alpha * lambda / (M ^ (2 + z))) / prob + (lambda / (M ^ (2 + z))) / prob + S - alpha * lambda * (1 + z) * (alpha * lambda * (-2 - z) * S + log(M) * z) / (prob * (M ^ (2 + z))) - (alpha * (-1 - z) * lambda * (1 / (M ^ (2 + z))) * ((M^-z) * (z * log(S) + lambda * S) - lambda * (1 / (M ^ (1 + z))) * (z * log(M) + S * lambda * alpha * (-1 - z)))) / (prob ^ 2)) * prior
+    prob <- 1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
+    lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)
     
-    G00 <- (Etrig + Edig + z * (((M ^ (2 + z)) * log(M) * (log(M) * (-z) + lambda * S * (2 * alpha + 1))) +
-    (Ey - lambda) * alpha * (M ^ (1 + z)) * (log(M) * (1 - z * (1 + alpha)) + lambda * S * (1 + alpha)) - 2 * lambda * (Ey + lambda) * (alpha ^ 2) + lambda * alpha * (M ^ (z+1)) +
-    (Ey - lambda) * alpha * (M ^ (1 + z)) - (1 + lambda) * Ey * alpha) / (M * ((M ^ (1 + z)) - alpha * lambda - lambda - 1)) - z * (log(M) * (M ^ (2 + z)) - lambda * (Ey + lambda) * (alpha ^ 2) + (Ey - lambda) * alpha * (M ^ (1 + z)) - (1 + lambda) * Ey * alpha) * ((M ^ (1 + z)) * ((1 - z * (1 + alpha)) * log(M) + lambda * S * (1 + alpha)) - lambda * alpha) /
-    (M * (((M ^ (1 + z)) - alpha * lambda - lambda - 1) ^ 2)) - z * (log(M) * (M ^ (2 + z)) - lambda * (Ey + lambda) * (alpha ^ 2) + (Ey - lambda) * alpha * (M ^ (1 + z)) - (1 + lambda) * Ey * alpha) /
-    (M * ((M ^ (1 + z)) - alpha * lambda - lambda - 1)) - lambda * (log(M) * (M ^ (2 + z)) - lambda * (Ey + lambda) * (alpha ^ 2) + (Ey - lambda) * alpha * (M ^ (1 + z)) - (1 + lambda) * Ey * alpha) / ((M ^ 2) * ((M ^ (1 + z)) - alpha * lambda - lambda - 1))) * prior
+    Edig  <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
+    Etrig <- Edig[2, ]
+    Edig  <- Edig[1, ]
+    
+    G0 <- Ey / alpha + Edig -
+    (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+    (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) +
+    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - Ey)) / (lambda * alpha + 1)
+    
+    G1 <- Ey / lambda + ((-1 / alpha-1) * alpha * lambda * 
+    (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
+    (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
+    lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) + 
+    (alpha * (-Ey - 1 / alpha)) / (alpha * lambda + 1)
+    
+    # 2nd log(alpha) derivative
+    
+    G00 <- Etrig + (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 / 
+    (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) ^ 2 -
+    (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) ^ 2 / 
+    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
+    (lambda * alpha + 1)) ^ 2 - (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
+    (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) + lambda ^ 2 / 
+    (alpha * (lambda * alpha + 1) ^ 2)) / (lambda * alpha + 1) ^ (1 / alpha) -
+    lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * 
+    (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
+    (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) / 
+    (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) -
+    (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
+    (lambda ^ 2 * (-1 / alpha - Ey)) / (lambda * alpha + 1) ^ 2 - Ey / alpha ^ 2
+    
+    G00 <- G00 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
+           G0  * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
+    
+    # mixed derivative
+    G01 <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
+    (2 * alpha ^ 2 + 2 * alpha) * lambda ^ 2 + (alpha + 1) * lambda) * 
+    log(alpha * lambda + 1) + (alpha * lambda + 1) ^ (1 / alpha) * 
+    ((alpha ^ 4 - alpha ^ 3 - alpha ^ 2) * lambda ^ 3 + 
+    ((-2 * alpha ^ 4 - 2 * alpha ^ 3) * Ey + 4 * alpha ^ 3 - alpha ^ 2 - alpha) * lambda ^ 2 + 
+    ((-4 * alpha ^ 3 - 2 * alpha ^ 2) * Ey + 3 * alpha ^ 2) * lambda - 2 * alpha ^ 2 * Ey) +
+    (alpha * lambda + 1) ^ (2 / alpha) * (-alpha ^ 4 * lambda ^ 3 + 
+    (alpha ^ 4 * Ey - 2 * alpha ^ 3) * lambda ^ 2 + 
+    (2 * alpha ^ 3 * Ey - alpha ^ 2) * lambda + alpha ^ 2 * Ey) +
+    ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * Ey - 2 * alpha ^ 3 - alpha ^ 2) * lambda ^ 2 +
+    ((2 * alpha ^ 3 + 2 * alpha ^ 2) * Ey - 2 * alpha ^ 2) * lambda + alpha ^ 2 * Ey) /
+    (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+    
+
+    G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
+                  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+    
+    # second beta derivative
+    G11 <- ((alpha * lambda + 1) ^ (2 / alpha) * 
+    (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * Ey) * lambda ^ 3 +
+    (alpha - 5 * alpha ^ 2 * Ey) * lambda ^ 2 - 4 * alpha * Ey * lambda - Ey) + 
+    (alpha * lambda + 1) ^ (1 / alpha) * ((alpha - alpha ^ 3) * lambda ^ 4 +
+    ((4 * alpha ^ 3 + 4 * alpha ^ 2) * Ey - 4 * alpha ^ 2 - alpha + 1) * lambda ^ 3 +
+    ((10 * alpha ^ 2 + 6 * alpha) * Ey - 3 * alpha - 1) * lambda ^ 2 + 
+    (8 * alpha + 2) * Ey * lambda + 2 * Ey) + 
+    ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * Ey + 2 * alpha ^ 2 + 2 * alpha) * lambda ^ 3 +
+    ((-5 * alpha ^ 2 - 6 * alpha - 1) * Ey + 2 * alpha + 1) * lambda ^ 2 + 
+    (-4 * alpha - 2) * Ey * lambda - Ey) / 
+    (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * 
+    ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+    
+    G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
+           G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
     
     matrix(
-      -c(G11, # lambda predictor derivative without X matrix,
-        G01,  # mixed derivative without X matrix
-        G01,  # mixed derivative without X matrix
-        G00   # alpha predictor derivative without X matrix
+      -c(G11 * prior, # lambda predictor derivative without X matrix,
+        G01 * prior,  # mixed derivative without X matrix
+        G01 * prior,  # mixed derivative without X matrix
+        G00 * prior  # alpha predictor derivative without X matrix
       ),
-      dimnames = list(rownames(eta), c("lambda", "mixed", "mixed", "alpha")),
+      dimnames = list(rownames(eta), 
+                      c("lambda", "mixed", "mixed", "alpha")),
       ncol = 4
     )
   }
   
   funcZ <- function(eta, weight, y, ...) {
-    alpha <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
-    z <- 1 / alpha
-    M <- 1 + lambda * alpha
-    S <- 1 / M
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
+    G0 <- y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2 +
+    ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+    (lambda * alpha + 1) ^ (1 / alpha) + lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+    (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1)) +
+    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1)
+    
+    G0 <- G0 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+    
+    G1 <- y / lambda - ((1 / alpha + 1) * alpha * lambda * 
+    (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
+    (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
+    lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) -
+    (alpha * (y + 1 / alpha)) / (alpha * lambda + 1)
+    
+    G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
       matrix(as.numeric(weight[x, ]), ncol = 2)
     })
     
-    uMatrix <- matrix(
-      c((y - alpha * (y + z) * lambda * S + lambda * alpha * (-1 - z) * lambda * (S ^ (2 + z)) / (1 - S ^ z - lambda * (S ^ (1 + z)))),
-        (-(digamma(y + z) - digamma(z)) * (z ^ 2) - 
-        z * ((S ^ z) * (z * log(S) + lambda * S) - lambda *
-        (S ^ (1 + z)) * (z * log(M) - alpha * (1 + z) * lambda * S)) / (1 - S ^ z - lambda * (S ^ (1 + z))) +
-        z * log(M) * z - lambda * S * (y + z) + y * z) * alpha),
-      ncol = 2)
+    uMatrix <- matrix(c(G1, G0), ncol = 2)
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
@@ -119,39 +209,44 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
     X <- as.matrix(X)
 
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it comfort to how swith in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
     switch (deriv,
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- exp(eta[, 2])
-        lambda <- exp(eta[, 1])
-        z <- 1 / alpha
-        S <- 1 / (1 + lambda * alpha)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
 
-        -sum(weight * (lgamma(y + z) - lgamma(z) -
-        log(factorial(y)) + (y + z) * log(S) +
-        y * log(lambda * alpha) - log(1 - S ^ z - lambda * (S ^ (1 + z)))))
+        -sum(weight * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
+        log(factorial(y)) - (y + 1 / alpha) * log(1 + lambda * alpha) +
+        y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
+        lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))
+        )
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- exp(eta[, 2])
-        lambda <- exp(eta[, 1])
-        # z is inverse of alpha in documentation
-        z <- 1 / alpha
-        S <- (1 + lambda * alpha) ^ -1
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
-        # log(alpha) derivative
-        G0 <- t((-(digamma(y + z) - digamma(z)) * (z ^ 2)  - 
-        z * ((S ^ z) * (z * log(S) + lambda * S) - lambda *
-        (S ^ (1 + z)) * (-z * log(S) - alpha * (1 + z) * lambda * S)) / (1 - S ^ z - lambda * (S ^ (1 + z))) -
-        z * log(S) * z - lambda * S * (y + z) + y * z) * alpha * weight)
-        # Beta derivative
-        G1 <- (weight * (y - alpha * (y + z) * lambda * S - lambda * alpha * (1 + z) * lambda * (S ^ (2 + z)) / (1 - S ^ z - lambda * (S ^ (1 + z)))))
+        G0 <- y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2  +
+        log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1) -
+        (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+        (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+        (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+        (-(lambda * alpha + 1) ^ (-1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1)
+        
+        G0 <- G0 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight
+        
+        G1 <- y / lambda  + (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1) -
+        ((1 / alpha + 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
+        (-(alpha * lambda + 1) ^ (-1 / alpha) - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1)
+        
+        G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight
         
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
-          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
+          return(cbind(as.data.frame(X[1:nrow(eta), XX]) * G1, 
+                       as.data.frame(X[-(1:nrow(eta)), -XX]) * G0))
         }
         if (vectorDer) {
           return(cbind(G1, G0))
@@ -162,53 +257,87 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
       function(beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
-        alpha <- exp(eta[, 2])
-        lambda <- exp(eta[, 1])
-        # z is inverse of alpha in documentation
-        z <- 1 / alpha
-        M <- 1 + lambda * alpha
-        S <- 1 / M
-        prob <- 1 - S ^ z - lambda * (S ^ (1 + z))
-        res <- matrix(nrow = length(beta), ncol = length(beta), dimnames = list(names(beta), names(beta)))
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+        res <- matrix(nrow = length(beta), ncol = length(beta), 
+                      dimnames = list(names(beta), names(beta)))
+        
+        G0 <- y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2 -
+        (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+        (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+        (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+        (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) +
+        log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1)
+        
+        G1 <- y / lambda + ((-1 / alpha-1) * alpha * lambda * 
+        (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
+        (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
+        lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) + 
+        (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1)
         
         # 2nd log(alpha) derivative
         
-        G00 <- weight * ((trigamma(y + z) - trigamma(z)) * (z ^ 2) + 
-        (digamma(y + z) - digamma(z)) * z + z * (((M ^ (z * (2 * alpha + 1))) * log(M) * (-log(M) * z + lambda * S * (2 + z))) +
-        (y - lambda) * alpha * (M ^ (1 + z)) * (log(M) * (1 - z * (1 + alpha)) + 
-        lambda * S * (1 + alpha)) - 2 * lambda * (y + lambda) * (alpha ^ 2) + lambda * alpha * (M ^ (z + 1)) +
-        (y - lambda) * alpha * (M ^ (1 + z)) - (1 + lambda) * y * alpha) / (M * (M ^ (1 + z) - alpha * lambda - lambda - 1)) - 
-        z * (log(M) * (M ^ (2 + z)) - lambda * (y + lambda) * (alpha ^ 2) + (y - lambda) * alpha * (M ^ (1 + z)) - 
-        (1 + lambda) * y * alpha) * ((M ^ (1 + z)) * ((1 - z * (1 + alpha)) * log(M) + lambda * S * (1 + alpha)) - lambda * alpha) /
-        (M * ((M ^ (1 + z) - alpha * lambda - lambda - 1) ^ 2)) - z * (log(M) * (M ^ (2 + z)) - lambda * (y + lambda) * (alpha ^ 2) + 
-        (y - lambda) * alpha * (M ^ (1 + z)) - (1 + lambda) * y * alpha) /
-        (M * (M ^ (1 + z) - alpha * lambda - lambda - 1)) - lambda * (log(M) * (M ^ (2 + z)) - 
-        lambda * (y + lambda) * (alpha ^ 2) + (y - lambda) * alpha * (M ^ (1 + z)) - 
-        (1 + lambda) * y * alpha) / ((M ^ 2) * (M ^ (1 + z) - alpha * lambda - lambda - 1)))
+        G00 <- (2 * digamma(1 / alpha + y)) / alpha ^ 3 - (2 * digamma(1 / alpha)) / alpha ^ 3 +
+        trigamma(1 / alpha + y) / alpha ^ 4 - trigamma(1 / alpha) / alpha ^ 4 + 
+        (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+        (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+        (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 / 
+        (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) ^ 2 -
+        (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) ^ 2 / 
+        (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+        (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
+        (lambda * alpha + 1)) ^ 2 - (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
+        (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) + lambda ^ 2 / 
+        (alpha * (lambda * alpha + 1) ^ 2)) / (lambda * alpha + 1) ^ (1 / alpha) -
+        lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * 
+        (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
+        (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) / 
+        (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) -
+        (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
+        (lambda ^ 2 * (-1 / alpha - y)) / (lambda * alpha + 1) ^ 2 - y / alpha ^ 2
           
+        G00 <- G00 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
+               G0  * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
         
         # mixed derivative
-        G01 <- lambda * weight * (-alpha * (y + z) * S + lambda * (alpha ^ 2) * (y + z) * (M ^ -2) -
-        ((1 + z) * alpha * lambda / (M ^ (2 + z))) / prob + (lambda / (M ^ (2 + z))) / prob + S -
-        alpha * lambda * (1 + z) * (alpha * lambda * (-2 - z) * S + log(M) * z) / (prob * (M ^ (2 + z))) -
-        (alpha * (-1 - z) * lambda *
-        ((M ^ (-z)) * (z * log(S) + lambda * S) - lambda * (M ^ (-1 - z)) *
-        (z * log(M) - S * lambda * alpha * (1 + z)))) / ((prob ^ 2) * (M ^ (2 + z))))
+        G01 <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
+        (2 * alpha ^ 2 + 2 * alpha) * lambda ^ 2 + (alpha + 1) * lambda) * 
+        log(alpha * lambda + 1) + (alpha * lambda + 1) ^ (1 / alpha) * 
+        ((alpha ^ 4 - alpha ^ 3 - alpha ^ 2) * lambda ^ 3 + 
+        ((-2 * alpha ^ 4 - 2 * alpha ^ 3) * y + 4 * alpha ^ 3 - alpha ^ 2 - alpha) * lambda ^ 2 + 
+        ((-4 * alpha ^ 3 - 2 * alpha ^ 2) * y + 3 * alpha ^ 2) * lambda - 2 * alpha ^ 2 * y) +
+        (alpha * lambda + 1) ^ (2 / alpha) * (-alpha ^ 4 * lambda ^ 3 + 
+        (alpha ^ 4 * y - 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * y - alpha ^ 2) * lambda + alpha ^ 2 * y) +
+        ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * y - 2 * alpha ^ 3 - alpha ^ 2) * lambda ^ 2 +
+        ((2 * alpha ^ 3 + 2 * alpha ^ 2) * y - 2 * alpha ^ 2) * lambda + alpha ^ 2 * y) /
+        (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+        
+        
+        G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
+               alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
         
         # second beta derivative
-        G11 <- lambda * weight * ((-(alpha ^ 3) * y * (lambda ^ 2) * ((M ^ z - 1) ^ 2) +
-        (alpha ^ 2) * lambda * ((lambda ^ 2) * (M ^ z) - lambda * (M ^ z - 1) *
-        (1 - 2 * y + M ^ z) - 2 * y * ((M ^ z - 1) ^ 2)) +
-        (lambda ^ 2) * (M ^ z) + alpha * ((lambda ^ 3) * (M ^ z) +
-        (lambda ^ 2) * (1 - y + M ^ z) - 2 * lambda * (M ^ z - 1) *
-        (M ^ z - y) - y * ((M ^ z - 1) ^ 2)) - (M ^ z - 1) ^ 2) /
-        ((M ^ 2) * ((M ^ z + lambda * (alpha * (M ^ z - 1) - 1) - 1) ^ 2)))
+        G11 <- ((alpha * lambda + 1) ^ (2 / alpha) * 
+        (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * y) * lambda ^ 3 +
+        (alpha - 5 * alpha ^ 2 * y) * lambda ^ 2 - 4 * alpha * y * lambda - y) + 
+        (alpha * lambda + 1) ^ (1 / alpha) * ((alpha - alpha ^ 3) * lambda ^ 4 +
+        ((4 * alpha ^ 3 + 4 * alpha ^ 2) * y - 4 * alpha ^ 2 - alpha + 1) * lambda ^ 3 +
+        ((10 * alpha ^ 2 + 6 * alpha) * y - 3 * alpha - 1) * lambda ^ 2 + 
+        (8 * alpha + 2) * y * lambda + 2 * y) + 
+        ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * y + 2 * alpha ^ 2 + 2 * alpha) * lambda ^ 3 +
+        ((-5 * alpha ^ 2 - 6 * alpha - 1) * y + 2 * alpha + 1) * lambda ^ 2 + 
+        (-4 * alpha - 2) * y * lambda - y) / 
+        (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * 
+        ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+        
+        G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 +
+               G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
         
         
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]) * G00) %*% X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G11) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G01) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]))
-        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G01) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]) * weight * G00) %*% X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * weight * G11) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * weight * G01) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]))
+        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * weight * G01) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         
         res
       }
@@ -273,11 +402,12 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    z <- exp(-eta[, 2])
-    lambda <- exp(eta[, 1])
-    S <- 1 / (1 + lambda / z)
-    prob <- 1 - S ^ z - lambda * (S ^ (1 + z))
-    N <- (pw * (1 - lambda * (S ^ (1 + z))) / prob)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    N <- pw * (1 - lambda * ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) / 
+    (1 - (1 + lambda * alpha) ^ (- 1 / alpha) - lambda * 
+    ((1 + lambda * alpha) ^ (-1 - 1 / alpha)))
+    
     if(!contr) {
       N <- sum(N)
     }
@@ -285,72 +415,64 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   }
 
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    alpha <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
-    z <- 1 / alpha
-    M <- 1 + lambda / z
-    S <- 1 / M
-    prob <- 1 - S ^ z - lambda * (S ^ (1 + z))
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    prob <- 1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
+      lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)
     
-    bigTheta1 <- (pw * alpha *  as.numeric(
-                  (prob * lambda * (S ^ (2 + z)) * 
-                  (alpha * (alpha + 1) * lambda -M * log(M)) -
-                  (1 - lambda * (S ^ (1 + z))) *(-lambda * (S ^ (1 + z)) *
-                  (log(M) * (z ^ 2) - (1 + z) * lambda * S * z) -
-                  (S ^ z) * (log(M) * (z ^ 2) - lambda * z * S))) /
-                  (prob ^ 2)))
+    bigTheta1 <- pw * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+    as.numeric(((lambda*alpha+1)^(1/alpha)*(lambda^2*alpha^2+2*lambda*alpha+1)*log(lambda*alpha+1)+(lambda*alpha+1)^(1/alpha)*(-lambda^2*alpha^2-lambda*alpha)-lambda^2*alpha^2)/(alpha^2*((lambda*alpha+1)^(1/alpha+1)-lambda*alpha-lambda-1)^2))
     
-    bigTheta2 <- (pw * as.numeric(lambda *
-                  (prob * (lambda - 1) * (S ^ (2 + z)) -
-                  (1 + alpha) * lambda * (S ^ (2 + z)) *
-                  (1 - lambda * (S ^ (1 + z)))) / (prob ^ 2)))
+    bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
+    as.numeric(-((alpha*lambda+1)^(1/alpha+1)-1)/((alpha*lambda+1)^(1/alpha+1)+(-alpha-1)*lambda-1)^2)
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <-  sum(pw * ((1 - lambda * (S ^ (1 + z))) ^ 2) *
-              (1 - prob) / (prob ^ 2))
+    f2 <-  sum(pw * ((1 - prob) / (prob ^ 2)) * 
+    (1 - lambda * ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) ^ 2)
     
     f1 + f2
   }
   
   dFun <- function (x, eta, type = "trunc") {
-    alpha <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
-    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
+    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+    (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - 
+    stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {
-    alpha <- exp(eta[, 2])
-    lambda <- exp(eta[, 1])
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
     lb <- stats::pnbinom(lower, mu = lambda, size = 1 / alpha)
     ub <- stats::pnbinom(upper, mu = lambda, size = 1 / alpha)
     p_u <- stats::runif(n, lb, ub)
+    
     sims <- stats::qnbinom(p_u, mu = lambda, size = 1 / alpha)
     sims
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (!is.null(controlMethod$alphaStart)) {
-      start <- c(start, controlMethod$alphaStart)
+    if (!is.null(controlMethod$start)) {
+      start <- controlMethod$start
     } else {
-      if (controlModel$alphaFormula == ~ 1) {
-        start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](abs((var(observed) / mean(observed) - 1) / mean(observed)))
+      )
+      if (attr(terms, "intercept")) {
+        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
       } else {
-        cc <- colnames(Xvlm)
-        cc <- cc[grepl(x = cc, pattern = "alpha$")]
-        cc <- unlist(strsplit(x = cc, ":alpha"))
-        cc <- sapply(cc, FUN = function(x) {
-          ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-        })
-        start <- c(start, cc)
+        start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):alpha" %in% colnames(Xvlm)) {
+        start <- c(start, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        start <- c(start, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
       }
     }
   )
@@ -358,25 +480,22 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, ...) {
   structure(
     list(
       makeMinusLogLike = minusLogLike,
-      linkfun = link,
-      linkinv = invlink,
-      mu.eta = mu.eta,
-      link = c("log", "log"),
-      valideta = function (eta) {TRUE},
-      variance = variance,
-      Wfun = Wfun,
-      funcZ = funcZ,
+      densityFunction  = dFun,
+      links     = links,
+      mu.eta    = mu.eta,
+      valideta  = function (eta) {TRUE},
+      variance  = variance,
+      Wfun      = Wfun,
+      funcZ     = funcZ,
       devResids = devResids,
-      validmu = validmu,
-      pointEst = pointEst,
-      popVar = popVar,
-      simulate = simulate,
-      family = "zotnegbin",
-      parNum = 2,
-      etaNames = c("lambda", "alpha"),
-      densityFunction = dFun,
-      getStart = getStart
+      validmu   = validmu,
+      pointEst  = pointEst,
+      popVar    = popVar,
+      family    = "zotnegbin",
+      etaNames  = c("lambda", "alpha"),
+      simulate  = simulate,
+      getStart  = getStart
     ),
-    class = "family"
+    class = c("singleRfamily", "family")
   )
 }
