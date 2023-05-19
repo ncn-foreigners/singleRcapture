@@ -27,11 +27,11 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
   mu.eta <- function(eta, type = "trunc", ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    p1 <- (lambda ^ 2) * omega + lambda * omega + omega + lambda
+    p1 <- lambda ^ 2 * omega + lambda * omega + omega + lambda
     p1 <- p1 / (lambda ^ 2 + lambda * omega + omega + lambda)
     switch (type,
     "nontrunc" = omega + lambda * (1 - omega),
-    "trunc" = p1 + (1 - omega ) * (lambda ^ 2) * (2 + lambda) / ((1 + lambda) * (lambda + omega))
+    "trunc" = p1 + (1 - omega) * (lambda ^ 2) * (2 + lambda) / ((1 + lambda) * (lambda + omega))
     )
   }
   

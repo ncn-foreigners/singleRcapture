@@ -251,7 +251,7 @@ argument such as significance levels different from usual 5%:
 ``` r
 set.seed(123)
 modelInflated <- estimatePopsize(
-    formula = capture ~ nation + gender + age,
+    formula = capture ~ gender + age,
     data = netherlandsimmigrant,
     model = "oiztgeom",
     method = "IRLS",
@@ -260,55 +260,52 @@ modelInflated <- estimatePopsize(
         alpha = .01, # significance level 
     )
 )
+#> Warning in singleRcaptureinternalIRLSmultipar(dependent = y, covariates = X, :
+#> Convergence at halfstepsize
 summary(modelInflated)
 #> 
 #> Call:
-#> estimatePopsize(formula = capture ~ nation + gender + age, data = netherlandsimmigrant, 
+#> estimatePopsize(formula = capture ~ gender + age, data = netherlandsimmigrant, 
 #>     model = "oiztgeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, 
 #>         ))
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.416299 -0.416299 -0.292541  0.004089 -0.188310 13.733694 
+#> -0.357193 -0.357193 -0.357193  0.000343 -0.287637 10.233607 
 #> 
 #> Coefficients:
 #> -----------------------
 #> For linear predictors associated with: lambda 
-#>                      Estimate Std. Error z value  P(>|z|)    
-#> (Intercept)           -1.5518     0.2395  -6.480 9.18e-11 ***
-#> nationAsia            -0.8294     0.2573  -3.224  0.00126 ** 
-#> nationNorth Africa     0.2082     0.1854   1.123  0.26146    
-#> nationRest of Africa  -0.6801     0.2578  -2.638  0.00834 ** 
-#> nationSurinam         -1.5371     0.6403  -2.401  0.01637 *  
-#> nationTurkey          -1.1880     0.4336  -2.740  0.00614 ** 
-#> gendermale             0.3145     0.1466   2.145  0.03194 *  
-#> age>40yrs             -0.6692     0.3116  -2.148  0.03171 *  
+#>             Estimate Std. Error z value P(>|z|)    
+#> (Intercept)  -1.5346     0.1846  -8.312 < 2e-16 ***
+#> gendermale    0.3863     0.1380   2.800 0.00512 ** 
+#> age>40yrs    -0.7788     0.2942  -2.648 0.00810 ** 
 #> -----------------------
 #> For linear predictors associated with: omega 
 #>             Estimate Std. Error z value  P(>|z|)    
-#> (Intercept)  -2.2241     0.4556  -4.882 1.05e-06 ***
+#> (Intercept)  -1.7591     0.3765  -4.673 2.97e-06 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> AIC: 1676.961
-#> BIC: 1726.813
-#> Residual deviance: 941.3779
+#> AIC: 1736.854
+#> BIC: 1759.01
+#> Residual deviance: 1011.271
 #> 
-#> Log-likelihood: -829.4807 on 3751 Degrees of freedom 
-#> Number of iterations: 7
+#> Log-likelihood: -864.4272 on 3756 Degrees of freedom 
+#> Number of iterations: 6
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 7559.579
-#> Observed proportion: 24.9% (N obs = 1880)
-#> Std. Error 1646.449
+#> Point estimate 5661.521
+#> Observed proportion: 33.2% (N obs = 1880)
+#> Std. Error 963.9019
 #> 99% CI for the population size:
 #>           lowerBound upperBound
-#> normal      3318.608   11800.55
-#> logNormal   4612.408   13685.56
+#> normal      3178.674   8144.367
+#> logNormal   3861.507   9096.677
 #> 99% CI for the share of observed population:
 #>           lowerBound upperBound
-#> normal      15.93146   56.65025
-#> logNormal   13.73710   40.75962
+#> normal      23.08344   59.14416
+#> logNormal   20.66689   48.68565
 ```
 
 and the option to estimate standard error of population size estimate by
@@ -318,7 +315,7 @@ example:
 
 ``` r
 modelInflated2 <- estimatePopsize(
-    formula = capture ~ nation  + age,
+    formula = capture ~ age,
     data = netherlandsimmigrant,
     popVar = "bootstrap",
     model = oiztgeom(omegaLink = "cloglog"),
@@ -326,24 +323,31 @@ modelInflated2 <- estimatePopsize(
     controlPopVar = controlPopVar(
         B = 500,# number of boostrap samples
         alpha = .01, # significance level 
-        bootType = "semiparametric", # type of bootstrap see documentation for estimatePopsize
+        # type of bootstrap see documentation for estimatePopsize
+        bootType = "semiparametric",
         # control regression fitting on bootstrap samples
         bootstrapFitcontrol = controlMethod(
           epsilon = .Machine$double.eps, 
           silent = TRUE, 
-          stepsize = 2.5
+          stepsize = 2
         )
     ),
     controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
 )
-#> Warning in estimatePopsize(formula = capture ~ nation + age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.
+#> Warning in estimatePopsize(formula = capture ~ age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.
 #> NOTE: Second derivative test failing does not 
 #>       necessarily mean that the maximum of score function that was found 
 #>       numericaly is invalid since R^k is not a bounded space.
 #> Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments.
-#> Warning in estimatePopsize(formula = capture ~ nation + age, data =
+#> Warning in estimatePopsize(formula = capture ~ age, data =
 #> netherlandsimmigrant, : Switching from observed information matrix to Fisher
 #> information matrix because hessian of log-likelihood is not negative define.
+popSizeEst(modelInflated2)
+#> Point estimate: 5496.376
+#> Variance: 1435999
+#> 99% confidence intervals:
+#> lowerBound upperBound 
+#>   4259.711  10877.646
 ```
 
 the results are significantly different (the warning issued concerns the
@@ -353,15 +357,15 @@ optimal regression coefficients it’s here to provide more information to
 the user):
 
 ``` r
-plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
+plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 200))
 ```
 
 <img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" />
 
-and information criteria support the second model:
+and information criteria support the favour model:
 
-    #>  First model: AIC = 1676.961 BIC = 1726.813
-    #> Second model: AIC = 1675.318 BIC = 1725.169
+    #>  First model: AIC = 1736.854 BIC = 1759.01
+    #> Second model: AIC = 1734.803 BIC = 1756.959
 
 ## Funding
 

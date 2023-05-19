@@ -6,9 +6,9 @@
 \alias{vcovHC.singleR}
 \title{Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class}
 \usage{
-\method{estfun}{singleR}(object, ...)
+\method{estfun}{singleR}(x, ...)
 
-\method{bread}{singleR}(object, ...)
+\method{bread}{singleR}(x, ...)
 
 \method{vcovHC}{singleR}(
   x,
@@ -19,7 +19,7 @@
 )
 }
 \arguments{
-\item{object}{a fitted \code{singleR} class object.}
+\item{x}{a fitted \code{singleR} class object.}
 
 \item{...}{for \code{vcovHC} additional optional arguments passed to the following functions:
 \itemize{
@@ -28,8 +28,6 @@
 \item \code{sandwich} -- only if \code{sandwich} argument in function call was set to \code{TRUE}.
 \item \code{vcov} -- when calling \code{bread} internally.
 }}
-
-\item{x}{a fitted \code{singleR} class object.}
 
 \item{type}{a character string specifying the estimation type, same as in \code{sandwich::vcovHC.default}. HC3 is the default value.}
 

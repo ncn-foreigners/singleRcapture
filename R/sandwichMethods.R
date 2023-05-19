@@ -5,14 +5,14 @@
 #' @method estfun singleR
 #' @rdname vcovHC.singleR
 #' @exportS3Method
-estfun.singleR <- function(object,...) {
-  Y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
-  Y <- Y[object$which$reg]
-  X <- stats::model.matrix(object, type = "vlm")
-  beta <- stats::coef(object)
-  wts <- stats::weights(object)
+estfun.singleR <- function(x,...) {
+  Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
+  Y <- Y[x$which$reg]
+  X <- stats::model.matrix(x, type = "vlm")
+  beta <- stats::coef(x)
+  wts <- stats::weights(x)
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- object$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
+  res <- x$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
   colnames(res) <- names(beta)
   rownames(res) <- rownames(X)
   res
@@ -24,8 +24,8 @@ estfun.singleR <- function(object,...) {
 #' @method bread singleR
 #' @rdname vcovHC.singleR
 #' @exportS3Method
-bread.singleR <- function(object,...) {
-  stats::vcov(object, ...) * as.vector(object$dfResidual + length(object$coefficients))
+bread.singleR <- function(x,...) {
+  stats::vcov(x, ...) * as.vector(x$dfResidual + length(x$coefficients))
 }
 
 #' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
@@ -39,7 +39,6 @@ bread.singleR <- function(object,...) {
 #' @param type a character string specifying the estimation type, same as in \code{sandwich::vcovHC.default}. HC3 is the default value.
 #' @param omega a vector or a function depending on the arguments residuals (i.e. the derivative of log-likelihood with respect to each linear predictor), diaghat (the diagonal of the corresponding hat matrix) and df (the residual degrees of freedom), same as in \code{sandwich::vcovHC.default}.
 #' @param sandwich logical. Should the sandwich estimator be computed? If set to FALSE only the meat matrix is returned. Same as in [sandwich::vcovHC()]
-#' @param object a fitted \code{singleR} class object.
 #' @param ... for \code{vcovHC} additional optional arguments passed to the following functions:
 #' \itemize{
 #'   \item \code{estfun} -- for empirical estimating functions.

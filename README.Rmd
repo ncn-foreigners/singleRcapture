@@ -155,7 +155,7 @@ argument such as significance levels different from usual 5%:
 ```{r boot}
 set.seed(123)
 modelInflated <- estimatePopsize(
-    formula = capture ~ nation + gender + age,
+    formula = capture ~ gender + age,
     data = netherlandsimmigrant,
     model = "oiztgeom",
     method = "IRLS",
@@ -173,7 +173,7 @@ on covariates and some non standard link functions for example:
 
 ```{r}
 modelInflated2 <- estimatePopsize(
-    formula = capture ~ nation  + age,
+    formula = capture ~ age,
     data = netherlandsimmigrant,
     popVar = "bootstrap",
     model = oiztgeom(omegaLink = "cloglog"),
@@ -181,16 +181,18 @@ modelInflated2 <- estimatePopsize(
     controlPopVar = controlPopVar(
         B = 500,# number of boostrap samples
         alpha = .01, # significance level 
-        bootType = "semiparametric", # type of bootstrap see documentation for estimatePopsize
+        # type of bootstrap see documentation for estimatePopsize
+        bootType = "semiparametric",
         # control regression fitting on bootstrap samples
         bootstrapFitcontrol = controlMethod(
           epsilon = .Machine$double.eps, 
           silent = TRUE, 
-          stepsize = 2.5
+          stepsize = 2
         )
     ),
     controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
 )
+popSizeEst(modelInflated2)
 ```
 
 the results are significantly different
@@ -200,10 +202,10 @@ found the optimal regression coefficients it's here to provide more information
 to the user):
 
 ```{r, fig.show="hold", out.width="75%"}
-plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 220))
+plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 200))
 ```
 
-and information criteria support the second model:
+and information criteria support the favour model:
 
 ```{r,echo=FALSE}
 cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),

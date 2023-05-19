@@ -140,6 +140,30 @@ summary.singleR <- function(object,
   )
 }
 
+
+# predict.singleR <- function(object, 
+#                             newdata, 
+#                             type = c("response", "link", "mean", "popSize"),
+#                             stdErr = FALSE,
+#                             na.action = NULL, 
+#                             ...) {
+#   type <- match.arg(type)
+#   
+#   if (missing(newdata)) {
+#     res <- switch (type,
+#       response = as.data.frame(
+#         lapply(1:length(family(object)$etaNames), FUN = function(x) {
+#           family(object)$links[[x]](object$linearPredictors[, x], 
+#                                     inverse = TRUE)
+#       }), col.names = family(object)$etaNames),
+#       link     = object$linearPredictors,
+#       mean     = fitted(object, "all"),
+#       popSize  = popSizeEst(object, ...)
+#     )
+#   } else {
+#   }
+# }
+
 #' @title Updating population size estimation results.
 #'
 #' @description A function that applies all post-hoc procedures that were taken
@@ -152,6 +176,7 @@ summary.singleR <- function(object,
 #'
 #' @return An object of class \code{popSizeEstResults} containing updated 
 #' population size estimation results.
+#' 
 #' @examples
 #' # Create simple model
 #' Model <- estimatePopsize(
@@ -171,6 +196,7 @@ summary.singleR <- function(object,
 redoPopEstimation <- function(object, ...) {
   UseMethod("redoPopEstimation")
 }
+
 #' @title Extract population size estimation results.
 #' 
 #' @description An extractor function with \code{singleR} method for extracting
@@ -184,6 +210,7 @@ redoPopEstimation <- function(object, ...) {
 popSizeEst <- function(object, ...) {
   UseMethod("popSizeEst")
 }
+
 #' @title Estimate size of sub populations.
 #' 
 #' @description A function that estimates sizes of specific sub populations 
@@ -252,6 +279,7 @@ popSizeEst <- function(object, ...) {
 stratifyPopsize <- function(object, stratas, alpha, ...) {
   UseMethod("stratifyPopsize")
 }
+
 #' @title Obtain Covariance Matrix estimation.
 #' 
 #' @description A \code{vcov} method for \code{singleR} class.
@@ -1067,7 +1095,7 @@ print.summarysingleR <- function(x,
     "% (N obs = ", x$sizeObserved, ")",
     if (!is.null(x$skew)) "\nBoostrap sample skewness: ", 
     if (!is.null(x$skew)) x$skew, 
-    if (!is.null(x$skew)) "\n0 skewness is expected for normally distributed vairable\n---",
+    if (!is.null(x$skew)) "\n0 skewness is expected for normally distributed variable\n---",
     if (isTRUE(x$call$popVar == "bootstrap")) "\nBootstrap Std. Error " else "\nStd. Error ", 
     sd, "\n", 
     (1 - x$populationSize$control$alpha) * 100, 
@@ -1123,7 +1151,6 @@ print.singleR <- function(x, ...) {
 #' @method print singleRfamily
 #' @exportS3Method 
 print.singleRfamily <- function(x, ...) {
-  ## TODO :: add formulas for mean variance and pop-est
   cat("Family of distributions:", x$family,
       "\nNames of parameters:", x$etaNames, 
       "\nLinks:", attr(x$links, "linkNames"), 
@@ -1147,10 +1174,29 @@ print.singleRfamily <- function(x, ...) {
 #' @exportS3Method 
 fitted.singleR <- function(object,
                            type = c("truncated", 
-                                    "nontruncated"),
+                                    "nontruncated",
+                                    "all"),
                            ...) {
   if (missing(type)) type <- "truncated"
-  object$fitt.values[[type]]
+  switch (type,
+    truncated    = object$fittValues$truncated,
+    nontruncated = object$fittValues$nontruncated,
+    all          = object$fittValues
+  )
+}
+
+#' @importFrom stats nobs
+#' @method nobs singleR
+#' @exportS3Method 
+nobs.singleR <- function(object, ...) {
+  object$sizeObserved
+}
+
+#' @importFrom stats df.residual
+#' @method df.residual singleR
+#' @exportS3Method 
+df.residual.singleR <- function(object, ...) {
+  object$dfResidual
 }
 
 # TODO:: update

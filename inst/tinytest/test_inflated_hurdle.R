@@ -1,16 +1,16 @@
 #### tracking progress:
 ##
-## - ztoigeom - test
+## - ztoigeom - 
 ## - oiztgeom - test
 ## - ztHurdlegeom - test
 ## - Hurdleztgeom - test
-## - ztoipoisson - test
+## - ztoipoisson - 
 ## - oiztpoisson - test
 ## - ztHurdlepoisson - test
 ## - Hurdleztpoisson - test
-## - ztoinegbin - to be finished -- variance, W, test
-## - oiztnegbin - to started
-## - ztHurdlenegbin - to be started
+## - ztoinegbin -
+## - oiztnegbin - test
+## - ztHurdlenegbin - test
 ## - Hurdleztnegbin - to be started
 
 set.seed(123)
