@@ -12,7 +12,7 @@ based on a capture-recapture model for the whole population."><!-- mathjax --><s
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,12 +63,12 @@ based on a capture-recapture model for the whole population.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>An object on which the population size estimates should be based
+<dd><p>an object on which the population size estimates should be based
 in <code>singleRcapture</code> package this is a fitter <code>singleR</code> class object.</p></dd>
 
 
 <dt>stratas</dt>
-<dd><p>A specification of sub populations either by:</p><ul><li><p>formula -- a formula to be applied to <code>model.frame</code> extracted from
+<dd><p>a specification of sub populations either by:</p><ul><li><p>formula -- a formula to be applied to <code>model.frame</code> extracted from
 the object .</p></li>
 <li><p>Logical vector with number of entries equal to number of rows in the dataset.</p></li>
 <li><p>A (named) list where each element is a logical vector, names of the list
@@ -84,14 +84,14 @@ in <code>model.frame</code>.</p></li>
 
 
 <dt>alpha</dt>
-<dd><p>Significance level for confidence intervals --
+<dd><p>significance level for confidence intervals --
 Either a single numeric value or a vector of length equal to number of
 sub populations specified in <code>stratas</code>.
 If missing it is set to <code>.05</code> in <code>singleR</code> method.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>A vector of arguments to be passed to other functions.
+<dd><p>a vector of arguments to be passed to other functions.
 For <code>singleR</code> method for this functions arguments in <code>...</code> are
 passed to either <code>cov</code> if argument provided was a function or
 <code>vcov</code> if <code>cov</code> argument was missing at call.</p>
@@ -99,7 +99,7 @@ passed to either <code>cov</code> if argument provided was a function or
 
 
 <dt>cov</dt>
-<dd><p>For <code>singleR</code> method an estimate of variance-covariance matrix
+<dd><p>for <code>singleR</code> method an estimate of variance-covariance matrix
 for estimate of regression parameters. It is possible to pass a function
 such as for example <code><a href="https://sandwich.R-Forge.R-project.org/reference/vcovHC.html" class="external-link">sandwich::vcovHC</a></code> which will be called as:
 <code>foo(object, ...)</code> and a user may specify additional arguments of a
@@ -118,17 +118,18 @@ sub populations either provided or inferred.</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>In single source capture-recapture models the most frequently used
 estimate for population size is Horwitz-Thompson type estimate:</p>
-<p>\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} = \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
+<p>\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} = 
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
 <p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator variables,
 with value 1 if kth unit was observed at least once and 0 otherwise and
 the inverse probabilistic weights weights for units observed in the data
 <em></em>\(\tfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\)
 are estimated using fitted linear predictors.</p>
 <p>The estimates for different sub populations are made by changing the
-<em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) indicator variables
-to refer not to the population as a whole but to the sub populations that
-are being considered i.e. by changing values from 1 to 0 if kth unit is not
-a member of sub population that is being considered at the moment.</p>
+<em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) indicator variables to refer not to the
+population as a whole but to the sub populations that are being considered
+i.e. by changing values from 1 to 0 if kth unit is not a member of sub
+population that is being considered at the moment.</p>
 <p>The estimation of variance for these estimates and estimation of variance for
 estimate of population size for the whole population follow the same relation
 as the one described above.</p>

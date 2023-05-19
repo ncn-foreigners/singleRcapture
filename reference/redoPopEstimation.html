@@ -14,7 +14,7 @@ reduction) to population size estimation and standard error estimation."><!-- ma
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,15 +66,15 @@ reduction) to population size estimation and standard error estimation.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>Object for which update of population size estimation results will be done.</p></dd>
+<dd><p>object for which update of population size estimation results will be done.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>Additional optional arguments, currently not used in <code>singleR</code> class method.</p></dd>
+<dd><p>additional optional arguments, currently not used in <code>singleR</code> class method.</p></dd>
 
 
 <dt>cov</dt>
-<dd><p>An updated covariance matrix estimate.</p></dd>
+<dd><p>an updated covariance matrix estimate.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -88,10 +88,12 @@ population size estimation results.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Create simple model</span></span></span>
-<span class="r-in"><span><span class="va">Model</span> <span class="op">&lt;-</span> <span class="fu"><a href="estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">gender</span>, </span></span>
-<span class="r-in"><span>data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>, </span></span>
-<span class="r-in"><span>model <span class="op">=</span> <span class="va">ztpoisson</span>, </span></span>
-<span class="r-in"><span>method <span class="op">=</span> <span class="st">"IRLS"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Model</span> <span class="op">&lt;-</span> <span class="fu"><a href="estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">gender</span>, </span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>, </span></span>
+<span class="r-in"><span>  model <span class="op">=</span> <span class="va">ztpoisson</span>, </span></span>
+<span class="r-in"><span>  method <span class="op">=</span> <span class="st">"IRLS"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Apply heteroscedasticity consistent covariance matrix estimation</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://sandwich.R-Forge.R-project.org/" class="external-link">sandwich</a></span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sandwich</span>

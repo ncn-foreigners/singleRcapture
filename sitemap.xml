@@ -19,9 +19,6 @@
     <loc>https://ncn-foreigners.github.io/singleRcapture/news/index.html</loc>
   </url>
   <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/bread.singleR.html</loc>
-  </url>
-  <url>
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/carcassubmission.html</loc>
   </url>
   <url>
@@ -37,15 +34,6 @@
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlPopVar.html</loc>
   </url>
   <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/dfbetasingleR.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/dfpopsize.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/estfun.singleR.html</loc>
-  </url>
-  <url>
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsize.fit.html</loc>
   </url>
   <url>
@@ -53,9 +41,6 @@
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/farmsubmission.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/hatvalues.singleR.html</loc>
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/index.html</loc>
@@ -74,6 +59,9 @@
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/redoPopEstimation.html</loc>
+  </url>
+  <url>
+    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/regDiagSingleR.html</loc>
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.html</loc>

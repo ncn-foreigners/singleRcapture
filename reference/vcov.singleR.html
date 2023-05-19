@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,18 +58,16 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>Object of singleR class.</p></dd>
+<dd><p>object of singleR class.</p></dd>
 
 
 <dt>type</dt>
-<dd><p>Type of estimate for covariance matrix for now either
+<dd><p>type of estimate for covariance matrix for now either
 expected (Fisher) information matrix or observed information matrix.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>Additional optional arguments passed to following functions:</p><ul><li><p><code>solve</code> -- for inverting information matrixes.</p></li>
-<li><p><code>model.frame.singleR</code> -- for creation of Xvlm matrix.</p></li>
-</ul></dd>
+<dd><p>additional arguments for method functions</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -82,9 +80,10 @@ correspond to parameters returned by <code>coef</code> method.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Returns a estimated covariance matrix for model coefficients
-calculated from analytic hessian or Fisher information matrix.
+calculated from analytic hessian or Fisher information matrix usually
+utilising asymptotic effectiveness of maximum likelihood estimates.
 Covariance type is taken from control parameter that have been provided
-on call that created <code>object</code> if argumetns <code>type</code> was not specified.</p>
+on call that created <code>object</code> if arguments <code>type</code> was not specified.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

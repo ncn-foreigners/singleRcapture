@@ -18,7 +18,7 @@ estimatePopsize function."><!-- mathjax --><script src="https://cdnjs.cloudflare
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@ estimatePopsize function."><!-- mathjax --><script src="https://cdnjs.cloudflare
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Family functions in singleRcapture package</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Chao.R" class="external-link"><code>R/Chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztgeom.R" class="external-link"><code>R/Hurdleztgeom.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztpoisson.R" class="external-link"><code>R/Hurdleztpoisson.R</code></a>, and 14 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Chao.R" class="external-link"><code>R/Chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztgeom.R" class="external-link"><code>R/Hurdleztgeom.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztpoisson.R" class="external-link"><code>R/Hurdleztpoisson.R</code></a>, and 17 more</small>
       <div class="d-none name"><code>singleRmodels.Rd</code></div>
     </div>
 
@@ -63,53 +63,138 @@ on the model. These functions are used as <code>model</code> argument in
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">chao</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">chao</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="st">"loghalf"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">Hurdleztgeom</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">Hurdleztgeom</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">Hurdleztpoisson</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">Hurdleztpoisson</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">oiztgeom</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">oiztgeom</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">oiztpoisson</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">oiztnegbin</span><span class="op">(</span></span>
+<span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">zelterman</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">oiztpoisson</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">zotgeom</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">zelterman</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="st">"loghalf"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">zotnegbin</span><span class="op">(</span>nSim <span class="op">=</span> <span class="fl">1000</span>, epsSim <span class="op">=</span> <span class="fl">1e-08</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">zotgeom</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">zotpoisson</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">zotnegbin</span><span class="op">(</span></span>
+<span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztHurdlegeom</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">zotpoisson</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztHurdlepoisson</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ztHurdlegeom</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztgeom</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ztHurdlenegbin</span><span class="op">(</span></span>
+<span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztnegbin</span><span class="op">(</span>nSim <span class="op">=</span> <span class="fl">1000</span>, epsSim <span class="op">=</span> <span class="fl">1e-08</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ztHurdlepoisson</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztoigeom</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ztgeom</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztoipoisson</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">ztnegbin</span><span class="op">(</span></span>
+<span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ztpoisson</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">ztoigeom</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">ztoinegbin</span><span class="op">(</span></span>
+<span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">ztoipoisson</span><span class="op">(</span></span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">ztpoisson</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>...</dt>
+    <dl><dt>lambdaLink</dt>
+<dd><p>link for poisson parameter, <code>"log"</code>
+by default except for logistic based models where only
+<em></em>\(\ln\left(\tfrac{x}{2}\right)\) is possible.</p></dd>
+
+
+<dt>...</dt>
 <dd><p>Additional arguments, not used for now.</p></dd>
 
 
-<dt>nSim</dt>
-<dd><p>If working weights cannot be computed analytically this argument
-specifies maximum number of simulations allowed to find them numerically.</p></dd>
+<dt>piLink</dt>
+<dd><p>link for probability parameter,  <code>"logit"</code> by default</p></dd>
 
 
-<dt>epsSim</dt>
-<dd><p>f working weights cannot be computed analytically this argument
-specifies precision level for finding them numerically.</p></dd>
+<dt>omegaLink</dt>
+<dd><p>link for inflation parameter, <code>"logit"</code> by default</p></dd>
+
+
+<dt>nSim, epsSim</dt>
+<dd><p>if working weights cannot be computed analytically these
+arguments specify maximum number of simulations allowed and
+precision level for finding them numerically respectively.</p></dd>
+
+
+<dt>alphaLink</dt>
+<dd><p>link for dispersion parameter, <code>"log"</code> by default</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -124,17 +209,16 @@ specifies precision level for finding them numerically.</p></dd>
 (or just <em></em>\(\boldsymbol{X}\) if applied to model with single linear predictor)
 the argument <code>deriv</code> with possible values in <code>0, 1, 2</code> provides which
 derivative to return with <code>0</code> being just the minus log-likelihood.</p></li>
-<li><p><code>linkfun, linkinv</code> -- A link function and its inverse.</p></li>
+<li><p><code>links</code> -- List with link functions.</p></li>
 <li><p><code>mu.eta, variance</code> -- Functions of linear predictors that
 return expected value and variance. There is a <code>type</code> argument with
 2 possible values <code>"trunc"</code> and <code>"nontrunc"</code> that specifies whether
-to return <em></em>\(\mathbb{E}(Y|Y&gt;0), \text{var}(Y|Y&gt;0)\)
-or <em></em>\(\mathbb{E}(Y), \text{var}(Y)\) respectively.</p></li>
-<li><p><code>link, family</code> -- Character specifying link functions used for the
-model and the internally used name of the model.</p></li>
+to return <em></em>\(\mathbb{E}(Y|Y&gt;0), \text{var}(Y|Y&gt;0)\) or
+<em></em>\(\mathbb{E}(Y), \text{var}(Y)\) respectively.</p></li>
+<li><p><code>family</code> -- Character that specifies name of the model.</p></li>
 <li><p><code>valideta, validmu</code> -- For now only returns true. In near future
 will be used to check whether applied linear predictors are valid (i.e. are
-transormed into some elements of parameter space the subjected to inverse
+transformed into some elements of parameter space the subjected to inverse
 link function).</p></li>
 <li><p><code>funcZ, Wfun</code> -- Functions that create pseudo residuals and
 working weights used in IRLS algorithm.</p></li>
@@ -148,19 +232,20 @@ and <em></em>\(\boldsymbol{X_{vlm}}\) matrix return point estimate
 for population size and analytic estimation of its variance.
 There is a additional boolean parameter <code>contr</code> in the former
 function that if set to true returns contribution of each unit.</p></li>
-<li><p><code>etaNames, parNum</code> -- Names and number of linear predictors.</p></li>
+<li><p><code>etaNames</code> -- Names of linear predictors.</p></li>
 <li><p><code>densityFunction</code> -- A function that given linear predictors
 returns value of PMF at values <code>x</code>. Additional argument <code>type</code>
-spedifies whether to return <em></em>\(\mathbb{P}(Y|Y&gt;0)\) or
+specifies whether to return <em></em>\(\mathbb{P}(Y|Y&gt;0)\) or
 <em></em>\(\mathbb{P}(Y)\).</p></li>
 <li><p><code>simulate</code> -- A function that generates values of dependent
 vector given linear predictors.</p></li>
+<li><p><code>getStart</code> -- Expression for generating starting points.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
 <p>Most of these functions are based on some "base" distribution with
-support <em></em>\(\mathbb{N}_{0}=\mathbb{N}\cup{0}\) that describe
+support <em></em>\(\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace\) that describe
 distribution of <em></em>\(Y\) before truncation. Currently they include:
 \[\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 \begin{array}{cc}
@@ -203,9 +288,12 @@ which allows us to estimate parameter values using only observed part of
 population. These models lead to the following estimates:
 \[
 \begin{aligned}
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &amp;\text{ For poisson distribution} \cr
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &amp;\text{ For negative binomial distribution} \cr
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &amp;\text{ For geometric distribution}
+\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &amp;
+\text{ For poisson distribution} \cr
+\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &amp;
+\text{ For negative binomial distribution} \cr
+\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &amp;
+\text{ For geometric distribution}
 \end{aligned}
 \]</p>
 <p>One common way in which assumptions of zero truncated models are violated is
@@ -285,9 +373,16 @@ possible.</p>
 <p>For <em>zero one truncated models</em> population size estimates are expressed by:
 \[
 \begin{aligned}
-\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}\frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} &amp;\text{ For base poisson distribution} \cr
-\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}\frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} &amp;\text{ For base negative binomial distribution} \cr
-\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}\frac{\lambda_{k}^{2}+\lambda_{k}+1}{\lambda_{k}^{2}} &amp;\text{ For base geometric distribution}
+\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
+\frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} 
+&amp;\text{ For base poisson distribution} \cr
+\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
+\frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{
+1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} 
+&amp;\text{ For base negative binomial distribution} \cr
+\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
+\frac{\lambda_{k}^{2}+\lambda_{k}+1}{\lambda_{k}^{2}} 
+&amp;\text{ For base geometric distribution}
 \end{aligned}
 \]</p>
 <p>Pseudo hurdle models are experimental and not yet described in literature.</p>

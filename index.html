@@ -6,12 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content='A package for population size estimation based on single-source capture-recapture methods using zero-truncated, zero-one truncated and zero-truncated one-inflated Poisson, Geometric and Negative Binomial regression as well as Zeltermans and Chaos regression. Package includes point and interval estimators for the population size with variances estimated using analytical or bootstrap method. Details can be found in: van der Heijden et al. (2003) &lt;doi:10.1191/1471082X03st057oa&gt;, B{\"o}hning and van der Heijden (2019) &lt;doi:10.1214/18-AOAS1232&gt;, B{\"o}hning et al. (2020) Capture-Recapture Methods for the Social and Medical Sciences or B{\"o}hning and Friedl (2021) &lt;doi:10.1007/s10260-021-00556-8&gt;.'>
-<title>A package for single-source capture-recapture models • singleRcapture</title>
+<title>A Package for Single-Source Capture-Recapture Models • singleRcapture</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="A package for single-source capture-recapture models">
+<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="A Package for Single-Source Capture-Recapture Models">
 <meta property="og:description" content='A package for population size estimation based on single-source capture-recapture methods using zero-truncated, zero-one truncated and zero-truncated one-inflated Poisson, Geometric and Negative Binomial regression as well as Zeltermans and Chaos regression. Package includes point and interval estimators for the population size with variances estimated using analytical or bootstrap method. Details can be found in: van der Heijden et al. (2003) &lt;doi:10.1191/1471082X03st057oa&gt;, B{\"o}hning and van der Heijden (2019) &lt;doi:10.1214/18-AOAS1232&gt;, B{\"o}hning et al. (2020) Capture-Recapture Methods for the Social and Medical Sciences or B{\"o}hning and Friedl (2021) &lt;doi:10.1007/s10260-021-00556-8&gt;.'>
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,58 +93,58 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ncn-foreigners/singleRcapture" class="external-link">singleRcapture</a></span><span class="op">)</span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
-<span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">reason</span>, <span class="co"># specify formula</span></span>
+<span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">nation</span>, <span class="co"># specify formula</span></span>
 <span>  data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
 <span>  popVar <span class="op">=</span> <span class="st">"analytic"</span>, <span class="co"># specify </span></span>
 <span>  model <span class="op">=</span> <span class="st">"ztpoisson"</span>, <span class="co"># distribution used</span></span>
-<span>  method <span class="op">=</span> <span class="st">"IRLS"</span> <span class="co"># fitting method one of three currently supported</span></span>
+<span>  method <span class="op">=</span> <span class="st">"IRLS"</span>, <span class="co"># fitting method one of three currently supported</span></span>
+<span>  controlMethod <span class="op">=</span> <span class="fu"><a href="reference/controlMethod.html">controlMethod</a></span><span class="op">(</span>silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># ignore convergence at half step warning</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="co"># a summary method for singleR class with standard glm-like output and population size estimation resutls</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; estimatePopsize(formula = capture ~ gender + age + nation + reason, </span></span>
-<span><span class="co">#&gt;     data = netherlandsimmigrant, model = "ztpoisson", method = "IRLS", </span></span>
-<span><span class="co">#&gt;     popVar = "analytic")</span></span>
+<span><span class="co">#&gt; estimatePopsize(formula = capture ~ gender + age + nation, data = netherlandsimmigrant, </span></span>
+<span><span class="co">#&gt;     model = "ztpoisson", method = "IRLS", popVar = "analytic", </span></span>
+<span><span class="co">#&gt;     controlMethod = controlMethod(silent = TRUE))</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pearson Residuals:</span></span>
 <span><span class="co">#&gt;      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span></span>
-<span><span class="co">#&gt; -0.488779 -0.486085 -0.297859  0.002075 -0.210439 13.921578 </span></span>
+<span><span class="co">#&gt; -0.486442 -0.486442 -0.298080  0.002093 -0.209444 13.910844 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
 <span><span class="co">#&gt; For linear predictors associated with: lambda </span></span>
 <span><span class="co">#&gt;                      Estimate Std. Error z value  P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)          -1.33179    0.25486  -5.226 1.74e-07 ***</span></span>
-<span><span class="co">#&gt; gendermale            0.39741    0.16305   2.437 0.014796 *  </span></span>
-<span><span class="co">#&gt; age&gt;40yrs            -0.97463    0.40824  -2.387 0.016969 *  </span></span>
-<span><span class="co">#&gt; nationAsia           -1.09241    0.30164  -3.622 0.000293 ***</span></span>
-<span><span class="co">#&gt; nationNorth Africa    0.18997    0.19400   0.979 0.327471    </span></span>
-<span><span class="co">#&gt; nationRest of Africa -0.91129    0.30097  -3.028 0.002463 ** </span></span>
-<span><span class="co">#&gt; nationSurinam        -2.33665    1.01357  -2.305 0.021146 *  </span></span>
-<span><span class="co">#&gt; nationTurkey         -1.67453    0.60291  -2.777 0.005479 ** </span></span>
-<span><span class="co">#&gt; reasonOther reason   -0.01093    0.16153  -0.068 0.946048    </span></span>
+<span><span class="co">#&gt; (Intercept)           -1.3411     0.2149  -6.241 4.35e-10 ***</span></span>
+<span><span class="co">#&gt; gendermale             0.3972     0.1630   2.436 0.014832 *  </span></span>
+<span><span class="co">#&gt; age&gt;40yrs             -0.9746     0.4082  -2.387 0.016972 *  </span></span>
+<span><span class="co">#&gt; nationAsia            -1.0926     0.3016  -3.622 0.000292 ***</span></span>
+<span><span class="co">#&gt; nationNorth Africa     0.1900     0.1940   0.979 0.327398    </span></span>
+<span><span class="co">#&gt; nationRest of Africa  -0.9106     0.3008  -3.027 0.002468 ** </span></span>
+<span><span class="co">#&gt; nationSurinam         -2.3364     1.0136  -2.305 0.021159 *  </span></span>
+<span><span class="co">#&gt; nationTurkey          -1.6754     0.6028  -2.779 0.005445 ** </span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; AIC: 1714.896</span></span>
-<span><span class="co">#&gt; BIC: 1764.747</span></span>
-<span><span class="co">#&gt; Residual deviance: 1128.549</span></span>
+<span><span class="co">#&gt; AIC: 1712.901</span></span>
+<span><span class="co">#&gt; BIC: 1757.213</span></span>
+<span><span class="co">#&gt; Residual deviance: 1128.553</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-likelihood: -848.4481 on 1871 Degrees of freedom </span></span>
+<span><span class="co">#&gt; Log-likelihood: -848.4504 on 1872 Degrees of freedom </span></span>
 <span><span class="co">#&gt; Number of iterations: 8</span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
 <span><span class="co">#&gt; Population size estimation results: </span></span>
-<span><span class="co">#&gt; Point estimate 12691.45</span></span>
+<span><span class="co">#&gt; Point estimate 12690.35</span></span>
 <span><span class="co">#&gt; Observed proportion: 14.8% (N obs = 1880)</span></span>
-<span><span class="co">#&gt; Std. Error 2809.508</span></span>
+<span><span class="co">#&gt; Std. Error 2808.167</span></span>
 <span><span class="co">#&gt; 95% CI for the population size:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal      7184.917   18197.99</span></span>
-<span><span class="co">#&gt; logNormal   8430.749   19723.38</span></span>
+<span><span class="co">#&gt; normal      7186.446   18194.26</span></span>
+<span><span class="co">#&gt; logNormal   8431.276   19718.31</span></span>
 <span><span class="co">#&gt; 95% CI for the share of observed population:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal     10.330814   26.16592</span></span>
-<span><span class="co">#&gt; logNormal   9.531836   22.29932</span></span></code></pre></div>
+<span><span class="co">#&gt; normal     10.332930   26.16036</span></span>
+<span><span class="co">#&gt; logNormal   9.534284   22.29793</span></span></code></pre></div>
 <p>We implemented a method for <code>plot</code> function to visualise the model fit and other usefull diagnostic information. One of which is <code>rootogram</code>, a type of plot that compares fitted and observed marginal frequencies:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span><span class="op">)</span></span></code></pre></div>
@@ -182,7 +182,7 @@
 <span><span class="co">#&gt; Test for Goodness of fit of a regression model:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                  Test statistics df P(&gt;X^2)</span></span>
-<span><span class="co">#&gt; Chi-squared test           50.06  2 1.4e-11</span></span>
+<span><span class="co">#&gt; Chi-squared test           50.06  2 1.3e-11</span></span>
 <span><span class="co">#&gt; G-test                     34.31  2 3.6e-08</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -------------------------------------------------------------- </span></span>
@@ -203,15 +203,15 @@
 <span>    <span class="st">"Older males"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">age</span> <span class="op">==</span> <span class="st">"&gt;40yrs"</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Observed Estimated ObservedPercentage  StdError normalLowerBound</span></span>
-<span><span class="co">#&gt; 1       20   932.371           2.145069  956.1229     -1530.438420</span></span>
-<span><span class="co">#&gt; 2       78  1291.514           6.039425  741.1843      -432.738939</span></span>
-<span><span class="co">#&gt; 3     1391  7337.175          18.958251 1281.9295      4555.271881</span></span>
-<span><span class="co">#&gt; 4       91  1542.882           5.898055  782.2326         9.733753</span></span>
+<span><span class="co">#&gt; 1       20  931.4685           2.147147  955.0668      -1528.62062</span></span>
+<span><span class="co">#&gt; 2       78 1291.2513           6.040652  741.0066       -432.58790</span></span>
+<span><span class="co">#&gt; 3     1391 7337.0716          18.958518 1282.1412       4554.70930</span></span>
+<span><span class="co">#&gt; 4       91 1542.1889           5.900704  781.4751         10.52593</span></span>
 <span><span class="co">#&gt;   normalUpperBound logNormalLowerBound logNormalUpperBound                 name</span></span>
-<span><span class="co">#&gt; 1         3395.180            119.3464            8398.972 Females from Surinam</span></span>
-<span><span class="co">#&gt; 2         3015.766            405.4748            4574.882    Males from Turkey</span></span>
-<span><span class="co">#&gt; 3        10119.078           5135.1856           10834.174        Younger males</span></span>
-<span><span class="co">#&gt; 4         3076.029            630.7808            3996.215          Older males</span></span>
+<span><span class="co">#&gt; 1         3391.558            119.2661            8389.170 Females from Surinam</span></span>
+<span><span class="co">#&gt; 2         3015.090            405.4127            4573.791    Males from Turkey</span></span>
+<span><span class="co">#&gt; 3        10119.434           5134.8117           10834.789        Younger males</span></span>
+<span><span class="co">#&gt; 4         3073.852            630.7551            3992.676          Older males</span></span>
 <span><span class="co">#&gt;   confLevel</span></span>
 <span><span class="co">#&gt; 1      0.01</span></span>
 <span><span class="co">#&gt; 2      0.02</span></span>
@@ -221,19 +221,19 @@
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, stratas <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">/</span> <span class="va">age</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Observed Estimated ObservedPercentage  StdError normalLowerBound</span></span>
-<span><span class="co">#&gt; 1      398 3811.3954          10.442370 1154.7825      1548.063241</span></span>
-<span><span class="co">#&gt; 2     1482 8880.0563          16.689083 1812.6286      5327.369600</span></span>
-<span><span class="co">#&gt; 3      378 3169.5475          11.925992  881.2932      1442.244687</span></span>
-<span><span class="co">#&gt; 4     1391 7337.1748          18.958251 1281.9295      4824.639108</span></span>
-<span><span class="co">#&gt; 5       20  641.8478           3.116003  408.1451      -158.101825</span></span>
-<span><span class="co">#&gt; 6       91 1542.8815           5.898055  782.2326         9.733753</span></span>
+<span><span class="co">#&gt; 1      398  3811.092          10.443201 1153.9742       1549.34401</span></span>
+<span><span class="co">#&gt; 2     1482  8879.260          16.690579 1812.0803       5327.64833</span></span>
+<span><span class="co">#&gt; 3      378  3169.827          11.924942  880.9485       1443.19944</span></span>
+<span><span class="co">#&gt; 4     1391  7337.072          18.958518 1282.1412       4824.12101</span></span>
+<span><span class="co">#&gt; 5       20   641.265           3.118835  407.5266       -157.47248</span></span>
+<span><span class="co">#&gt; 6       91  1542.189           5.900704  781.4751         10.52593</span></span>
 <span><span class="co">#&gt;   normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
-<span><span class="co">#&gt; 1         6074.727           2188.5341            6905.147</span></span>
-<span><span class="co">#&gt; 2        12432.743           6090.8584           13357.226</span></span>
-<span><span class="co">#&gt; 3         4896.850           1903.7278            5485.554</span></span>
-<span><span class="co">#&gt; 4         9849.710           5306.6899           10420.570</span></span>
-<span><span class="co">#&gt; 5         1441.797            212.4088            2029.756</span></span>
-<span><span class="co">#&gt; 6         3076.029            630.7808            3996.215</span></span>
+<span><span class="co">#&gt; 1         6072.840           2189.0441            6902.137</span></span>
+<span><span class="co">#&gt; 2        12430.873           6090.7756           13354.885</span></span>
+<span><span class="co">#&gt; 3         4896.454           1904.3123            5484.620</span></span>
+<span><span class="co">#&gt; 4         9850.022           5306.3301           10421.086</span></span>
+<span><span class="co">#&gt; 5         1440.002            212.3382            2026.727</span></span>
+<span><span class="co">#&gt; 6         3073.852            630.7551            3992.676</span></span>
 <span><span class="co">#&gt;                     name confLevel</span></span>
 <span><span class="co">#&gt; 1         gender==female      0.05</span></span>
 <span><span class="co">#&gt; 2           gender==male      0.05</span></span>
@@ -241,106 +241,108 @@
 <span><span class="co">#&gt; 4   gendermale:age&lt;40yrs      0.05</span></span>
 <span><span class="co">#&gt; 5 genderfemale:age&gt;40yrs      0.05</span></span>
 <span><span class="co">#&gt; 6   gendermale:age&gt;40yrs      0.05</span></span></code></pre></div>
-<p><code>singleRcapture</code> package also includes the option to estimate standard error of population size estimate by bootstrap and common non standard argument such as significance levels different from usual 5%:</p>
+<p><code>singleRcapture</code> package also includes option to use common non standard argument such as significance levels different from usual 5%:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">modelInflated</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
-<span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span>,</span>
+<span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
-<span>    popVar <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
 <span>    model <span class="op">=</span> <span class="st">"oiztgeom"</span>,</span>
 <span>    method <span class="op">=</span> <span class="st">"IRLS"</span>,</span>
-<span>    controlMethod <span class="op">=</span> <span class="fu"><a href="reference/controlMethod.html">controlMethod</a></span><span class="op">(</span>stepsize <span class="op">=</span> <span class="fl">.2</span><span class="op">)</span>, <span class="co"># control parameters for regression fitting check documentation of controlMethod</span></span>
-<span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span> <span class="co"># control parameters for population size estimation check documentation of controlPopVar</span></span>
-<span>        B <span class="op">=</span> <span class="fl">1250</span>, <span class="co"># number of boostrap samples</span></span>
+<span>    <span class="co"># control parameters for population size estimation check documentation of controlPopVar</span></span>
+<span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span></span>
 <span>        alpha <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># significance level </span></span>
-<span>        bootType <span class="op">=</span> <span class="st">"semiparametric"</span> <span class="co"># type of bootstrap see documentation for estimatePopsize</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in singleRcaptureinternalIRLSmultipar(dependent = y, covariates = X, :</span></span>
+<span><span class="co">#&gt; Convergence at halfstepsize</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">modelInflated</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; estimatePopsize(formula = capture ~ nation + gender + age, data = netherlandsimmigrant, </span></span>
-<span><span class="co">#&gt;     model = "oiztgeom", method = "IRLS", popVar = "bootstrap", </span></span>
-<span><span class="co">#&gt;     controlMethod = controlMethod(stepsize = 0.2), controlPopVar = controlPopVar(B = 1250, </span></span>
-<span><span class="co">#&gt;         alpha = 0.01, bootType = "semiparametric"))</span></span>
+<span><span class="co">#&gt; estimatePopsize(formula = capture ~ gender + age, data = netherlandsimmigrant, </span></span>
+<span><span class="co">#&gt;     model = "oiztgeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, </span></span>
+<span><span class="co">#&gt;         ))</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pearson Residuals:</span></span>
 <span><span class="co">#&gt;      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span></span>
-<span><span class="co">#&gt; -0.416300 -0.416300 -0.292541  0.004086 -0.188313 13.733512 </span></span>
+<span><span class="co">#&gt; -0.357193 -0.357193 -0.357193  0.000343 -0.287637 10.233607 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
 <span><span class="co">#&gt; For linear predictors associated with: lambda </span></span>
-<span><span class="co">#&gt;                      Estimate Std. Error z value  P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)           -1.5518     0.2395  -6.480 9.19e-11 ***</span></span>
-<span><span class="co">#&gt; nationAsia            -0.8294     0.2573  -3.224  0.00126 ** </span></span>
-<span><span class="co">#&gt; nationNorth Africa     0.2082     0.1854   1.123  0.26147    </span></span>
-<span><span class="co">#&gt; nationRest of Africa  -0.6800     0.2578  -2.638  0.00834 ** </span></span>
-<span><span class="co">#&gt; nationSurinam         -1.5370     0.6403  -2.401  0.01637 *  </span></span>
-<span><span class="co">#&gt; nationTurkey          -1.1880     0.4336  -2.740  0.00614 ** </span></span>
-<span><span class="co">#&gt; gendermale             0.3145     0.1466   2.145  0.03194 *  </span></span>
-<span><span class="co">#&gt; age&gt;40yrs             -0.6692     0.3116  -2.148  0.03171 *  </span></span>
+<span><span class="co">#&gt;             Estimate Std. Error z value P(&gt;|z|)    </span></span>
+<span><span class="co">#&gt; (Intercept)  -1.5346     0.1846  -8.312 &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; gendermale    0.3863     0.1380   2.800 0.00512 ** </span></span>
+<span><span class="co">#&gt; age&gt;40yrs    -0.7788     0.2942  -2.648 0.00810 ** </span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
 <span><span class="co">#&gt; For linear predictors associated with: omega </span></span>
 <span><span class="co">#&gt;             Estimate Std. Error z value  P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  -2.2241     0.4556  -4.882 1.05e-06 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  -1.7591     0.3765  -4.673 2.97e-06 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; AIC: 1676.961</span></span>
-<span><span class="co">#&gt; BIC: 1726.813</span></span>
-<span><span class="co">#&gt; Residual deviance: 941.3779</span></span>
+<span><span class="co">#&gt; AIC: 1736.854</span></span>
+<span><span class="co">#&gt; BIC: 1759.01</span></span>
+<span><span class="co">#&gt; Residual deviance: 1011.271</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Log-likelihood: -829.4807 on 3751 Degrees of freedom </span></span>
-<span><span class="co">#&gt; Number of iterations: 52</span></span>
+<span><span class="co">#&gt; Log-likelihood: -864.4272 on 3756 Degrees of freedom </span></span>
+<span><span class="co">#&gt; Number of iterations: 6</span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
 <span><span class="co">#&gt; Population size estimation results: </span></span>
-<span><span class="co">#&gt; Point estimate 7559.606</span></span>
-<span><span class="co">#&gt; Observed proportion: 24.9% (N obs = 1880)</span></span>
-<span><span class="co">#&gt; Boostrap sample skewness: 0.3109832</span></span>
-<span><span class="co">#&gt; 0 skewness is expected for normally distributed vairable</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Bootstrap Std. Error 3194.534</span></span>
+<span><span class="co">#&gt; Point estimate 5661.521</span></span>
+<span><span class="co">#&gt; Observed proportion: 33.2% (N obs = 1880)</span></span>
+<span><span class="co">#&gt; Std. Error 963.9019</span></span>
 <span><span class="co">#&gt; 99% CI for the population size:</span></span>
-<span><span class="co">#&gt; lowerBound upperBound </span></span>
-<span><span class="co">#&gt;   4517.296  18967.029 </span></span>
+<span><span class="co">#&gt;           lowerBound upperBound</span></span>
+<span><span class="co">#&gt; normal      3178.674   8144.367</span></span>
+<span><span class="co">#&gt; logNormal   3861.507   9096.677</span></span>
 <span><span class="co">#&gt; 99% CI for the share of observed population:</span></span>
-<span><span class="co">#&gt; lowerBound upperBound </span></span>
-<span><span class="co">#&gt;   9.911937  41.617818</span></span></code></pre></div>
+<span><span class="co">#&gt;           lowerBound upperBound</span></span>
+<span><span class="co">#&gt; normal      23.08344   59.14416</span></span>
+<span><span class="co">#&gt; logNormal   20.66689   48.68565</span></span></code></pre></div>
+<p>and the option to estimate standard error of population size estimate by bootstrap, models with more than one distribution parameter being dependent on covariates and some non standard link functions for example:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"bootHist"</span>, labels <span class="op">=</span> <span class="cn">TRUE</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="75%"></p>
-<p>and for models with more than one distribution parameter we allow all parameters to be covariate dependent for exapmle if we wish to modify the model above:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">modelInflated2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
-<span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span>  <span class="op">+</span> <span class="va">age</span>,</span>
+<span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">age</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
 <span>    popVar <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
-<span>    model <span class="op">=</span> <span class="st">"oiztgeom"</span>,</span>
+<span>    model <span class="op">=</span> <span class="fu"><a href="reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span>omegaLink <span class="op">=</span> <span class="st">"cloglog"</span><span class="op">)</span>,</span>
 <span>    method <span class="op">=</span> <span class="st">"IRLS"</span>,</span>
-<span>    controlMethod <span class="op">=</span> <span class="fu"><a href="reference/controlMethod.html">controlMethod</a></span><span class="op">(</span>stepsize <span class="op">=</span> <span class="fl">.2</span><span class="op">)</span>,</span>
 <span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span></span>
-<span>        B <span class="op">=</span> <span class="fl">1250</span>,</span>
-<span>        alpha <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>        B <span class="op">=</span> <span class="fl">500</span>,<span class="co"># number of boostrap samples</span></span>
+<span>        alpha <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># significance level </span></span>
+<span>        <span class="co"># type of bootstrap see documentation for estimatePopsize</span></span>
 <span>        bootType <span class="op">=</span> <span class="st">"semiparametric"</span>,</span>
-<span>        covType <span class="op">=</span> <span class="st">"Fisher"</span> <span class="co"># use fisher information matrix to construct cross covariance matrix instead of observed information matrix</span></span>
+<span>        <span class="co"># control regression fitting on bootstrap samples</span></span>
+<span>        bootstrapFitcontrol <span class="op">=</span> <span class="fu"><a href="reference/controlMethod.html">controlMethod</a></span><span class="op">(</span></span>
+<span>          epsilon <span class="op">=</span> <span class="va">.Machine</span><span class="op">$</span><span class="va">double.eps</span>, </span>
+<span>          silent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>          stepsize <span class="op">=</span> <span class="fl">2</span></span>
+<span>        <span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    controlModel <span class="op">=</span> <span class="fu"><a href="reference/controlModel.html">controlModel</a></span><span class="op">(</span>omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span><span class="op">)</span> <span class="co"># put covariates on omega i.e. the inflation parameter</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in estimatePopsize(formula = capture ~ nation + age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.</span></span>
-<span><span class="co">#&gt; NOTE: Second derivative test failing does not necessarily mean that the maximum of score function that was found numericaly is invalid since R^k is not a bounded space.</span></span>
-<span><span class="co">#&gt; Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments.</span></span></code></pre></div>
+<span><span class="co">#&gt; Warning in estimatePopsize(formula = capture ~ age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.</span></span>
+<span><span class="co">#&gt; NOTE: Second derivative test failing does not </span></span>
+<span><span class="co">#&gt;       necessarily mean that the maximum of score function that was found </span></span>
+<span><span class="co">#&gt;       numericaly is invalid since R^k is not a bounded space.</span></span>
+<span><span class="co">#&gt; Additionally in one inflated and hurdle models second derivative test often fails even on valid arguments.</span></span>
+<span><span class="co">#&gt; Warning in estimatePopsize(formula = capture ~ age, data =</span></span>
+<span><span class="co">#&gt; netherlandsimmigrant, : Switching from observed information matrix to Fisher</span></span>
+<span><span class="co">#&gt; information matrix because hessian of log-likelihood is not negative define.</span></span>
+<span><span class="fu"><a href="reference/popSizeEst.html">popSizeEst</a></span><span class="op">(</span><span class="va">modelInflated2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Point estimate: 5496.376</span></span>
+<span><span class="co">#&gt; Variance: 1435999</span></span>
+<span><span class="co">#&gt; 99% confidence intervals:</span></span>
+<span><span class="co">#&gt; lowerBound upperBound </span></span>
+<span><span class="co">#&gt;   4259.711  10877.646</span></span></code></pre></div>
 <p>the results are significantly different (the warning issued concerns the second derivative test for existence of local minimum, here it was inconclusive but we manually checked that fitting process found the optimal regression coefficients it’s here to provide more information to the user):</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated2</span>, plotType <span class="op">=</span> <span class="st">"bootHist"</span>, labels <span class="op">=</span> <span class="cn">TRUE</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">220</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-8-1.png" width="75%"></p>
-<p>and information criteria support the second model:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">" First model: AIC = "</span>, <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">modelInflated</span><span class="op">)</span>, <span class="st">" BIC = "</span>, <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC</a></span><span class="op">(</span><span class="va">modelInflated</span><span class="op">)</span>,</span>
-<span>    <span class="st">"\nSecond model: AIC = "</span>, <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">modelInflated2</span><span class="op">)</span>, <span class="st">" BIC = "</span>, <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC</a></span><span class="op">(</span><span class="va">modelInflated2</span><span class="op">)</span>, <span class="st">"\n"</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  First model: AIC = 1676.961 BIC = 1726.813</span></span>
-<span><span class="co">#&gt; Second model: AIC = 1675.318 BIC = 1725.169</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated2</span>, plotType <span class="op">=</span> <span class="st">"bootHist"</span>, labels <span class="op">=</span> <span class="cn">TRUE</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-7-1.png" width="75%"></p>
+<p>and information criteria support the favour model:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  First model: AIC = 1736.854 BIC = 1759.01</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Second model: AIC = 1734.803 BIC = 1756.959</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

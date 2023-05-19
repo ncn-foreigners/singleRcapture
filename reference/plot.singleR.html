@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,11 +64,11 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>Object of <code>singleR</code> class.</p></dd>
+<dd><p>object of <code>singleR</code> class.</p></dd>
 
 
 <dt>plotType</dt>
-<dd><p>Character parameter specifying type of plot to be made.
+<dd><p>character parameter specifying type of plot to be made.
 The following list presents and briefly explains possible type of plots:</p><ul><li><p><code>qq</code> -- The quantile-quantile plot for pearson residuals
 (or standardised pearson residuals if these are available for the model) i.e.
 empirical quantiles from residuals are plotted against theoretical quantiles
@@ -103,12 +103,12 @@ for each column of linear predictors.</p></li>
 
 
 <dt>confIntStrata</dt>
-<dd><p>Confidence interval type to use for strata plot.
+<dd><p>confidence interval type to use for strata plot.
 Currently supported values are <code>"normal"</code> and <code>"logNormal"</code>.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>Additional optional arguments passed to the following functions:</p><ul><li><p>For <code>plotType = "bootHist"</code></p><ul><li><p><code><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">graphics::hist</a></code> -- with <code>x, main, xlab, ylab</code> parameters fixed.</p></li>
+<dd><p>additional optional arguments passed to the following functions:</p><ul><li><p>For <code>plotType = "bootHist"</code></p><ul><li><p><code><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">graphics::hist</a></code> -- with <code>x, main, xlab, ylab</code> parameters fixed.</p></li>
 </ul></li>
 <li><p>For <code>plotType = "rootogram"</code></p><ul><li><p><code><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">graphics::barplot</a></code> -- with <code>height, offset, ylab, xlab, ylim</code> parameters fixed.</p></li>
 <li><p><code><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">graphics::lines</a></code> -- with <code>x, y, pch, type, lwd, col</code> parameters fixed.</p></li>
@@ -141,7 +141,7 @@ Currently supported values are <code>"normal"</code> and <code>"logNormal"</code
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="estimatePopsize.html">estimatePopsize()</a></code> <code><a href="dfpopsize.html">dfpopsize()</a></code> <code><a href="marginalFreq.html">marginalFreq()</a></code> <code><a href="https://rdrr.io/r/stats/plot.lm.html" class="external-link">stats::plot.lm()</a></code> <code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">stats::cooks.distance()</a></code> <code><a href="hatvalues.singleR.html">hatvalues.singleR()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="estimatePopsize.html">estimatePopsize()</a></code> <code><a href="regDiagSingleR.html">dfpopsize()</a></code> <code><a href="marginalFreq.html">marginalFreq()</a></code> <code><a href="https://rdrr.io/r/stats/plot.lm.html" class="external-link">stats::plot.lm()</a></code> <code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">stats::cooks.distance()</a></code> <code><a href="regDiagSingleR.html">hatvalues.singleR()</a></code></p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>

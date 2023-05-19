@@ -16,7 +16,7 @@ coefficients or coefficient correlation, are specified they will be printed."><!
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,41 +76,41 @@ coefficients or coefficient correlation, are specified they will be printed.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>Object of singleR class.</p></dd>
+<dd><p>object of singleR class.</p></dd>
 
 
 <dt>test</dt>
-<dd><p>Type of test for significance of parameters <code>"t"</code> for t-test
+<dd><p>type of test for significance of parameters <code>"t"</code> for t-test
 and <code>"z"</code> for normal approximation of students t distribution, by
 default <code>"z"</code> is used if there are more than 30 degrees of freedom
 and <code>"t"</code> is used in other cases.</p></dd>
 
 
 <dt>resType</dt>
-<dd><p>Type of residuals to summarise any value that is allowed in
+<dd><p>type of residuals to summarise any value that is allowed in
 <code>residuals.signleR</code> except for <code>"all"</code> is allowed. By default
 pearson residuals are used.</p></dd>
 
 
 <dt>correlation</dt>
-<dd><p>Logical value indicating whether correlation matrix should
+<dd><p>logical value indicating whether correlation matrix should
 be computed from covariance matrix by default <code>FALSE</code>.</p></dd>
 
 
 <dt>confint</dt>
-<dd><p>Logical value indicating whether confidence intervals for
+<dd><p>logical value indicating whether confidence intervals for
 regression parameters should be constructed. By default <code>FALSE</code>.</p></dd>
 
 
 <dt>cov</dt>
-<dd><p>Covariance matrix corresponding to regression parameters.
+<dd><p>covariance matrix corresponding to regression parameters.
 It is possible to give <code>cov</code> argument as a function of <code>object</code>.
 If not specified it will be constructed using <code>vcov.singleR</code> method.
 (i.e using Cramer-Rao lower bound)</p></dd>
 
 
 <dt>popSizeEst</dt>
-<dd><p>A <code>popSizeEstResults</code> class object.
+<dd><p>a <code>popSizeEstResults</code> class object.
 If not specified population size estimation results will be drawn from
 <code>object</code>. If any post-hoc procedures, such as sandwich covariance matrix
 estimation or bias reduction, were taken it is possible to include them in
@@ -118,7 +118,7 @@ population size estimation results by calling <code>redoPopEstimation</code>.</p
 
 
 <dt>...</dt>
-<dd><p>Additional optional arguments passed to the following functions:</p><ul><li><p><code>vcov.singleR</code> -- if no <code>cov</code> argument was provided.</p></li>
+<dd><p>additional optional arguments passed to the following functions:</p><ul><li><p><code>vcov.singleR</code> -- if no <code>cov</code> argument was provided.</p></li>
 <li><p><code>cov</code> -- if <code>cov</code> parameter specified at call was a function.</p></li>
 <li><p><code>confint.singleR</code> -- if <code>confint</code> parameter was set to <code>TRUE</code> at function call.
 In particular it is possible to set confidence level in <code>...</code>.</p></li>
