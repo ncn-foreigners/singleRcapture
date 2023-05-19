@@ -272,10 +272,10 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8,
               PI     <-     piLink(eta[, 3], inverse = TRUE)
               
               -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI) + (1 - z) *
-              lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
+              (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
               log(factorial(y)) - (y + 1 / alpha) * log(1 + lambda * alpha) +
               y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
-              lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha))))
+              lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))))
             },
             function(beta) {
               eta    <- matrix(as.matrix(X) %*% beta, ncol = 3)
