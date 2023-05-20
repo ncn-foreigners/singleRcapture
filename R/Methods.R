@@ -140,29 +140,42 @@ summary.singleR <- function(object,
   )
 }
 
+#' Predict method for \code{singleR} class
+#'
+#' @param object a
+#' @param newdata a
+#' @param type a
+#' @param stdErr a
+#' @param na.action a
+#' @param ... a
+#'
+#' @return TODO
+#' @method predict singleR
+#' @seealso [redoPopEstimation()] [stats::summary.glm()]
+#' @exportS3Method
+predict.singleR <- function(object,
+                            newdata,
+                            type = c("response", "link", "mean", "popSize"),
+                            stdErr = FALSE,
+                            na.action = NULL,
+                            ...) {
+  type <- match.arg(type)
 
-# predict.singleR <- function(object, 
-#                             newdata, 
-#                             type = c("response", "link", "mean", "popSize"),
-#                             stdErr = FALSE,
-#                             na.action = NULL, 
-#                             ...) {
-#   type <- match.arg(type)
-#   
-#   if (missing(newdata)) {
-#     res <- switch (type,
-#       response = as.data.frame(
-#         lapply(1:length(family(object)$etaNames), FUN = function(x) {
-#           family(object)$links[[x]](object$linearPredictors[, x], 
-#                                     inverse = TRUE)
-#       }), col.names = family(object)$etaNames),
-#       link     = object$linearPredictors,
-#       mean     = fitted(object, "all"),
-#       popSize  = popSizeEst(object, ...)
-#     )
-#   } else {
-#   }
-# }
+  if (missing(newdata)) {
+    res <- switch (type,
+      response = as.data.frame(
+        lapply(1:length(family(object)$etaNames), FUN = function(x) {
+          family(object)$links[[x]](object$linearPredictors[, x],
+                                    inverse = TRUE)
+      }), col.names = family(object)$etaNames),
+      link     = object$linearPredictors,
+      mean     = fitted(object, "all"),
+      popSize  = popSizeEst(object, ...)
+    )
+  } else {
+    #TODO
+  }
+}
 
 #' @title Updating population size estimation results.
 #'
@@ -634,8 +647,8 @@ extractAIC.singleR <- function(fit, scale, k = 2, ...) {
 #' @exportS3Method 
 logLik.singleR <- function(object, ...) {
   val <- object$logL
-  attr(val, "nobs") <- dim(residuals(object))[1]
-  attr(val, "df") <- length(object$coefficients)
+  attr(val, "nobs") <- nobs(object)
+  attr(val, "df") <- length(coef(object))
   class(val) <- "logLik"
   val
 }

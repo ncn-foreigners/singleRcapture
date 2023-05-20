@@ -40,7 +40,7 @@ the formula also for now all variables from additional formulas should also be
 included in the "main" formula.
 }
 \seealso{
-\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[=controlPopVar]{controlPopVar()}}
+\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[=controlPopVar]{controlPopVar()}} \code{\link[=singleRmodels]{singleRmodels()}}
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz
