@@ -105,7 +105,7 @@ controlMethod <- function(epsilon             = 1e-8,
     printEveryN <- as.integer(printEveryN)
   }
   
-  if (!is.null(start) && isTRUE(is.numeric(start)))
+  if (!is.null(start) && !isTRUE(is.numeric(start)))
     stop("Argument start has to be either a numeric vector or NULL.")
   
   if (!isTRUE(is.logical(silent)) || isTRUE(length(silent) > 1))

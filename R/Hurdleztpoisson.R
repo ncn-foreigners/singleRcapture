@@ -252,7 +252,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       -(log(PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))),
       ifelse(y == 2, log(2),
       y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
-      (log(1 - PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
+      (log(1 - PI) + y * log(lambda) - lambda - log(factorial(y)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
     )
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
