@@ -217,8 +217,7 @@ estimatePopsize.fit <- function(y, X,
         ctrl <- list(
           factr = control$epsilon,
           maxit = control$maxiter,
-          trace = control$verbose,
-          trace = if (is.numeric(control$trace)) control$trace else 0
+          trace = control$verbose
         )
       } else {
         ctrl <- list(

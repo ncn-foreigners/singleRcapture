@@ -309,8 +309,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     (step + if ((is.null(stepPrev) | !momentumFactor)) 0 else {
     if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0
     })
+    
     eta <- covariates %*% beta
     eta <- matrix(eta, ncol = parNum)
+    
     LPrev <- L
     L <- -logLike(beta)
     
@@ -379,8 +381,11 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         eval(traceGreaterThanFourMessegeExpr)
         eval(addToLog)
       }
-      eta <- covariates %*% beta
     }
+    
+    eta <- covariates %*% beta
+    eta <- matrix(eta, ncol = parNum)
+    
     if (trace > 0 && (iter - 1) %% printOften == 0) {cat(sep = "", "\n----\n")}
     converged <- eval(convergence)
 
@@ -427,7 +432,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     stop("Fit error infinite values reached consider another model,
           mu is too close to zero/infinity")
   }
-  
+
   list(coefficients = beta, iter = iter, weights = W, logg = logg)
 }
 # make Xvlm matrix

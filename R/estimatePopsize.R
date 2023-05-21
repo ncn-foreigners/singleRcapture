@@ -667,6 +667,7 @@ estimatePopsize <- function(formula,
       cov = NULL
     )
   }
+  
   structure(
     list(
       y = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names

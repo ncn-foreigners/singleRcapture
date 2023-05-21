@@ -11,7 +11,7 @@
 ## - ztoinegbin -
 ## - oiztnegbin - test
 ## - ztHurdlenegbin - test
-## - Hurdleztnegbin - to be started
+## - Hurdleztnegbin - test
 
 set.seed(123)
 
