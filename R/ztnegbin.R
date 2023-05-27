@@ -363,23 +363,19 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
       ...
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (!is.null(controlMethod$alphaStart)) {
-      start <- c(start, controlMethod$alphaStart)
+    if (controlModel$alphaFormula == ~ 1) {
+      start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
     } else {
-      if (controlModel$alphaFormula == ~ 1) {
-        start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
-      } else {
-        cc <- colnames(Xvlm)
-        cc <- cc[grepl(x = cc, pattern = "alpha$")]
-        cc <- unlist(strsplit(x = cc, ":alpha"))
-        cc <- sapply(cc, FUN = function(x) {
-          ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-        })
-        if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
-          start <- c(start, cc)
-        else
-          start <- c(start, -cc)
-      }
+      cc <- colnames(Xvlm)
+      cc <- cc[grepl(x = cc, pattern = "alpha$")]
+      cc <- unlist(strsplit(x = cc, ":alpha"))
+      cc <- sapply(cc, FUN = function(x) {
+        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+      })
+      if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
+        start <- c(start, cc)
+      else
+        start <- c(start, -cc)
     }
   )
   
@@ -401,7 +397,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
       etaNames  = c("lambda", "alpha"),
       simulate  = simulate,
       getStart  = getStart,
-      extraInfo = list(
+      extraInfo = c(
         mean       = "lambda",
         variance   = "lambda * (1 + alpha * lambda)",
         popSizeEst = "1 / (1 - (1 + alpha * lambda) ^ (- 1 / alpha))",

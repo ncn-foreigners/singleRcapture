@@ -201,11 +201,15 @@ estimatePopsize.fit <- function(y, X,
     beta <- FITT$coefficients
     logg <- FITT$logg
   } else if (method == "optim") {
-    logLike <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
-    grad <- family$makeMinusLogLike(y = y, 
-                                    X = X, 
-                                    weight = priorWeights, 
-                                    deriv = 1)
+    logLike <- family$makeMinusLogLike(
+      y = y, X = X, 
+      weight = priorWeights
+    )
+    grad <- family$makeMinusLogLike(
+      y = y, X = X, 
+      weight = priorWeights, 
+      deriv = 1
+    )
     
     weights <- priorWeights
     methodopt <- control$optimMethod
@@ -228,12 +232,30 @@ estimatePopsize.fit <- function(y, X,
       }
     }
     
-    FITT <- stats::optim(fn = logLike,
-                         par = start,
-                         gr = function(x) -grad(x),
-                         method = methodopt,
-                         # hessian = TRUE,
-                         control = ctrl)
+    giveError <- FALSE
+    giveError <- tryCatch(
+      expr = {
+        FITT <- stats::optim(
+          fn = logLike,
+          par = start,
+          gr = function(x) -grad(x),
+          method = methodopt,
+          # hessian = TRUE,
+          control = ctrl
+        )
+        FALSE
+      },
+      error = function (e) {
+        TRUE
+      },
+      warning = function (w) {
+        FALSE
+      }
+    )
+    
+    if (giveError)
+      stop("Optim gave error:")
+    
     beta <- FITT$par
     iter <- FITT$counts
     if (FITT$convergence == 1 && !control$silent) {
@@ -241,9 +263,6 @@ estimatePopsize.fit <- function(y, X,
               " iterations of optim fitting algorithm", sep = "")
     }
   } else if (method == "maxLik") {
-    # Why do people use this???
-    
-    
     # weights <- priorWeights
     # ll <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
     # gr <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)

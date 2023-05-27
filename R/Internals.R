@@ -19,6 +19,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
   sc <- qnorm(p = 1 - siglevel / 2)
   
   if (popVar == "analytic") {
+    # TODO:: TryCatch
     strappedStatistic <- "No bootstrap performed"
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     if (is.null(cov)) {
@@ -294,7 +295,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
           "Pseudo residuals of IRLS algorithm could not have been computed at iteration:",
           iter, "Most likely working weight matrixes could not have been inverted.", 
           sep = " "
-        ))
+        ), call. = FALSE)
       }
     )
     XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
@@ -436,24 +437,55 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   list(coefficients = beta, iter = iter, weights = W, logg = logg)
 }
 # make Xvlm matrix
-singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
+#' @importFrom stats terms
+singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL) {
+  #print("----")
   formulas[[1]][[2]] <- NULL
+  #terms <- attr(X, "terms")
+  X <- X[, colnames(X)[-attr(attr(X, "terms"), "response")], drop = FALSE]
+  nPar <- length(parNames)
   Xses <- list()
-  parentFrame <- X
+  
   for (k in 1:nPar) {
-    Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
+    # TODO:: Add contrasts here
+    if (length(attr(terms(formulas[[k]], data = X), "term.labels")) != 0) {
+      if (attr(terms(formulas[[k]], data = X), "intercept") == 0) {
+        Xses[[k]] <- model.matrix(
+          ~ . - 1,
+          data = X[, attr(terms(formulas[[k]], data = X), "term.labels"), drop = FALSE]
+        )
+      } else {
+        Xses[[k]] <- model.matrix(
+          ~ .,
+          data = X[, attr(terms(formulas[[k]], data = X), "term.labels"), drop = FALSE]
+        )
+      }
+    } else {
+      Xses[[k]] <- model.matrix(
+        ~ 1,
+        X[, attr(terms(formulas[[k]], data = X), "term.labels"), drop = FALSE]
+      )
+      if (attr(terms(formulas[[k]], data = X), "intercept") == 0)
+        warning(paste0(
+          "One of formulas for the model has no variable ",
+          "and no intercept and will be coerced to ~ 1."
+        ))
+    }
     if (k != 1) {
       colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
     }
   }
   hwm <- sapply(Xses, ncol)
-  # TODO: sparse matrix, maybe use Matrix
+  
+  # TODO:: Low priority but this could be much better 
+  # (without the need to allocate memmory for each X in Xses) 
+  # and for Xvlm which just stacks them
   Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
   colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
   row <- 0
   col <- 0
   for (k in Xses) {
-    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- as.matrix(k)
+    Xvlm[(row + 1):(row + nrow(k)), (col + 1):(col + ncol(k))] <- as.matrix(k)
     row <- row + nrow(k)
     col <- col + ncol(k)
   }

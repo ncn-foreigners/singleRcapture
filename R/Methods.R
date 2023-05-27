@@ -384,14 +384,8 @@ dfpopsize <- function(model, ...) {
 #' @exportS3Method 
 hatvalues.singleR <- function(model, ...) {
   X <- model.frame.singleR(model, ...)
-  X <- subset(
-    X, 
-    select = colnames(X)[-(attr(model$terms, "response"))], 
-    subset = model$which$reg
-  )
   X <- singleRinternalGetXvlmMatrix(
-    X = X, 
-    nPar = length(model$model$etaNames), 
+    X = X[model$which$reg, , drop = FALSE], 
     formulas = model$formula, 
     parNames = model$model$etaNames
   )
@@ -428,15 +422,12 @@ dfbeta.singleR <- function(model,
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
   y <- if (is.null(model$y)) stats::model.response(X) else model$y
-  X <- subset(
-    X, 
-    select = colnames(X)[-(attr(model$terms, "response"))], 
-    subset = model$which$reg
-  )
+  X <- X[model$which$reg, , drop = FALSE]
   y <- y[model$which$reg]
   cf <- model$coefficients
   pw <- model$priorWeights[model$which$reg]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
+  
   for (k in 1:nrow(X)) {
     res[k, ] <- cf - estimatePopsize.fit(
       control = controlMethod(
@@ -447,8 +438,7 @@ dfbeta.singleR <- function(model,
       ),
       y = y[-k],
       X = singleRinternalGetXvlmMatrix(
-        X        = subset(X, rownames(X) != rownames(X)[k]), 
-        nPar     = length(model$model$etaNames), 
+        X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
         formulas = model$formula, 
         parNames = model$model$etaNames
       ),
@@ -663,12 +653,19 @@ model.frame.singleR <- function(formula, ...) {
                       names(dots), 
                       0L)]
   if (length(nargs) || is.null(formula$modelFrame)) {
-    fcall <- formula$call
-    fcall$method <- "model.frame"
-    fcall[[1L]] <- quote(stats::glm)
-    fcall[names(nargs)] <- nargs
-    env <- environment(formula$terms)
-    eval(fcall, env)
+    # fcall <- formula$call
+    # fcall$method <- "model.frame"
+    # fcall[[1L]] <- quote(stats::glm)
+    # fcall[names(nargs)] <- nargs
+    # env <- environment(formula$terms)
+    # eval(fcall, env)
+    # TODO:: low priority add subset and na action here
+    combinedFromula <- singleRinternalMergeFormulas(formula$formula)
+    stats::model.frame(
+      combinedFromula,
+      data = if (is.null(nargs$data)) eval(formula$call$data) else nargs$data,
+      ...
+    )
   }
   else formula$modelFrame
 }
@@ -687,17 +684,15 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
         X <- object$X
       }
       subset(X, subset = object$which$reg)
-      },
+    },
     vlm = {
       X <- model.frame(object, ...);
-      X <- X[object$which$reg, colnames(X)[-(attr(object$terms, "response"))], drop = FALSE];
       singleRinternalGetXvlmMatrix(
-        X = X, 
-        nPar = length(object$model$etaNames), 
+        X = X[object$which$reg, , drop = FALSE], 
         formulas = object$formula, 
         parNames = object$model$etaNames
       );
-      }
+    }
   )
 }
 #' @method redoPopEstimation singleR
@@ -760,7 +755,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
   }
   
   X <- model.frame.singleR(model, ...)
-  X <- subset(X, select = colnames(X)[-(attr(model$terms, "response"))], subset = model$which$est)
+  X <- X[model$which$est, , drop = FALSE]
   
   N <- model$populationSize$pointEstimate
   range <- 1:NROW(dfb)
@@ -774,8 +769,7 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
     res[k] <- model$model$pointEst(
       eta = matrix(
         singleRinternalGetXvlmMatrix(
-          X = subset(X, rownames(X) != rownames(X)[k]), 
-          nPar = length(model$model$etaNames), 
+          X = X[rownames(X) != rownames(X)[k], , drop = FALSE], 
           formulas = model$formula, 
           parNames = model$model$etaNames
         ) %*% cf, 

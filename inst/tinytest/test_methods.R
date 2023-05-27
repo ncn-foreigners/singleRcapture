@@ -83,6 +83,26 @@ expect_silent(
   dfb3 <- dfbeta(Model3)
 )
 
+expect_silent(
+  hatvalues(Model)
+)
+
+expect_silent(
+  hatvalues(Model2)
+)
+
+expect_silent(
+  hatvalues(Model3)
+)
+
+expect_silent(
+  hatvalues(Model4)
+)
+
+expect_silent(
+  hatvalues(Model5)
+)
+
 expect_true(
   abs(max(abs(dfpopsize(Model, dfbeta = dfb))) - 4236.412) < .1
 )
@@ -570,6 +590,16 @@ expect_identical(
 expect_identical(
   family(Model3),
   Model3$model
+)
+
+expect_identical(
+  family(Model4),
+  Model4$model
+)
+
+expect_identical(
+  family(Model5),
+  Model5$model
 )
 
 expect_silent(

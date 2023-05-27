@@ -49,9 +49,6 @@
 #' the update will be made as:
 #' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
 #' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}
-#' @param useZtpoissonAsStart boolean value indicating whether to chose starting 
-#' parameters from \code{ztpoisson} regression this one is useful mostly for 
-#' various one inflated models.
 #' @param momentumActivation the value of log-likelihood reduction bellow 
 #' which momentum will apply.
 #' @param criterion criterion used to determine convergence in \code{IRLS}, 
@@ -75,7 +72,6 @@ controlMethod <- function(epsilon             = 1e-8,
                           weightsEpsilon      = 1e-8,
                           momentumFactor      = 0,
                           saveIRLSlogs        = FALSE,
-                          useZtpoissonAsStart = FALSE,
                           momentumActivation  = 5,
                           criterion           = c("coef", 
                                                   "abstol", 
@@ -143,7 +139,6 @@ controlMethod <- function(epsilon             = 1e-8,
     momentumFactor      = momentumFactor,
     momentumActivation  = momentumActivation,
     saveIRLSlogs        = saveIRLSlogs,
-    useZtpoissonAsStart = useZtpoissonAsStart,
     criterion           = if (missing(criterion)) c("coef", "abstol") else criterion
   )
 }

@@ -591,7 +591,12 @@ expect_silent(
     popVar = "bootstrap",
     method = "IRLS",
     controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),
-    controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
+    controlPopVar = controlPopVar(
+      B = 10, 
+      bootstrapFitcontrol = controlMethod(
+        silent = TRUE, 
+        epsilon = .Machine$double.eps)
+      )
   )
 )
 expect_silent(
@@ -601,7 +606,12 @@ expect_silent(
     model = "ztpoisson",
     popVar = "bootstrap",
     method = "IRLS",
-    controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
+    controlPopVar = controlPopVar(
+      B = 10, 
+      bootstrapFitcontrol = controlMethod(
+        silent = TRUE, 
+        epsilon = .Machine$double.eps)
+      )
   )
 )
 

@@ -420,8 +420,7 @@ estimatePopsize <- function(formula,
                              subset = NULL,
                              naAction = NULL,
                              method = c("optim", 
-                                        "IRLS", 
-                                        "maxLik"),
+                                        "IRLS"),
                              popVar = c("analytic",
                                          "bootstrap",
                                          "noEst"),
@@ -542,16 +541,14 @@ estimatePopsize <- function(formula,
 
   controlPopVar$trcount <- controlPopVar$trcount + wch$trr
   
-  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(
-    modelFrame, 
-    select = colnames(modelFrame)[-(attr(terms, "response"))], 
-    subset = wch$reg
-  ), nPar = length(family$etaNames), formulas = formulas, parNames = family$etaNames)
+  Xvlm <- singleRinternalGetXvlmMatrix(
+    # this preserves terms attribute
+    X = modelFrame[wch$reg, , drop = FALSE],
+    formulas = formulas, 
+    parNames = family$etaNames
+  )
   
-  
-  start <- controlMethod$start #TODO:: Re-add use ztpoisson as start
-  if (isTRUE(controlMethod$useZtpoissonAsStart)) 
-    stop("useZtpoissonAsStart option is temporarily removed.")
+  start <- controlMethod$start
   
   if (is.null(start)) {
     eval(family$getStart)

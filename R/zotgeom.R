@@ -145,7 +145,6 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
   dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
     if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     
     switch (type,
       "trunc" = {

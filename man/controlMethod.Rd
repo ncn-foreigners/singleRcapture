@@ -18,7 +18,6 @@ controlMethod(
   weightsEpsilon = 1e-08,
   momentumFactor = 0,
   saveIRLSlogs = FALSE,
-  useZtpoissonAsStart = FALSE,
   momentumActivation = 5,
   criterion = c("coef", "abstol", "reltol")
 )
@@ -82,10 +81,6 @@ the update will be made as:
 
 \item{saveIRLSlogs}{logical value indicating if information specified in
 \code{verbose} should be saved to output object, by default \code{FALSE}.}
-
-\item{useZtpoissonAsStart}{boolean value indicating whether to chose starting
-parameters from \code{ztpoisson} regression this one is useful mostly for
-various one inflated models.}
 
 \item{momentumActivation}{the value of log-likelihood reduction bellow
 which momentum will apply.}
