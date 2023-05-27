@@ -132,9 +132,17 @@ zelterman <- function(lambdaLink = "loghalf",
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta, inverse = TRUE)
-    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
+    
+    switch (type,
+      "trunc" = {
+        stats::dpois(x = x, lambda = lambda) / 
+        (1 - stats::dpois(x = 0, lambda = lambda))
+      },
+      "nontrunc" = stats::dpois(x = x, lambda = lambda)
+    )
   }
 
   simulate <- function(n, eta, lower = 0, upper = 2) {

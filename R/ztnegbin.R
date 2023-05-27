@@ -330,11 +330,18 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0)
+
+    switch (type,
+      "trunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      },
+      "nontrunc" = stats::dnbinom(x = x, mu = lambda, size = 1 / alpha)
+    )
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {

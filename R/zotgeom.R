@@ -135,16 +135,26 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    lb <- stats::pnbinom(lower, mu=lambda, size = 1)
-    ub <- stats::pnbinom(upper, mu=lambda, size = 1)
+    lb <- stats::pnbinom(lower, mu = lambda, size = 1)
+    ub <- stats::pnbinom(upper, mu = lambda, size = 1)
     p_u <- stats::runif(n, lb, ub)
-    sims <- stats::qnbinom(p_u, mu=lambda, size = 1)
+    sims <- stats::qnbinom(p_u, mu = lambda, size = 1)
     sims
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
+    switch (type,
+      "trunc" = {
+        stats::dgeom(x = x, prob = 1 / (1 + lambda)) / 
+        (1 - stats::dgeom(x = 0, prob = 1 / (1 + lambda)) - 
+        stats::dgeom(x = 1, prob = 1 / (1 + lambda)))
+      },
+      "nontrunc" = stats::dgeom(x = x, prob = 1 / (1 + lambda))
+    )
   }
   
   getStart <- expression(

@@ -229,17 +229,29 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) * exp(-lambda) / ((1 - exp(-lambda) - lambda * exp(-lambda)) ^ 2)))
+    f2 <- sum(pw * ((1 - lambda * exp(-lambda)) * exp(-lambda) / 
+                    ((1 - exp(-lambda) - lambda * exp(-lambda)) ^ 2)))
     
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, PI, 
-    (1 - PI) * (lambda ^ x) * exp(-lambda) / 
-    (factorial(x) * (1 - exp(-lambda) - lambda * exp(-lambda))))
+    
+    switch (type,
+      "trunc" = {
+        as.numeric(x == 1) * PI + as.numeric(x > 0) * 
+        (1 - PI) * stats::dpois(x = x, lambda = lambda) / 
+        (1 - exp(-lambda) - lambda * exp(-lambda))
+      },
+      "nontrunc" = {
+        stats::dpois(x = x, lambda = lambda) / (1 - lambda * exp(-lambda)) *
+        (as.numeric(x == 0) + as.numeric(x > 1) * (1 - PI)) + 
+        as.numeric(x == 1) * PI * (1 - exp(-lambda) / (1 - lambda * exp(-lambda)))
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -250,7 +262,7 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
       ifelse(x < 0, 0, 
       ifelse(x < 1, exp(-lambda) / (1 - lambda * exp(-lambda)), 
       exp(-lambda) / (1 - lambda * exp(-lambda)) + PI * (1 - exp(-lambda) / 
-      (1 - lambda * exp(-lambda))) +  (1 - PI) * (stats::ppois(x, lambda) - 
+      (1 - lambda * exp(-lambda))) + (1 - PI) * (stats::ppois(x, lambda) - 
       lambda * exp(-lambda) - exp(-lambda)) / (1 - lambda * exp(-lambda)))))
     }
     lb <- CDF(lower)

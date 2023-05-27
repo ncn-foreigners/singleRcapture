@@ -288,12 +288,22 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, ((lambda ^ 2) * omega + lambda * omega + lambda + omega) / 
-                    (lambda ^ 2 + lambda * omega + lambda + omega), 
-           ((lambda / (1 + lambda)) ^ x) * (1 - omega) / (lambda + omega))
+    
+    switch (type,
+      "trunc" = {
+        ifelse(x == 1, ((lambda ^ 2) * omega + lambda * omega + lambda + omega) / 
+        (lambda ^ 2 + lambda * omega + lambda + omega), 
+        ((lambda / (1 + lambda)) ^ x) * (1 - omega) / (lambda + omega))
+      },
+      "nontrunc" = {
+        (1 - omega) * stats::dnbinom(x = x, size = 1, mu = lambda) +
+        omega * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

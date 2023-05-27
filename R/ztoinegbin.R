@@ -627,7 +627,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
   
   devResids <- function (y, eta, wt, ...) {
     #TODO
-    # AAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa
     0
   }
   
@@ -662,16 +661,24 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     
-    ifelse(x == 1, 
-    omega + (1 - omega) * 
-    stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha) / (1 - P0), 
-    (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0))
+    switch (type,
+      "trunc" = {
+        (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - P0) + omega * as.numeric(x == 1)
+      },
+      "nontrunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) * 
+        (as.numeric(x == 0) + as.numeric(x > 0) * (1 - omega)) +
+        omega * (1 - P0) * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -698,48 +705,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     }
     sims
   }
-  
-  # getStart <- expression(
-  #   #TODO
-  #   start <- stats::glm.fit(
-  #     x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-  #     y = observed[wch$reg],
-  #     family = stats::poisson(),
-  #     weights = priorWeights[wch$reg],
-  #     ...
-  #   )$coefficients,
-  #   if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-  #   if (!is.null(controlMethod$alphaStart)) {
-  #     start <- c(start, controlMethod$alphaStart)
-  #   } else {
-  #     if (controlModel$alphaFormula == ~ 1) {
-  #       start <- c(start, family$links[[2]](abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
-  #     } else {
-  #       cc <- colnames(Xvlm)
-  #       cc <- cc[grepl(x = cc, pattern = "alpha$")]
-  #       cc <- unlist(strsplit(x = cc, ":alpha"))
-  #       cc <- sapply(cc, FUN = function(x) {
-  #         ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-  #       })
-  #       if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
-  #         start <- c(start, cc)
-  #       else
-  #         start <- c(start, -cc)
-  #     }
-  #   },
-  #   if (controlModel$omegaFormula == ~ 1) {
-  #     omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-  #     start <- c(start, family$links[[3]](omg / (1 - omg)))
-  #   } else {
-  #     cc <- colnames(Xvlm)
-  #     cc <- cc[grepl(x = cc, pattern = "omega$")]
-  #     cc <- unlist(strsplit(x = cc, ":omega"))
-  #     cc <- sapply(cc, FUN = function(x) {
-  #       ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-  #     })
-  #     start <- c(start, cc)
-  #   }
-  # )
   
   # new starting points
   

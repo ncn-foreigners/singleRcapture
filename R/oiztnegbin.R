@@ -92,7 +92,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8,
   }
   
   Wfun <- function(prior, eta, ...) {
-    #TODO
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)

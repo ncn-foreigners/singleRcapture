@@ -143,8 +143,16 @@ chao <- function(lambdaLink = "loghalf",
   }
 
   dFun <- function (x, eta, type = "trunc") {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta, inverse = TRUE)
-    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
+    
+    switch (type,
+      "trunc" = {
+        stats::dpois(x = x, lambda = lambda) / 
+        (1 - stats::dpois(x = 0, lambda = lambda))
+      },
+      "nontrunc" = stats::dpois(x = x, lambda = lambda)
+    )
   }
   
   getStart <- expression(

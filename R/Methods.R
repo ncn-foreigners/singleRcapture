@@ -1163,21 +1163,29 @@ print.singleR <- function(x, ...) {
 
 #' @method print singleRfamily
 #' @exportS3Method 
-print.singleRfamily <- function(x, ...) {
+print.singleRfamily <- function(x, hideFormulas = c(FALSE, TRUE), ...) {
   cat("Family of distributions:", x$family,
       "\nNames of parameters:", x$etaNames, 
       "\nLinks:", attr(x$links, "linkNames"), 
       sep = " ")
   if (!is.null(x$extraInfo)) {
-    cat("\n--\nFormula for mean in this distribution: ", x$extraInfo$mean,
-        "\nFormula for variance in this distribution: ", x$extraInfo$variance,
-        "\nFormula for population size estimation in this distribution: sum(", 
-        x$extraInfo$popSizeEst, ")",
-        sep = "")
     
-    cat("\n\nFormula for mean in truncated distribution: ", x$extraInfo$meanTr,
-        "\nFormula for variance in truncated distribution: ", x$extraInfo$varianceTr,
-        sep = "")
+    nn <- c("mean", "variance", "popSizeEst", "meanTr", "varianceTr")
+    if (any(xx <- is.na(x$extraInfo[nn])))
+      warning(cat("The: ", nn[is.na(xx)], sep = " ",
+                  "slots are empty for family: ", x$family))
+    
+    if (!hideFormulas[1])
+      cat("\n--\nFormula for mean in this distribution: ", x$extraInfo["mean"],
+          "\nFormula for variance in this distribution: ", x$extraInfo["variance"],
+          "\nFormula for population size estimation in this distribution: sum(", 
+          x$extraInfo["popSizeEst"], ")",
+          sep = "")
+    
+    if (!hideFormulas[2])
+      cat("\n\nFormula for mean in truncated distribution: ", x$extraInfo["meanTr"],
+          "\nFormula for variance in truncated distribution: ", x$extraInfo["varianceTr"],
+          sep = "")
   }
   invisible(x)
 }

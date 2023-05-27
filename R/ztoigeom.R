@@ -243,11 +243,22 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, omega + (1 - omega) / (1 + lambda), 
-    (1 - omega) * (lambda ^ (x - 1)) / ((1 + lambda) ^ x))
+    
+    switch (type,
+      "trunc" = {
+        (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1) / 
+        (1 - 1 / (1 + lambda)) + omega * as.numeric(x == 1)
+      },
+      "nontrunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1) * 
+        (as.numeric(x == 0) + as.numeric(x > 0) * (1 - omega)) +
+        omega * (1 - 1 / (1 + lambda)) * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

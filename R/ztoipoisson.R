@@ -264,11 +264,22 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, omega + (1 - omega) * lambda / (exp(lambda) - 1),
-    (1 - omega) * (lambda ^ x) / (factorial(x) * (exp(lambda) - 1)))
+    
+    switch (type,
+      "trunc" = {
+        (1 - omega) * (lambda ^ x) / (factorial(x) * (exp(lambda) - 1)) +
+        omega * as.numeric(x == 1)
+      },
+      "nontrunc" = {
+        stats::dpois(x = x, lambda = lambda) * 
+        (as.numeric(x == 0) + as.numeric(x > 0) * (1 - omega)) +
+        omega * (1 - exp(-lambda)) * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -292,33 +303,6 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     }
     sims
   }
-  
-  # getStart <- expression(
-  #   start <- stats::glm.fit(
-  #     x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-  #     y = observed[wch$reg],
-  #     family = stats::poisson(),
-  #     weights = priorWeights[wch$reg],
-  #     ...
-  #   )$coefficients,
-  #   if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-  #   if (is.null(controlMethod$omegaStart)) {
-  #     if (controlModel$omegaFormula == ~ 1) {
-  #       omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-  #       start <- c(start, family$links[[2]](omg))
-  #     } else {
-  #       cc <- colnames(Xvlm)
-  #       cc <- cc[grepl(x = cc, pattern = "omega$")]
-  #       cc <- unlist(strsplit(x = cc, ":omega"))
-  #       cc <- sapply(cc, FUN = function(x) {
-  #         ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-  #       })
-  #       start <- c(start, cc)
-  #     }
-  #   } else {
-  #     start <- c(start, controlMethod$omegaStart)
-  #   }
-  # )
   
   # new
   getStart <- expression(
@@ -359,7 +343,20 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
       family    = "ztoipoisson",
       etaNames  = c("lambda", "omega"),
       simulate  = simulate,
-      getStart  = getStart
+      getStart  = getStart,
+      extraInfo = c(
+        mean       = "omega * (1 - exp(-lambda)) + lambda * (1 - omega)",
+        variance   = paste0(
+          "omega * (1 - exp(-lambda))",
+          " + (1 - omega) * (lambda + lambda ^ 2) - mean ^ 2"
+        ),
+        popSizeEst = "(1 + exp(-lambda)) ^ -1",
+        meanTr     = "omega + (1 - omega) * lambda / (1 - exp(-lambda))",
+        varianceTr = paste0(
+          "omega + (1 - omega) * (lambda ^ 2 + lambda)",
+          " / (1 - exp(-lambda)) - meanTr ^ 2"
+        )
+      )
     ),
     class = c("singleRfamily", "family")
   )

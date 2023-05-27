@@ -212,10 +212,25 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, PI, (1 - PI) * (lambda ^ (x - 2)) / (1 + lambda) ^ (x - 1))
+    
+    switch (type,
+      "trunc" = {
+        as.numeric(x == 1) * PI + as.numeric(x > 0) * 
+        (1 - PI) * stats::dnbinom(x = x, mu = lambda, size = 1) / 
+        (1 - 1 / (1 + lambda) - lambda * ((1 + lambda) ^ -2))
+      },
+      "nontrunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1) / 
+        (1 - lambda * ((1 + lambda) ^ -2)) *
+        (as.numeric(x == 0) + as.numeric(x > 1) * (1 - PI)) + 
+        as.numeric(x == 1) * PI * (1 - (1 / (1 + lambda)) / 
+        (1 - lambda * ((1 + lambda) ^ -2)))
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

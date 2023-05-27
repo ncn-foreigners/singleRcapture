@@ -352,7 +352,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     # lambda <- exp(eta[, 1])
     # alpha <- exp(eta[, 2])
     
-    # I won't be able to do this before eurostat conference it has to be delayed
     # 
     # logLikFit <- (lgamma(y + 1/alpha) - lgamma(1/alpha) -
     # log(factorial(y)) - (y + 1/alpha) * log(1+alpha * lambda) +
@@ -360,7 +359,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     # lambda * ((1+alpha * lambda) ^ (-1-1/alpha))))
     # 
     # 
-    # # TODO:: alpha goes to 0 check if this is not analytic
     # yUnq <- unique(y) # see comments in zotpoisson
     # findL <- function(yNow) {
     #   root <- rootSolve::multiroot(
@@ -370,8 +368,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     #       l <- x[2]
     #       a <- x[3] # including constraints
     #       
-    #       # musi być gdzieś błąd w pochodnej tutaj
-    #       # może daj jakobian i będzie stabilniej
     #       # c(log(l-l*((1+a*l)^(-1-1/a)))-log(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))-log(yNow),#sder
     #       #   yNow/l-(1+a*yNow)/(1+a*l)+s/l+s*(1+a)*((1+a*l)^(-2-1/a))/(1-(1+a*l)^(-1-1/a))-(1+s)*l*(1+a)*((1+a*l)^(-2-1/a))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a))),#lambda der
     #       #   (digamma(1/a)-digamma(yNow+1/a))/(a^2)-l*(yNow+1/a)/(1+a*l)+log(1+a*l)/(a^2)+
@@ -435,13 +431,19 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     
-    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
-    (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - 
-    stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
+    switch (type,
+      "trunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - stats::dnbinom(x = 0, mu = lambda, size = 1 / alpha) - 
+        stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha))
+      },
+      "nontrunc" = stats::dnbinom(x = x, mu = lambda, size = 1 / alpha)
+    )
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {

@@ -145,9 +145,17 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     sims
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
+    
+    switch (type,
+      "trunc" = {
+        stats::dpois(x = x, lambda = lambda) / 
+        (1 - stats::dpois(x = 0, lambda = lambda))
+      },
+      "nontrunc" = stats::dpois(x = x, lambda = lambda)
+    )
   }
   
   getStart <- expression(
@@ -179,10 +187,10 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       etaNames  = c("lambda"),
       simulate  = simulate,
       getStart  = getStart,
-      extraInfo = list(
+      extraInfo = c(
         mean       = "lambda",
         variance   = "lambda",
-        popSizeEst = "(1+exp(-lambda)) ^ -1",
+        popSizeEst = "(1 + exp(-lambda)) ^ -1",
         meanTr     = "lambda / (1 - exp(-lambda))",
         varianceTr = 
           "(lambda / (1 - exp(-lambda))) * (1 + lambda - lambda / (1 - exp(-lambda)))"

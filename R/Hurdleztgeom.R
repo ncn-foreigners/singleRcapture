@@ -108,7 +108,6 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #print(weight[[x]])
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
       xx <- solve(weight[[x]]) # more stable
       xx %*% uMatrix[x, ]
@@ -216,7 +215,6 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   devResids <- function(y, eta, wt, ...) {
-    # TODO:: check
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     #idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed
@@ -259,11 +257,22 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, PI * (lambda ^ 2 + lambda + 1), 
-    (1 - PI) * (lambda ^ x) / ((1 + lambda) ^ (x - 1))) / (lambda ^ 2 + PI * (lambda + 1))
+    
+    switch (type,
+      "trunc" = {
+        ifelse(x == 1, PI * (lambda ^ 2 + lambda + 1), 
+        (1 - PI) * (lambda ^ x) / ((1 + lambda) ^ (x - 1))) / 
+        (lambda ^ 2 + PI * (lambda + 1))
+      },
+      "nontrunc" = {
+        ifelse(x == 1, PI, (1 - PI) * 
+        (lambda ^ x / (1 + lambda) ^ (x - 1)) / (lambda ^ 2 + lambda + 1))
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -330,7 +339,32 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
       family    = "Hurdleztgeom",
       etaNames = c("lambda", "pi"),
       simulate  = simulate,
-      getStart  = getStart
+      getStart  = getStart,
+      extraInfo = c(
+        mean       = paste0(
+          "PI + (1 - PI) * lambda * lambda * ",
+          "(2 + lambda) / (lambda ^ 2 + lambda + 1)"
+        ),
+        variance   = paste0(
+          "PI + (1 - PI) * lambda * lambda * ",
+          "\n(2 * lambda * lambda + 5 * lambda + 4) / (lambda ^ 2 + lambda + 1)",
+          " - mean ^ 2"
+        ),
+        popSizeEst = paste0(
+          "(lambda ^ 2 + lambda + 1) / ",
+          "(lambda ^ 2 + PI * (lambda + 1))"
+        ),
+        meanTr     = paste0(
+          "PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1)) + ",
+          "\n(1 - PI) * (2 + lambda) * lambda ^ 2 / (lambda ^ 2 + PI * (lambda + 1))"
+        ),
+        varianceTr = paste0(
+          "PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1)) +",
+          "\n(1 - PI) * lambda * lambda * (2 * lambda * lambda + 5 * lambda + 4)",
+          " / (lambda ^ 2 + PI * (lambda + 1))",
+          " - meanTr ^ 2"
+        )
+      )
     ),
     class = c("singleRfamily", "family")
   )

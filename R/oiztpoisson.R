@@ -287,12 +287,22 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, 
-           exp(lambda) * omega + (1 - omega) * lambda,
-           (1 - omega) * (lambda ^ x) / factorial(x)) / (exp(lambda) - 1 + omega)
+    
+    switch (type,
+      "trunc" = {
+        (omega * as.numeric(x == 1) +
+        (1 - omega) * stats::dpois(x = x, lambda = lambda)) / 
+        (1 - (1 - omega) * stats::dpois(x = 0, lambda = lambda))
+      },
+      "nontrunc" = {
+        (1 - omega) * stats::dpois(x = x, lambda = lambda) +
+        omega * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

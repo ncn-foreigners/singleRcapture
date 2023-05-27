@@ -39,8 +39,12 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
     switch(type,
-    "nontrunc" = PI + (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / (1 - lambda * exp(-lambda)),
-    "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+    "nontrunc" = PI + (1 - PI) * exp(-lambda) * lambda * 
+      (exp(lambda) * (1 + lambda) - 1) / (1 - lambda * exp(-lambda)),
+    "trunc" = PI * (1 - lambda * exp(-lambda)) / 
+      (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + 
+      (1 - PI) * exp(-lambda) * lambda * (exp(lambda) * (1 + lambda) - 1) / 
+      (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
     ) - (mu.eta(eta = eta, type = type) ^ 2)
   }
   
@@ -214,10 +218,21 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
         G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 +
                G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
         
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
-        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- t(t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]))
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- 
+          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- 
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% 
+          X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        
+        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- 
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01 * weight)) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        
+        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- 
+          t(t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01 * weight)) %*% 
+              as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]))
         
         res
       }
@@ -261,7 +276,9 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    N <- pw * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+    N <- pw * (1 - lambda * exp(-lambda)) / 
+      (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+    
     if(!contr) {
       N <- sum(N)
     }
@@ -288,12 +305,24 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    ifelse(x == 1, PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)),
-    (1 - PI) * (lambda ^ x) * exp(-lambda) / ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) * factorial(x)))
+    switch (type,
+      "trunc" = {
+        ifelse(x == 1, PI * (1 - lambda * exp(-lambda)) / 
+          (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)),
+          (1 - PI) * (lambda ^ x) * exp(-lambda) / 
+          ((1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) * factorial(x))
+        )
+      },
+      "nontrunc" = {
+        ifelse(x == 1, PI, (1 - PI) *
+        stats::dpois(x, lambda) / (1 - lambda * exp(-lambda)))
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -328,16 +357,14 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       ...
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (is.null(controlMethod$piStart)) {
+    {
       cc <- colnames(Xvlm)
       cc <- cc[grepl(x = cc, pattern = "pi$")]
       cc <- unlist(strsplit(x = cc, ":pi"))
       cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+        ifelse(x %in% names(start), start[x], 0)
       })
       start <- c(start, cc)
-    } else {
-      start <- c(start, controlMethod$piStart)
     }
   )
   
