@@ -3,7 +3,7 @@
 #' @importFrom stats dnbinom
 #' @importFrom rootSolve multiroot
 #' @export
-ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, 
+ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                        lambdaLink = c("log", "neglog"), 
                        alphaLink = c("log", "neglog"),
                        omegaLink = c("logit", "cloglog", "probit"), ...) {
@@ -78,14 +78,18 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
     res <- c(0, 0)
-    k <- 1 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    k <- 2 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    # but here we compute the (1 - z) * psi function which takes 0 at y = 1
     finished <- c(FALSE, FALSE)
     while ((k < nSim) & !all(finished)) {
-      k <- k + 1 # but here we compute the (1 - z) * psi function which takes 0 at y = 1
-      prob <- (1 - omega) * stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
-      if (!is.finite(prob)) {prob <- 0}
-      toAdd <- c( compdigamma(y = k, alpha = alpha),
-                 comptrigamma(y = k, alpha = alpha)) * prob
+      prob <- (1 - omega) * stats::dnbinom(x = k:(k + eimStep), 
+                                           size = 1 / alpha, 
+                                           mu = lambda) / (1 - P0)
+      if (any(!is.finite(prob))) {prob <- 0}
+      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha),
+                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
+      toAdd <- colSums(toAdd)
+      k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }

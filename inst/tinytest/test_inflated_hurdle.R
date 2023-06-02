@@ -56,6 +56,13 @@ expect_true(
   (N < popSizeEst(M1)$confidenceInterval[2, 2])
 )
 
+# test whether estimation of subpopulation sizes are 'good'
+expect_equivalent(
+  stratifyPopsize(M1, stratas = ~ X)$Estimated[c(4, 1:3)],
+  as.numeric(table(x1)),
+  tolerance = .15
+)
+
 # same with different link
 
 fn <- ztoipoisson(

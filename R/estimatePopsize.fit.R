@@ -232,6 +232,7 @@ estimatePopsize.fit <- function(y, X,
       }
     }
     
+    ## TODO
     giveError <- FALSE
     giveError <- tryCatch(
       expr = {

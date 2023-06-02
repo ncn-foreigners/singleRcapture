@@ -14,7 +14,7 @@ estimatePopsize(
   weights = NULL,
   subset = NULL,
   naAction = NULL,
-  method = c("optim", "IRLS", "maxLik"),
+  method = c("optim", "IRLS"),
   popVar = c("analytic", "bootstrap", "noEst"),
   controlMethod = NULL,
   controlModel = NULL,

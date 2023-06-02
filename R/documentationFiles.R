@@ -19,6 +19,12 @@ NULL
 #' @param alphaLink link for dispersion parameter, \code{"log"} by default
 #' @param omegaLink link for inflation parameter, \code{"logit"} by default 
 #' @param piLink link for probability parameter,  \code{"logit"} by default
+#' @param eimStep a non negative integer describing 
+#' how many values should be used at each step of approximation
+#' of information matrixes when no analytic solution is available 
+#' (e.g. \code{"ztnegbin"}), default varies depending on a function.
+#' Higher value usually means faster convergence but may potentially cause
+#' issues with convergence.
 #' @param ... Additional arguments, not used for now.
 #' 
 #' @details Most of these functions are based on some "base" distribution with

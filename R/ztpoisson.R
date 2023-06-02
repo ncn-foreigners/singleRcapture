@@ -107,9 +107,19 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
 
   devResids <- function(y, eta, wt, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
-    hm1y <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (y * log(lambda) - lambda - log(1 - exp(-lambda)) - y * ifelse(y > 1, log(hm1y), 0) + hm1y + ifelse(y > 1, log(1 - exp(-hm1y)), 0)))
+    idealLambda <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+    
+    logL <- y * log(lambda) - lambda - log(1 - exp(-lambda))
+    logSat <- y * ifelse(y > 1, log(idealLambda), 0) - idealLambda - ifelse(y > 1, log(1 - exp(-idealLambda)), 0)
+    
+    ### Here we take pairwise minimum because in specific situations
+    ### lambda and idealLambda are so close for some units that
+    ### their respective likelihoods differ only by machine epsilon
+    ### and rounding may cause warnings
+    
+    ### TLDR:: pmin must be here not because mathematical error, 
+    ### rather because of a rouding error
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, logL - logSat))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {

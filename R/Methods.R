@@ -804,6 +804,14 @@ stratifyPopsize.singleR <- function(object,
   if (missing(stratas)) {
     stratas <- names(which(attr(object$terms, "dataClasses") == "factor"))
     stratas <- stratas[stratas %in% attr(object$terms, "term.labels")]
+    if (!length(stratas)) {
+      stratas <- names(which(attr(object$terms, "dataClasses") == "character"))
+      stratas <- stratas[stratas %in% attr(object$terms, "term.labels")]
+    }
+  }
+  # If there are no factors or characters and no stratas was provided throw error
+  if (!length(stratas)) {
+    stop("No stratas argument was provided and no factors or character columns are present in model.frame.")
   }
   # if significance level is unspecified set it to 5%
   if (missing(alpha)) alpha <- .05
@@ -914,16 +922,16 @@ stratifyPopsize.singleR <- function(object,
         
         
         est[k] <- family$pointEst(pw = priorWeights[cond & object$which$est], 
-                                  eta = eta[cond1, ]) + trr
+                                  eta = eta[cond1, , drop = FALSE]) + trr
         stdErr[k] <- family$popVar(
           pw = priorWeights[cond & object$which$est], 
-          eta = eta[cond1, ], 
+          eta = eta[cond1, , drop = FALSE], 
           cov = cov, 
           Xvlm = subset(Xvlm, 
                         subset = cond & object$which$est)
         ) ^ .5
         cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
-        G <- exp(sc[k] * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
+        G <- exp(sc[k] * sqrt(log(1 + (stdErr[k] ^ 2) / ((est[k] - obs[k]) ^ 2))))
         cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
       } else {
         est[k] <- 0

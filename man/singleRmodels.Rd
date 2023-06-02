@@ -39,6 +39,7 @@ Hurdleztgeom(
 Hurdleztnegbin(
   nSim = 1000,
   epsSim = 1e-08,
+  eimStep = 6,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
   piLink = c("logit", "cloglog", "probit"),
@@ -60,6 +61,7 @@ oiztgeom(
 oiztnegbin(
   nSim = 1000,
   epsSim = 1e-08,
+  eimStep = 6,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
   omegaLink = c("logit", "cloglog", "probit"),
@@ -95,6 +97,7 @@ ztHurdlegeom(
 ztHurdlenegbin(
   nSim = 1000,
   epsSim = 1e-08,
+  eimStep = 6,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
   piLink = c("logit", "cloglog", "probit"),
@@ -112,6 +115,7 @@ ztgeom(lambdaLink = c("log", "neglog"), ...)
 ztnegbin(
   nSim = 1000,
   epsSim = 1e-08,
+  eimStep = 6,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
   ...
@@ -126,6 +130,7 @@ ztoigeom(
 ztoinegbin(
   nSim = 1000,
   epsSim = 1e-08,
+  eimStep = 6,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
   omegaLink = c("logit", "cloglog", "probit"),
@@ -152,6 +157,13 @@ by default except for logistic based models where only
 \item{nSim, epsSim}{if working weights cannot be computed analytically these
 arguments specify maximum number of simulations allowed and
 precision level for finding them numerically respectively.}
+
+\item{eimStep}{a non negative integer describing
+how many values should be used at each step of approximation
+of information matrixes when no analytic solution is available
+(e.g. \code{"ztnegbin"}), default varies depending on a function.
+Higher value usually means faster convergence but may potentially cause
+issues with convergence.}
 
 \item{alphaLink}{link for dispersion parameter, \code{"log"} by default}
 

@@ -432,7 +432,7 @@ estimatePopsize <- function(formula,
                              y = TRUE,
                              contrasts = NULL,
                              ...) {
-  if (missing(method)) method <- "optim"
+  if (missing(method)) method <- "IRLS"
   if (missing(popVar)) popVar <- "analytic"
   
   subset <- parse(text = deparse(substitute(subset)))

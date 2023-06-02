@@ -3,7 +3,7 @@
 #' @importFrom stats dnbinom
 #' @importFrom rootSolve multiroot
 #' @export
-ztnegbin <- function(nSim = 1000, epsSim = 1e-8, 
+ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                      lambdaLink = c("log", "neglog"), 
                      alphaLink = c("log", "neglog"),
                      ...) {
@@ -65,13 +65,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
     alpha  <-  alphaLink(eta[2], inverse = TRUE)
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     res <- res1 <- 0
-    k <- 0
+    k <- 1
     finished <- c(FALSE, FALSE)
     while ((k < nSim) & !all(finished)) {
-      k <- k + 1 # 1 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
-      if (!is.finite(prob)) prob <- 0
-      toAdd <- c(compdigamma(y = k, alpha = alpha), comptrigamma(y = k, alpha = alpha)) * prob
+      prob <- stats::dnbinom(x = k:(k + eimStep), size = 1 / alpha, mu = lambda) / (1 - P0)
+      if (any(!is.finite(prob))) prob <- 0
+      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha), 
+                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
+      toAdd <- colSums(toAdd)
+      k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }

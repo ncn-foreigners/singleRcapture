@@ -987,3 +987,45 @@ expect_equivalent(
   data.frame(6611.906, 18768.8),
   tolerance = .05
 )
+
+### testing stratas
+
+df <- data.frame(
+  y = 1:6,
+  x = runif(6)
+)
+
+AA <- estimatePopsize(
+  formula = y ~ x,
+  data = df,
+  model = "ztpoisson",
+  method = "IRLS"
+)
+
+expect_error(
+  stratifyPopsize(AA)
+)
+
+df <- data.frame(
+  y = 1:6,
+  x = c("a", "a", "a", "b", "b", "b")
+)
+
+AA <- estimatePopsize(
+  formula = y ~ x,
+  data = df,
+  model = "ztpoisson",
+  method = "IRLS"
+)
+
+expect_silent(
+  stratifyPopsize(AA)
+)
+
+expect_silent(
+  stratifyPopsize(Model)
+)
+
+expect_silent(
+  stratifyPopsize(Model3)
+)
