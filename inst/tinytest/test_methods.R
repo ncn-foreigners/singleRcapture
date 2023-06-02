@@ -1029,3 +1029,11 @@ expect_silent(
 expect_silent(
   stratifyPopsize(Model3)
 )
+
+expect_silent(
+  summary(marginalFreq(Model3), df = 1, dropl5 = "group")
+)
+
+expect_true(
+  all(summary(marginalFreq(Model3), df = 1, dropl5 = "group")$Test$`P(>X^2)` < .001)
+)

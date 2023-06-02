@@ -161,7 +161,7 @@ predict.singleR <- function(object,
                             ...) {
   type <- match.arg(type)
 
-  if (missing(newdata)) {
+  if (missing(newdata) | is.null(newdata)) {
     res <- switch (type,
       response = as.data.frame(
         lapply(1:length(family(object)$etaNames), FUN = function(x) {
@@ -175,6 +175,8 @@ predict.singleR <- function(object,
   } else {
     #TODO
   }
+  
+  res
 }
 
 #' @title Updating population size estimation results.
@@ -231,6 +233,9 @@ popSizeEst <- function(object, ...) {
 #'
 #' @param object an object on which the population size estimates should be based
 #' in \code{singleRcapture} package this is a fitter \code{singleR} class object.
+#' @param newData a new data frame for which sizes of sub populations are to
+#' be estimated. If none provided \code{stratifyPopsize} acts on 
+#' \code{model.frame} from \code{object}.
 #' @param stratas a specification of sub populations either by:
 #' \itemize{
 #' \item formula -- a formula to be applied to \code{model.frame} extracted from
@@ -289,7 +294,7 @@ popSizeEst <- function(object, ...) {
 #' @return A \code{data.frame} object with row names being the names of specified 
 #' sub populations either provided or inferred.
 #' @export
-stratifyPopsize <- function(object, stratas, alpha, ...) {
+stratifyPopsize <- function(object, newData, stratas, alpha, ...) {
   UseMethod("stratifyPopsize")
 }
 
@@ -797,9 +802,14 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @importFrom stats contrasts
 #' @exportS3Method
 stratifyPopsize.singleR <- function(object, 
-                                    stratas, 
+                                    stratas,
+                                    newData = NULL, 
                                     alpha, 
-                                    cov = NULL, ...) {
+                                    cov = NULL, 
+                                    ...) {
+  if (!is.null(newData))
+    stop("TODO")
+  
   # if stratas is unspecified get all levels of factors in modelFrame
   if (missing(stratas)) {
     stratas <- names(which(attr(object$terms, "dataClasses") == "factor"))
@@ -848,11 +858,14 @@ stratifyPopsize.singleR <- function(object,
   } else if (is.list(stratas)) {
     if (!all(sapply(stratas, is.logical)))
       stop("Invalid way of specifying subpopulations in stratas. If stratas argument is a list ")
+    
     if (length(stratas[[1]]) != object$sizeObserved) 
       stop("Elements of stratas object should have length equal to number of observed units.")
+    
   } else if (is.logical(stratas)) {
     if (length(stratas) != object$sizeObserved) 
       stop("Stratas object should have length equal to number of observed units.")
+    
     stratas <- list(strata = stratas)
   } else if (is.character(stratas)) {
     modelFrame <- model.frame(object)
@@ -860,8 +873,9 @@ stratifyPopsize.singleR <- function(object,
     for (k in stratas) {
       if (!(k %in% colnames(modelFrame))) 
         stop("Variable specified in stratas is not present in model frame.")
-      if (!(is.factor(modelFrame[, k])) & !(is.character(modelFrame[, k]))) 
-        stop("Variable specified in stratas is not a factor or a character vector.")
+      
+      #if (!(is.factor(modelFrame[, k])) & !(is.character(modelFrame[, k]))) 
+      #  stop("Variable specified in stratas is not a factor or a character vector.")
 
       if (is.factor(modelFrame[, k])) {
         # this makes a difference on factor that is not present
@@ -885,7 +899,7 @@ stratifyPopsize.singleR <- function(object,
       "(1) - a list with logical vectors specifying different sub populations\n",
       "(2) - a single logical vector\n",
       "(3) - a formula\n",
-      "(4) - a vector with names of factor variables\n"
+      "(4) - a vector with names of variables by which stratas will be created\n"
     )
     stop(errorMessage)
   }
@@ -946,10 +960,10 @@ stratifyPopsize.singleR <- function(object,
       obs[k] <- sum(cond)
       if (obs[k] > 0) {
         est[k] <- family$pointEst(pw = priorWeights[cond], 
-                                  eta = subset(eta, subset = cond))
+                                  eta = eta[cond, , drop = FALSE])
         stdErr[k] <- family$popVar(
           pw = priorWeights[cond], 
-          eta = subset(eta, subset = cond), 
+          eta = eta[cond, , drop = FALSE], 
           cov = cov, 
           Xvlm = subset(Xvlm, subset = rep(cond, length(family$etaNames)))
         ) ^ .5
