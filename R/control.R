@@ -232,15 +232,16 @@ controlPopVar <- function(alpha = .05,
                           keepbootStat = TRUE,
                           traceBootstrapSize = FALSE,
                           bootstrapVisualTrace = FALSE,
-                          fittingMethod = NULL,
+                          fittingMethod = c("optim", "IRLS"),
                           bootstrapFitcontrol = NULL,
                           sd = c("sqrtVar", "normalMVUE"),
                           covType = c("observedInform", "Fisher")) {
   
-  if(missing(bootType)) bootType <- "parametric"
-  if(missing(confType)) confType <- "percentilic"
-  if (missing(covType)) covType <- "observedInform"
-  if(missing(sd))       sd <- "sqrtVar"
+  if (missing(fittingMethod)) fittingMethod <- "IRLS"
+  if (missing(bootType)) bootType <- "parametric"
+  if (missing(confType)) confType <- "percentilic"
+  if (missing(covType))  covType <- "observedInform"
+  if (missing(sd))       sd <- "sqrtVar"
   
   # I'm using !isTRUE instead of isFALSE because I don't wan't nulls to pass the tests
   if (!isTRUE(is.finite(alpha)) || isTRUE(0 > alpha || 1 < alpha) || isTRUE(length(alpha) > 1))

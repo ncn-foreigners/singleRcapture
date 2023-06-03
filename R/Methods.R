@@ -145,7 +145,7 @@ summary.singleR <- function(object,
 #' @param object a
 #' @param newdata a
 #' @param type a
-#' @param stdErr a
+#' @param se.fit a
 #' @param na.action a
 #' @param ... a
 #'
@@ -155,25 +155,188 @@ summary.singleR <- function(object,
 #' @exportS3Method
 predict.singleR <- function(object,
                             newdata,
-                            type = c("response", "link", "mean", "popSize"),
-                            stdErr = FALSE,
+                            type = c("response", "link", 
+                                     "mean", "popSize", 
+                                     "contr"),
+                            se.fit = FALSE,
                             na.action = NULL,
+                            weights,
                             ...) {
   type <- match.arg(type)
+  if (missing(weights)) {
+    if (missing(newdata)) {
+      weights <- object$priorWeights
+    } else {
+      weights <- rep(1, NROW(newdata))
+    }
+  }
 
-  if (missing(newdata) | is.null(newdata)) {
+  if (missing(newdata)) {
     res <- switch (type,
       response = as.data.frame(
         lapply(1:length(family(object)$etaNames), FUN = function(x) {
-          family(object)$links[[x]](object$linearPredictors[, x],
-                                    inverse = TRUE)
+          family(object)$links[[x]](
+            object$linearPredictors[, x],
+            inverse = TRUE
+          )
       }), col.names = family(object)$etaNames),
       link     = object$linearPredictors,
       mean     = fitted(object, "all"),
-      popSize  = popSizeEst(object, ...)
+      popSize  = popSizeEst(object, ...),
+      contr    = family(object)$pointEst(
+        pw     = weights[object$which$est],
+        eta    = object$linearPredictors[object$which$est, , drop = FALSE],
+        contr  = TRUE
+      )
     )
+    
+    if (isTRUE(se.fit)) {
+      Xvlm <- model.matrix(
+        object, type = "vlm"
+      )
+      
+      cov <- vcov(object, ...)
+      
+      se <- matrix(
+        sapply(1:NROW(Xvlm), function(x) {
+          (t(Xvlm[x,]) %*% cov %*% Xvlm[x,]) ^ .5
+        }),
+        ncol = length(family(object)$etaNames),
+        dimnames = list(
+          rownames(object$linearPredictors),
+          paste0("se:", family(object)$etaNames)
+        )
+      )
+      
+      if (type == "link") 
+        res <- cbind(res,se)
+      
+      
+      if (type == "response") {
+        se <- matrix(
+          sapply(
+            1:length(family(object)$etaNames),
+            function (x) {
+              se[, x, drop = FALSE] *
+                abs(family(object)$links[[x]](
+                  object$linearPredictors[, x],
+                  inverse = TRUE,
+                  deriv = 1
+                ))
+            }
+          ),
+          ncol = length(family(object)$etaNames),
+          dimnames = dimnames(se)
+        )
+        res <- cbind(res,se)
+      }
+      
+      ### TODO:: add derivatives to mu.eta() and do means the same way
+      ### but for multivariate eta
+      
+      if (type == "mean") {
+        warning("Standard errors are not yet available for means.")
+      }
+    }
+    
   } else {
-    #TODO
+    mf <- model.frame(
+      object, data = newdata
+    )
+    
+    Xvlm <- model.matrix(
+      object, type = "vlm", data = newdata
+    )
+    
+    eta <- matrix(
+      as.matrix(Xvlm) %*% coef(object), 
+      ncol = length(family(object)$etaNames),
+      dimnames = list(
+        rownames(Xvlm),
+        family(object)$etaNames
+      )
+    )
+    
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(
+      family = family(object), 
+      observed = model.response(mf), 
+      popVar = "analytic"
+    )
+    
+    res <- switch (type,
+      response = as.data.frame(
+        lapply(1:length(family(object)$etaNames), FUN = function(x) {
+        family(object)$links[[x]](
+          eta[, x],
+          inverse = TRUE
+        )
+      }), col.names = family(object)$etaNames),
+      link = eta,
+      mean = data.frame(
+        "truncated"    = family$mu.eta(eta = eta),
+        "nontruncated" = family$mu.eta(eta = eta, type = "nontrunc")
+      ),
+      popSize = redoPopEstimation(
+        object = object, newdata = newdata, ...
+      ),
+      contr = family(object)$pointEst(
+        pw    = weights[wch$est],
+        eta   = eta[wch$est, , drop = FALSE],
+        contr = TRUE
+      )
+    )
+    
+    if (isTRUE(se.fit)) {
+      cov <- vcov(object, ...)
+      
+      #### beta is asymptotically normal and each eta is just a linear
+      #### combination of beta so it is also asymptotically normal
+      #### and its variance is computed by quadratic form
+      
+      se <- matrix(
+        sapply(1:NROW(Xvlm), function(x) {
+          (t(Xvlm[x,]) %*% cov %*% Xvlm[x,]) ^ .5
+        }),
+        ncol = length(family(object)$etaNames),
+        dimnames = list(
+          rownames(eta),
+          paste0("se:", family(object)$etaNames)
+        )
+      )
+      
+      if (type == "link") 
+        res <- cbind(res,se)
+      
+      ## since beta is asymptotically normal we use delta metod for
+      ## geting standard errors of invlink(eta)
+      
+      if (type == "response") {
+        se <- matrix(
+          sapply(
+            1:length(family(object)$etaNames),
+            function (x) {
+              se[, x, drop = FALSE] *
+              abs(family(object)$links[[x]](
+                eta[, x],
+                inverse = TRUE,
+                deriv = 1
+              ))
+            }
+          ),
+          ncol = length(family(object)$etaNames),
+          dimnames = dimnames(se)
+        )
+        res <- cbind(res,se)
+      }
+      
+      ### TODO:: add derivatives to mu.eta() and do means the same way
+      ### but for multivariate eta
+      
+      if (type == "mean") {
+        warning("Standard errors are not yet available for means.")
+      }
+    }
+    
   }
   
   res
@@ -186,6 +349,7 @@ predict.singleR <- function(object,
 #' reduction) to population size estimation and standard error estimation.
 #' 
 #' @param object object for which update of population size estimation results will be done.
+#' @param newdata optional \code{data.frame} with new data for pop size estimation.
 #' @param cov an updated covariance matrix estimate.
 #' @param ... additional optional arguments, currently not used in \code{singleR} class method.
 #'
@@ -208,7 +372,7 @@ predict.singleR <- function(object,
 #' # Compare to results with usual covariance matrix estimation
 #' summary(Model)
 #' @export
-redoPopEstimation <- function(object, ...) {
+redoPopEstimation <- function(object, newdata, ...) {
   UseMethod("redoPopEstimation")
 }
 
@@ -233,7 +397,7 @@ popSizeEst <- function(object, ...) {
 #'
 #' @param object an object on which the population size estimates should be based
 #' in \code{singleRcapture} package this is a fitter \code{singleR} class object.
-#' @param newData a new data frame for which sizes of sub populations are to
+#' @param newdata a new data frame for which sizes of sub populations are to
 #' be estimated. If none provided \code{stratifyPopsize} acts on 
 #' \code{model.frame} from \code{object}.
 #' @param stratas a specification of sub populations either by:
@@ -294,7 +458,7 @@ popSizeEst <- function(object, ...) {
 #' @return A \code{data.frame} object with row names being the names of specified 
 #' sub populations either provided or inferred.
 #' @export
-stratifyPopsize <- function(object, newData, stratas, alpha, ...) {
+stratifyPopsize <- function(object, stratas, alpha, newdata, ...) {
   UseMethod("stratifyPopsize")
 }
 
@@ -654,22 +818,20 @@ logLik.singleR <- function(object, ...) {
 #' @exportS3Method 
 model.frame.singleR <- function(formula, ...) {
   dots <- list(...)
-  nargs <- dots[match(c("data", "na.action", "subset"), 
-                      names(dots), 
-                      0L)]
-  if (length(nargs) || is.null(formula$modelFrame)) {
+  dotargs <- dots[match(c("data", "na.action", "subset"), names(dots), 0L)]
+  
+  if (length(dotargs) || is.null(formula$modelFrame)) {
     # fcall <- formula$call
     # fcall$method <- "model.frame"
     # fcall[[1L]] <- quote(stats::glm)
     # fcall[names(nargs)] <- nargs
     # env <- environment(formula$terms)
     # eval(fcall, env)
-    # TODO:: low priority add subset and na action here
+    # TODO:: low priority add na action and subset here
     combinedFromula <- singleRinternalMergeFormulas(formula$formula)
     stats::model.frame(
       combinedFromula,
-      data = if (is.null(nargs$data)) eval(formula$call$data) else nargs$data,
-      ...
+      data = if (is.null(dotargs$data)) eval(formula$call$data) else dotargs$data
     )
   }
   else formula$modelFrame
@@ -703,45 +865,78 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
 #' @method redoPopEstimation singleR
 #' @rdname redoPopEstimation
 #' @exportS3Method
-redoPopEstimation.singleR <- function(object, cov = NULL, ...) {
-  Xvlm <- model.matrix(object, "vlm")
+redoPopEstimation.singleR <- function(object, 
+                                      newdata, 
+                                      cov = NULL, 
+                                      weights,
+                                      coef,
+                                      control,
+                                      popVar, 
+                                      ...) {
   if (is.character(cov)) {
     cov <- get(cov, mode = "function", envir = parent.frame())
   }
   if (is.function(cov)) {
     cov <- cov(object, ...)
   }
-  singleRcaptureinternalpopulationEstimate(
-    y = object$y[object$which$reg],
-    formulas = object$formula,
-    X = model.matrix(object),
-    grad = object$model$makeMinusLogLike(y = object$y[object$which$reg], 
-                                         X = Xvlm, 
-                                         weight = object$priorWeights, 
-                                         deriv = 1),
-    hessian = object$model$makeMinusLogLike(y = object$y[object$which$reg], 
-                                            X = Xvlm, 
-                                            weight = object$priorWeights, 
-                                            deriv = 2),
-    popVar = if (is.null(object$call$popVar)) 
-              "analytic" 
-            else 
-              object$call$popVar,
-    weights = object$priorWeights[object$which$reg],
-    eta = object$linearPredictors,
-    family = object$model,
-    beta = object$coefficients,
-    control = object$populationSize$control,
-    Xvlm = Xvlm,
-    W = if (isTRUE(object$call$method == "IRLS")) 
-          object$weights 
-        else 
-          object$model$Wfun(prior = object$priorWeights, 
-                            eta = object$linearPredictors),
-    sizeObserved = object$sizeObserved,
-    modelFrame = model.frame.singleR(object, ...),
-    cov = cov
-  )
+  if (missing(newdata)) {
+    Xvlm <- model.matrix(object, "vlm")
+    
+    pw <- if (missing(weights)) 
+      object$priorWeights[object$which$reg]
+    else weights[object$which$reg]
+    
+    etaNew <- if (missing(coef))
+      object$linearPredictors
+    else matrix(as.matrix(Xvlm) %*% coef, ncol = length(family(object)$etaNames))
+    
+    if (missing(control))
+      control <- object$populationSize$control
+    
+    if (is.null(control$bootstrapFitcontrol)) {
+      control$bootstrapFitcontrol <- object$control$controlMethod
+    }
+    
+    singleRcaptureinternalpopulationEstimate(
+      y = object$y[object$which$reg],
+      formulas = object$formula,
+      X = model.matrix(object),
+      grad = object$model$makeMinusLogLike(
+        y = object$y[object$which$reg], 
+        X = Xvlm, 
+        weight = pw, 
+        deriv = 1
+      ),
+      hessian = object$model$makeMinusLogLike(
+        y = object$y[object$which$reg], 
+        X = Xvlm, 
+        weight = pw, 
+        deriv = 2
+      ),
+      popVar = if (missing(popVar)) 
+        "analytic" 
+      else popVar,
+      weights = pw,
+      eta = etaNew,
+      family = family(object),
+      beta = if (missing(coef))
+        object$coefficients
+      else coef,
+      control = if (missing(control))
+        object$populationSize$control
+      else control,
+      Xvlm = Xvlm,
+      W = if (isTRUE(object$call$method == "IRLS")) 
+            object$weights 
+          else 
+            family(object)$Wfun(prior = pw, eta = etaNew),
+      sizeObserved = nobs(Model),
+      modelFrame = model.frame(object, ...),
+      cov = cov
+    )
+  } else {
+    
+  }
 }
 #' @method dfpopsize singleR
 #' @rdname regDiagSingleR
@@ -803,12 +998,10 @@ dfpopsize.singleR <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
 #' @exportS3Method
 stratifyPopsize.singleR <- function(object, 
                                     stratas,
-                                    newData = NULL, 
                                     alpha, 
-                                    cov = NULL, 
+                                    newdata, 
+                                    cov = NULL,
                                     ...) {
-  if (!is.null(newData))
-    stop("TODO")
   
   # if stratas is unspecified get all levels of factors in modelFrame
   if (missing(stratas)) {
@@ -818,11 +1011,11 @@ stratifyPopsize.singleR <- function(object,
       stratas <- names(which(attr(object$terms, "dataClasses") == "character"))
       stratas <- stratas[stratas %in% attr(object$terms, "term.labels")]
     }
+    if (!length(stratas)) {
+      stop("No stratas argument was provided and no factors or character columns are present in model.frame.")
+    }
   }
   # If there are no factors or characters and no stratas was provided throw error
-  if (!length(stratas)) {
-    stop("No stratas argument was provided and no factors or character columns are present in model.frame.")
-  }
   # if significance level is unspecified set it to 5%
   if (missing(alpha)) alpha <- .05
   

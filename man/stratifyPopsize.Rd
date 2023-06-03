@@ -5,9 +5,9 @@
 \alias{stratifyPopsize.singleR}
 \title{Estimate size of sub populations.}
 \usage{
-stratifyPopsize(object, stratas, alpha, ...)
+stratifyPopsize(object, stratas, alpha, newData, ...)
 
-\method{stratifyPopsize}{singleR}(object, stratas, alpha, cov = NULL, ...)
+\method{stratifyPopsize}{singleR}(object, stratas, alpha, newData, cov = NULL, ...)
 }
 \arguments{
 \item{object}{an object on which the population size estimates should be based
@@ -33,6 +33,10 @@ in \code{model.frame}.
 Either a single numeric value or a vector of length equal to number of
 sub populations specified in \code{stratas}.
 If missing it is set to \code{.05} in \code{singleR} method.}
+
+\item{newData}{a new data frame for which sizes of sub populations are to
+be estimated. If none provided \code{stratifyPopsize} acts on
+\code{model.frame} from \code{object}.}
 
 \item{...}{a vector of arguments to be passed to other functions.
 For \code{singleR} method for this functions arguments in \code{...} are

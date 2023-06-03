@@ -642,7 +642,7 @@ estimatePopsize <- function(formula,
     POP <- singleRcaptureinternalpopulationEstimate(
       y = observed[wch$est],
       formulas = formulas,
-      X = variables[wch$est, ],
+      X = variables[wch$est, , drop = FALSE],
       grad = grad,
       hessian = hessian,
       popVar = popVar,
