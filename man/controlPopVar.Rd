@@ -13,7 +13,7 @@ controlPopVar(
   keepbootStat = TRUE,
   traceBootstrapSize = FALSE,
   bootstrapVisualTrace = FALSE,
-  fittingMethod = NULL,
+  fittingMethod = c("optim", "IRLS"),
   bootstrapFitcontrol = NULL,
   sd = c("sqrtVar", "normalMVUE"),
   covType = c("observedInform", "Fisher")

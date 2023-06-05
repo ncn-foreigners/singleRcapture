@@ -23,18 +23,43 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
   
   links[1:2] <- c(lambdaLink, omegaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-    "nontrunc" = omega * (1 - exp(-lambda)) + lambda * (1 - omega),
-    "trunc" = omega + (1 - omega) * lambda / (1 - exp(-lambda))
-    )
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = omega * (1 - exp(-lambda)) + lambda * (1 - omega),
+        "trunc" = omega + (1 - omega) * lambda / (1 - exp(-lambda))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            1 + omega * exp(-lambda) - omega,
+            1 - lambda - exp(-lambda)
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - omega) * exp(lambda) * (exp(lambda) - lambda - 1) /
+            (exp(lambda) - 1) ^ 2,
+            1 - lambda / (1 - exp(-lambda))
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    
     switch (type,
     "nontrunc" = omega * (1 - exp(-lambda)) + (1 - omega) * (lambda + lambda ^ 2),
     "trunc" = omega + (1 - omega) * (lambda ^ 2 + lambda) / (1 - exp(-lambda))

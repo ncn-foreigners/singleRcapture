@@ -23,13 +23,44 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
   
   links[1:2] <- c(lambdaLink, piLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-    "nontrunc" = PI + (1 - PI) * lambda * lambda * (2 + lambda) / (lambda ^ 2 + lambda + 1),
-    "trunc" = PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1)) + (1 - PI) * (2 + lambda) * lambda ^ 2 / (lambda ^ 2 + PI * (lambda + 1))
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = PI + (1 - PI) * lambda * lambda * (2 + lambda) / 
+          (lambda ^ 2 + lambda + 1),
+        "trunc" = PI * (lambda ^ 2 + lambda + 1) / 
+          (lambda ^ 2 + PI * (lambda + 1)) + 
+          (1 - PI) * (2 + lambda) * lambda ^ 2 / (lambda ^ 2 + PI * (lambda + 1))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            (1 - PI) * lambda * (lambda ^ 3 + 2 * lambda ^ 2 + 5 * lambda + 4) /
+            (lambda ^ 2 + lambda + 1) ^ 2,
+            1 - (lambda ^ 2 * (lambda + 2)) / (lambda ^ 2 + lambda + 1)
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                piLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - PI) * lambda * 
+            (lambda ^ 3 + 2 * PI * lambda ^ 2 + 4 * PI * lambda + 2 * PI) /
+            (lambda ^ 2 + PI * lambda + PI) ^ 2,
+            -lambda ^ 2 * (lambda + 1) * (lambda ^ 2 + lambda + 1) /
+            ((lambda + 1) * PI + lambda ^ 2) ^ 2
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                piLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {

@@ -34,18 +34,68 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   links[1:3] <- c(lambdaLink, alphaLink, piLink)
   
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    normTerm <- 1 - (1 - PI) * P0 - P1
     
-    switch (type,
-      nontrunc = PI + (1 - PI) * (lambda - P1) / (1 - P1),
-      trunc = (PI - P1 + (1 - PI) * lambda) / normTerm
-    )
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = PI + (1 - PI) * 
+        (lambda - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) / 
+        (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)),
+        "trunc" = (PI - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1) + 
+        (1 - PI) * lambda) / (1 - (1 - PI) * (1 + alpha * lambda) ^ (-1 / alpha) - 
+        lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            (1 - PI) * (alpha * lambda + 1) ^ (1 / alpha) * 
+            ((alpha * lambda + 1) ^ (1 / alpha) * (alpha ^ 2 * lambda ^ 2 + 2 * alpha * lambda + 1) +
+            (-alpha - 1) * lambda ^ 2 + lambda - 1) /
+            ((alpha * lambda + 1) ^ (1 / alpha + 1) - lambda) ^ 2,
+            (1 - PI) * (lambda - 1) * lambda * (lambda * alpha + 1) ^ (1 / alpha) *
+            ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha ^ 2 - lambda * alpha) /
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) - lambda) ^ 2),
+            1 - (lambda - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1)) /
+            (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1))
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+                piLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - PI) * ((alpha * lambda + 1) ^ (1 / alpha) * 
+            (((PI - 1) * alpha ^ 2 + (PI - 2) * alpha - 1) * lambda ^ 2 +
+            ((PI - 2) * alpha + PI) * lambda - 2) + (alpha * lambda + 1) ^ (2 / alpha) *
+            (alpha ^ 2 * lambda ^ 2 + 2 * alpha * lambda + 1) + 1) /
+            ((alpha * lambda + 1) ^ (1 / alpha + 1) + ((PI - 1) * alpha - 1) * lambda + PI - 1) ^ 2,
+            (PI - 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
+            (((PI - 1) * lambda ^ 3 - PI * lambda ^ 2) * alpha ^ 2 +
+            (-lambda ^ 3 + (2 * PI - 1) * lambda ^ 2 - 2 * PI * lambda) * alpha -
+            lambda ^ 2 + PI * lambda - PI) * log(lambda * alpha + 1) +
+            (lambda * alpha + 1) ^ (1 / alpha) * 
+            (((2 - PI) * lambda ^ 3 + (PI - 1) * lambda ^ 2) * alpha ^ 2 +
+            (lambda ^ 3 - PI * lambda ^ 2 + PI * lambda) * alpha) + lambda ^ 2 * alpha ^ 2) /
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) + 
+            (PI - 1) * lambda * alpha - lambda + PI - 1) ^ 2),
+            -(alpha * lambda + 1) * ((alpha * lambda + 1) ^ (2 / alpha) *
+            (alpha * lambda ^ 2 + (1 - alpha) * lambda - 1) + 
+            (alpha * lambda + 1) ^ (1 / alpha) * (-lambda ^ 2 + (alpha + 1) * lambda + 1) - lambda) /
+            ((alpha * lambda + 1) * PI + (alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+                piLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {

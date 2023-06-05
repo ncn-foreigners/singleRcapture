@@ -15,12 +15,21 @@ zelterman <- function(lambdaLink = "loghalf",
   
   links[1] <- c(lambdaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta, inverse = TRUE)
-    switch (type,
-    "nontrunc" = lambda,
-    "trunc" = (lambda / 2) / (1 + lambda / 2)
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = lambda,
+        "trunc" = (lambda / 2) / (1 + lambda / 2)
+      )
+    } else {
+      switch (type,
+        "nontrunc" = 1 * lambdaLink(eta, inverse = TRUE, deriv = 1),
+        "trunc" = (2 / (lambda + 2) ^ 2) *
+        lambdaLink(eta, inverse = TRUE, deriv = 1)
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {

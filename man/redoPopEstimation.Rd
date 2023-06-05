@@ -5,12 +5,23 @@
 \alias{redoPopEstimation.singleR}
 \title{Updating population size estimation results.}
 \usage{
-redoPopEstimation(object, ...)
+redoPopEstimation(object, newdata, ...)
 
-\method{redoPopEstimation}{singleR}(object, cov = NULL, ...)
+\method{redoPopEstimation}{singleR}(
+  object,
+  newdata,
+  cov = NULL,
+  weights,
+  coef,
+  control,
+  popVar,
+  ...
+)
 }
 \arguments{
 \item{object}{object for which update of population size estimation results will be done.}
+
+\item{newdata}{optional \code{data.frame} with new data for pop size estimation.}
 
 \item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
 

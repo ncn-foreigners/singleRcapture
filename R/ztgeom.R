@@ -14,12 +14,21 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   
   links[1] <- c(lambdaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-      "nontrunc" = lambda,
-      "trunc"    = 1 + lambda
-    )
+    
+    if (!deriv) {
+      switch (
+        type,
+        "nontrunc" = lambda,
+        "trunc" = 1 + lambda
+      )
+    } else {
+      switch (type,
+        "nontrunc" = lambdaLink(eta, inverse = TRUE, deriv = 1),
+        "trunc" = lambdaLink(eta, inverse = TRUE, deriv = 1)
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {

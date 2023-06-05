@@ -33,14 +33,50 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   links[1:3] <- c(lambdaLink, alphaLink, omegaLink)
   
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
-    switch (type,
-      nontrunc = omega * (1 - (1 + alpha * lambda) ^ (-1 / alpha)) + (1 - omega) * lambda,
-      trunc = omega + (1 - omega) * lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = omega * (1 - (1 + alpha * lambda) ^ (-1 / alpha)) + (1 - omega) * lambda,
+        "trunc" = omega + (1 - omega) * lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      )
+    } else {
+      switch (
+        type,
+        "nontrunc" = {
+          matrix(c(
+            1 + omega * (alpha * lambda + 1) ^ (-1 / alpha - 1) - omega,
+            -omega * (log(lambda * alpha + 1) / alpha ^ 2 -
+            lambda / (alpha * (lambda * alpha + 1))) / 
+            (lambda * alpha + 1) ^ (1 / alpha),
+            1 - lambda - 1 / (alpha * lambda + 1) ^ (1 / alpha)
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - omega) * (alpha * lambda + 1) ^ (1 / alpha - 1) *
+            ((alpha * lambda + 1) ^ (1 / alpha + 1) +
+            (-alpha - 1) * lambda - 1) / 
+            ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2,
+            (1 - omega) * lambda * (lambda * alpha + 1) ^ (1 / alpha - 1) *
+            ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha) /
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2),
+            -lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {

@@ -23,15 +23,41 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
   
   links[1:2] <- c(lambdaLink, piLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    switch (type,
-    "nontrunc" = PI + (1 - PI) * exp(-lambda) * (lambda * exp(lambda) - lambda) / (1 - lambda * exp(-lambda)),
-    "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + 
-      (1 - PI) * lambda * (exp(lambda) - 1) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
-    )
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = PI + (1 - PI) * exp(-lambda) * (lambda * exp(lambda) - lambda) / (1 - lambda * exp(-lambda)),
+        "trunc" = PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)) + 
+        (1 - PI) * lambda * (exp(lambda) - 1) * exp(-lambda) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            (1 - PI) * exp(lambda) * (exp(lambda) - lambda ^ 2 + lambda - 1) /
+            (exp(lambda) - lambda) ^ 2,
+            (1 - lambda) * exp(lambda) / (exp(lambda) - lambda)
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                piLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        },
+        "trunc" = {
+          matrix(c(
+            (exp(2 * lambda) + (-lambda ^ 2 + PI * lambda - 2) * exp(lambda) + 1) *
+            (1 - PI) / (exp(lambda) - lambda + PI - 1) ^ 2,
+            -(exp(lambda) - lambda) * ((lambda - 1) * exp(lambda) + 1) / 
+            (PI + exp(lambda) - lambda - 1) ^ 2
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                piLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {

@@ -23,14 +23,37 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
   
   links[1:2] <- c(lambdaLink, omegaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (
-      type,
-      "nontrunc" = omega * lambda / (1 + lambda) + (1 - omega) * lambda,
-      "trunc"    = omega + (1 - omega) * (1 + lambda)
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = omega * lambda / (1 + lambda) + (1 - omega) * lambda,
+        "trunc" = omega + (1 - omega) * (1 + lambda)
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            omega / (lambda + 1) - omega * lambda / (lambda + 1) ^ 2 - omega + 1,
+            lambda / (lambda + 1) - lambda
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        },
+        "trunc" = {
+          matrix(c(
+            1 - omega,
+            -lambda
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -132,6 +155,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
         omega  <-  omegaLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
         G0 <- (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1))
         
         G1 <- (1 - z) * ((y - 1) / lambda - y / (lambda + 1)) -

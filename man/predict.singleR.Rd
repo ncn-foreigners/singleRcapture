@@ -7,9 +7,10 @@
 \method{predict}{singleR}(
   object,
   newdata,
-  type = c("response", "link", "mean", "popSize"),
-  stdErr = FALSE,
+  type = c("response", "link", "mean", "popSize", "contr"),
+  se.fit = FALSE,
   na.action = NULL,
+  weights,
   ...
 )
 }
@@ -20,7 +21,7 @@
 
 \item{type}{a}
 
-\item{stdErr}{a}
+\item{se.fit}{a}
 
 \item{na.action}{a}
 
