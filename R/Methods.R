@@ -274,6 +274,10 @@ predict.singleR <- function(object,
       observed = model.response(mf), 
       popVar = "analytic"
     )
+    
+    if (!any(wch$reg)) {
+      wch$reg <- wch$est <- rep(TRUE, NROW(mf))
+    }
 
     res <- switch (type,
       response = as.data.frame(
@@ -345,9 +349,6 @@ predict.singleR <- function(object,
         res <- cbind(res,se)
       }
     } else if (type == "mean") {
-      ### TODO:: add derivatives to mu.eta() and do means the same way
-      ### but for multivariate eta
-      
       ## covariance matrix foe each row of linear predictors
       auxVec <- c(0, cumsum(rep(
         NROW(eta), 
@@ -873,6 +874,7 @@ logLik.singleR <- function(object, ...) {
 #' @method model.frame singleR
 #' @importFrom stats glm
 #' @importFrom stats model.frame
+#' @importFrom stats update
 #' @exportS3Method 
 model.frame.singleR <- function(formula, ...) {
   dots <- list(...)
@@ -887,6 +889,12 @@ model.frame.singleR <- function(formula, ...) {
     # eval(fcall, env)
     # TODO:: low priority add na action and subset here
     combinedFromula <- singleRinternalMergeFormulas(formula$formula)
+    if (!is.null(dotargs$data)) {
+      jj <- all.vars(combinedFromula)[attr(terms(combinedFromula), "response")]
+      if (!(jj %in% colnames(dotargs$data))) {
+        combinedFromula <- update(combinedFromula, NULL ~ .)
+      }
+    }
     stats::model.frame(
       combinedFromula,
       data = if (is.null(dotargs$data)) eval(formula$call$data) else dotargs$data
@@ -909,8 +917,11 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
         observed = model.response(X), 
         popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar
       );
-      X <- model.matrix(object$terms, X)
-      subset(X, subset = wch$reg)
+      if (!any(wch$reg)) {
+        wch$reg <- wch$est <- rep(TRUE, NROW(X))
+      };
+      X <- model.matrix(object$terms, X);
+      X[wch$reg, , drop = FALSE]
     },
     vlm = {
       X <- model.frame(object, ...);
@@ -919,6 +930,9 @@ model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
         observed = model.response(X), 
         popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar
       );
+      if (!any(wch$reg)) {
+        wch$reg <- wch$est <- rep(TRUE, NROW(X))
+      };
       singleRinternalGetXvlmMatrix(
         X = X[wch$reg, , drop = FALSE], 
         formulas = object$formula, 

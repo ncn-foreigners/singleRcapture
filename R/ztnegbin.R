@@ -215,7 +215,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
-        -sum(weight * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - log(factorial(y)) - 
+        -sum(weight * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
         (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
         log(1 - (1 + lambda * alpha) ^ (-1 / alpha))))
       },

@@ -317,7 +317,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               
               -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI) + (1 - z) *
               (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
-              log(factorial(y)) - (y + 1 / alpha) * log(1 + lambda * alpha) +
+              lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) +
               y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
               lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))))
             },
@@ -501,7 +501,6 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   devResids <- function (y, eta, wt, ...) {
     #TODO
-    # AAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa
     0
   }
   

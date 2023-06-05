@@ -683,7 +683,6 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   devResids <- function (y, eta, wt, ...) {
     #TODO
-    # AAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa
     0
   }
   

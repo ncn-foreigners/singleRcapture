@@ -35,6 +35,8 @@ List with regression parameters, working weights
 just regression fitting \code{estimatePopsize.fit} is much faster.
 }
 \details{
+\loadmathjax
+
 If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
 function will be used to fit regression with analyticly computed gradient and
 (minus) log likelihood functions as \code{gr} and \code{fn} arguments.
@@ -47,7 +49,6 @@ least squares. The algorithm is well know in generalised linear models.
 Thomas W. Yee later extended this algorithm to vector generalised linear models
 and in more general terms it can roughly be described as
 (this is Yee's description after changing some conventions):
-\loadmathjax
 \enumerate{
 \item Initialise with:
 \itemize{
@@ -182,5 +183,5 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 \code{\link[stats:glm]{stats::glm()}} \code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[stats:optim]{stats::optim()}}
 }
 \author{
-Piotr Chlebicki, Maciej Beręsewicz
+Piotr Chlebicki, Maciej Beresewicz
 }

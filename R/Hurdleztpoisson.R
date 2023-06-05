@@ -175,7 +175,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
 
         -sum(z * (log(1 - lambda * exp(-lambda)) + log(PI)) +
-        (1 - z) * (log(1 - PI) + y * log(lambda) - lambda - log(factorial(y))) -
+        (1 - z) * (log(1 - PI) + y * log(lambda) - lambda - lgamma(y + 1)) -
         log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
       },
       function(beta) {
@@ -284,7 +284,21 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     )$root}
     
     yUnq <- unique(y)
-    idealLambda <- sapply(yUnq, FUN = function(x) ifelse(x %in% c(1, 2), -Inf, inverseFunction(x)))
+    idealLambda <- tryCatch(
+      expr = {
+        suppressWarnings(sapply(yUnq, 
+          FUN = function(x) ifelse(x %in% c(1, 2), -Inf, inverseFunction(x))
+        ))
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(idealLambda)) {
+      return(rep(0, length(y)))
+    }
+    
     idealLambda <- sapply(y, FUN = function(x) idealLambda[yUnq == x])
     idealLambda <- exp(idealLambda)
     
@@ -293,8 +307,19 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       -(log(PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))),
       ifelse(y == 2, log(2),
       y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
-      (log(1 - PI) + y * log(lambda) - lambda - log(factorial(y)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
+      (log(1 - PI) + y * log(lambda) - lambda - lgamma(y + 1) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
     )
+    
+    if (any(diff < 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which idicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   

@@ -79,7 +79,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
       function(beta) {
         eta <- as.matrix(X) %*% beta
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-        -sum(weight * (y * log(lambda) - lambda - log(factorial(y)) -
+        -sum(weight * (y * log(lambda) - lambda - lgamma(y + 1) -
         log(1 - exp(-lambda) - lambda * exp(-lambda))))
       },
       function(beta) {
@@ -137,14 +137,41 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     # not have dictionaries :( Also I checked it with rbenchmark::benchmark with many replications
     yUnq <- unique(y)
     lambdaSat <- sapply(yUnq, FUN = function(x) ifelse(x == 2, -Inf, inverseFunction(x)))
+    
+    idealLambda <- tryCatch(
+      expr = {
+        suppressWarnings(sapply(yUnq, 
+          FUN = function(x) ifelse(x == 2, -Inf, inverseFunction(x))
+        ))
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(idealLambda)) {
+      return(rep(0, length(y)))
+    }
+    
     lambdaSat <- lambdaLink(sapply(y, FUN = function(x) lambdaSat[yUnq == x]), inverse = TRUE)
     
-    lFit <- y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda))
-    lSat <- ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
+    diff <- y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)) -
+    ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
     y * log(lambdaSat) - lambdaSat - 
     log(1 - exp(-lambdaSat) - lambdaSat * exp(-lambdaSat)))
     
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (lFit - lSat))
+    if (any(diff > 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which idicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
+    ## see comments in ztpoisson for explanation of pmin
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, diff))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {

@@ -19,14 +19,29 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
   sc <- qnorm(p = 1 - siglevel / 2)
   
   if (popVar == "analytic") {
-    # TODO:: TryCatch
     strappedStatistic <- "No bootstrap performed"
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     if (is.null(cov)) {
+      
       cov <- switch(control$covType, # Change covariance here by adding more cases
-      "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
+        "observedInform" = {
+          tryCatch(
+            expr = {suppressWarnings(solve(-hessian(beta)))},
+            error = function (e) "e"
+          )
+        },
+        "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
       )
+      
+      if (isTRUE(cov == "e")) {
+        warning(
+          "The analytically computed hessian of log-likelihood is numerically singular.",
+          "Fisher information matrix will be used in population size estimation instead.",
+          sep = " "
+        )
+        control$covType <- "Fisher"
+        cov <- solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
+      }
     }
     
     variation <- as.numeric(family$popVar(
@@ -439,10 +454,12 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
 # make Xvlm matrix
 #' @importFrom stats terms
 singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL) {
-  #print("----")
-  formulas[[1]][[2]] <- NULL
-  #terms <- attr(X, "terms")
-  X <- X[, colnames(X)[-attr(attr(X, "terms"), "response")], drop = FALSE]
+  if (length(formulas[[1]]) == 3) {
+    formulas[[1]][[2]] <- NULL
+  }
+  if (attr(attr(X, "terms"), "response") != 0) {
+    X <- X[, colnames(X)[-attr(attr(X, "terms"), "response")], drop = FALSE]
+  }
   nPar <- length(parNames)
   Xses <- list()
   

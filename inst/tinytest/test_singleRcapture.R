@@ -568,7 +568,7 @@ expect_silent(
     model = "ztnegbin",
     popVar = "bootstrap",
     method = "optim",
-    controlMethod = controlMethod(epsilon = 1e-6),
+    controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),
     controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )

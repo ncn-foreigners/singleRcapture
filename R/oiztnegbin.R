@@ -370,7 +370,7 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               -sum(weight * (z * log(omega + (1 - omega) *
               lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1)) + 
               (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
-              lgamma(1 / alpha) - log(factorial(y)) - 
+              lgamma(1 / alpha) - lgamma(y + 1) - 
               (y + 1 / alpha) * log(1 + lambda * alpha) + 
               y * log(lambda * alpha)) -
               log(1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha))))

@@ -422,8 +422,11 @@ estimatePopsize <- function(formula,
                              method = c("optim", 
                                         "IRLS"),
                              popVar = c("analytic",
-                                         "bootstrap",
-                                         "noEst"),
+                                         "bootstrap"),
+                            # This will return in next update
+                            # I don't have the time to figure out if this 
+                            # breaks methods for this class
+                                         #"noEst"),
                              controlMethod = NULL,
                              controlModel = NULL,
                              controlPopVar = NULL,

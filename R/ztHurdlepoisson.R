@@ -218,10 +218,23 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
       tol = .Machine$double.eps
     )$root}
     
-    etaSat <- vector("numeric", length = length(y))
-    
     yUnq <- unique(y)
-    etaSat <- sapply(yUnq, FUN = function(x) ifelse(x %in% c(1, 2), -Inf, inverseFunction(x)))
+    
+    etaSat <- tryCatch(
+      expr = {
+        suppressWarnings(sapply(yUnq, 
+          FUN = function(x) ifelse(x %in% c(1, 2), -Inf, inverseFunction(x))
+        ))
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(etaSat)) {
+      return(rep(0, length(y)))
+    }
+    
     etaSat <- sapply(y, FUN = function(x) etaSat[yUnq == x])
     idealLambda <- exp(etaSat)
     diff <- ifelse(
@@ -230,6 +243,17 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
       y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
       (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)))
     )
+    
+    if (any(diff < 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which idicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   

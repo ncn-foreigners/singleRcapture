@@ -170,7 +170,7 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         -sum(weight * (z * (log(exp(lambda) * omega + (1 - omega) * lambda)) +
-        (1 - z) * (log(1 - omega) + y * log(lambda) - log(factorial(y))) - 
+        (1 - z) * (log(1 - omega) + y * log(lambda) - lgamma(y + 1)) - 
         log(exp(lambda) - 1 + omega)))
       },
       function(beta) {
@@ -276,13 +276,40 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     mu1 <- mu.eta(eta = eta)
     idealOmega <- ifelse(y == 1, 1, 0)
-    idealLambda <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+    
+    idealLambda <- tryCatch(
+      expr = {
+        suppressWarnings(
+          ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+        )
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(idealLambda)) {
+      return(rep(0, length(y)))
+    }
+    
     diff <- ifelse(
       y == 1,
       -(log(exp(lambda) * omega + lambda * (1 - omega)) - log(exp(lambda) - 1 + omega)),
       y * log(idealLambda) - log(exp(idealLambda) - 1) - log(1 - omega) - y * log(lambda) + log(exp(lambda) - 1 + omega)
     )
-    sign(y - mu1) * sqrt(2 * wt * diff)
+    
+    if (any(diff < 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which idicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
+    ## see comments in ztpoisson for explanation of pmax
+    sign(y - mu1) * sqrt(2 * wt * pmax(diff, 0))
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

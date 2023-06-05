@@ -1,5 +1,23 @@
 # singleRcapture 0.2.0
 
+* features and improvements:
+  * Added final `Hurdleztnegbin` model
+  * Vastly improved `redoPopSize` which now handles bootstrap on a fitted model
+  non standard covariance matrixes `newdata` argument user supplied `coef` etc.
+  * Added `predict.singleR` method which offers standard error for both `link`, 
+  `response` as well as `mean` predictions
+  * No unexpected warnings should occur now in main function when using
+  the package correctly
+  * All control arguments are now verified before being passed
+  * Fitting is now more reliable
+  * Added information about `stats::optim` error codes
+  * Added warnings for functions computing deviance
+  
+
+* bugfixes:
+  * fixed bugs occurring when using mathematical functions as part of formulas
+  i.e. when setting formula to something like: `y ~ log(x) + I(x ^ t) + I(t ^ 2)`
+
 # singleRcapture 0.1.4
 
 * features

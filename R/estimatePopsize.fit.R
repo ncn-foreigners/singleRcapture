@@ -1,5 +1,7 @@
+#' \loadmathjax
+#' 
 #' @title Regression fitting in single source capture-recapture models
-#' @author Piotr Chlebicki, Maciej Beręsewicz
+#' @author Piotr Chlebicki, Maciej Beresewicz
 #'
 #' @description \code{estimatePopsize.fit} does for \code{estimatePopsize} what
 #' \code{glm.fit} does for \code{glm}. It is internally called in 
@@ -29,7 +31,7 @@
 #' Thomas W. Yee later extended this algorithm to vector generalised linear models 
 #' and in more general terms it can roughly be described as 
 #' (this is Yee's description after changing some conventions):
-#' \loadmathjax
+#' 
 #' 1. Initialise with:
 #' \itemize{
 #' \item \code{converged <- FALSE}
@@ -232,8 +234,7 @@ estimatePopsize.fit <- function(y, X,
       }
     }
     
-    ## TODO
-    giveError <- FALSE
+    
     giveError <- tryCatch(
       expr = {
         FITT <- stats::optim(
@@ -244,25 +245,44 @@ estimatePopsize.fit <- function(y, X,
           # hessian = TRUE,
           control = ctrl
         )
-        FALSE
+        list(0)
       },
       error = function (e) {
-        TRUE
+        list(1, e)
       },
       warning = function (w) {
-        FALSE
+        list(2, w)
       }
     )
+
+    if (giveError[[1]] == 1) {
+      stop(paste0(
+        "stats::optim fitting returned with the following error: ",
+        giveError[[2]]$message,
+        " consider fitting with 'IRLS' or changing controlMethod argument."
+      ))
+    }
     
-    if (giveError)
-      stop("Optim gave error:")
+    if (!isTRUE(control$silent) && (giveError[[1]] == 2)) {
+      warning("stats::optim returned with the following warning: ",
+              giveError[[2]]$message)
+    }
     
-    beta <- FITT$par
-    iter <- FITT$counts
-    if (FITT$convergence == 1 && !control$silent) {
+    if (FITT$convergence != 0 && !isTRUE(control$silent)) {
       warning("Convergence not obtained in ", control$maxiter, 
               " iterations of optim fitting algorithm", sep = "")
+      
+      switch (as.character(FITT$convergence),
+        "1"  = warning("Convergence not obtained in ", control$maxiter, 
+                       " iterations of optim fitting algorithm", sep = ""),
+        "10" = warning("stats::optim returned with code 10 degeneracy of the Nelder-Mead simplex."),
+        "51" =    stop("stats::optim returned with code 51 with message: ", FITT$message),
+        "52" = warning("stats::optim returned with code 52 with message: ", FITT$message)
+      )
     }
+    
+    iter <- FITT$counts
+    beta <- FITT$par
   } else if (method == "maxLik") {
     # weights <- priorWeights
     # ll <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
@@ -280,7 +300,6 @@ estimatePopsize.fit <- function(y, X,
   } else {
     stop("Method implemented.")
   }
-
   if (is.null(FITT)) {
     stop("fitting error try another model
           (negative binomial models are highly volitile)")
