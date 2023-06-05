@@ -142,16 +142,57 @@ summary.singleR <- function(object,
 
 #' Predict method for \code{singleR} class
 #'
-#' @param object a
-#' @param newdata a
-#' @param type a
-#' @param se.fit a
-#' @param na.action a
-#' @param ... a
+#' \loadmathjax
+#' 
+#' @description
+#' A method for \code{predict} function, works analogous to \code{predict.glm}
+#' but gives the possibility to get standard errors of 
+#' mean/distribution parameters and directly get pop size estimates for new data.
+#' 
+#' 
+#' @param object an object of \code{singleR} class.
+#' @param newdata an optional \code{data.frame} containing new data.
+#' @param type the type of prediction required, possible values are:
+#' \itemize{
+#'   \item \code{"response"}-- For matrix containing estimated distributions
+#'   parameters.
+#'   \item \code{"link"}    -- For matrix of linear predictors.
+#'   \item \code{"mean"}    -- For fitted values of both \mjseqn{Y} and
+#'   \mjseqn{Y|Y>0}.
+#'   \item \code{"contr"}   -- For inverse probability weights (here named for 
+#'   observation contribution to population size estimate).
+#'   \item \code{"popSize"} -- For population size estimation. Note
+#'   this results in a call to \code{redoPopEstimation} and it is
+#'   usually better to call this function directly.
+#' } by default set to \code{"response"}.
+#' @param se.fit a logical value indicating whether standard erros should be 
+#' computed. Only matters for \code{type} in \code{"response", "mean", "link"}.
+#' @param na.action does nothing yet.
+#' @param weights optional vector of weights for \code{type} in \code{"contr", "popSize"}.
+#' @param cov optional matrix or function or character specifying either
+#' a covariance matrix or a function to compute that covariance matrix.
+#' By default \code{vcov.singleR} can be set to e.g. \code{vcovHC}.
+#' @param ... arguments passed to other functions, for now this only affects
+#' \code{vcov.singleR} method and \code{cov} function.
+#' 
+#' @details Standard errors are computed with assumption of regression
+#' coefficients being asymptotically normally distributed, if this assumption
+#' holds then each of linear predictors i.e. each row of
+#' \mjseqn{\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
+#' is asymptotically normally distributed and their variances are expressed by
+#' well known formula. The mean \mjseqn{\mu} and distribution parameters
+#' are then differentiable functions of asymptotically normally distributed
+#' variables and therefore their variances can be computed using (multivariate)
+#' delta method.
 #'
-#' @return TODO
+#' @return Depending on \code{type} argument if one of \code{"response", "link", "mean"}
+#' a matrix with fitted values and possibly standard errors if \code{se.fit}
+#' argument was set to \code{TRUE}, if \code{type} was set to \code{"contr"}
+#' a vector with inverses of probabilities, finally for \code{"popSize"}
+#' an object of class \code{popSizeEstResults} with its own methods containing
+#' population size estimation results.
 #' @method predict singleR
-#' @seealso [redoPopEstimation()] [stats::summary.glm()]
+#' @seealso [redoPopEstimation()] [stats::summary.glm()] [estimatePopsize()]
 #' @exportS3Method
 predict.singleR <- function(object,
                             newdata,
@@ -248,7 +289,10 @@ predict.singleR <- function(object,
         "nontruncated" = family(object)$mu.eta(eta = eta, type = "nontrunc")
       ),
       popSize = redoPopEstimation(
-        object = object, newdata = newdata, ...
+        object = object, newdata = newdata,
+        weights = if (missing(weights)) rep(1, NROW(mf)) else weights,
+        cov = cov,
+        ...
       ),
       contr = family(object)$pointEst(
         pw    = weights[wch$est],
@@ -355,6 +399,13 @@ predict.singleR <- function(object,
 #' @param object object for which update of population size estimation results will be done.
 #' @param newdata optional \code{data.frame} with new data for pop size estimation.
 #' @param cov an updated covariance matrix estimate.
+#' @param coef optional vector of coefficients of regression on which to base 
+#' population size estimation. If missing it is set to \code{coef(object)}.
+#' @param weights optional vector of weights to use in population size estimation. 
+#' @param control similar to \code{controlPopVar} in [estimatePopsize()].
+#' If missing set to controls provided on call to \code{object}.
+#' @param popVar similar to \code{popVar} in [estimatePopsize()].
+#' If missing set to \code{"analytic"}.
 #' @param ... additional optional arguments, currently not used in \code{singleR} class method.
 #'
 #' @return An object of class \code{popSizeEstResults} containing updated 
@@ -375,6 +426,9 @@ predict.singleR <- function(object,
 #' popSizeEst = redoPopEstimation(Model, cov = cov))
 #' # Compare to results with usual covariance matrix estimation
 #' summary(Model)
+#' 
+#' ## get confidence interval with larger significance level
+#' redoPopEstimation(Model, control = controlPopVar(alpha = .000001))
 #' @export
 redoPopEstimation <- function(object, newdata, ...) {
   UseMethod("redoPopEstimation")
@@ -846,15 +900,27 @@ model.frame.singleR <- function(formula, ...) {
 #' @exportS3Method 
 model.matrix.singleR <- function(object, type = c("lm", "vlm"), ...) {
   if (missing(type)) type <- "lm"
+  
   switch (type,
     lm = {
-      X <- model.frame(object, ...);
-      model.matrix(object$terms, X)
+      X <- model.frame(object);
+      wch <- singleRcaptureinternalDataCleanupSpecialCases(
+        family = family(object), 
+        observed = model.response(X), 
+        popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar
+      );
+      X <- model.matrix(object$terms, X)
+      subset(X, subset = wch$reg)
     },
     vlm = {
       X <- model.frame(object, ...);
+      wch <- singleRcaptureinternalDataCleanupSpecialCases(
+        family = family(object), 
+        observed = model.response(X), 
+        popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar
+      );
       singleRinternalGetXvlmMatrix(
-        X = X,
+        X = X[wch$reg, , drop = FALSE], 
         formulas = object$formula, 
         parNames = object$model$etaNames
       );

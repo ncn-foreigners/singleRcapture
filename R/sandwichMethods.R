@@ -25,7 +25,7 @@ estfun.singleR <- function(x,...) {
 #' @rdname vcovHC.singleR
 #' @exportS3Method
 bread.singleR <- function(x,...) {
-  stats::vcov(x, ...) * as.vector(x$dfResidual + length(x$coefficients))
+  stats::vcov(x, ...) * as.vector(x$dfResidual + length(coef(x)))
 }
 
 #' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
