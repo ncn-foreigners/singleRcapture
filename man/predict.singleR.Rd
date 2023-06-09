@@ -34,7 +34,7 @@ this results in a call to \code{redoPopEstimation} and it is
 usually better to call this function directly.
 } by default set to \code{"response"}.}
 
-\item{se.fit}{a logical value indicating whether standard erros should be
+\item{se.fit}{a logical value indicating whether standard errors should be
 computed. Only matters for \code{type} in \code{"response", "mean", "link"}.}
 
 \item{na.action}{does nothing yet.}

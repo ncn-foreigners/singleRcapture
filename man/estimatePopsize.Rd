@@ -88,7 +88,7 @@ with type \code{list} containing:\cr
 \item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as \code{priorWeights}.}
 \item{\code{residuals} -- Vector of raw residuals.}
 \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
-\item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
+\item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihood function.}
 \item{\code{dfResiduals} -- Residual degrees of freedom.}
 \item{\code{dfNull} -- Null degrees of freedom.}
 \item{\code{fittValues} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
@@ -171,7 +171,7 @@ use the \code{vglm} model matrix differs with respect to order of
 \code{kronecker} multiplication of \code{X} and \code{constraints}.)
 In this package we use observed likelihood to fit regression models.
 
-As mentioned aboce usually the population size estimation is done via:
+As mentioned above usually the population size estimation is done via:
 \mjtdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)} = 
 \sum_{k=1}^{N_{obs}}\frac{1}{1-Pr(Y_{k}=0)}}{
 \hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
@@ -266,7 +266,7 @@ is also a random variable bootstrap will not be as simple as just drawing
 \mjteqn{N_{obs}}{N_{obs}}{} units from data with replacement
 and just computing \mjteqn{\hat{N}}{\hat{N}}{}.
 
-Method described above is refered to in literature as \code{"nonparametric"}
+Method described above is referred to in literature as \code{"nonparametric"}
 bootstrap (see \code{\link[=controlPopVar]{controlPopVar()}}), due to ignoring variability in observed
 sample size it is likely to underestimate variance.
 

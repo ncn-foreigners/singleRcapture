@@ -13,7 +13,7 @@ NULL
 #' @param nSim,epsSim if working weights cannot be computed analytically these 
 #' arguments specify maximum number of simulations allowed and
 #' precision level for finding them numerically respectively.
-#' @param lambdaLink link for poisson parameter, \code{"log"} 
+#' @param lambdaLink link for Poisson parameter, \code{"log"} 
 #' by default except for zelterman's and chao's models where only 
 #' \mjteqn{\ln\left(\frac{x}{2}\right)}{\ln\left(\tfrac{x}{2}\right)}{} is possible.
 #' @param alphaLink link for dispersion parameter, \code{"log"} by default
@@ -33,7 +33,7 @@ NULL
 #' distribution of \mjteqn{Y}{Y}{} before truncation. Currently they include:
 #' \mjtdeqn{Pr(Y=y|\lambda,\alpha)=\left\lbrace
 #' \begin{array}{cc}
-#' \frac{\lambda^{y}e^{-\lambda}}{y!}    & poisson  \cr
+#' \frac{\lambda^{y}e^{-\lambda}}{y!}    & Poisson  \cr
 #' \frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!} 
 #' \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 #' \left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} & NB \cr
@@ -41,7 +41,7 @@ NULL
 #' \end{array}
 #' \right.}{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 #' \begin{array}{cc}
-#' \frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{poisson distribution}  \cr
+#' \frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{Poisson distribution}  \cr
 #' \frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!} 
 #' \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 #' \left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} & 
@@ -50,22 +50,22 @@ NULL
 #' \text{geometric distribution}
 #' \end{array}
 #' \right.}{}
-#' where \mjteqn{\lambda}{\lambda}{} is the poisson parameter and 
+#' where \mjteqn{\lambda}{\lambda}{} is the Poisson parameter and 
 #' \mjteqn{\alpha}{\alpha}{} is the dispersion parameter. Geometric distribution
 #' is a special case of negative binomial distribution when 
 #' \mjteqn{\alpha=1}{\alpha=1}{} it is included because negative binomial 
 #' distribution is quite troublesome numerical regression in fitting.
 #' It is important to know that PMF of negative binomial distribution 
-#' approaches the PMF of poisson distribution when 
+#' approaches the PMF of Poisson distribution when 
 #' \mjteqn{\alpha\rightarrow 0^{+}}{\alpha\rightarrow 0^{+}}{}.
 #' 
 #' 
 #' **Note** in literature on single source capture recapture models 
 #' the dispersion parameter which introduces greater variability 
-#' in negative binomial distribution compared to poisson distribution is 
+#' in negative binomial distribution compared to Poisson distribution is 
 #' generally interpreted as explaining the *unobserved* heterogeneity
 #' i.e. presence of important unobserved independent variables.
-#' All these methods for estimating population size are tied to poisson 
+#' All these methods for estimating population size are tied to Poisson 
 #' processes hence we use \mjteqn{\lambda}{\lambda}{} as parameter symbol
 #' instead of \mjteqn{\mu}{\mu}{} to emphasize this connection.
 #' Also will not be hard to see that **all** estimators derived from 
@@ -92,7 +92,7 @@ NULL
 #' }{
 #' \begin{aligned}
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &
-#' \text{ For poisson distribution} \cr
+#' \text{ For Poisson distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &
 #' \text{ For negative binomial distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &
@@ -183,7 +183,7 @@ NULL
 #' \hat{N} = \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})}
 #' }{
 #' \begin{aligned}
-#' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &\text{ For base poisson distribution} \cr
+#' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &\text{ For base Poisson distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})(1+\\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &\text{ For base negative binomial distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k} + \omega_{k}} &\text{ For base geometric distribution}
 #' \end{aligned}
@@ -232,7 +232,7 @@ NULL
 #' \begin{aligned}
 #' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 #' \frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} 
-#' &\text{ For base poisson distribution} \cr
+#' &\text{ For base Poisson distribution} \cr
 #' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 #' \frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{
 #' 1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} 
@@ -271,7 +271,7 @@ NULL
 #' \text{logit}(p_{k})=
 #' \ln\left(\frac{\lambda_{k}}{2}\right)=
 #' \boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}}{}
-#' where \mjteqn{\lambda_{k}}{\lambda_{k}}{} is the poisson parameter.
+#' where \mjteqn{\lambda_{k}}{\lambda_{k}}{} is the Poisson parameter.
 #' 
 #' The *zelterman* estimator of population size is expressed as:
 #' \mjtdeqn{\hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}

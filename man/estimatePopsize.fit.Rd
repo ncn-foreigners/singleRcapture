@@ -38,7 +38,7 @@ just regression fitting \code{estimatePopsize.fit} is much faster.
 \loadmathjax
 
 If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
-function will be used to fit regression with analyticly computed gradient and
+function will be used to fit regression with analytically computed gradient and
 (minus) log likelihood functions as \code{gr} and \code{fn} arguments.
 Unfortunately \code{optim} does not allow for hessian to be specified.
 More information about how to modify \code{optim} fitting is included in
@@ -127,7 +127,7 @@ In this package we use different conventions for \mjteqn{\boldsymbol{X}_{vlm}}{
 algorithm description but results are identical.
 }
 \examples{
-
+\dontrun{
 # Get data
 summary(farmsubmission)
 
@@ -207,7 +207,7 @@ res2$iter
 
 # optim does not calculated working weights
 head(res2$weights)
-
+}
 }
 \references{
 Yee, T. W. (2015). Vector Generalized Linear and Additive Models:

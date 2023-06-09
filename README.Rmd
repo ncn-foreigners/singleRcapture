@@ -37,9 +37,9 @@ of estimating population size from single source to simplify the research proces
 
 Currently we've implemented most of the frequentist approaches used in literature such as:
 
-- Zero truncated poisson, geometric and negative binomial regression.
-- Zero truncated one inflated and one inflated zero truncated poisson and gemetric models. (Negative binomial is currently in development.)
-- Zero one truncated poisson geometric and negative binomial models.
+- Zero truncated Poisson, geometric and negative binomial regression.
+- Zero truncated one inflated and one inflated zero truncated Poisson and geometric models. (Negative binomial is currently in development.)
+- Zero one truncated Poisson geometric and negative binomial models.
 - Generalised Chao and Zelterman's models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and non parametric.
 - And a wide range of additional functionalities associated with (vector) generalised linear models relevant to the topic.
@@ -62,7 +62,7 @@ population size.
 Lets look at a model from 2003 publication :
 Point and interval estimation of the population size using the truncated 
 Poisson regression model Heijden, Peter GM van der et al.
-The call to `estimatePopsize` will look very simmilar to anyone who used the 
+The call to `estimatePopsize` will look very similar to anyone who used the 
 `stats::glm` function:
 
 ```{r example}

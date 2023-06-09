@@ -31,10 +31,10 @@ research process.
 Currently we’ve implemented most of the frequentist approaches used in
 literature such as:
 
-- Zero truncated poisson, geometric and negative binomial regression.
-- Zero truncated one inflated and one inflated zero truncated poisson
-  and gemetric models. (Negative binomial is currently in development.)
-- Zero one truncated poisson geometric and negative binomial models.
+- Zero truncated Poisson, geometric and negative binomial regression.
+- Zero truncated one inflated and one inflated zero truncated Poisson
+  and geometric models. (Negative binomial is currently in development.)
+- Zero one truncated Poisson geometric and negative binomial models.
 - Generalised Chao and Zelterman’s models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and non
   parametric.
@@ -60,7 +60,7 @@ estimate the population size.
 Lets look at a model from 2003 publication : Point and interval
 estimation of the population size using the truncated Poisson regression
 model Heijden, Peter GM van der et al. The call to `estimatePopsize`
-will look very simmilar to anyone who used the `stats::glm` function:
+will look very similar to anyone who used the `stats::glm` function:
 
 ``` r
 library(singleRcapture)

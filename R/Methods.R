@@ -165,7 +165,7 @@ summary.singleR <- function(object,
 #'   this results in a call to \code{redoPopEstimation} and it is
 #'   usually better to call this function directly.
 #' } by default set to \code{"response"}.
-#' @param se.fit a logical value indicating whether standard erros should be 
+#' @param se.fit a logical value indicating whether standard errors should be 
 #' computed. Only matters for \code{type} in \code{"response", "mean", "link"}.
 #' @param na.action does nothing yet.
 #' @param weights optional vector of weights for \code{type} in \code{"contr", "popSize"}.

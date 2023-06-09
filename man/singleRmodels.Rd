@@ -146,7 +146,7 @@ ztoipoisson(
 ztpoisson(lambdaLink = c("log", "neglog"), ...)
 }
 \arguments{
-\item{lambdaLink}{link for poisson parameter, \code{"log"}
+\item{lambdaLink}{link for Poisson parameter, \code{"log"}
 by default except for zelterman's and chao's models where only
 \mjteqn{\ln\left(\frac{x}{2}\right)}{\ln\left(\tfrac{x}{2}\right)}{} is possible.}
 
@@ -235,7 +235,7 @@ support \mjteqn{\mathbf{N}_{0}=\mathbf{N}\cup\lbrace 0\rbrace}{
 distribution of \mjteqn{Y}{Y}{} before truncation. Currently they include:
 \mjtdeqn{Pr(Y=y|\lambda,\alpha)=\left\lbrace
 \begin{array}{cc}
-\frac{\lambda^{y}e^{-\lambda}}{y!}    & poisson  \cr
+\frac{\lambda^{y}e^{-\lambda}}{y!}    & Poisson  \cr
 \frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!} 
 \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 \left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} & NB \cr
@@ -243,7 +243,7 @@ distribution of \mjteqn{Y}{Y}{} before truncation. Currently they include:
 \end{array}
 \right.}{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 \begin{array}{cc}
-\frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{poisson distribution}  \cr
+\frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{Poisson distribution}  \cr
 \frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!} 
 \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 \left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} & 
@@ -252,21 +252,21 @@ distribution of \mjteqn{Y}{Y}{} before truncation. Currently they include:
 \text{geometric distribution}
 \end{array}
 \right.}{}
-where \mjteqn{\lambda}{\lambda}{} is the poisson parameter and
+where \mjteqn{\lambda}{\lambda}{} is the Poisson parameter and
 \mjteqn{\alpha}{\alpha}{} is the dispersion parameter. Geometric distribution
 is a special case of negative binomial distribution when
 \mjteqn{\alpha=1}{\alpha=1}{} it is included because negative binomial
 distribution is quite troublesome numerical regression in fitting.
 It is important to know that PMF of negative binomial distribution
-approaches the PMF of poisson distribution when
+approaches the PMF of Poisson distribution when
 \mjteqn{\alpha\rightarrow 0^{+}}{\alpha\rightarrow 0^{+}}{}.
 
 \strong{Note} in literature on single source capture recapture models
 the dispersion parameter which introduces greater variability
-in negative binomial distribution compared to poisson distribution is
+in negative binomial distribution compared to Poisson distribution is
 generally interpreted as explaining the \emph{unobserved} heterogeneity
 i.e. presence of important unobserved independent variables.
-All these methods for estimating population size are tied to poisson
+All these methods for estimating population size are tied to Poisson
 processes hence we use \mjteqn{\lambda}{\lambda}{} as parameter symbol
 instead of \mjteqn{\mu}{\mu}{} to emphasize this connection.
 Also will not be hard to see that \strong{all} estimators derived from
@@ -292,7 +292,7 @@ population. These models lead to the following estimates, respectively:
 }{
 \begin{aligned}
 \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &
-\text{ For poisson distribution} \cr
+\text{ For Poisson distribution} \cr
 \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &
 \text{ For negative binomial distribution} \cr
 \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &
@@ -383,7 +383,7 @@ expressed, respectively by:
 \hat{N} = \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})}
 }{
 \begin{aligned}
-\hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &\text{ For base poisson distribution} \cr
+\hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &\text{ For base Poisson distribution} \cr
 \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})(1+\\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &\text{ For base negative binomial distribution} \cr
 \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k} + \omega_{k}} &\text{ For base geometric distribution}
 \end{aligned}
@@ -432,7 +432,7 @@ For \emph{zero one truncated models} population size estimates are expressed by:
 \begin{aligned}
 \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 \frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} 
-&\text{ For base poisson distribution} \cr
+&\text{ For base Poisson distribution} \cr
 \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 \frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{
 1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} 
@@ -471,7 +471,7 @@ based on the equation:
 \text{logit}(p_{k})=
 \ln\left(\frac{\lambda_{k}}{2}\right)=
 \boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}}{}
-where \mjteqn{\lambda_{k}}{\lambda_{k}}{} is the poisson parameter.
+where \mjteqn{\lambda_{k}}{\lambda_{k}}{} is the Poisson parameter.
 
 The \emph{zelterman} estimator of population size is expressed as:
 \mjtdeqn{\hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}

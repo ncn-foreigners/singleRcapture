@@ -18,7 +18,7 @@
 #'   \item \code{fitresid} -- Plot of fitted linear predictors against 
 #'   (standardised) pearson residuals.
 #'   \item \code{bootHist} -- Simple histogram for statistics obtained from 
-#'   bootstraping (if one was performed and the statistics were saved).
+#'   bootstrapping (if one was performed and the statistics were saved).
 #'   \item \code{rootogram} -- Rootogram, for full explanation see: 
 #'   Kleiber and Zeileis Visualizing Count Data Regressions Using Rootograms (2016), 
 #'   in short it is a \code{barplot} where height is the square root of observed marginal 

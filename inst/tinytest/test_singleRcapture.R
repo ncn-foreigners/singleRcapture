@@ -10,7 +10,8 @@ expect_silent(
     data = farmsubmission,
     controlMethod = controlMethod(
       maxiter = 5000,
-      optimMethod = "Nelder-Mead"
+      optimMethod = "Nelder-Mead",
+      silent = TRUE
     )
   )
 )
@@ -21,7 +22,10 @@ expect_silent(
     model = "ztpoisson",
     method = "IRLS",
     popVar = "analytic",
-    data = farmsubmission
+    data = farmsubmission,
+    controlMethod = controlMethod(
+      silent = TRUE
+    )
   )
 )
 
@@ -89,7 +93,8 @@ expect_silent(
     data = netherlandsimmigrant,
     model = "zelterman",
     popVar = "analytic",
-    method = "IRLS"
+    method = "IRLS",
+    controlMethod = controlMethod(silent = TRUE)
   )
 )
 
@@ -99,7 +104,8 @@ expect_silent(
     data = netherlandsimmigrant,
     model = "ztpoisson",
     popVar = "analytic",
-    method = "IRLS"
+    method = "IRLS",
+    controlMethod = controlMethod(silent = TRUE)
   )
 )
 
@@ -109,7 +115,8 @@ expect_silent(
     data = netherlandsimmigrant,
     model = "ztpoisson",
     popVar = "analytic",
-    method = "IRLS"
+    method = "IRLS",
+    controlMethod = controlMethod(silent = TRUE)
   )
 )
 
@@ -234,5 +241,5 @@ expect_silent(
 
 expect_error(
   estimatePopsize(formula = cbind(TOTAL_SUB, log_size) ~ log_distance, 
-                   data = farmsubmission, model = ztpoisson)
+                  data = farmsubmission, model = ztpoisson)
 )

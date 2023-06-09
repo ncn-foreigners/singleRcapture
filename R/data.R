@@ -13,7 +13,7 @@
 #' \describe{
 #'   \item{\code{TOTAL_SUB}}{Number of submissions of animal material.}
 #'   \item{\code{log_size}}{Numerical value equal to logarithm of size of farm.}
-#'   \item{\code{log_distance}}{Numerical value equal to logarith of distance to nearest AHVLA center.}
+#'   \item{\code{log_distance}}{Numerical value equal to logarithm of distance to nearest AHVLA center.}
 #'   \item{\code{C_TYPE}}{Factor describing type of activity on farm that animals are 
 #'   used for. Either \code{Dairy} or \code{Beef}}
 #' }
@@ -63,7 +63,7 @@
 #' \describe{
 #'   \item{\code{TOTAL_SUB}}{Number of submissions of animal carcasses.}
 #'   \item{\code{log_size}}{Numerical value equal to logarithm of size of farm.}
-#'   \item{\code{log_distance}}{Numerical value equal to logarith of distance to nearest AHVLA center.}
+#'   \item{\code{log_distance}}{Numerical value equal to logarithm of distance to nearest AHVLA center.}
 #'   \item{\code{C_TYPE}}{Factor describing type of activity on farm that animals are 
 #'   used for. Either \code{Dairy} or \code{Beef}}
 #' }

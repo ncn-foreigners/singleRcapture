@@ -19,7 +19,7 @@
 #' @param ... arguments to pass to other methods.
 #' 
 #' @details If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
-#' function will be used to fit regression with analyticly computed gradient and 
+#' function will be used to fit regression with analytically computed gradient and 
 #' (minus) log likelihood functions as \code{gr} and \code{fn} arguments. 
 #' Unfortunately \code{optim} does not allow for hessian to be specified.
 #' More information about how to modify \code{optim} fitting is included in 
@@ -111,7 +111,7 @@
 #' With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 #' 
 #' @examples 
-#' 
+#' \dontrun{
 #' # Get data
 #' summary(farmsubmission)
 #' 
@@ -191,7 +191,7 @@
 #' 
 #' # optim does not calculated working weights
 #' head(res2$weights)
-#' 
+#' }
 #' @return List with regression parameters, working weights 
 #' (if IRLS fitting method) was chosen and number of iterations taken.
 #' @seealso [stats::glm()] [estimatePopsize()] [controlMethod()] [stats::optim()] 
