@@ -157,8 +157,8 @@ summary.singleR <- function(object,
 #'   \item \code{"response"}-- For matrix containing estimated distributions
 #'   parameters.
 #'   \item \code{"link"}    -- For matrix of linear predictors.
-#'   \item \code{"mean"}    -- For fitted values of both \mjseqn{Y} and
-#'   \mjseqn{Y|Y>0}.
+#'   \item \code{"mean"}    -- For fitted values of both \mjteqn{Y}{Y}{} and
+#'   \mjteqn{Y|Y>0}{Y|Y>0}{}.
 #'   \item \code{"contr"}   -- For inverse probability weights (here named for 
 #'   observation contribution to population size estimate).
 #'   \item \code{"popSize"} -- For population size estimation. Note
@@ -178,9 +178,10 @@ summary.singleR <- function(object,
 #' @details Standard errors are computed with assumption of regression
 #' coefficients being asymptotically normally distributed, if this assumption
 #' holds then each of linear predictors i.e. each row of
-#' \mjseqn{\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
+#' \mjteqn{\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{
+#' \boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{}
 #' is asymptotically normally distributed and their variances are expressed by
-#' well known formula. The mean \mjseqn{\mu} and distribution parameters
+#' well known formula. The mean \mjteqn{\mu}{\mu}{} and distribution parameters
 #' are then differentiable functions of asymptotically normally distributed
 #' variables and therefore their variances can be computed using (multivariate)
 #' delta method.
@@ -191,6 +192,7 @@ summary.singleR <- function(object,
 #' a vector with inverses of probabilities, finally for \code{"popSize"}
 #' an object of class \code{popSizeEstResults} with its own methods containing
 #' population size estimation results.
+#' 
 #' @method predict singleR
 #' @seealso [redoPopEstimation()] [stats::summary.glm()] [estimatePopsize()]
 #' @exportS3Method
@@ -493,20 +495,23 @@ popSizeEst <- function(object, ...) {
 #' @details In single source capture-recapture models the most frequently used
 #' estimate for population size is Horwitz-Thompson type estimate:
 #' 
-#' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
-#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
+#' \mjtdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-Pr(Y_{k}=0)}}{
+#' \hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{}
 #'
-#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, 
-#' with value 1 if kth unit was observed at least once and 0 otherwise and
-#' the inverse probabilistic weights weights for units observed in the data
-#' \mjseqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}
+#' where \mjteqn{I_{k}=I_{Y_{k} > 0}}{I_{k}=I_{Y_{k} > 0}}{} are 
+#' indicator variables, with value 1 if kth unit was observed at least once 
+#' and 0 otherwise and the inverse probabilistic weights weights for 
+#' units observed in the data \mjteqn{\frac{1}{Pr(Y_{k}>0)}}{
+#' \tfrac{1}{\mathbb{P}(Y_{k}>0)}}{}
 #' are estimated using fitted linear predictors.
 #' 
 #' The estimates for different sub populations are made by changing the
-#' \mjseqn{I_{k}=I_{Y_{k} > 0}} indicator variables to refer not to the 
-#' population as a whole but to the sub populations that are being considered 
-#' i.e. by changing values from 1 to 0 if kth unit is not a member of sub 
-#' population that is being considered at the moment.
+#' \mjteqn{I_{k}=I_{Y_{k} > 0}}{I_{k}=I_{Y_{k} > 0}}{} indicator variables to 
+#' refer not to the population as a whole but to the sub populations that are 
+#' being considered i.e. by changing values from 1 to 0 if kth unit is not a 
+#' member of sub population that is being considered at the moment.
 #' 
 #' The estimation of variance for these estimates and estimation of variance for
 #' estimate of population size for the whole population follow the same relation

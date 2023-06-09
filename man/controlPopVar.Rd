@@ -32,7 +32,7 @@ other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.}
 
 \item{confType}{type of confidence interval for bootstrap confidence interval,
 \code{"percentile"} by default.
-Other possibility: \code{"studentized"} and \code{"basic"}.}
+Other possibilities: \code{"studentized"} and \code{"basic"}.}
 
 \item{keepbootStat}{boolean value indicating whether to keep a vector of
 statistics produced by bootstrap.}
@@ -50,14 +50,16 @@ like \code{controlMethod} but for fitting models from bootstrap samples.}
 
 \item{sd}{indicates how to compute standard deviation of population
 size estimator either as:
-\loadmathjax
-\mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
-for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}} has a normal
-distribution) or for \code{normalMVUE} as  the unbiased minimal variance
-estimator for normal distribution:
-\mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}
-\sqrt{\frac{N_{obs}}{2}}}
+\mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}}{
+\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{}
+for \code{sqrt} (which is slightly biased if \mjteqn{\hat{N}}{\hat{N}}{}
+has a normal distribution) or for \code{normalMVUE} as the unbiased
+minimal variance estimator for normal distribution:
+\mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}
+\frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
+\sqrt{\frac{N_{obs}}{2}}}{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
+\frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
+\sqrt{\frac{N_{obs}}{2}}}{}
 where the ration involving gamma functions is computed by log gamma function.}
 
 \item{covType}{type of covariance matrix for regression parameters by default
@@ -75,4 +77,5 @@ respective standard error and variance estimation.
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz
+\loadmathjax
 }

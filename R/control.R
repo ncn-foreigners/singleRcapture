@@ -1,6 +1,7 @@
 #' @title Control parameters for regression
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' \loadmathjax
+#' 
 #' @description \code{controlMethod} constructs a list with all necessary 
 #' control parameters for regression fitting in 
 #' \code{estimatePopsize.fit} and \code{estimatePopsize}.
@@ -40,15 +41,19 @@
 #' so that these matrixes are positive defined. By default \code{TRUE}.
 #' @param weightsEpsilon small number to ensure positivity of weights matrixes. 
 #' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
-#' By default \mjseqn{= 1\cdot 10^{-8}}
+#' By default \code{1e-8}.
 #' @param momentumFactor experimental parameter in \code{IRLS} only allowing for 
 #' taking previous step into account at current step, i.e instead of 
 #' updating regression parameters as:
-#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-#' \cdot \text{step}_{(a)}}
+#' \mjtdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + stepsize 
+#' \cdot step_{(a)}}{
+#' \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \cdot \text{step}_{(a)}}{}
 #' the update will be made as:
-#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-#' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}
+#' \mjtdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + stepsize 
+#' \cdot (step_{(a)} + momentum\cdot step_{(a-1)})}{
+#' \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{}
 #' @param momentumActivation the value of log-likelihood reduction bellow 
 #' which momentum will apply.
 #' @param criterion criterion used to determine convergence in \code{IRLS}, 
@@ -57,7 +62,8 @@
 #' \code{verbose} should be saved to output object, by default \code{FALSE}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] 
+#' [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
 #' @export
 controlMethod <- function(epsilon             = 1e-8,
                           maxiter             = 1000,
@@ -147,7 +153,7 @@ controlMethod <- function(epsilon             = 1e-8,
 #' 
 #' @description \code{controlModel} constructs a list with all necessary 
 #' control parameters in \code{estimatePopsize} that are either specific to 
-#' selected model or don't fit anywhere else.
+#' selected model or do not fit anywhere else.
 #' 
 #' Specifying additional formulas should be done by using only right hand side of
 #' the formula also for now all variables from additional formulas should also be
@@ -164,6 +170,7 @@ controlMethod <- function(epsilon             = 1e-8,
 #' based models.
 #' @param piFormula formula for probability parameter in pseudo hurdle zero 
 #' truncated and zero truncated pseudo hurdle models.
+#' 
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlMethod()] [singleRcapture::controlPopVar()] [singleRcapture::singleRmodels()]
 #' @export
@@ -181,6 +188,7 @@ controlModel <- function(weightsAsCounts = FALSE,
 }
 #' @title  Control parameters for population size estimation
 #' @author Piotr Chlebicki, Maciej Beręsewicz
+#' \loadmathjax
 #'
 #' @description Creating control parameters for population size estimation and 
 #' respective standard error and variance estimation.
@@ -193,7 +201,7 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @param B number of bootstrap samples to be performed (default 500).
 #' @param confType type of confidence interval for bootstrap confidence interval, 
 #' \code{"percentile"} by default. 
-#' Other possibility: \code{"studentized"} and \code{"basic"}.
+#' Other possibilities: \code{"studentized"} and \code{"basic"}.
 #' @param keepbootStat boolean value indicating whether to keep a vector of 
 #' statistics produced by bootstrap.
 #' @param traceBootstrapSize boolean value indicating whether to print size of 
@@ -205,14 +213,16 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' like \code{controlMethod} but for fitting models from bootstrap samples.
 #' @param sd indicates how to compute standard deviation of population 
 #' size estimator either as:
-#' \loadmathjax
-#' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
-#' for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}} has a normal 
-#' distribution) or for \code{normalMVUE} as  the unbiased minimal variance 
-#' estimator for normal distribution:
-#' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-#' \frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}
-#' \sqrt{\frac{N_{obs}}{2}}}
+#' \mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}}{
+#' \hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{}
+#' for \code{sqrt} (which is slightly biased if \mjteqn{\hat{N}}{\hat{N}}{} 
+#' has a normal distribution) or for \code{normalMVUE} as the unbiased 
+#' minimal variance estimator for normal distribution:
+#' \mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}
+#' \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
+#' \sqrt{\frac{N_{obs}}{2}}}{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
+#' \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
+#' \sqrt{\frac{N_{obs}}{2}}}{}
 #' where the ration involving gamma functions is computed by log gamma function.
 #' @param covType type of covariance matrix for regression parameters by default 
 #' observed information matrix, more options will be here in the future.
@@ -243,7 +253,7 @@ controlPopVar <- function(alpha = .05,
   if (missing(covType))  covType <- "observedInform"
   if (missing(sd))       sd <- "sqrtVar"
   
-  # I'm using !isTRUE instead of isFALSE because I don't wan't nulls to pass the tests
+  # I'm using !isTRUE instead of isFALSE because I do not wan't nulls to pass the tests
   if (!isTRUE(is.finite(alpha)) || isTRUE(0 > alpha || 1 < alpha) || isTRUE(length(alpha) > 1))
     stop("Argument alpha should be a numeric value between 0 and 1 (of length 1).")
   

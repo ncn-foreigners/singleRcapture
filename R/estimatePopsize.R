@@ -11,11 +11,12 @@ NULL
 #' was observed in the source.
 #' Population size is then usually estimated by Horvitz-Thompson type estimator:
 #' 
-#' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
-#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
+#' \mjtdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-Pr(Y_{k}=0)}}{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{}
 #'
-#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, with 
-#' value 1 if kth unit was observed at least once and 0 otherwise.
+#' where \mjteqn{I_{k}=I_{Y_{k} > 0}}{I_{k}=I_{Y_{k} > 0}}{} are indicator 
+#' variables, with value 1 if kth unit was observed at least once and 0 otherwise.
 #'
 #' @param data data frame or object coercible to data.frame class containing 
 #' data for the regression and population size estimation.
@@ -50,30 +51,46 @@ NULL
 #' \code{estimatePopsize.fit}.
 #' 
 #' @details The generalized linear model is characterised by equation
-#' \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
-#' where \mjseqn{\boldsymbol{X}} is the (lm) model matrix. The vector 
-#' generalized linear model is similarly characterised by equations
-#' \mjsdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}
-#' where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model matrix constructed
-#' from appropriate formula (specified in \code{controlModel} parameter).
-#' The \mjseqn{\boldsymbol{\eta}} is then a vector constructed as:
-#' \mjsdeqn{\boldsymbol{\eta}=\begin{pmatrix}
-#' \boldsymbol{\eta}_{1}^{T} & 
-#' \boldsymbol{\eta}_{2}^{T} & 
-#' \dotso & 
-#' \boldsymbol{\eta}_{p}^{T}
-#' \end{pmatrix}^{T}}
+#' \mjtdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}{
+#' \boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}{}
+#' where \mjteqn{\boldsymbol{X}}{\boldsymbol{X}}{} is the (lm) model matrix. 
+#' The vector generalized linear model is similarly characterised by equations
+#' \mjtdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}{
+#' \boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}{}
+#' where \mjteqn{\boldsymbol{X}_{k}}{\boldsymbol{X}_{k}}{} is a (lm) model 
+#' matrix constructed from appropriate formula 
+#' (specified in \code{controlModel} parameter).
+#' 
+#' The \mjteqn{\boldsymbol{\eta}}{\boldsymbol{\eta}}{} 
+#' is then a vector constructed as:
+#' 
+#' \mjtdeqn{\boldsymbol{\eta}=\pmatrix{
+#' \boldsymbol{\eta}_{1} &
+#' \boldsymbol{\eta}_{2} &
+#' \dots &
+#' \boldsymbol{\eta}_{p}}}{\boldsymbol{\eta}=\begin{pmatrix}
+#' \boldsymbol{\eta}_{1} \cr 
+#' \boldsymbol{\eta}_{2} \cr
+#' \dotso \cr
+#' \boldsymbol{\eta}_{p}
+#' \end{pmatrix}^{T}}{}
 #' 
 #' and in cases of models in our package the (vlm) model matrix 
 #' is constructed as a block matrix:
 #' 
-#' \mjsdeqn{\boldsymbol{X}_{vlm}=
+#' \mjtdeqn{\boldsymbol{X}_{vlm}=
+#' \pmatrix{
+#' \boldsymbol{X}_{1} & \boldsymbol{0} &\dots &\boldsymbol{0}\cr
+#' \boldsymbol{0} & \boldsymbol{X}_{2} &\dots &\boldsymbol{0}\cr
+#' \vdots & \vdots & \ddots & \vdots\cr
+#' \boldsymbol{0} & \boldsymbol{0} &\dots &\boldsymbol{X}_{p}
+#' }}{\boldsymbol{X}_{vlm}=
 #' \begin{pmatrix}
 #' \boldsymbol{X}_{1} & \boldsymbol{0} &\dotso &\boldsymbol{0}\cr
 #' \boldsymbol{0} & \boldsymbol{X}_{2} &\dotso &\boldsymbol{0}\cr
 #' \vdots & \vdots & \ddots & \vdots\cr
 #' \boldsymbol{0} & \boldsymbol{0} &\dotso &\boldsymbol{X}_{p}
-#' \end{pmatrix}}
+#' \end{pmatrix}}{}
 #' 
 #' this differs from convention in \code{VGAM} package (if we only consider our 
 #' special cases of vglm models) but this is just a convention and does not 
@@ -85,12 +102,15 @@ NULL
 #' In this package we use observed likelihood to fit regression models.
 #' 
 #' As mentioned aboce usually the population size estimation is done via:
-#' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
-#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
+#' \mjtdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-Pr(Y_{k}=0)}}{
+#' \hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+#' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{}
 #'
-#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, 
+#' where \mjteqn{I_{k}=I_{Y_{k} > 0}}{I_{k}=I_{Y_{k} > 0}}{} are indicator variables, 
 #' with value 1 if k'th unit was observed at least once and 0 otherwise.
-#' The \mjseqn{\mathbb{P}(Y_{k}>0)} are estimated by maximum likelihood.
+#' The \mjteqn{Pr(Y_{k}>0)}{\mathbb{P}(Y_{k}>0)}{} 
+#' are estimated by maximum likelihood.
 #' 
 #' The following assumptions are usually present when using 
 #' the method of estimation described above:
@@ -102,28 +122,54 @@ NULL
 #' [singleRmodels()].
 #' 3. The population size is constant in relevant time frame.
 #' 4. Depending on confidence interval construction (asymptotic) normality
-#' of \mjseqn{\hat{N}} statistic is assumed.
+#' of \mjteqn{\hat{N}}{\hat{N}}{} statistic is assumed.
 #' 
-#' There are two ways of estimating variance of estimate \mjseqn{\hat{N}},
+#' There are two ways of estimating variance of estimate \mjteqn{\hat{N}}{\hat{N}}{},
 #' the first being \code{"analytic"} usually done by application of 
-#' law of total variance to \mjseqn{\hat{N}}:
-#' \mjsdeqn{\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
+#' law of total variance to \mjteqn{\hat{N}}{\hat{N}}{}:
+#'
+#' \mjtdeqn{var(\hat{N})=E\left(var
 #' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
-#' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}
-#' and then by \mjseqn{\delta} method to 
-#' \mjseqn{\hat{N}|I_{1},\dotso I_{N}}:
-#' \mjsdeqn{\mathbb{E}\left(\text{var}
-#' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
-#' \left.\left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
-#' \text{cov}\left(\boldsymbol{\beta}\right)
-#' \left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)
-#' \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}
+#' var\left(E(\hat{N}|I_{1},\dots,I_{n})\right)}{
+#' \text{var}(\hat{N})=\mathbb{E}\left(\text{var}
+#' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
+#' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}{}
 #' 
-#' and the \mjseqn{\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}
+#' and then by \mjteqn{\delta}{\delta}{} method to 
+#' \mjteqn{\hat{N}|I_{1},\dots I_{N}}{\hat{N}|I_{1},\dotso I_{N}}{}:
+#' 
+#' \mjtdeqn{E\left(var
+#' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
+#' \left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
+#' cov\left(\boldsymbol{\beta}\right)
+#' \left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
+#' \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}
+#' }{\mathbb{E}\left(\text{var}
+#' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
+#' \left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
+#' \text{cov}\left(\boldsymbol{\beta}\right)
+#' \left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
+#' \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}{}
+#' 
+#' and the \mjteqn{var\left(E(\hat{N}|I_{1},\dots,I_{n})\right)}{
+#' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}{}
 #' term may be derived analytically (if we assume independence of
-#' observations) since \mjseqn{\hat{N}|I_{1},\dots,I_{n}} is just a constant. 
+#' observations) since \mjteqn{\hat{N}|I_{1},\dots,I_{n}}{\hat{N}|I_{1},\dots,I_{n}}{} 
+#' is just a constant. 
+#' 
 #' In general this gives us:
-#' \mjsdeqn{
+#' \mjtdeqn{
+#' \begin{array}{r@{}l@{\qquad}l}
+#' var\left(E(\hat{N}|I_{1},\dots,I_{n})\right)&=
+#' var\left(\sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)}\right)\cr
+#' &=\sum_{k=1}^{N}var\left(\frac{I_{k}}{Pr(Y_{k}>0)}\right)\cr
+#' &=\sum_{k=1}^{N}\frac{1}{Pr(Y_{k}>0)^{2}}var(I_{k})\cr
+#' &=\sum_{k=1}^{N}\frac{1}{Pr(Y_{k}>0)^{2}}Pr(Y_{k}>0)(1-Pr(Y_{k}>0))\cr
+#' &=\sum_{k=1}^{N}\frac{1}{Pr(Y_{k}>0)}(1-Pr(Y_{k}>0))\cr
+#' &\approx\sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)^{2}}(1-Pr(Y_{k}>0))\cr
+#' &=\sum_{k=1}^{N_{obs}}\frac{1-Pr(Y_{k}>0)}{Pr(Y_{k}>0)^{2}}
+#' \end{array}
+#' }{
 #' \begin{aligned}
 #' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)&=
 #' \text{var}\left(\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}\right)\cr
@@ -134,17 +180,19 @@ NULL
 #' &\approx\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)^{2}}(1-\mathbb{P}(Y_{k}>0))\cr
 #' &=\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}>0)}{\mathbb{P}(Y_{k}>0)^{2}}
 #' \end{aligned}
-#' }
+#' }{}
 #' 
 #' Where the approximation on 6th line appears because in 5th line we sum over 
-#' all units, that includes unobserved units, since \mjseqn{I_{k}} are 
-#' independentand \mjseqn{I_{k}\sim b(\mathbb{P}(Y_{k}>0))} the 6th line
+#' all units, that includes unobserved units, since \mjteqn{I_{k}}{I_{k}}{} are 
+#' independent and \mjteqn{I_{k}\sim b(Pr(Y_{k}>0))}{
+#' I_{k}\sim b(\mathbb{P}(Y_{k}>0))}{} the 6th line
 #' is an unbiased estimator of the 5th line.
 #' 
 #' The other method for estimating variance is \code{"bootstrap"}, but since
-#' \mjseqn{N_{obs}=\sum_{k=1}^{N}I_{k}} is also a random
-#' variable bootstrap will not be as simple as just drawing \mjseqn{N_{obs}}
-#' units from data with replacement and just computing \mjseqn{\hat{N}}.
+#' \mjteqn{N_{obs}=\sum_{k=1}^{N}I_{k}}{N_{obs}=\sum_{k=1}^{N}I_{k}}{} 
+#' is also a random variable bootstrap will not be as simple as just drawing 
+#' \mjteqn{N_{obs}}{N_{obs}}{} units from data with replacement 
+#' and just computing \mjteqn{\hat{N}}{\hat{N}}{}.
 #' 
 #' Method described above is refered to in literature as \code{"nonparametric"}
 #' bootstrap (see [controlPopVar()]), due to ignoring variability in observed
@@ -152,54 +200,65 @@ NULL
 #' 
 #' A more sophisticated bootstrap procedure may be described as follows:
 #' 1. Compute the probability distribution as: 
-#' \mjsdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, 
+#' \mjtdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, 
+#' \frac{\boldsymbol{f}_{1}}{\hat{N}}, 
+#' \dots, 
+#' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{
+#' \frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, 
 #' \frac{\boldsymbol{f}_{1}}{\hat{N}}, 
 #' \dotso, 
-#' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}
-#' where \mjseqn{\boldsymbol{f}_{n}} denotes observed marginal frequency of
-#' units being observed exactly n times, round the quantitites above to nearest 
-#' integer if necessary.
-#' 2. Draw \mjseqn{\hat{N}} units from the distribution above 
-#' (if \mjseqn{\hat{N}} is not an integer than draw \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
-#' 3. Truncated units with \mjseqn{y=0}.
+#' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}{}
+#' where \mjteqn{\boldsymbol{f}_{n}}{\boldsymbol{f}_{n}}{} denotes observed 
+#' marginal frequency of units being observed exactly n times, round the 
+#' quantities above to nearest integer if necessary.
+#' 2. Draw \mjteqn{\hat{N}}{\hat{N}}{} units from the distribution above 
+#' (if \mjteqn{\hat{N}}{\hat{N}}{} is not an integer than draw 
+#' \mjteqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{
+#' \lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}{}).
+#' 3. Truncated units with \mjteqn{y=0}{y=0}{}.
 #' 4. If there are covariates draw them from original data with replacement from 
 #' uniform distribution. For example if unit drawn to new data has 
-#' \mjseqn{y=2} choose one of covariate vectors from original data that 
+#' \mjteqn{y=2}{y=2}{} choose one of covariate vectors from original data that 
 #' was associated with unit for which was observed 2 times.
-#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}}
-#' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting 
-#' point \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, 
-#' use them to compute \mjseqn{\hat{N}_{new}}.
+#' 5. Regress \mjteqn{\boldsymbol{y}_{new}}{\boldsymbol{y}_{new}}{} on 
+#' \mjteqn{\boldsymbol{X}_{vlm new}}{\boldsymbol{X}_{vlm new}}{} and obtain 
+#' \mjteqn{\hat{\boldsymbol{\beta}}_{new}}{\hat{\boldsymbol{\beta}}_{new}}{}, 
+#' with starting point 
+#' \mjteqn{\hat{\boldsymbol{\beta}}}{\hat{\boldsymbol{\beta}}}{} to make 
+#' it slightly faster, use them to compute 
+#' \mjteqn{\hat{N}_{new}}{\hat{N}_{new}}{}.
 #' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
-#' it is necessary to assume that the have a correct estimate \mjseqn{\hat{N}}
-#' in order to use this type of bootstrap.
+#' it is necessary to assume that the have a correct estimate 
+#' \mjteqn{\hat{N}}{\hat{N}}{} in order to use this type of bootstrap.
 #' 
 #' Lastly there is \code{"paramteric"} bootstrap where we assume that the 
-#' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
+#' probabilistic model used to obtain \mjteqn{\hat{N}}{\hat{N}}{} is correct the 
 #' bootstrap procedure may then be described as:
-#' 1. Draw \mjseqn{\hat{N}} covariate information vectors with replacement from
-#' data according to probability distribution 
-#' \mjsdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}
-#' where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}, 
-#' \mjseqn{N_{k}} is the contribution of kth unit i.e. 
-#' \mjseqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}} and
-#' \mjseqn{\lfloor \cdot\rfloor} is the floor function.
-#' 2. Determine \mjseqn{\boldsymbol{\eta}} matrix using estimate 
-#' \mjseqn{\hat{\boldsymbol{\beta}}}.
-#' 3. Generate \mjseqn{\boldsymbol{y}} (dependent variable) vector using
-#' \mjseqn{\boldsymbol{\eta}} and probability mass function associated with
-#' chosen model.
-#' 4. Truncated units with \mjseqn{y=0} and construct 
-#' \mjseqn{\boldsymbol{y}_{new}} and 
-#' \mjseqn{\boldsymbol{X}_{vlm new}}.
-#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on 
-#' \mjseqn{\boldsymbol{X}_{vlm new}}
-#' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}
-#' use them to compute \mjseqn{\hat{N}_{new}}.
+#' 
+#' 1. Draw \mjteqn{\hat{N}}{\hat{N}}{} covariate information vectors with 
+#' replacement from data according to probability distribution 
+#' \mjtdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}{
+#' \frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}{}
+#' where \mjteqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}{}, 
+#' \mjteqn{N_{k}}{N_{k}}{} is the contribution of kth unit i.e. 
+#' \mjteqn{\frac{I_{k}}{Pr(Y_{k}>0)}}{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}}{} and
+#' \mjteqn{\lfloor\cdot\rfloor}{\lfloor \cdot\rfloor}{} is the floor function.
+#' 2. Determine \mjteqn{\boldsymbol{\eta}}{\boldsymbol{\eta}}{} matrix using estimate 
+#' \mjteqn{\hat{\boldsymbol{\beta}}}{\hat{\boldsymbol{\beta}}}{}.
+#' 3. Generate \mjteqn{\boldsymbol{y}}{\boldsymbol{y}}{} (dependent variable) 
+#' vector using \mjteqn{\boldsymbol{\eta}}{\boldsymbol{\eta}}{} and 
+#' probability mass function associated with chosen model.
+#' 4. Truncated units with \mjteqn{y=0}{y=0}{} and construct 
+#' \mjteqn{\boldsymbol{y}_{new}}{\boldsymbol{y}_{new}}{} and 
+#' \mjteqn{\boldsymbol{X}_{vlm new}}{\boldsymbol{X}_{vlm new}}{}.
+#' 5. Regress \mjteqn{\boldsymbol{y}_{new}}{\boldsymbol{y}_{new}}{} on 
+#' \mjteqn{\boldsymbol{X}_{vlm new}}{\boldsymbol{X}_{vlm new}}{} and obtain 
+#' \mjteqn{\hat{\boldsymbol{\beta}}_{new}}{\hat{\boldsymbol{\beta}}_{new}}{}
+#' use them to compute \mjteqn{\hat{N}_{new}}{\hat{N}_{new}}{}.
 #' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType}
 #' specified in [controlPopVar()]
@@ -210,15 +269,16 @@ NULL
 #' violated. In such cases post-hoc procedures are implemented in this package
 #' to address this issue.
 #' 
-#' Lastly confidence intervals for \mjseqn{\hat{N}} are computed (in analytic case)
-#' either by assuming that it follows a normal distribution or that variable
-#' \mjseqn{\ln(N-\hat{N})} follows a normal distribution. 
+#' Lastly confidence intervals for \mjteqn{\hat{N}}{\hat{N}}{} are computed 
+#' (in analytic case) either by assuming that it follows a normal distribution 
+#' or that variable \mjteqn{\ln(N-\hat{N})}{\ln(N-\hat{N})}{} 
+#' follows a normal distribution. 
+#' 
 #' These estimates may be found using either \code{summary.singleR}
 #' method or \code{popSizeEst.singleR} function. They're labelled as 
 #' \code{normal} and \code{logNormal} respectively.
 #'
 #' @references General single source capture recapture literature:
-#' 
 #' 
 #' Zelterman, Daniel (1988). ‘Robust estimation in truncated discrete distributions
 #' with application to capture-recapture experiments’. In: Journal of statistical

@@ -54,54 +54,77 @@ and in more general terms it can roughly be described as
 \itemize{
 \item \code{converged <- FALSE}
 \item \code{iter <- 1}
-\item \mjseqn{\boldsymbol{\beta}}\code{ <- start}
-\item \mjseqn{\boldsymbol{W}}\code{ <- prior}
-\item \mjseqn{\ell}\code{ <- }\mjseqn{\ell(\boldsymbol{\beta})}
+\item \mjteqn{\boldsymbol{\beta}}{\boldsymbol{\beta}}{}\code{ <- start}
+\item \mjteqn{\boldsymbol{W}}{\boldsymbol{W}}{}\code{ <- prior}
+\item \mjteqn{\ell}{\ell}{}\code{ <- }
+\mjteqn{\ell(\boldsymbol{\beta})}{\ell(\boldsymbol{\beta})}{}
 }
 \item If \code{converged} or \code{iter > Maxiter} move to step 7.
 \item Store values from previous algorithm step:
 \itemize{
-\item \mjseqn{\boldsymbol{W}_{-}}\code{ <- }\mjseqn{\boldsymbol{W}}
-\item \mjseqn{\ell_{-}}\code{ <- }\mjseqn{\ell}
-\item \mjseqn{\boldsymbol{\beta}_{-}}\code{ <- }\mjseqn{\boldsymbol{\beta}}
+\item \mjteqn{\boldsymbol{W}_{-}}{\boldsymbol{W}_{-}}{}\code{ <- }
+\mjteqn{\boldsymbol{W}}{\boldsymbol{W}}{}
+\item \mjteqn{\ell_{-}}{\ell_{-}}{}\code{ <- }
+\mjteqn{\ell}{\ell}{}
+\item \mjteqn{\boldsymbol{\beta}_{-}}{\boldsymbol{\beta}_{-}}{}\code{ <- }
+\mjteqn{\boldsymbol{\beta}}{\boldsymbol{\beta}}{}
 } and assign values at current step:
 \itemize{
-\item \mjseqn{\boldsymbol{\eta}}\code{ <- }\mjseqn{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
-\item \mjseqn{Z_{i}}\code{ <- }
-\mjseqn{\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
+\item \mjteqn{\boldsymbol{\eta}}{\boldsymbol{\eta}}{}\code{ <- }
+\mjteqn{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{}
+\item \mjteqn{Z_{i}}{Z_{i}}{}\code{ <- }
+\mjteqn{\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
+E\left(\frac{\partial^{2}\ell_{i}}{
+\partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}}{
+\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
 \mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
-\partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}}
-\item \mjseqn{\boldsymbol{W}_{ij}}\code{ <- }
-\mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{
-\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}
+\partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}}{}
+\item \mjteqn{\boldsymbol{W}_{ij}}{\boldsymbol{W}_{ij}}{}\code{ <- }
+\mjteqn{E\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}
+\partial\boldsymbol{\eta}_{i}}\right)}{
+\mathbb{E}\left(\frac{\partial^{2}\ell}{
+\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{}
 }
-where \mjseqn{\ell_{i}} is the ith component of log likelihood function,
-\mjseqn{\eta_{i}} is the vector of linear predictors associated with
-ith row and  \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)}
-corresponds to weights associated with ith row and \mjseqn{\boldsymbol{W}}
-is a block matrix, made of diagonal matrixes
-\mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{
-\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}
-\item Regress \mjseqn{\boldsymbol{Z}} on \mjseqn{\boldsymbol{X}_{vlm}}
-to obtain \mjseqn{\boldsymbol{\beta}} as:
-\mjsdeqn{\boldsymbol{\beta}=
+where \mjteqn{\ell_{i}}{\ell_{i}}{} is the ith component of log likelihood
+function, \mjteqn{\eta_{i}}{\eta_{i}}{} is the vector of linear predictors
+associated with ith row and \mjteqn{E\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}
+\partial\eta_{i}}\right)}{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
+\partial\eta_{i}^{T}\partial\eta_{i}}\right)}{}
+corresponds to weights associated with ith row and \mjteqn{\boldsymbol{W}}{
+\boldsymbol{W}}{} is a block matrix, made of diagonal matrixes
+\mjteqn{E\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{j}^{T}
+\partial\boldsymbol{\eta}_{i}}\right)}{
+\mathbb{E}\left(\frac{\partial^{2}\ell}{
+\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}{}
+\item Regress \mjteqn{\boldsymbol{Z}}{\boldsymbol{Z}}{} on
+\mjteqn{\boldsymbol{X}_{vlm}}{\boldsymbol{X}_{vlm}}{} to obtain
+\mjteqn{\boldsymbol{\beta}}{\boldsymbol{\beta}}{} as:
+\mjtdeqn{\boldsymbol{\beta}=
 \left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
-\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}
+\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{\boldsymbol{\beta}=
+\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
+\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}{}
 \item Assign:
 \itemize{
-\item\code{converged <- }
-\mjseqn{\ell(\boldsymbol{\beta})-\ell_{-} \lt \varepsilon \ell_{-}} \mjseqn{\lor}
-\mjseqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} \lt \varepsilon}
+\item\code{converged <- }\mjteqn{
+\ell(\boldsymbol{\beta})-\ell_{-}<}{
+\ell(\boldsymbol{\beta})-\ell_{-}\lt}{}
+\mjteqn{\varepsilon\cdot\ell_{-}}{\varepsilon\cdot\ell_{-}}{}
+or
+\mjteqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty}<\varepsilon}{
+||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty}\lt\varepsilon}{}
 \item\code{iter <- iter + 1}
 }
-where \mjseqn{\varepsilon} is the relative tolerance level, by default \code{1e-8}.
+where \mjteqn{\varepsilon}{\varepsilon}{} is the relative tolerance level,
+by default \code{1e-8}.
 \item Return to step 2.
-\item Return \mjseqn{\boldsymbol{\beta}, \boldsymbol{W}}, \code{iter}.
+\item Return \mjteqn{\boldsymbol{\beta}, \boldsymbol{W}}{
+\boldsymbol{\beta}, \boldsymbol{W}}{}, \code{iter}.
 }
 
-In this package we use different conventions for \mjseqn{\boldsymbol{X}_{vlm}}
-matrix hence slight differences are present in algorithm description but
-results are identical.
+In this package we use different conventions for \mjteqn{\boldsymbol{X}_{vlm}}{
+\boldsymbol{X}_{vlm}}{} matrix hence slight differences are present in
+algorithm description but results are identical.
 }
 \examples{
 
