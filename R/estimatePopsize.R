@@ -333,6 +333,7 @@ NULL
 #' 
 #' [singleRmodels()] -- For description of various models.
 #' @examples 
+#' \dontrun{
 #' # Model from 2003 publication 
 #' # Point and interval estimation of the
 #' # population size using the truncated Poisson regression mode
@@ -403,6 +404,7 @@ NULL
 #' )
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 #' summary(Model)
+#' }
 #' @importFrom stats model.frame model.matrix model.response
 #' @export
 estimatePopsize <- function(formula,

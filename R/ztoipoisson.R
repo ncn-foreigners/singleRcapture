@@ -279,7 +279,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     if (any(diff < 0)) {
       warning(paste0(
         "Some of differences between log likelihood in sautrated model",
-        " and fitted model were positive which idicates either:\n",
+        " and fitted model were positive which indicates either:\n",
         "(1): A very good model fitt or\n",
         "(2): Incorrect computation of saturated model",
         "\nDouble check deviance before proceeding"

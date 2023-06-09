@@ -301,18 +301,23 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     }
     
     
-    tryCatch(
+    err <- tryCatch(
       expr = {
         z <- eta + Zfun(eta = eta, weight = W, y = dependent)
+        FALSE
       },
       error = function (e) {
-        stop(cat(
-          "Pseudo residuals of IRLS algorithm could not have been computed at iteration:",
-          iter, "Most likely working weight matrixes could not have been inverted.", 
-          sep = " "
-        ), call. = FALSE)
+        TRUE
       }
     )
+    
+    if (isTRUE(err)) {
+      stop(paste0(
+        "Pseudo residuals of IRLS algorithm could not have been computed at iteration: ",
+        iter, "\nMost likely working weight matrixes could not have been inverted."
+      ), call. = FALSE)
+    }
+    
     XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))

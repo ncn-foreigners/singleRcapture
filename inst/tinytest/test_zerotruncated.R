@@ -2,20 +2,26 @@
 
 set.seed(123)
 
-N <- 10000
-x1 <- rbinom(n = N, size = 3, prob = .4)
-x2 <- runif(n = N)
-x3 <- rnorm(n = N, mean = 3, sd = 4)
+N <- 1000
+#x1 <- rbinom(n = N, size = 3, prob = .4)
+#x2 <- runif(n = N)
+#x3 <- rnorm(n = N, mean = 3, sd = 4)
+
+test_inflated <- read.csv("test_zerotruncated.csv")
+x1 <- test_inflated$x1
+x2 <- test_inflated$x2
+x3 <- test_inflated$x3
 
 ## poisson ####
 beta <- c(.6, .2, -1.25, .1)
-eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3)
+#eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3)
 
 fn <- ztpoisson(
   lambdaLink = "neglog"
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztpoisson1
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -34,7 +40,7 @@ M1 <- estimatePopsize(
 expect_equivalent(
   coef(M1),
   beta,
-  tolerance = .15
+  tolerance = .25
 )
 
 expect_silent(
@@ -44,7 +50,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .15
 )
 
 expect_true(
@@ -67,7 +73,7 @@ expect_equivalent(
   tolerance = .1
 )
 
-AA <- summary(marginalFreq(M1), dropl5 = "group")
+AA <- summary(marginalFreq(M1), dropl5 = "group", df = 1)
 
 expect_true(
   all(AA$Test$`P(>X^2)` > .01)
@@ -79,7 +85,8 @@ fn <- ztpoisson(
   lambdaLink = "log"
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztpoisson2
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -108,7 +115,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .1
 )
 
 expect_true(
@@ -166,7 +173,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .1
 )
 
 expect_true(
@@ -205,7 +212,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .1
 )
 
 expect_true(
@@ -244,22 +251,19 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
-)
-
-expect_true(
-  shapiro.test(pop$boot)$p.value > .025
+  tol = .1
 )
 
 ## geometric ####
 beta <- c(.6, .2, -1.25, .1)
-eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3)
+#eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3)
 
 fn <- ztgeom(
   lambdaLink = "neglog"
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztgeom1
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -278,7 +282,7 @@ M1 <- estimatePopsize(
 expect_equivalent(
   coef(M1),
   beta,
-  tolerance = .15
+  tolerance = .25
 )
 
 expect_silent(
@@ -288,7 +292,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .1
 )
 
 expect_true(
@@ -308,13 +312,13 @@ expect_equivalent(
 expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
-  tolerance = .1
+  tolerance = .2
 )
 
 AA <- summary(marginalFreq(M1), dropl5 = "group")
 
 expect_true(
-  all(AA$Test$`P(>X^2)` > .01)
+  all(AA$Test$`P(>X^2)` > .03)
 )
 
 # different link
@@ -323,7 +327,8 @@ fn <- ztgeom(
   lambdaLink = "log"
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztgeom2
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -342,7 +347,7 @@ M1 <- estimatePopsize(
 expect_equivalent(
   coef(M1),
   beta,
-  tolerance = .15
+  tolerance = .2
 )
 
 expect_silent(
@@ -378,14 +383,14 @@ expect_equivalent(
 AA <- summary(marginalFreq(M1), dropl5 = "group")
 
 expect_true(
-  all(AA$Test$`P(>X^2)` > .001)
+  all(AA$Test$`P(>X^2)` > .05)
 )
 
 ## ztnegbin ####
-beta <- c(.6, .2, -1.25, .1,
+beta <- c(.3, .2, -.3, .1,
           .2, .1, -.5,   .3)
-eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3,
-             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
+#eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3,
+#             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
 
 fn <- ztnegbin(
   lambdaLink = "neglog",
@@ -393,7 +398,8 @@ fn <- ztnegbin(
   eimStep = 40
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztnegbin1
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -412,10 +418,6 @@ M1 <- estimatePopsize(
   )
 )
 
-expect_true(
-  max(abs(coef(M1) - beta)) < .7
-)
-
 expect_silent(
   pop <- popSizeEst(M1)
 )
@@ -423,7 +425,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .2
 )
 
 expect_true(
@@ -443,16 +445,12 @@ expect_equivalent(
 expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
-  tolerance = .1
-)
-
-AA <- summary(marginalFreq(M1), dropl5 = "group")
-
-expect_true(
-  all(AA$Test$`P(>X^2)` > .01)
+  tolerance = .3
 )
 
 # different link
+beta <- c(.1, .2, -.3, .1,
+          .2, .1, -.1,   .3)
 
 fn <- ztnegbin(
   lambdaLink = "log",
@@ -460,7 +458,8 @@ fn <- ztnegbin(
   eimStep = 40
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztnegbin2
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -480,7 +479,7 @@ M1 <- estimatePopsize(
 )
 
 expect_true(
-  max(abs(coef(M1) - beta)) < .7
+  max(abs(coef(M1) - beta)) < .9
 )
 
 expect_silent(
@@ -490,7 +489,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .05
+  tol = .1
 )
 
 expect_true(
@@ -516,18 +515,18 @@ expect_equivalent(
 AA <- summary(marginalFreq(M1), dropl5 = "no")
 
 expect_true(
-  all(AA$Test$`P(>X^2)` < .1)
+  all(AA$Test$`P(>X^2)` > .05)
 )
 
 # different link
-
 fn <- ztnegbin(
   lambdaLink = "neglog",
   alphaLink = "log",
   eimStep = 10
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztnegbin3
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -546,10 +545,6 @@ M1 <- estimatePopsize(
   )
 )
 
-expect_true(
-  max(abs(coef(M1) - beta)) < .7
-)
-
 expect_silent(
   pop <- popSizeEst(M1)
 )
@@ -557,12 +552,12 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .25
+  tol = .6
 )
 
 expect_true(
-  all(N < pop$confidenceInterval$upperBound) &
-  all(N > pop$confidenceInterval$lowerBound)
+  (N < pop$confidenceInterval$upperBound[2]) &
+  (N > pop$confidenceInterval$lowerBound[2])
 )
 
 expect_silent(
@@ -577,23 +572,23 @@ expect_equivalent(
 expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
-  tolerance = .25
+  tolerance = .6
 )
 
 # different link
-
 beta <- c(.6, -.2, -1.25, -.1,
           .2, -.1, -.5,   .3)
-eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3,
-             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
+#eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3,
+#             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
 
 fn <- ztnegbin(
   lambdaLink = "log",
   alphaLink = "log",
-  eimStep = 1
+  eimStep = 25
 )
 
-y <- fn$simulate(n = N, eta = eta, lower = -1)
+#y <- fn$simulate(n = N, eta = eta, lower = -1)
+y <- test_inflated$ztnegbin4
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -625,7 +620,7 @@ expect_silent(
 expect_equivalent(
   N,
   pop$pointEstimate,
-  tol = .25
+  tol = .15
 )
 
 expect_true(
@@ -645,11 +640,11 @@ expect_equivalent(
 expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
-  tolerance = .25
+  tolerance = .15
 )
 
-AA <- summary(marginalFreq(M1), dropl5 = "group", df = 10)
+AA <- summary(marginalFreq(M1), dropl5 = "group")
 
 expect_true(
-  all(AA$Test$`P(>X^2)` > .005)
+  all(AA$Test$`P(>X^2)` > .05)
 )

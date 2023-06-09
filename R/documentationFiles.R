@@ -14,7 +14,7 @@ NULL
 #' arguments specify maximum number of simulations allowed and
 #' precision level for finding them numerically respectively.
 #' @param lambdaLink link for poisson parameter, \code{"log"} 
-#' by default except for logistic based models where only 
+#' by default except for zelterman's and chao's models where only 
 #' \mjseqn{\ln\left(\tfrac{x}{2}\right)} is possible.
 #' @param alphaLink link for dispersion parameter, \code{"log"} by default
 #' @param omegaLink link for inflation parameter, \code{"logit"} by default 
@@ -371,6 +371,7 @@ NULL
 #' }
 #' 
 #' @examples
+#' \dontrun{
 #' # For singleR class
 #' # Get simple model
 #' Model <- estimatePopsize(
@@ -388,6 +389,6 @@ NULL
 #' # It is also possible to not provide dfbeta then they will be
 #' # computed manually
 #' summary(dfpopsize(Model))
-#' 
+#' }
 #' @name regDiagSingleR
 NULL

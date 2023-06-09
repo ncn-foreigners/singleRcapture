@@ -344,7 +344,7 @@ modelInflated2 <- estimatePopsize(
 #> information matrix because hessian of log-likelihood is not negative define.
 popSizeEst(modelInflated2)
 #> Point estimate: 5496.376
-#> Variance: 1435999
+#> Variance: 1440064
 #> 99% confidence intervals:
 #> lowerBound upperBound 
 #>   4259.711  10877.646

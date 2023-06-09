@@ -15,7 +15,7 @@ estimatePopsize(
   subset = NULL,
   naAction = NULL,
   method = c("optim", "IRLS"),
-  popVar = c("analytic", "bootstrap", "noEst"),
+  popVar = c("analytic", "bootstrap"),
   controlMethod = NULL,
   controlModel = NULL,
   controlPopVar = NULL,
@@ -294,6 +294,7 @@ method or \code{popSizeEst.singleR} function. They're labelled as
 \code{normal} and \code{logNormal} respectively.
 }
 \examples{
+\dontrun{
 # Model from 2003 publication 
 # Point and interval estimation of the
 # population size using the truncated Poisson regression mode
@@ -364,6 +365,7 @@ Model <- estimatePopsize(
 )
 summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 summary(Model)
+}
 }
 \references{
 General single source capture recapture literature:

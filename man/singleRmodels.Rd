@@ -147,7 +147,7 @@ ztpoisson(lambdaLink = c("log", "neglog"), ...)
 }
 \arguments{
 \item{lambdaLink}{link for poisson parameter, \code{"log"}
-by default except for logistic based models where only
+by default except for zelterman's and chao's models where only
 \mjseqn{\ln\left(\tfrac{x}{2}\right)} is possible.}
 
 \item{...}{Additional arguments, not used for now.}

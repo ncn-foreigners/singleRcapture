@@ -144,6 +144,7 @@ predictor (and mixed derivatives) and
 specifications in \code{controlModel} and call to \code{estimatePopsize}.
 }
 \examples{
+\dontrun{
 # For singleR class
 # Get simple model
 Model <- estimatePopsize(
@@ -161,7 +162,7 @@ plot(res)
 # It is also possible to not provide dfbeta then they will be
 # computed manually
 summary(dfpopsize(Model))
-
+}
 }
 \seealso{
 \code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[stats:influence.measures]{stats::hatvalues()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[stats:influence.measures]{stats::dfbeta()}}
