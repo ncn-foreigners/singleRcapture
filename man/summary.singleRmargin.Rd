@@ -25,18 +25,16 @@ observed marginal frequencies.
 Performs two statistical test on observed and fitted
 marginal frequencies. For G test the test statistic is computed as:
 \loadmathjax
-\mjtdeqn{G = 2\sum_{k}O_{k}\ln\left(\frac{O_{k}}{E_{k}}\right)}{
-G = 2\sum_{k}O_{k}\ln{\left(\frac{O_{k}}{E_{k}}\right)}}{}
-and for \mjteqn{\chi^{2}}{\chi^{2}}{} the test statistic is computed as:
-\mjtdeqn{\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}{
-\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}{}
-where \mjteqn{O_{k},E_{k}}{O_{k},E_{k}}{} denoted observed and fitted
+\mjsdeqn{G = 2\sum_{k}O_{k}\ln{\left(\frac{O_{k}}{E_{k}}\right)}}
+and for \mjseqn{\chi^{2}} the test statistic is computed as:
+\mjsdeqn{\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}
+where \mjseqn{O_{k},E_{k}} denoted observed and fitted
 frequencies respectively. Both of these statistics converge to
-\mjteqn{\chi^2}{\chi^2}{} distribution asymptotically with the same
+\mjseqn{\chi^2} distribution asymptotically with the same
 degrees of freedom.
 
-The convergence of \mjteqn{G, \chi^2}{G, \chi^2}{} statistics to
-\mjteqn{\chi^2}{\chi^2}{} distribution may be violated if expected counts
+The convergence of \mjseqn{G, \chi^2} statistics to
+\mjseqn{\chi^2} distribution may be violated if expected counts
 in cells are too low, say < 5, so it is customary to either censor or
 omit these cells.
 }

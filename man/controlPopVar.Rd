@@ -50,16 +50,13 @@ like \code{controlMethod} but for fitting models from bootstrap samples.}
 
 \item{sd}{indicates how to compute standard deviation of population
 size estimator either as:
-\mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}}{
-\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{}
-for \code{sqrt} (which is slightly biased if \mjteqn{\hat{N}}{\hat{N}}{}
+\mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
+for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}}
 has a normal distribution) or for \code{normalMVUE} as the unbiased
 minimal variance estimator for normal distribution:
-\mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}
+\mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
 \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
-\sqrt{\frac{N_{obs}}{2}}}{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-\frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
-\sqrt{\frac{N_{obs}}{2}}}{}
+\sqrt{\frac{N_{obs}}{2}}}
 where the ration involving gamma functions is computed by log gamma function.}
 
 \item{covType}{type of covariance matrix for regression parameters by default

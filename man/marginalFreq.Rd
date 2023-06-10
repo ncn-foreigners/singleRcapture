@@ -33,11 +33,10 @@ A list with observed name of the fitted model family degrees of freedom and obse
 A function that given a fitted \code{singleR} class object
 computed marginal frequencies by as sum of probability density functions
 for each unit in data at each point i.e. kth element of marginal frequency
-table is given by \mjteqn{\sum_{j=1}^{N_{obs}}Pr(Y_{j}=k|\eta_{j})}{
-\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|\eta_{j})}{}.
+table is given by \mjseqn{\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|\eta_{j})}.
 For k=0 only (if specified at call) they are computed as
-\mjteqn{\hat{N}-N_{obs}}{\hat{N}-N_{obs}}{} because
-\mjteqn{\boldsymbol{f}_{0}}{\boldsymbol{f}_{0}}{} is assumed to
+\mjseqn{\hat{N}-N_{obs}} because
+\mjseqn{\boldsymbol{f}_{0}} is assumed to
 the unobserved part of the studied population.
 
 These frequencies are useful in diagnostics for count data regression, such

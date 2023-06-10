@@ -73,15 +73,12 @@ By default \code{1e-8}.}
 \item{momentumFactor}{experimental parameter in \code{IRLS} only allowing for
 taking previous step into account at current step, i.e instead of
 updating regression parameters as:
-\mjtdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + stepsize 
-\cdot step_{(a)}}{
-\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-\cdot \text{step}_{(a)}}{}
+\mjsdeqn{\boldsymbol{\beta}_{(a)} = 
+\boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
 the update will be made as:
-\mjtdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + stepsize 
-\cdot (step_{(a)} + momentum\cdot step_{(a-1)})}{
+\mjsdeqn{
 \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-\cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{}}
+\cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}}
 
 \item{saveIRLSlogs}{logical value indicating if information specified in
 \code{verbose} should be saved to output object, by default \code{FALSE}.}

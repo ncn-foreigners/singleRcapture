@@ -64,20 +64,17 @@ based on a capture-recapture model for the whole population.
 In single source capture-recapture models the most frequently used
 estimate for population size is Horwitz-Thompson type estimate:
 
-\mjtdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{Pr(Y_{k}>0)} = 
-\sum_{k=1}^{N_{obs}}\frac{1}{1-Pr(Y_{k}=0)}}{
-\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
-\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}{}
+\mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 
-where \mjteqn{I_{k}=I_{Y_{k} > 0}}{I_{k}=I_{Y_{k} > 0}}{} are
+where \mjseqn{I_{k}=I_{Y_{k} > 0}} are
 indicator variables, with value 1 if kth unit was observed at least once
 and 0 otherwise and the inverse probabilistic weights weights for
-units observed in the data \mjteqn{\frac{1}{Pr(Y_{k}>0)}}{
-\tfrac{1}{\mathbb{P}(Y_{k}>0)}}{}
+units observed in the data \mjseqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}
 are estimated using fitted linear predictors.
 
 The estimates for different sub populations are made by changing the
-\mjteqn{I_{k}=I_{Y_{k} > 0}}{I_{k}=I_{Y_{k} > 0}}{} indicator variables to
+\mjseqn{I_{k}=I_{Y_{k} > 0}} indicator variables to
 refer not to the population as a whole but to the sub populations that are
 being considered i.e. by changing values from 1 to 0 if kth unit is not a
 member of sub population that is being considered at the moment.

@@ -45,15 +45,12 @@
 #' @param momentumFactor experimental parameter in \code{IRLS} only allowing for 
 #' taking previous step into account at current step, i.e instead of 
 #' updating regression parameters as:
-#' \mjtdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + stepsize 
-#' \cdot step_{(a)}}{
-#' \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-#' \cdot \text{step}_{(a)}}{}
+#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = 
+#' \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
 #' the update will be made as:
-#' \mjtdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + stepsize 
-#' \cdot (step_{(a)} + momentum\cdot step_{(a-1)})}{
+#' \mjsdeqn{
 #' \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-#' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}{}
+#' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}
 #' @param momentumActivation the value of log-likelihood reduction bellow 
 #' which momentum will apply.
 #' @param criterion criterion used to determine convergence in \code{IRLS}, 
@@ -213,19 +210,16 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' like \code{controlMethod} but for fitting models from bootstrap samples.
 #' @param sd indicates how to compute standard deviation of population 
 #' size estimator either as:
-#' \mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}}{
-#' \hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}{}
-#' for \code{sqrt} (which is slightly biased if \mjteqn{\hat{N}}{\hat{N}}{} 
+#' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
+#' for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}}
 #' has a normal distribution) or for \code{normalMVUE} as the unbiased 
 #' minimal variance estimator for normal distribution:
-#' \mjtdeqn{\hat{\sigma}=\sqrt{\hat{var}(\hat{N})}
+#' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
 #' \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
-#' \sqrt{\frac{N_{obs}}{2}}}{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-#' \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
-#' \sqrt{\frac{N_{obs}}{2}}}{}
+#' \sqrt{\frac{N_{obs}}{2}}}
 #' where the ration involving gamma functions is computed by log gamma function.
 #' @param covType type of covariance matrix for regression parameters by default 
-#' observed information matrix, more options will be here in the future.
+#' observed information matrix.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlMethod()]

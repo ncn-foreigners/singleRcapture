@@ -35,7 +35,7 @@ Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no
 \code{dfbeta} method.}
 
 \item{maxitNew}{maximal number of iterations for regressions with starting
-points \mjteqn{\hat{\boldsymbol{\beta}}}{\hat{\boldsymbol{\beta}}}{} on data
+points \mjseqn{\hat{\boldsymbol{\beta}}} on data
 specified at call for \code{model} after the removal of k'th row. By default 1.}
 
 \item{type}{a type of residual to return.}
@@ -61,11 +61,9 @@ removal of k'th unit from the data set.
 \item For \code{dfbeta} -- A matrix with n rows and p observations where p
 is a number of units in data and p is the number of regression parameters.
 K'th row of this matrix corresponds to
-\mjteqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}{
-\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}{}
-where \mjteqn{\hat{\boldsymbol{\beta}}_{-k}}{\hat{\boldsymbol{\beta}}_{-k}}{}
-is a vector of estimates for regression parameters after the
-removal of k'th row from the data.
+\mjseqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}
+where \mjseqn{\hat{\boldsymbol{\beta}}_{-k}} is a vector of estimates for
+regression parameters after the removal of k'th row from the data.
 \item \code{cooks.distance} -- A matrix with a single columns with
 values of cooks distance for every unit in \code{model.matrix}
 \item \code{residuals.singleR} -- A \code{data.frame} with chosen residuals.
@@ -114,39 +112,19 @@ not only regular glm's but also vglm's the \code{hatvalues} returns a matrix
 with number of columns corresponding to number of linear predictors in a model,
 where kth column corresponds to elements of the diagonal of projection
 matrix associated with kth linear predictor. For glm's
-\mjtdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
+\mjsdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
 \left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}
-\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}{
-\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
-\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}
-\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}{}
-where: \mjteqn{\boldsymbol{W}=E\left(Diag
+\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}
+where: \mjseqn{\boldsymbol{W}=\mathbb{E}\left(\text{Diag}
 \left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}
-\partial\boldsymbol{\eta}}\right)\right)}{
-\boldsymbol{W}=\mathbb{E}\left(\text{Diag}
-\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}
-\partial\boldsymbol{\eta}}\right)\right)}{}
-and \mjteqn{\boldsymbol{X}}{\boldsymbol{X}}{} is a model (lm) matrix.
+\partial\boldsymbol{\eta}}\right)\right)}
+and \mjseqn{\boldsymbol{X}} is a model (lm) matrix.
 For vglm's present in the package it is instead :
-\mjtdeqn{\boldsymbol{X}_{vlm}
+\mjsdeqn{\boldsymbol{X}_{vlm}
 \left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
-\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}{\boldsymbol{X}_{vlm}
-\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
-\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}{}
+\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}}
 where:
-\mjtdeqn{
-\boldsymbol{W} = E\pmatrix{
-Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &
-Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &
-\dots & Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
-Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &
-Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &
-\dots & Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
-\vdots & \vdots & \ddots & \vdots\cr
-Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &
-Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &
-\dots & Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
-}}{
+\mjsdeqn{
 \boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
 \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &
 \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &
@@ -158,28 +136,16 @@ Diag\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &
 \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &
 \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &
 \dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
-\end{bmatrix}\right)}{
-\boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &
-\dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &
-\dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
-\vdots & \vdots & \ddots & \vdots\cr
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &
-\dotso & \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
-\end{bmatrix}\right)}{}
+\end{bmatrix}\right)}
 is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
 predictor (and mixed derivatives) and
-\mjteqn{\boldsymbol{X}_{vlm}}{\boldsymbol{X}_{vlm}}{} is a model (vlm)
+\mjseqn{\boldsymbol{X}_{vlm}} is a model (vlm)
 matrix constructed using specifications in \code{controlModel} and
 call to \code{estimatePopsize}.
 }
 \examples{
-\dontrun{
+\donttest{
 # For singleR class
 # Get simple model
 Model <- estimatePopsize(

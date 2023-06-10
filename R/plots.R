@@ -87,7 +87,7 @@
 #' @method plot singleR
 #' @return No return value only the plot being made.
 #' @importFrom stats ppoints qqline qqnorm
-#' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows
+#' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows par
 #' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
 #' @export
 plot.singleR <- function(x, 
@@ -97,6 +97,10 @@ plot.singleR <- function(x,
                                       "hatplot", "strata"),
                          confIntStrata = c("normal", "logNormal"),
                          ...) {
+  ## sugested by Victoria Wimmer
+  oldpar <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(oldpar))
+  
   if ((plotType == "bootHist") && (!is.numeric(x$populationSize$boot))) {
     stop("Trying to plot bootstrap results with no bootstrap performed")
   } 
@@ -105,7 +109,7 @@ plot.singleR <- function(x,
   
   # TODO
   # move this to particular plots
-  if (parNum == 1) 
+  if (parNum == 1)
     type <- "pearsonSTD" 
   else 
     type <- "pearson"
@@ -206,8 +210,7 @@ plot.singleR <- function(x,
            ...);
       graphics::panel.smooth(y = sqrt(abs(res)), x = lp, iter = 0)
     } else {
-      par <- graphics::par(no.readonly = TRUE);
-      par(mfrow = c(parNum, 1));
+      graphics::par(mfrow = c(parNum, 1));
       for (k in 1:parNum) {
         plot(y = sqrt(abs(res)), x = x$linearPredictors[, k],
              xlab = "Linear predictors",
@@ -220,7 +223,6 @@ plot.singleR <- function(x,
                                x = x$linearPredictors[, k], 
                                iter = 0)
       }
-      graphics::par(par);
     }
   },
   fitresid = {
@@ -238,8 +240,7 @@ plot.singleR <- function(x,
       abline(lty = 2, col = "darkgrey", h = 0);
       graphics::panel.smooth(y = res, x = lp, iter = 0)
     } else {
-      par <- graphics::par(no.readonly = TRUE);
-      par(mfrow = c(parNum, 1));
+      graphics::par(mfrow = c(parNum, 1));
       for (k in 1:parNum) {
         plot(y = res, x = x$linearPredictors[, k],
              xlab = "Linear predictors",
@@ -253,7 +254,6 @@ plot.singleR <- function(x,
                                x = x$linearPredictors[, k], 
                                iter = 0)
       }
-      graphics::par(par);
     }
   },
   cooks = {
@@ -267,8 +267,7 @@ plot.singleR <- function(x,
   },
   hatplot = {
     A <- hatvalues.singleR(x, ...);
-    par <- graphics::par(no.readonly = TRUE);
-    par(mfrow = c(parNum, 1));
+    graphics::par(mfrow = c(parNum, 1));
     for (k in 1:parNum) {
       plot(A[, k],
            xlab = "Observation index",
@@ -277,7 +276,6 @@ plot.singleR <- function(x,
                          x$model$etaNames[k]),
            ...)
     }
-    graphics::par(par);
   },
   strata = {
     if (missing(confIntStrata)) confIntStrata <- "logNormal"
@@ -296,7 +294,7 @@ plot.singleR <- function(x,
     # )
     # points(x = 1:NROW(result), obs, col = "navy", pch = 19)
     # axis(side = 1, at = 1:NROW(result), labels = FALSE)
-    # text(x = 1:NROW(result), y=par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, adj = 1,
+    # text(x = 1:NROW(result), y=graphics::par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, adj = 1,
     #      nm, srt = 30, cex = .75,
     #      xpd = TRUE)
     # arrows(1:NROW(result), cnf[ ,1], 1:NROW(result), cnf[ ,2], 
@@ -317,7 +315,7 @@ plot.singleR <- function(x,
     axis(side = 2, at = 1:NROW(result), labels = FALSE)
     text(
       y = 1:NROW(result), 
-      x = par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, 
+      x = graphics::par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, 
       adj = 1,
       nm, 
       srt = tilt, 

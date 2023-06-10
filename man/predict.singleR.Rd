@@ -25,8 +25,8 @@
 \item \code{"response"}-- For matrix containing estimated distributions
 parameters.
 \item \code{"link"}    -- For matrix of linear predictors.
-\item \code{"mean"}    -- For fitted values of both \mjteqn{Y}{Y}{} and
-\mjteqn{Y|Y>0}{Y|Y>0}{}.
+\item \code{"mean"}    -- For fitted values of both \mjseqn{Y} and
+\mjseqn{Y|Y>0}.
 \item \code{"contr"}   -- For inverse probability weights (here named for
 observation contribution to population size estimate).
 \item \code{"popSize"} -- For population size estimation. Note
@@ -67,10 +67,9 @@ mean/distribution parameters and directly get pop size estimates for new data.
 Standard errors are computed with assumption of regression
 coefficients being asymptotically normally distributed, if this assumption
 holds then each of linear predictors i.e. each row of
-\mjteqn{\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{
-\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}{}
+\mjseqn{\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
 is asymptotically normally distributed and their variances are expressed by
-well known formula. The mean \mjteqn{\mu}{\mu}{} and distribution parameters
+well known formula. The mean \mjseqn{\mu} and distribution parameters
 are then differentiable functions of asymptotically normally distributed
 variables and therefore their variances can be computed using (multivariate)
 delta method.
