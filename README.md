@@ -10,6 +10,8 @@
 coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
+[![CRAN
+downloads](http://cranlogs.r-pkg.org/badges/grand-total/singleRcapture?color=blue)](https://cran.r-project.org/package=singleRcapture)
 <!-- badges: end -->
 
 Capture-recapture type experiments are used to estimate the total
