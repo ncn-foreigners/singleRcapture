@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
 [![Codecov test coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
+[![CRAN status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
 <!-- badges: end -->
 
 Capture-recapture type experiments are used to estimate the total population size
@@ -48,10 +49,17 @@ Currently we've implemented most of the frequentist approaches used in literatur
 
 You can install the development version of singleRcapture from [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
 
-``` r
+```{r, eval=FALSE}
 # install.packages("devtools")
 remotes::install_github("ncn-foreigners/singleRcapture")
 ```
+
+or install the current stable version from [CRAN](https://cran.r-project.org/package=singleRcapture) with:
+
+```{r, eval=FALSE}
+install.packages(singleRcapture)
+```
+
 
 ### Examples
 
