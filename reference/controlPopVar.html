@@ -12,7 +12,7 @@ respective standard error and variance estimation."><!-- mathjax --><script src=
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,7 @@ respective standard error and variance estimation.</p>
 <span>  keepbootStat <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  traceBootstrapSize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bootstrapVisualTrace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  fittingMethod <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fittingMethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"optim"</span>, <span class="st">"IRLS"</span><span class="op">)</span>,</span>
 <span>  bootstrapFitcontrol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sqrtVar"</span>, <span class="st">"normalMVUE"</span><span class="op">)</span>,</span>
 <span>  covType <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"observedInform"</span>, <span class="st">"Fisher"</span><span class="op">)</span></span>
@@ -93,7 +93,7 @@ other possible values are: <code>"semiparametric"</code> and <code>"nonparametri
 <dt>confType</dt>
 <dd><p>type of confidence interval for bootstrap confidence interval,
 <code>"percentile"</code> by default.
-Other possibility: <code>"studentized"</code> and <code>"basic"</code>.</p></dd>
+Other possibilities: <code>"studentized"</code> and <code>"basic"</code>.</p></dd>
 
 
 <dt>keepbootStat</dt>
@@ -123,14 +123,12 @@ like <code>controlMethod</code> but for fitting models from bootstrap samples.</
 <dt>sd</dt>
 <dd><p>indicates how to compute standard deviation of population
 size estimator either as:
-<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script>
-
 \[\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\]
-for <code>sqrt</code> (which is slightly biased if <em></em>\(\hat{N}\) has a normal
-distribution) or for <code>normalMVUE</code> as  the unbiased minimal variance
-estimator for normal distribution:
+for <code>sqrt</code> (which is slightly biased if <em></em>\(\hat{N}\)
+has a normal distribution) or for <code>normalMVUE</code> as the unbiased
+minimal variance estimator for normal distribution:
 \[\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-\frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}
+\frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
 \sqrt{\frac{N_{obs}}{2}}\]
 where the ration involving gamma functions is computed by log gamma function.</p></dd>
 
@@ -152,7 +150,8 @@ observed information matrix, more options will be here in the future.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Piotr Chlebicki, Maciej Beręsewicz</p>
+    <p>Piotr Chlebicki, Maciej Beręsewicz
+<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

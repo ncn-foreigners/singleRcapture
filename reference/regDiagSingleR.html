@@ -16,7 +16,7 @@ are omitted."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,12 +97,12 @@ Notably <code>dfpopsize.singleR</code> calls <code>dfbeta.singleR</code> if no
 
 <dt>maxitNew</dt>
 <dd><p>maximal number of iterations for regressions with starting
-points <em></em>\(\hat{\boldsymbol{\beta}}\) on data specified at call for
-<code>model</code> after the removal of k'th row. By default 1.</p></dd>
+points <em></em>\(\hat{\boldsymbol{\beta}}\) on data
+specified at call for <code>model</code> after the removal of k'th row. By default 1.</p></dd>
 
 
 <dt>type</dt>
-<dd><p>a type of</p></dd>
+<dd><p>a type of residual to return.</p></dd>
 
 
 <dt>dfbeta</dt>
@@ -133,8 +133,8 @@ removal of k'th unit from the data set.</p></li>
 is a number of units in data and p is the number of regression parameters.
 K'th row of this matrix corresponds to
 <em></em>\(\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}\)
-where <em></em>\(\hat{\boldsymbol{\beta}}_{-k}\) is a vector of estimates
-for regression parameters after the removal of k'th row from the data.</p></li>
+where <em></em>\(\hat{\boldsymbol{\beta}}_{-k}\) is a vector of estimates for
+regression parameters after the removal of k'th row from the data.</p></li>
 <li><p><code>cooks.distance</code> -- A matrix with a single columns with
 values of cooks distance for every unit in <code>model.matrix</code></p></li>
 <li><p><code>residuals.singleR</code> -- A <code>data.frame</code> with chosen residuals.</p></li>
@@ -197,8 +197,9 @@ where:
 is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
 predictor (and mixed derivatives) and
-<em></em>\(\boldsymbol{X}_{vlm}\) is a model (vlm) matrix constructed using
-specifications in <code>controlModel</code> and call to <code>estimatePopsize</code>.</p>
+<em></em>\(\boldsymbol{X}_{vlm}\) is a model (vlm)
+matrix constructed using specifications in <code>controlModel</code> and
+call to <code>estimatePopsize</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -212,7 +213,8 @@ specifications in <code>controlModel</code> and call to <code>estimatePopsize</c
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># For singleR class</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># For singleR class</span></span></span>
 <span class="r-in"><span><span class="co"># Get simple model</span></span></span>
 <span class="r-in"><span><span class="va">Model</span> <span class="op">&lt;-</span> <span class="fu"><a href="estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">gender</span>, </span></span>
@@ -234,7 +236,7 @@ specifications in <code>controlModel</code> and call to <code>estimatePopsize</c
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu">dfpopsize</span><span class="op">(</span><span class="va">Model</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -4236.412     2.664     2.664     5.448    17.284   117.448 </span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

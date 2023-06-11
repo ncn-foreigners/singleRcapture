@@ -16,7 +16,7 @@ just regression fitting estimatePopsize.fit is much faster."><!-- mathjax --><sc
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,8 +107,9 @@ in <code>estimatePopsize</code>.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>If <code>method</code> argument was set to <code>"optim"</code> the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code>
-function will be used to fit regression with analyticly computed gradient and
+    <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+<p>If <code>method</code> argument was set to <code>"optim"</code> the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code>
+function will be used to fit regression with analytically computed gradient and
 (minus) log likelihood functions as <code>gr</code> and <code>fn</code> arguments.
 Unfortunately <code>optim</code> does not allow for hessian to be specified.
 More information about how to modify <code>optim</code> fitting is included in
@@ -117,42 +118,49 @@ More information about how to modify <code>optim</code> fitting is included in
 least squares. The algorithm is well know in generalised linear models.
 Thomas W. Yee later extended this algorithm to vector generalised linear models
 and in more general terms it can roughly be described as
-(this is Yee's description after changing some conventions):
-<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p><ol><li><p>Initialise with:</p><ul><li><p><code>converged &lt;- FALSE</code></p></li>
+(this is Yee's description after changing some conventions):</p><ol><li><p>Initialise with:</p><ul><li><p><code>converged &lt;- FALSE</code></p></li>
 <li><p><code>iter &lt;- 1</code></p></li>
 <li><p><em></em>\(\boldsymbol{\beta}\)<code> &lt;- start</code></p></li>
 <li><p><em></em>\(\boldsymbol{W}\)<code> &lt;- prior</code></p></li>
 <li><p><em></em>\(\ell\)<code> &lt;- </code><em></em>\(\ell(\boldsymbol{\beta})\)</p></li>
 </ul></li>
 <li><p>If <code>converged</code> or <code>iter &gt; Maxiter</code> move to step 7.</p></li>
-<li><p>Store values from previous algorithm step:</p><ul><li><p><em></em>\(\boldsymbol{W}_{-}\)<code> &lt;- </code><em></em>\(\boldsymbol{W}\)</p></li>
-<li><p><em></em>\(\ell_{-}\)<code> &lt;- </code><em></em>\(\ell\)</p></li>
-<li><p><em></em>\(\boldsymbol{\beta}_{-}\)<code> &lt;- </code><em></em>\(\boldsymbol{\beta}\)</p></li>
-</ul><p>and assign values at current step:</p><ul><li><p><em></em>\(\boldsymbol{\eta}\)<code> &lt;- </code><em></em>\(\boldsymbol{X}_{vlm}\boldsymbol{\beta}\)</p></li>
+<li><p>Store values from previous algorithm step:</p><ul><li><p><em></em>\(\boldsymbol{W}_{-}\)<code> &lt;- </code>
+<em></em>\(\boldsymbol{W}\)</p></li>
+<li><p><em></em>\(\ell_{-}\)<code> &lt;- </code>
+<em></em>\(\ell\)</p></li>
+<li><p><em></em>\(\boldsymbol{\beta}_{-}\)<code> &lt;- </code>
+<em></em>\(\boldsymbol{\beta}\)</p></li>
+</ul><p>and assign values at current step:</p><ul><li><p><em></em>\(\boldsymbol{\eta}\)<code> &lt;- </code>
+<em></em>\(\boldsymbol{X}_{vlm}\boldsymbol{\beta}\)</p></li>
 <li><p><em></em>\(Z_{i}\)<code> &lt;- </code>
-<em></em>\(\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
+<em></em>\(
+\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
 \mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
 \partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}\)</p></li>
 <li><p><em></em>\(\boldsymbol{W}_{ij}\)<code> &lt;- </code>
 <em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell}{
 \partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)\)</p></li>
-</ul><p>where <em></em>\(\ell_{i}\) is the ith component of log likelihood function,
-<em></em>\(\eta_{i}\) is the vector of linear predictors associated with
-ith row and  <em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)\)
+</ul><p>where <em></em>\(\ell_{i}\) is the ith component of log likelihood
+function, <em></em>\(\eta_{i}\) is the vector of linear predictors
+associated with ith row and <em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
+\partial\eta_{i}^{T}\partial\eta_{i}}\right)\)
 corresponds to weights associated with ith row and <em></em>\(\boldsymbol{W}\)
 is a block matrix, made of diagonal matrixes
 <em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell}{
 \partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)\)</p></li>
-<li><p>Regress <em></em>\(\boldsymbol{Z}\) on <em></em>\(\boldsymbol{X}_{vlm}\)
-to obtain <em></em>\(\boldsymbol{\beta}\) as:
+<li><p>Regress <em></em>\(\boldsymbol{Z}\) on
+<em></em>\(\boldsymbol{X}_{vlm}\) to obtain
+<em></em>\(\boldsymbol{\beta}\) as:
 \[\boldsymbol{\beta}=
 \left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
 \boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}\]</p></li>
-<li><p>Assign:</p><ul><li><p><code>converged &lt;- </code>
-<em></em>\(\ell(\boldsymbol{\beta})-\ell_{-} \lt \varepsilon \ell_{-}\) <em></em>\(\lor\)
-<em></em>\(||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} \lt \varepsilon\)</p></li>
+<li><p>Assign:</p><ul><li><p><code>converged &lt;- </code><em></em>\(
+\ell(\boldsymbol{\beta})-\ell_{-} \(
+||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} </p></li>
 <li><p><code>iter &lt;- iter + 1</code></p></li>
-</ul><p>where <em></em>\(\varepsilon\) is the relative tolerance level, by default <code>1e-8</code>.</p></li>
+</ul><p>where <em></em>\(\varepsilon\) is the relative tolerance level,
+by default <code>1e-8</code>.</p></li>
 <li><p>Return to step 2.</p></li>
 <li><p>Return <em></em>\(\boldsymbol{\beta}, \boldsymbol{W}\), <code>iter</code>.</p></li>
 </ol><p>In this package we use different conventions for <em></em>\(\boldsymbol{X}_{vlm}\)
@@ -170,12 +178,13 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Piotr Chlebicki, Maciej Beręsewicz</p>
+    <p>Piotr Chlebicki, Maciej Beresewicz</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Get data</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># Get data</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    TOTAL_SUB        log_size       log_distance      C_TYPE    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   : 1.00   Min.   : 0.000   Min.   : 4.102   Beef :5336  </span>
@@ -187,287 +196,320 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># construct vglm model matrix</span></span></span>
 <span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fl">0</span>, nrow <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">log_size</span> <span class="op">+</span> <span class="va">log_distance</span> <span class="op">+</span> <span class="va">C_TYPE</span>, </span></span>
-<span class="r-in"><span>                                               <span class="va">farmsubmission</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">log_size</span> <span class="op">+</span> <span class="va">log_distance</span> <span class="op">+</span> <span class="va">C_TYPE</span>, </span></span>
+<span class="r-in"><span>  <span class="va">farmsubmission</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">X</span><span class="op">[</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span>, <span class="fl">5</span><span class="op">:</span><span class="fl">7</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># this atrrtibute tells the function which elements of the design matrix </span></span></span>
 <span class="r-in"><span><span class="co"># correspond to which linear predictor </span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">X</span>, <span class="st">"hwm"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># get starting points</span></span></span>
-<span class="r-in"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm.fit</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
-<span class="r-in"><span>                 x <span class="op">=</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, </span></span>
-<span class="r-in"><span>                 family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span></span>
-<span class="r-in"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="va">start</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">6</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm.fit</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
+<span class="r-in"><span>  x <span class="op">=</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, </span></span>
+<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># call function</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize.fit</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span>, </span></span>
+<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
+<span class="r-in"><span>  X <span class="op">=</span> <span class="va">X</span>, </span></span>
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"IRLS"</span>, </span></span>
 <span class="r-in"><span>  priorWeights <span class="op">=</span> <span class="fl">1</span>, </span></span>
-<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztnegbin</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">5</span>, stepsize <span class="op">=</span> <span class="fl">.75</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  start <span class="op">=</span> <span class="va">start</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 1 log-likelihood: -17823.492</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -1.863614075  0.475204651 -0.059013713  0.508672480 -0.327870976  0.086003423 -0.412206923</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  901.05075</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 1 log-likelihood: -17455.372</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.255494347  0.521900283 -0.048255922  0.321168020 -1.297382847  0.049409082 -0.726587214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  1178.8778</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -1990.34014 -10046.54007 -21321.73120   -881.45386   -716.47130  -7710.75888   -223.33219</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    639.53919  4035.62183  6732.72078   672.31223  -316.39394 -3358.16739  -229.50394</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 1.0377746</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 1.4296549</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 2 log-likelihood: -17437.868</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.83898496  0.57720331 -0.10523289  1.12721800  0.56681332  0.10483162 -1.23066712</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  385.62401</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 2 log-likelihood: -17289.531</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.859491920  0.627917105 -0.063516471  0.573159952 -2.327571214  0.074464787 -0.734988992</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  165.84115</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    -952.47828  -4741.57396 -10212.18518   -343.98244   -618.99520  -6663.80140   -154.63239</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    77.37365182  329.72667483  823.92206208    0.28711463  -53.27713944 -568.21808076  -29.69092406</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.97537088</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 1.0301884</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 3 log-likelihood: -17295.872</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.277460156  0.634940802 -0.094367509  2.034789937  2.128998318  0.045964537 -2.151291285</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  141.99625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 3 log-likelihood: -17279.272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.710874025  0.613067896 -0.069548715  0.537208696 -2.550651004  0.071488122 -0.939145580</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  10.258788</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -413.851502 -2040.578657 -4436.735470  -109.135451  -335.376402 -3612.781025   -58.889278</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   35.9649654 218.1210745 385.4441808  32.8759028  -6.8429684 -71.8589804  -5.7178443</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 1.562185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.22307979</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 4 log-likelihood: -17254.782</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -5.072408286  0.657156480 -0.065245482  2.381886041  2.961574999 -0.012066361 -2.398344381</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  41.090197</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 4 log-likelihood: -17278.776</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.78426085  0.61628333 -0.06440012  0.53843272 -3.10491635  0.12060422 -1.04138882</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.49548535</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -139.197813  -687.872162 -1494.327940   -31.450516  -119.173553 -1288.504052   -18.285250</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1.67966432 11.13935043 16.42827781  1.15147049 -0.53787945 -5.57182317 -0.74695785</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.83257668</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.55426534</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 5 log-likelihood: -17249.508</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.785542658  0.662080248 -0.044539312  1.847021276  2.738430184 -0.051852315 -1.769105789</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  5.2739327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 5 log-likelihood: -17278.762</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.77818073  0.61674992 -0.06504016  0.53517478 -3.10447410  0.12145802 -1.08163762</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.014133264</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -62.5681200 -316.4732532 -673.2851829   -8.2755289  -52.4549093 -567.4986454   -4.9417204</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.232501334  2.204257359  2.694809270  0.131590616 -0.071608376 -0.605938875 -0.064356213</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.62923859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.040248796</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 6 log-likelihood: -17248.248</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.838358102  0.662181992 -0.035679178  1.805785896  2.842862541 -0.069778744 -1.688871750</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  1.2603975</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 6 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.78602286  0.61698772 -0.06441877  0.53495927 -3.19325142  0.12969021 -1.08314735</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00072206104</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -18.0169421  -92.8169585 -193.8385273   -1.8798049  -15.1781828 -164.9037392   -1.1047930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0149254818 -0.0442854058 -0.2585639446 -0.0671445437 -0.0089103073 -0.1428452785 -0.0408361061</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.10443236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.088777321</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 7 log-likelihood: -17248.124</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.856424279  0.661637750 -0.030877664  1.776299716  2.894932574 -0.079055152 -1.644112756</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.12375469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 7 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.783307402  0.617006834 -0.064659772  0.534565433 -3.160032510  0.126742033 -1.087078105</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000086867327</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -5.06601911 -26.72531290 -54.37487852  -0.31528393  -4.27867262 -46.73618805  -0.15560324</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.0219006963  0.2137543746  0.2878052106  0.0210725209 -0.0038258075 -0.0055588958  0.0088000042</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.052070032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.033218913</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 8 log-likelihood: -17248.111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.869878276  0.661294400 -0.028509607  1.766665256  2.926220022 -0.083411593 -1.629501617</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.012599044</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 8 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.785132183  0.617029483 -0.064506904  0.534668321 -3.181900933  0.128724679 -1.085840518</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00002149725</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -1.3791306185  -7.4663980661 -14.7133524835  -0.0027426914  -1.1676544673 -12.8743485954   0.0215439672</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00917986044 -0.07823752476 -0.12764140893 -0.01528913768  0.00031447068 -0.01459257986 -0.00776040766</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.031287448</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.021868422</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 9 log-likelihood: -17248.11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.878959253  0.661144077 -0.027331378  1.764109284  2.944258141 -0.085493615 -1.625463512</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0014672115</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 9 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784182050  0.617023943 -0.064588093  0.534586386 -3.170374939  0.127687086 -1.086727858</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000064244196</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.368913065 -2.048699268 -3.884684644  0.031430474 -0.312178145 -3.504357533  0.030488340</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00580810483  0.05244014329  0.07853720972  0.00778331030 -0.00057098473  0.00429221926  0.00373823938</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.018038119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.011525994</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 10 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.884625375  0.661089164 -0.026731658  1.763718234  2.954460230 -0.086525598 -1.624686621</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00022648247</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 10 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784725925  0.617028507 -0.064541975  0.534626993 -3.176948180  0.128280435 -1.086273279</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000019945583</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.096875744 -0.548122695 -0.991559296  0.020795430 -0.081408996 -0.947603064  0.017228273</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00307033642 -0.02728421573 -0.04201045343 -0.00448214639  0.00022935424 -0.00326931977 -0.00221219810</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.010202089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.006573241</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 11 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.888000502  0.661072319 -0.026419129  1.763867036  2.960181751 -0.087055092 -1.624768843</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000047774331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 11 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.78442528  0.61702627 -0.06456754  0.53460327 -3.17330966  0.12795232 -1.08653540</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000061988248</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0244397651 -0.1376704317 -0.2338731302  0.0104103315 -0.0201292559 -0.2533524486  0.0078301405</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00175710834  0.01568170285  0.02390375474  0.00247668337 -0.00014882078  0.00161926853  0.00120723718</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0057215212</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0036385179</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 12 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.889956420  0.661068670 -0.026253010  1.764077434  2.963376789 -0.087334144 -1.624992315</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000012449145</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 12 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784593634  0.617027580 -0.064553239  0.534616288 -3.175346365  0.128136053 -1.086390890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000019314757</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0055313064 -0.0285989665 -0.0431543682  0.0047561975 -0.0043078410 -0.0657477152  0.0032151064</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.000968762304 -0.008641334328 -0.013216142726 -0.001385713857  0.000077984442 -0.000953809209 -0.000679710368</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0031950377</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0020367031</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 13 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.891071396  0.661068881 -0.026163395  1.764238408  2.965156867 -0.087484001 -1.625177606</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000035915436</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 13 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784499807  0.617026860 -0.064561213  0.534608978 -3.174211159  0.128033659 -1.086471902</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000000060121238</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00084286134 -0.00187662677  0.00006712155  0.00211608014 -0.00049470766 -0.01574614830  0.00124263181</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.000543879318  0.004849594593  0.007409081324  0.000772957725 -0.000044801246  0.000519451077  0.000377932793</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0017800781</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0011352061</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 14 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.891700725  0.661069844 -0.026114548  1.764342988  2.966147382 -0.087565490 -1.625301537</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000010801996</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 14 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784552191  0.617027265 -0.064556762  0.534613048 -3.174844941  0.128090828 -1.086426773</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000000018728315</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00015910985  0.00314638510  0.00679966516  0.00094773468  0.00025496115 -0.00292540930  0.00045995750</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00030256412 -0.00269909096 -0.00412482654 -0.00043127032  0.00002466148 -0.00029328219 -0.00021122304</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00099051501</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00063378215</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 15 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.892053814  0.661070692 -0.026087737  1.764406292  2.966698186 -0.087610160 -1.625377602</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000033018296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 15 log-likelihood: -17278.761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784522964  0.617027040 -0.064559245  0.534610775 -3.174491334  0.128058932 -1.086451974</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000000583168</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.000267949697 0.003028308015 0.005713247289 0.000435422817 0.000291345164 0.000027911184 0.000163958646</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.000169118291  0.001508137257  0.002304646966  0.000240720360 -0.000013855243  0.000162719782  0.000117791113</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00055080374</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 16 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.892251193  0.661071277 -0.026072955  1.764443253  2.967004372 -0.087634771 -1.625422349</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000010155782</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.000201240710 0.002082281200 0.003738961046 0.000207088974 0.000204770704 0.000491982940 0.000056070532</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0003061859</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 17 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.892361281  0.661071643 -0.026064781  1.764464407  2.967174548 -0.087648375 -1.625448069</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000000031312084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.000127397155 0.001284304865 0.002245575651 0.000102112246 0.000126264478 0.000412962287 0.000018089806</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00017017649</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 18 log-likelihood: -17248.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -4.892422599  0.661071861 -0.026060253  1.764476375  2.967269123 -0.087655909 -1.625462658</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000000096661097</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.0000755209312 0.0007549148594 0.0012988453582 0.0000520085308 0.0000738565809 0.0002710898226 0.0000052602827</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.000094575234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0003536072</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of analytically computed hessian at fitted regression coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]        [,2]        [,3]       [,4]        [,5]        [,6]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  -4571.199  -25603.055  -48636.535  -3380.822  -2509.0413 -145504.055</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -25603.055 -147121.914 -272342.907 -19693.777 -26719.7905   -8691.146</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -48636.535 -272342.907 -519445.459 -35856.227  -1501.4754  -26719.790</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  -3380.822  -19693.777  -35856.227  -3380.822 -13666.9336 -285668.710</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]  -2509.041   -1501.475 -285668.710  -8691.146  -1717.8462  -18309.468</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] -13666.934  -26719.790  -15908.320 -15908.320 -18309.4675 -195877.421</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [7,] -26719.790 -145504.055   -1501.475  -1501.475   -860.5633   -9111.942</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             [,7]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] -15908.3204</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  -1501.4754</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -15908.3204</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  -1501.4754</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]   -860.5633</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]  -9111.9423</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [7,]   -860.5633</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             [,1]         [,2]         [,3]        [,4]       [,5]        [,6]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  -5533.0360  -31139.1628  -58786.3824  -3921.3952  407.46348  23473.8262</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -31139.1628 -179723.7217 -330742.8394 -22956.5461 4362.01544   1060.0139</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -58786.3824 -330742.8394 -627035.9660 -41504.3671  185.81715   4362.0154</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  -3921.3952  -22956.5461  -41504.3671  -3921.3952 2193.72685  46845.5137</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]    407.4635     185.8172   46845.5137   1060.0139  -88.14760   -948.1115</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]   2193.7268    4362.0154    1971.9380   1971.9380 -948.11154 -10234.8910</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [7,]   4362.0154   23473.8262     185.8172    185.8172  -28.97964   -312.6869</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            [,7]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 1971.93804</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  185.81715</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 1971.93804</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  185.81715</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]  -28.97964</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] -312.68692</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [7,]  -28.97964</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The matrix above has the following eigen values:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -681851.2+0i -215719.6+0i -2322.41+58791.38i -2322.41-58791.38i 25652.64+0i 10560.49+0i -6972.756+0i </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -811159.7+0i -17207.51+0i -2161.919+9274.748i -2161.919-9274.748i 6057.218+0i 1581.239+0i -1513.504+0i </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># extract results</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># regression coefficient vector</span></span></span>
 <span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">beta</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -4.89242260  0.66107186 -0.02606025  1.76447637  2.96726912 -0.08765591</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.62546266</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.78452296  0.61702704 -0.06455925  0.53461077 -3.17449133  0.12805893</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.08645197</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># check likelihood</span></span></span>
 <span class="r-in"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="singleRmodels.html">ztnegbin</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">makeMinusLogLike</span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">-</span><span class="fu">ll</span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -17248.11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -19536.01</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># number of iterations</span></span></span>
 <span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">iter</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 15</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># working weights</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          lambda      mixed      mixed      alpha</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.19146547 0.16520177 0.16520177 0.14282624</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.57006082 0.23023980 0.23023980 0.13334928</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.07855612 0.06890872 0.06890872 0.06047553</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.12737155 0.11112052 0.11112052 0.09703535</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.25529253 0.21624875 0.21624875 0.18398582</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.28665185 0.23845695 0.23845695 0.19987565</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          lambda       mixed       mixed       omega</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.22688312 -0.03207963 -0.03207963 0.006351956</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.66642253 -0.03199578 -0.03199578 0.006238854</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.08469406 -0.01202233 -0.01202233 0.001899477</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.14084340 -0.01990317 -0.01990317 0.003397031</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.34099080 -0.04762290 -0.04762290 0.012045206</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.42290801 -0.05782236 -0.05782236 0.018478738</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Compare with optim call</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">res2</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize.fit</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span>, </span></span>
+<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
+<span class="r-in"><span>  X <span class="op">=</span> <span class="va">X</span>, </span></span>
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"optim"</span>, </span></span>
 <span class="r-in"><span>  priorWeights <span class="op">=</span> <span class="fl">1</span>, </span></span>
-<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztnegbin</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  start <span class="op">=</span> <span class="va">start</span>, </span></span>
-<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   10 value 17321.626463</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   20 value 17301.696934</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   30 value 17281.887033</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   40 value 17281.801823</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   50 value 17281.438730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   60 value 17280.194130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   70 value 17280.188789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   80 value 17280.176569</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter   90 value 17280.122521</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  100 value 17280.027214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  110 value 17279.476714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  120 value 17279.216352</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  130 value 17279.089746</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  140 value 17278.919206</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  150 value 17278.894635</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  160 value 17278.867207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  170 value 17278.864148</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  180 value 17278.802633</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  190 value 17278.776768</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  200 value 17278.772490</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  210 value 17278.768282</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  220 value 17278.768123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  230 value 17278.767875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  240 value 17278.767809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  250 value 17278.767469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  260 value 17278.765452</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  270 value 17278.761627</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  280 value 17278.761313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  290 value 17278.761310</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  300 value 17278.761306</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  310 value 17278.761304</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  320 value 17278.761298</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  330 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  340 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  350 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  360 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  370 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  380 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  390 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  400 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  410 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  420 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  430 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  440 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  450 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  460 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  470 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  480 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  490 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  500 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter  510 value 17278.761287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> final  value 17278.761287 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> converged</span>
 <span class="r-in"><span><span class="co"># extract results</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># regression coefficient vector</span></span></span>
 <span class="r-in"><span><span class="va">res2</span><span class="op">$</span><span class="va">beta</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -4.89254268  0.66107233 -0.02604925  1.76447646  2.96745272 -0.08767306</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.62546335</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.78453076  0.61702707 -0.06455857  0.53461150 -3.17461277  0.12806986</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.08644213</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># check likelihood</span></span></span>
 <span class="r-in"><span><span class="op">-</span><span class="fu">ll</span><span class="op">(</span><span class="va">res2</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -17248.11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -19536.01</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># number of calls to log lik function</span></span></span>
 <span class="r-in"><span><span class="co"># since optim does not return the number of</span></span></span>
 <span class="r-in"><span><span class="co"># iterations</span></span></span>
 <span class="r-in"><span><span class="va">res2</span><span class="op">$</span><span class="va">iter</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function gradient </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     1003     1003 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      616      616 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># optim does not calculated working weights</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res2</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

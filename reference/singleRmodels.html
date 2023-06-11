@@ -18,7 +18,7 @@ estimatePopsize function."><!-- mathjax --><script src="https://cdnjs.cloudflare
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@ estimatePopsize function."><!-- mathjax --><script src="https://cdnjs.cloudflare
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Family functions in singleRcapture package</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Chao.R" class="external-link"><code>R/Chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztgeom.R" class="external-link"><code>R/Hurdleztgeom.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztpoisson.R" class="external-link"><code>R/Hurdleztpoisson.R</code></a>, and 17 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Chao.R" class="external-link"><code>R/Chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztgeom.R" class="external-link"><code>R/Hurdleztgeom.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/R/Hurdleztnegbin.R" class="external-link"><code>R/Hurdleztnegbin.R</code></a>, and 18 more</small>
       <div class="d-none name"><code>singleRmodels.Rd</code></div>
     </div>
 
@@ -71,6 +71,16 @@ on the model. These functions are used as <code>model</code> argument in
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu">Hurdleztnegbin</span><span class="op">(</span></span>
+<span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  eimStep <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
+<span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu">Hurdleztpoisson</span><span class="op">(</span></span>
 <span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
@@ -86,6 +96,7 @@ on the model. These functions are used as <code>model</code> argument in
 <span><span class="fu">oiztnegbin</span><span class="op">(</span></span>
 <span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  eimStep <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
@@ -121,6 +132,7 @@ on the model. These functions are used as <code>model</code> argument in
 <span><span class="fu">ztHurdlenegbin</span><span class="op">(</span></span>
 <span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  eimStep <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
@@ -138,6 +150,7 @@ on the model. These functions are used as <code>model</code> argument in
 <span><span class="fu">ztnegbin</span><span class="op">(</span></span>
 <span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  eimStep <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -152,6 +165,7 @@ on the model. These functions are used as <code>model</code> argument in
 <span><span class="fu">ztoinegbin</span><span class="op">(</span></span>
 <span>  nSim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  epsSim <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  eimStep <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  alphaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
 <span>  omegaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
@@ -170,9 +184,9 @@ on the model. These functions are used as <code>model</code> argument in
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>lambdaLink</dt>
-<dd><p>link for poisson parameter, <code>"log"</code>
-by default except for logistic based models where only
-<em></em>\(\ln\left(\tfrac{x}{2}\right)\) is possible.</p></dd>
+<dd><p>link for Poisson parameter, <code>"log"</code>
+by default except for zelterman's and chao's models where only
+<em></em>\(\ln\left(\frac{x}{2}\right)\) is possible.</p></dd>
 
 
 <dt>...</dt>
@@ -183,18 +197,27 @@ by default except for logistic based models where only
 <dd><p>link for probability parameter,  <code>"logit"</code> by default</p></dd>
 
 
-<dt>omegaLink</dt>
-<dd><p>link for inflation parameter, <code>"logit"</code> by default</p></dd>
-
-
 <dt>nSim, epsSim</dt>
 <dd><p>if working weights cannot be computed analytically these
 arguments specify maximum number of simulations allowed and
 precision level for finding them numerically respectively.</p></dd>
 
 
+<dt>eimStep</dt>
+<dd><p>a non negative integer describing
+how many values should be used at each step of approximation
+of information matrixes when no analytic solution is available
+(e.g. <code>"ztnegbin"</code>), default varies depending on a function.
+Higher value usually means faster convergence but may potentially cause
+issues with convergence.</p></dd>
+
+
 <dt>alphaLink</dt>
 <dd><p>link for dispersion parameter, <code>"log"</code> by default</p></dd>
+
+
+<dt>omegaLink</dt>
+<dd><p>link for inflation parameter, <code>"logit"</code> by default</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -205,10 +228,12 @@ precision level for finding them numerically respectively.</p></dd>
 <em></em>\(\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
 \frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^{T}\partial\boldsymbol{\beta}}
 \) functions from
-<em></em>\(\boldsymbol{y}\) vector and <em></em>\(\boldsymbol{X}_{vlm}\)
-(or just <em></em>\(\boldsymbol{X}\) if applied to model with single linear predictor)
-the argument <code>deriv</code> with possible values in <code>0, 1, 2</code> provides which
-derivative to return with <code>0</code> being just the minus log-likelihood.</p></li>
+<em></em>\(\boldsymbol{y}\) vector and
+<em></em>\(\boldsymbol{X}_{vlm}\)
+(or just <em></em>\(\boldsymbol{X}\) if applied to model
+with single linear predictor) the argument <code>deriv</code> with possible
+values in <code>0, 1, 2</code> provides which derivative to return with
+<code>0</code> being just the minus log-likelihood.</p></li>
 <li><p><code>links</code> -- List with link functions.</p></li>
 <li><p><code>mu.eta, variance</code> -- Functions of linear predictors that
 return expected value and variance. There is a <code>type</code> argument with
@@ -227,11 +252,10 @@ prior weights vector and response vector returns deviance residuals.
 Not all family functions have these functions implemented yet.</p></li>
 <li><p><code>pointEst, popVar</code> -- Functions that given prior weights
 linear predictors and in the later case also estimation of
-<em></em>\(\text{cov}(\hat{\boldsymbol{\beta}})\)
-and <em></em>\(\boldsymbol{X_{vlm}}\) matrix return point estimate
-for population size and analytic estimation of its variance.
-There is a additional boolean parameter <code>contr</code> in the former
-function that if set to true returns contribution of each unit.</p></li>
+<em></em>\(\text{cov}(\hat{\boldsymbol{\beta}})\) and <em></em>\(\boldsymbol{X_{vlm}}\)
+matrix return point estimate for population size and analytic estimation
+of its variance.There is a additional boolean parameter <code>contr</code> in the
+former function that if set to true returns contribution of each unit.</p></li>
 <li><p><code>etaNames</code> -- Names of linear predictors.</p></li>
 <li><p><code>densityFunction</code> -- A function that given linear predictors
 returns value of PMF at values <code>x</code>. Additional argument <code>type</code>
@@ -246,10 +270,10 @@ vector given linear predictors.</p></li>
     <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
 <p>Most of these functions are based on some "base" distribution with
 support <em></em>\(\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace\) that describe
-distribution of <em></em>\(Y\) before truncation. Currently they include:
+distribution of <em></em>\(Y\)Y before truncation. Currently they include:
 \[\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 \begin{array}{cc}
-\frac{\lambda^{y}e^{-\lambda}}{y!}    &amp; \text{poisson distribution}  \cr
+\frac{\lambda^{y}e^{-\lambda}}{y!}    &amp; \text{Poisson distribution}  \cr
 \frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!} 
 \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 \left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} &amp; 
@@ -258,20 +282,20 @@ distribution of <em></em>\(Y\) before truncation. Currently they include:
 \text{geometric distribution}
 \end{array}
 \right.\]
-where <em></em>\(\lambda\) is the poisson parameter and
+where <em></em>\(\lambda\) is the Poisson parameter and
 <em></em>\(\alpha\) is the dispersion parameter. Geometric distribution
 is a special case of negative binomial distribution when
 <em></em>\(\alpha=1\) it is included because negative binomial
 distribution is quite troublesome numerical regression in fitting.
 It is important to know that PMF of negative binomial distribution
-approaches the PMF of poisson distribution when
+approaches the PMF of Poisson distribution when
 <em></em>\(\alpha\rightarrow 0^{+}\).</p>
 <p><strong>Note</strong> in literature on single source capture recapture models
 the dispersion parameter which introduces greater variability
-in negative binomial distribution compared to poisson distribution is
+in negative binomial distribution compared to Poisson distribution is
 generally interpreted as explaining the <em>unobserved</em> heterogeneity
 i.e. presence of important unobserved independent variables.
-All these methods for estimating population size are tied to poisson
+All these methods for estimating population size are tied to Poisson
 processes hence we use <em></em>\(\lambda\) as parameter symbol
 instead of <em></em>\(\mu\) to emphasize this connection.
 Also will not be hard to see that <strong>all</strong> estimators derived from
@@ -285,11 +309,11 @@ characterised by relation:
 0 &amp; \text{when }y=0
 \end{array}\right.\]
 which allows us to estimate parameter values using only observed part of
-population. These models lead to the following estimates:
+population. These models lead to the following estimates, respectively:
 \[
 \begin{aligned}
 \hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &amp;
-\text{ For poisson distribution} \cr
+\text{ For Poisson distribution} \cr
 \hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &amp;
 \text{ For negative binomial distribution} \cr
 \hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &amp;
@@ -300,15 +324,14 @@ population. These models lead to the following estimates:
 presence of <strong>one inflation</strong> the presence of which is somewhat similar in
 single source capture-recapture models to zero inflation in usual count data
 analysis. There are two ways in which one inflation may be understood,
-they relate to whether <em></em>\(\mathbb{P}(Y=0)\) is modified by
-inflation. The first approach is inflate (<em></em>\(\omega\) parameter)
-zero truncated distribution as:
+they relate to whether <em></em>\(\mathbb{P}(Y=0)\) is
+modified by inflation. The first approach is inflate
+(<em></em>\(\omega\) parameter) zero truncated distribution as:
 \[
 \mathbb{P}_{new}(Y=y|Y&gt;0) = \left\lbrace\begin{array}{cc}
 \omega + (1 - \omega)\mathbb{P}_{old}(Y=1|Y&gt;0)&amp; \text{when: } y = 1 \cr
 (1 - \omega) \mathbb{P}_{old}(Y=y|Y&gt;0) &amp; \text{when: } y \neq 1
-\end{array}\right.
-\]
+\end{array}\right.\]
 which corresponds to:
 \[
 \mathbb{P}_{new}(Y=y) = \left\lbrace\begin{array}{cc}
@@ -327,7 +350,7 @@ parameter on base distribution as:
 (1 - \omega) \mathbb{P}_{old}(Y=y) &amp; \text{when: } y \neq 1
 \end{array}\right.
 \]
-wchich them becomes:
+which then becomes:
 \[
 \mathbb{P}_{new}(Y=y|Y&gt;0) = \left\lbrace\begin{array}{cc}
 \frac{\omega}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)} + \frac{(1 - \omega)}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)}\mathbb{P}_{old}(Y=1)&amp; \text{when: } y = 1 \cr
@@ -336,16 +359,18 @@ wchich them becomes:
 \]
 after truncation.
 It was shown by Böhning in 2022 paper that these approaches are equivalent
-in terms of maximising likelihoods if we do not put formula on <em></em>\(\omega\).
-They can however lead to different population size estimates.</p>
+in terms of maximising likelihoods if we do not put formula on
+<em></em>\(\omega\). They can however lead to different
+population size estimates.</p>
 <p>For <em>zero truncated one inflated models</em> the formula for population size
 estimate <em></em>\(\hat{N}\) does not change since
 <em></em>\(\mathbb{P}(y=0)\) remains the same but estimation of parameters
 changes all calculations.</p>
-<p>For <em>one inflated zero truncated models</em> population size estimates are expressed by:
+<p>For <em>one inflated zero truncated models</em> population size estimates are
+expressed, respectively by:
 \[
 \begin{aligned}
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &amp;\text{ For base poisson distribution} \cr
+\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &amp;\text{ For base Poisson distribution} \cr
 \hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &amp;\text{ For base negative binomial distribution} \cr
 \hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k} + \omega_{k}} &amp;\text{ For base geometric distribution}
 \end{aligned}
@@ -357,15 +382,15 @@ one inflation by utilising the identity
 +(N_{obs}-\boldsymbol{f}_{1})\ln{\left(1-\frac{\boldsymbol{f}_{1}}{N_{obs}}
 \right)} + \ell_{\text{zot}}
 \]
-where <em></em>\(\ell_{\text{zot}}\) is the log likelihood of zero one truncated
-distribution characterised by probability mass function:
+where <em></em>\(\ell_{\text{zot}}\) is the log likelihood
+of zero one truncated distribution characterised by probability mass function:
 \[\mathbb{P}(Y=y|Y&gt;1)=\left\lbrace
 \begin{array}{cc}
 \frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)-\mathbb{P}(Y=1)} &amp; \text{when }y &gt; 1 \cr
 0 &amp; \text{when }y\in\lbrace 0, 1\rbrace
 \end{array}\right.\]
-where <em></em>\(\mathbb{P}(Y)\) is the probability mass function of the "base"
-distribution. The identity above justifies use of zero one truncated,
+where <em></em>\(\mathbb{P}(Y)\) is the probability mass function of
+the "base" distribution. The identity above justifies use of zero one truncated,
 unfortunately it was only proven for intercept only models, however
 numerical simulations seem to indicate that even if the theorem cannot be
 extended for (non trivial) regression population size estimation is still
@@ -375,7 +400,7 @@ possible.</p>
 \begin{aligned}
 \hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 \frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} 
-&amp;\text{ For base poisson distribution} \cr
+&amp;\text{ For base Poisson distribution} \cr
 \hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 \frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{
 1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} 
@@ -398,11 +423,9 @@ based on the equation:
 \text{logit}(p_{k})=
 \ln\left(\frac{\lambda_{k}}{2}\right)=
 \boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}\]
-where <em></em>\(\lambda_{k}\) is the poisson parameter.</p>
+where <em></em>\(\lambda_{k}\) is the Poisson parameter.</p>
 <p>The <em>zelterman</em> estimator of population size is expressed as:
-\[
-\hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}
-\]
+\[\hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}\]
 and <em>chao</em> estimator has the form:
 \[
 \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}

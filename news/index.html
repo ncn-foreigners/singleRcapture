@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,7 +45,25 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="singlercapture-020">singleRcapture 0.2.0<a class="anchor" aria-label="anchor" href="#singlercapture-020"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.2.0" id="singlercapture-020">singleRcapture 0.2.0<a class="anchor" aria-label="anchor" href="#singlercapture-020"></a></h2><p class="text-muted">CRAN release: 2023-06-11</p>
+<div class="section level4">
+<h4 id="the-package-is-now-at-cran-0-2-0">The package is now at <a href="https://cran.r-project.org/package=singleRcapture" class="external-link">CRAN</a>
+<a class="anchor" aria-label="anchor" href="#the-package-is-now-at-cran-0-2-0"></a></h4>
+<ul><li>features and improvements:
+<ul><li>Added final <code>Hurdleztnegbin</code> model</li>
+<li>Vastly improved <code>redoPopSize</code> which now handles bootstrap on a fitted model non standard covariance matrixes <code>newdata</code> argument user supplied <code>coef</code> etc.</li>
+<li>Added <code>predict.singleR</code> method which offers standard error for both <code>link</code>, <code>response</code> as well as <code>mean</code> predictions</li>
+<li>No unexpected warnings should occur now in main function when using the package correctly</li>
+<li>All control arguments are now verified before being passed</li>
+<li>Fitting is now more reliable</li>
+<li>Added information about <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code> error codes</li>
+<li>Added warnings for functions computing deviance</li>
+</ul></li>
+<li>bugfixes:
+<ul><li>fixed bugs occurring when using mathematical functions as part of formulas i.e. when setting formula to something like: <code>y ~ log(x) + I(x ^ t) + I(t ^ 2)</code>
+</li>
+</ul></li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.4" id="singlercapture-014">singleRcapture 0.1.4<a class="anchor" aria-label="anchor" href="#singlercapture-014"></a></h2>

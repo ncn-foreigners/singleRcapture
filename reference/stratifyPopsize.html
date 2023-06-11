@@ -12,7 +12,7 @@ based on a capture-recapture model for the whole population."><!-- mathjax --><s
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,10 +54,10 @@ based on a capture-recapture model for the whole population.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">stratas</span>, <span class="va">alpha</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">stratas</span>, <span class="va">alpha</span>, <span class="va">newdata</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for singleR</span></span>
-<span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">stratas</span>, <span class="va">alpha</span>, cov <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">stratas</span>, <span class="va">alpha</span>, <span class="va">newdata</span>, cov <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -90,6 +90,12 @@ sub populations specified in <code>stratas</code>.
 If missing it is set to <code>.05</code> in <code>singleR</code> method.</p></dd>
 
 
+<dt>newdata</dt>
+<dd><p>a new data frame for which sizes of sub populations are to
+be estimated. If none provided <code>stratifyPopsize</code> acts on
+<code>model.frame</code> from <code>object</code>.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>a vector of arguments to be passed to other functions.
 For <code>singleR</code> method for this functions arguments in <code>...</code> are
@@ -120,16 +126,16 @@ sub populations either provided or inferred.</p>
 estimate for population size is Horwitz-Thompson type estimate:</p>
 <p>\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} = 
 \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
-<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator variables,
-with value 1 if kth unit was observed at least once and 0 otherwise and
-the inverse probabilistic weights weights for units observed in the data
-<em></em>\(\tfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\)
+<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are
+indicator variables, with value 1 if kth unit was observed at least once
+and 0 otherwise and the inverse probabilistic weights weights for
+units observed in the data <em></em>\(\tfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\)
 are estimated using fitted linear predictors.</p>
 <p>The estimates for different sub populations are made by changing the
-<em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) indicator variables to refer not to the
-population as a whole but to the sub populations that are being considered
-i.e. by changing values from 1 to 0 if kth unit is not a member of sub
-population that is being considered at the moment.</p>
+<em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) indicator variables to
+refer not to the population as a whole but to the sub populations that are
+being considered i.e. by changing values from 1 to 0 if kth unit is not a
+member of sub population that is being considered at the moment.</p>
 <p>The estimation of variance for these estimates and estimation of variance for
 estimate of population size for the whole population follow the same relation
 as the one described above.</p>

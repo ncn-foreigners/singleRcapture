@@ -14,7 +14,7 @@ estimatePopsize.fit and estimatePopsize."><!-- mathjax --><script src="https://c
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,7 +71,6 @@ control parameters for regression fitting in
 <span>  weightsEpsilon <span class="op">=</span> <span class="fl">1e-08</span>,</span>
 <span>  momentumFactor <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  saveIRLSlogs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  useZtpoissonAsStart <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  momentumActivation <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  criterion <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"coef"</span>, <span class="st">"abstol"</span>, <span class="st">"reltol"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -142,29 +141,24 @@ so that these matrixes are positive defined. By default <code>TRUE</code>.</p></
 <dt>weightsEpsilon</dt>
 <dd><p>small number to ensure positivity of weights matrixes.
 Only matters if <code>checkDiagWeights</code> is set to <code>TRUE</code>.
-By default <em></em>\(= 1\cdot 10^{-8}\)</p></dd>
+By default <code>1e-8</code>.</p></dd>
 
 
 <dt>momentumFactor</dt>
 <dd><p>experimental parameter in <code>IRLS</code> only allowing for
 taking previous step into account at current step, i.e instead of
 updating regression parameters as:
-\[\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-\cdot \text{step}_{(a)}\]
+\[\boldsymbol{\beta}_{(a)} = 
+\boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}\]
 the update will be made as:
-\[\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+\[
+\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
 \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})\]</p></dd>
 
 
 <dt>saveIRLSlogs</dt>
 <dd><p>logical value indicating if information specified in
 <code>verbose</code> should be saved to output object, by default <code>FALSE</code>.</p></dd>
-
-
-<dt>useZtpoissonAsStart</dt>
-<dd><p>boolean value indicating whether to chose starting
-parameters from <code>ztpoisson</code> regression this one is useful mostly for
-various one inflated models.</p></dd>
 
 
 <dt>momentumActivation</dt>
@@ -185,7 +179,8 @@ multiple values may be provided. By default <code>c("coef", "abstol")</code>.</p
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="estimatePopsize.html">estimatePopsize()</a></code> <code><a href="estimatePopsize.fit.html">estimatePopsize.fit()</a></code> <code><a href="controlModel.html">controlModel()</a></code> <code><a href="controlPopVar.html">controlPopVar()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="estimatePopsize.html">estimatePopsize()</a></code> <code><a href="estimatePopsize.fit.html">estimatePopsize.fit()</a></code>
+<code><a href="controlModel.html">controlModel()</a></code> <code><a href="controlPopVar.html">controlPopVar()</a></code></p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>

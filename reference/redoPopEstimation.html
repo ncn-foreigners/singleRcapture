@@ -14,7 +14,7 @@ reduction) to population size estimation and standard error estimation."><!-- ma
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,10 +57,10 @@ reduction) to population size estimation and standard error estimation.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for singleR</span></span>
-<span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, cov <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">cov</span>, <span class="va">weights</span>, <span class="va">coef</span>, <span class="va">control</span>, <span class="va">popVar</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -69,12 +69,35 @@ reduction) to population size estimation and standard error estimation.</p>
 <dd><p>object for which update of population size estimation results will be done.</p></dd>
 
 
+<dt>newdata</dt>
+<dd><p>optional <code>data.frame</code> with new data for pop size estimation.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>additional optional arguments, currently not used in <code>singleR</code> class method.</p></dd>
 
 
 <dt>cov</dt>
 <dd><p>an updated covariance matrix estimate.</p></dd>
+
+
+<dt>weights</dt>
+<dd><p>optional vector of weights to use in population size estimation.</p></dd>
+
+
+<dt>coef</dt>
+<dd><p>optional vector of coefficients of regression on which to base
+population size estimation. If missing it is set to <code>coef(object)</code>.</p></dd>
+
+
+<dt>control</dt>
+<dd><p>similar to <code>controlPopVar</code> in <code><a href="estimatePopsize.html">estimatePopsize()</a></code>.
+If missing set to controls provided on call to <code>object</code>.</p></dd>
+
+
+<dt>popVar</dt>
+<dd><p>similar to <code>popVar</code> in <code><a href="estimatePopsize.html">estimatePopsize()</a></code>.
+If missing set to <code>"analytic"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -186,6 +209,15 @@ population size estimation results.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> normal      11.27134   26.55225</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   10.48657   23.17745</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## get confidence interval with larger significance level</span></span></span>
+<span class="r-in"><span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">Model</span>, control <span class="op">=</span> <span class="fu"><a href="controlPopVar.html">controlPopVar</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">.000001</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate: 11879.92</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Variance: 5996583</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 99.9999% confidence intervals:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      1880.000   23858.53</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   4951.313   34438.87</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
