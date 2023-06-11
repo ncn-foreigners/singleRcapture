@@ -1,5 +1,7 @@
 # singleRcapture 0.2.0
 
+### The package is now at [CRAN](https://cran.r-project.org/package=singleRcapture)
+
 * features and improvements:
   * Added final `Hurdleztnegbin` model
   * Vastly improved `redoPopSize` which now handles bootstrap on a fitted model
