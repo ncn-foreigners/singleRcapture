@@ -3,7 +3,7 @@
 #' @importFrom stats dnbinom
 #' @importFrom rootSolve multiroot
 #' @export
-ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, 
+ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                            lambdaLink = c("log", "neglog"), 
                            alphaLink = c("log", "neglog"),
                            piLink = c("logit", "cloglog", "probit"), 
@@ -34,19 +34,59 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8,
   links[1:3] <- c(lambdaLink, alphaLink, piLink)
   
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     
-    switch (type,
-      nontrunc = (1 - P0) * (PI + (1 - PI) * lambda),
-      trunc = PI + (1 - PI) * 
-      (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
-      (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
-      lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
-    )
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = (1 - (1 + alpha * lambda) ^ (-1 / alpha)) * (PI + (1 - PI) * lambda),
+        "trunc" = PI + (1 - PI) * 
+        (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
+        (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
+        lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
+      )
+    } else {
+      switch (
+        type,
+        "nontrunc" = {
+          matrix(c(
+            (1 - PI) * (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha)) +
+            ((1 - PI) * lambda + PI) * (alpha * lambda + 1) ^ (-1 / alpha - 1),
+            -((1 - PI) * lambda + PI) * 
+            (log(lambda * alpha + 1) / alpha ^ 2 - 
+            lambda / (alpha * (lambda * alpha + 1))) /
+            (lambda * alpha + 1) ^ (1 / alpha),
+            (1 - lambda) * (1 - 1 / (alpha * lambda + 1) ^ (1 / alpha))
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+              alphaLink(eta[,2], inverse = TRUE, deriv = 1),
+                piLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - PI) * ((alpha * lambda + 1) ^ (2 / alpha) * (alpha ^ 2 * lambda ^ 2 + 2 * alpha * lambda + 1) +
+            (alpha * lambda + 1) ^ (1 / alpha) * ((-alpha ^ 2 - 2 * alpha - 1) * lambda ^ 2 - 2 * alpha * lambda - 2) + 1) /
+            ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2,
+            (1 - PI) *lambda ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) * 
+            (lambda * alpha ^ 2 + (lambda + 1) * alpha + 1) * log(lambda * alpha + 1) +
+            (lambda * alpha + 1) ^ (1 / alpha) * ((1 - 2 * lambda) * alpha ^ 2 - lambda * alpha) - alpha ^ 2) /
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) - lambda * alpha - lambda - 1) ^ 2)
+            (-PI * lambda + lambda + PI) * exp(-lambda) + (1 - PI) * (1 - exp(-lambda)),
+            (1 - lambda) * (1 - exp(-lambda)),
+            1 - (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
+            (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
+            lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+              alphaLink(eta[,2], inverse = TRUE, deriv = 1),
+                piLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -88,14 +128,18 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8,
     P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
     #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
     res <- c(0, 0)
-    k <- 1 # 1 is the first possible y value for 0 truncated hurdle distribution
+    k <- 2 # 1 is the first possible y value for 0 truncated hurdle distribution
+    # but here we compute the (1 - z) * psi function which takes 0 at y = 1
     finished <- c(FALSE, FALSE)
     while ((k < nSim) & !all(finished)) {
-      k <- k + 1 # but here we compute the (1 - z) * psi function which takes 0 at y = 1
-      prob <- (1 - PI) * stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0 - P1)
-      if (!is.finite(prob)) {prob <- 0}
-      toAdd <- c( compdigamma(y = k, alpha = alpha),
-                 comptrigamma(y = k, alpha = alpha)) * prob
+      prob <- (1 - PI) * stats::dnbinom(x = k:(k + eimStep), 
+                                        size = 1 / alpha, 
+                                        mu = lambda) / (1 - P0 - P1)
+      if (any(!is.finite(prob))) {prob <- 0}
+      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha),
+                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
+      toAdd <- colSums(toAdd)
+      k <- k + 1 + eimStep
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }
@@ -273,7 +317,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8,
               
               -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI) + (1 - z) *
               (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
-              log(factorial(y)) - (y + 1 / alpha) * log(1 + lambda * alpha) +
+              lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) +
               y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
               lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))))
             },
@@ -457,7 +501,6 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8,
   
   devResids <- function (y, eta, wt, ...) {
     #TODO
-    # AAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa
     0
   }
   
@@ -497,15 +540,27 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8,
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-  piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
     
-    ifelse(x == 1, PI, (1 - PI) * 
-    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0 - P1))
+    switch (type,
+      "trunc" = {
+        as.numeric(x == 1) * PI + as.numeric(x > 0) * 
+        (1 - PI) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
+        lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+      },
+      "nontrunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) *
+        (as.numeric(x == 0) + as.numeric(x > 1) * (1 - PI)) + 
+        as.numeric(x == 1) * PI * (1 - (1 + alpha * lambda) ^ (-1 / alpha) / 
+        (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)))
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

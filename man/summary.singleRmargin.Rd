@@ -13,12 +13,13 @@
 but it is not always possible.}
 
 \item{dropl5}{a character indicating treatment of cells with frequencies < 5
-either grouping them, droping or leaving them as is. Defaults to drop.}
+either grouping them, dropping or leaving them as is. Defaults to drop.}
 
 \item{...}{currently does nothing.}
 }
 \value{
-A chi squared test and G test for comparison between fitted and observed marginal frequencies.
+A chi squared test and G test for comparison between fitted and
+observed marginal frequencies.
 }
 \description{
 Performs two statistical test on observed and fitted
@@ -27,13 +28,15 @@ marginal frequencies. For G test the test statistic is computed as:
 \mjsdeqn{G = 2\sum_{k}O_{k}\ln{\left(\frac{O_{k}}{E_{k}}\right)}}
 and for \mjseqn{\chi^{2}} the test statistic is computed as:
 \mjsdeqn{\chi^{2} = \sum_{k}\frac{\left(O_{k}-E_{k}\right)^{2}}{E_{k}}}
-where \mjseqn{O_{k},E_{k}} denoted observed and fitted frequencies respectively.
-Both of these statistics converge to \mjseqn{\chi^2} distribution asymptotically
-with the same degrees of freedom.
+where \mjseqn{O_{k},E_{k}} denoted observed and fitted
+frequencies respectively. Both of these statistics converge to
+\mjseqn{\chi^2} distribution asymptotically with the same
+degrees of freedom.
 
-The convergence of \mjseqn{G, \chi^2} statistics to \mjseqn{\chi^2}
-distribution may be violated if expected counts in cells are too low,
-say < 5, so it is customary to either censor or omit these cells.
+The convergence of \mjseqn{G, \chi^2} statistics to
+\mjseqn{\chi^2} distribution may be violated if expected counts
+in cells are too low, say < 5, so it is customary to either censor or
+omit these cells.
 }
 \examples{
 # Create a simple model

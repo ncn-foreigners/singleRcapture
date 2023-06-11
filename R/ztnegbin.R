@@ -3,7 +3,7 @@
 #' @importFrom stats dnbinom
 #' @importFrom rootSolve multiroot
 #' @export
-ztnegbin <- function(nSim = 1000, epsSim = 1e-8, 
+ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                      lambdaLink = c("log", "neglog"), 
                      alphaLink = c("log", "neglog"),
                      ...) {
@@ -25,13 +25,39 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
   
   links[1:2] <- c(lambdaLink, alphaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    switch (type,
-    nontrunc = lambda,
-    trunc = lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
-    )
+    
+    if (!deriv) {
+      switch (type,
+          "nontrunc" = lambda,
+          "trunc" = lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      )
+    } else {
+      switch (type,
+          "nontrunc" = {
+            matrix(c(1, 0) * c(
+              lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+              alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+            ), ncol = 2)
+          },
+          "trunc" = {
+            matrix(c(
+              (alpha * lambda + 1) ^ (1 / alpha - 1) *
+              ((alpha * lambda + 1) ^ (1 / alpha + 1) +
+              (-alpha - 1) * lambda - 1) / 
+              ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2, 
+              lambda * (lambda * alpha + 1) ^ (1 / alpha - 1) *
+              ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha) /
+              (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2)
+            ) * c(
+              lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+              alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+            ), ncol = 2)
+          }
+      )
+    }
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
@@ -65,13 +91,15 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
     alpha  <-  alphaLink(eta[2], inverse = TRUE)
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     res <- res1 <- 0
-    k <- 0
+    k <- 1
     finished <- c(FALSE, FALSE)
     while ((k < nSim) & !all(finished)) {
-      k <- k + 1 # 1 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
-      if (!is.finite(prob)) prob <- 0
-      toAdd <- c(compdigamma(y = k, alpha = alpha), comptrigamma(y = k, alpha = alpha)) * prob
+      prob <- stats::dnbinom(x = k:(k + eimStep), size = 1 / alpha, mu = lambda) / (1 - P0)
+      if (any(!is.finite(prob))) prob <- 0
+      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha), 
+                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
+      toAdd <- colSums(toAdd)
+      k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }
@@ -187,7 +215,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
-        -sum(weight * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - log(factorial(y)) - 
+        -sum(weight * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
         (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
         log(1 - (1 + lambda * alpha) ^ (-1 / alpha))))
       },
@@ -330,11 +358,18 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0)
+
+    switch (type,
+      "trunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      },
+      "nontrunc" = stats::dnbinom(x = x, mu = lambda, size = 1 / alpha)
+    )
   }
 
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -356,23 +391,19 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
       ...
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (!is.null(controlMethod$alphaStart)) {
-      start <- c(start, controlMethod$alphaStart)
+    if (controlModel$alphaFormula == ~ 1) {
+      start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
     } else {
-      if (controlModel$alphaFormula == ~ 1) {
-        start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
-      } else {
-        cc <- colnames(Xvlm)
-        cc <- cc[grepl(x = cc, pattern = "alpha$")]
-        cc <- unlist(strsplit(x = cc, ":alpha"))
-        cc <- sapply(cc, FUN = function(x) {
-          ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-        })
-        if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
-          start <- c(start, cc)
-        else
-          start <- c(start, -cc)
-      }
+      cc <- colnames(Xvlm)
+      cc <- cc[grepl(x = cc, pattern = "alpha$")]
+      cc <- unlist(strsplit(x = cc, ":alpha"))
+      cc <- sapply(cc, FUN = function(x) {
+        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+      })
+      if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
+        start <- c(start, cc)
+      else
+        start <- c(start, -cc)
     }
   )
   
@@ -394,7 +425,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8,
       etaNames  = c("lambda", "alpha"),
       simulate  = simulate,
       getStart  = getStart,
-      extraInfo = list(
+      extraInfo = c(
         mean       = "lambda",
         variance   = "lambda * (1 + alpha * lambda)",
         popSizeEst = "1 / (1 - (1 + alpha * lambda) ^ (- 1 / alpha))",

@@ -23,13 +23,39 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
   
   links[1:2] <- c(lambdaLink, omegaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-    "nontrunc" = omega + lambda * (1 - omega),
-    "trunc" = exp(lambda) * (omega + lambda - omega * lambda) / (exp(lambda) - 1 + omega)
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = omega + lambda * (1 - omega),
+        "trunc" = exp(lambda) * (omega + lambda - omega * lambda) / (exp(lambda) - 1 + omega)
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            1 - omega, 
+            1 - lambda
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+            omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - omega) * exp(lambda) * (exp(lambda) + (omega - 1) * lambda - 1) /
+            (exp(lambda) + omega - 1) ^ 2, 
+            -exp(lambda) * ((lambda - 1) * exp(lambda) + 1) /
+            (omega + exp(lambda) - 1) ^ 2
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -144,7 +170,7 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         -sum(weight * (z * (log(exp(lambda) * omega + (1 - omega) * lambda)) +
-        (1 - z) * (log(1 - omega) + y * log(lambda) - log(factorial(y))) - 
+        (1 - z) * (log(1 - omega) + y * log(lambda) - lgamma(y + 1)) - 
         log(exp(lambda) - 1 + omega)))
       },
       function(beta) {
@@ -250,13 +276,40 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     mu1 <- mu.eta(eta = eta)
     idealOmega <- ifelse(y == 1, 1, 0)
-    idealLambda <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+    
+    idealLambda <- tryCatch(
+      expr = {
+        suppressWarnings(
+          ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+        )
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(idealLambda)) {
+      return(rep(0, length(y)))
+    }
+    
     diff <- ifelse(
       y == 1,
       -(log(exp(lambda) * omega + lambda * (1 - omega)) - log(exp(lambda) - 1 + omega)),
       y * log(idealLambda) - log(exp(idealLambda) - 1) - log(1 - omega) - y * log(lambda) + log(exp(lambda) - 1 + omega)
     )
-    sign(y - mu1) * sqrt(2 * wt * diff)
+    
+    if (any(diff < 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which indicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
+    ## see comments in ztpoisson for explanation of pmax
+    sign(y - mu1) * sqrt(2 * wt * pmax(diff, 0))
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -287,12 +340,22 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, 
-           exp(lambda) * omega + (1 - omega) * lambda,
-           (1 - omega) * (lambda ^ x) / factorial(x)) / (exp(lambda) - 1 + omega)
+    
+    switch (type,
+      "trunc" = {
+        (omega * as.numeric(x == 1) +
+        (1 - omega) * stats::dpois(x = x, lambda = lambda)) / 
+        (1 - (1 - omega) * stats::dpois(x = 0, lambda = lambda))
+      },
+      "nontrunc" = {
+        (1 - omega) * stats::dpois(x = x, lambda = lambda) +
+        omega * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

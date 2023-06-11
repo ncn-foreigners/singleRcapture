@@ -35,8 +35,10 @@ List with regression parameters, working weights
 just regression fitting \code{estimatePopsize.fit} is much faster.
 }
 \details{
+\loadmathjax
+
 If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
-function will be used to fit regression with analyticly computed gradient and
+function will be used to fit regression with analytically computed gradient and
 (minus) log likelihood functions as \code{gr} and \code{fn} arguments.
 Unfortunately \code{optim} does not allow for hessian to be specified.
 More information about how to modify \code{optim} fitting is included in
@@ -47,7 +49,6 @@ least squares. The algorithm is well know in generalised linear models.
 Thomas W. Yee later extended this algorithm to vector generalised linear models
 and in more general terms it can roughly be described as
 (this is Yee's description after changing some conventions):
-\loadmathjax
 \enumerate{
 \item Initialise with:
 \itemize{
@@ -60,40 +61,50 @@ and in more general terms it can roughly be described as
 \item If \code{converged} or \code{iter > Maxiter} move to step 7.
 \item Store values from previous algorithm step:
 \itemize{
-\item \mjseqn{\boldsymbol{W}_{-}}\code{ <- }\mjseqn{\boldsymbol{W}}
-\item \mjseqn{\ell_{-}}\code{ <- }\mjseqn{\ell}
-\item \mjseqn{\boldsymbol{\beta}_{-}}\code{ <- }\mjseqn{\boldsymbol{\beta}}
+\item \mjseqn{\boldsymbol{W}_{-}}\code{ <- }
+\mjseqn{\boldsymbol{W}}
+\item \mjseqn{\ell_{-}}\code{ <- }
+\mjseqn{\ell}
+\item \mjseqn{\boldsymbol{\beta}_{-}}\code{ <- }
+\mjseqn{\boldsymbol{\beta}}
 } and assign values at current step:
 \itemize{
-\item \mjseqn{\boldsymbol{\eta}}\code{ <- }\mjseqn{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
+\item \mjseqn{\boldsymbol{\eta}}\code{ <- }
+\mjseqn{\boldsymbol{X}_{vlm}\boldsymbol{\beta}}
 \item \mjseqn{Z_{i}}\code{ <- }
-\mjseqn{\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
+\mjseqn{
+\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
 \mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
 \partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}}
 \item \mjseqn{\boldsymbol{W}_{ij}}\code{ <- }
 \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{
 \partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}
 }
-where \mjseqn{\ell_{i}} is the ith component of log likelihood function,
-\mjseqn{\eta_{i}} is the vector of linear predictors associated with
-ith row and  \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{\partial\eta_{i}^{T}\partial\eta_{i}}\right)}
+where \mjseqn{\ell_{i}} is the ith component of log likelihood
+function, \mjseqn{\eta_{i}} is the vector of linear predictors
+associated with ith row and \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
+\partial\eta_{i}^{T}\partial\eta_{i}}\right)}
 corresponds to weights associated with ith row and \mjseqn{\boldsymbol{W}}
 is a block matrix, made of diagonal matrixes
 \mjseqn{\mathbb{E}\left(\frac{\partial^{2}\ell}{
 \partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)}
-\item Regress \mjseqn{\boldsymbol{Z}} on \mjseqn{\boldsymbol{X}_{vlm}}
-to obtain \mjseqn{\boldsymbol{\beta}} as:
+\item Regress \mjseqn{\boldsymbol{Z}} on
+\mjseqn{\boldsymbol{X}_{vlm}} to obtain
+\mjseqn{\boldsymbol{\beta}} as:
 \mjsdeqn{\boldsymbol{\beta}=
 \left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
 \boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}
 \item Assign:
 \itemize{
-\item\code{converged <- }
-\mjseqn{\ell(\boldsymbol{\beta})-\ell_{-} \lt \varepsilon \ell_{-}} \mjseqn{\lor}
-\mjseqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} \lt \varepsilon}
+\item\code{converged <- }\mjseqn{
+\ell(\boldsymbol{\beta})-\ell_{-} < \varepsilon\cdot\ell_{-}}
+or
+\mjseqn{
+||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}
 \item\code{iter <- iter + 1}
 }
-where \mjseqn{\varepsilon} is the relative tolerance level, by default \code{1e-8}.
+where \mjseqn{\varepsilon} is the relative tolerance level,
+by default \code{1e-8}.
 \item Return to step 2.
 \item Return \mjseqn{\boldsymbol{\beta}, \boldsymbol{W}}, \code{iter}.
 }
@@ -103,31 +114,40 @@ matrix hence slight differences are present in algorithm description but
 results are identical.
 }
 \examples{
+\donttest{
 # Get data
 summary(farmsubmission)
 
 # construct vglm model matrix
 X <- matrix(data = 0, nrow = 2 * NROW(farmsubmission), ncol = 7)
-X[1:NROW(farmsubmission), 1:4] <- model.matrix(~ 1 + log_size + log_distance + C_TYPE, 
-                                               farmsubmission)
+X[1:NROW(farmsubmission), 1:4] <- model.matrix(
+  ~ 1 + log_size + log_distance + C_TYPE, 
+  farmsubmission
+)
+
 X[-(1:NROW(farmsubmission)), 5:7] <- X[1:NROW(farmsubmission), c(1, 3, 4)]
+
 # this atrrtibute tells the function which elements of the design matrix 
 # correspond to which linear predictor 
 attr(X, "hwm") <- c(4, 3)
 
 # get starting points
-start <- glm.fit(y = farmsubmission$TOTAL_SUB, 
-                 x = X[1:NROW(farmsubmission), 1:4], 
-                 family = poisson())$coefficients
-start <- c(start, start)[-6]
+start <- glm.fit(
+  y = farmsubmission$TOTAL_SUB, 
+  x = X[1:NROW(farmsubmission), 1:4], 
+  family = poisson()
+)$coefficients
+
+start <- c(start, 0, 0, 0)
 
 # call function
 res <- estimatePopsize.fit(
-  y = farmsubmission$TOTAL_SUB, X = X, 
+  y = farmsubmission$TOTAL_SUB, 
+  X = X, 
   method = "IRLS", 
   priorWeights = 1, 
-  family = ztnegbin(), 
-  control = controlMethod(verbose = 5, stepsize = .75), 
+  family = ztoigeom(), 
+  control = controlMethod(verbose = 5), 
   start = start
 )
 
@@ -150,12 +170,13 @@ head(res$weights)
 # Compare with optim call
 
 res2 <- estimatePopsize.fit(
-  y = farmsubmission$TOTAL_SUB, X = X, 
+  y = farmsubmission$TOTAL_SUB, 
+  X = X, 
   method = "optim", 
   priorWeights = 1, 
-  family = ztnegbin(), 
+  family = ztoigeom(), 
   start = start, 
-  control = controlMethod()
+  control = controlMethod(verbose = 1)
 )
 # extract results
 
@@ -174,6 +195,7 @@ res2$iter
 # optim does not calculated working weights
 head(res2$weights)
 }
+}
 \references{
 Yee, T. W. (2015). Vector Generalized Linear and Additive Models:
 With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
@@ -182,5 +204,5 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 \code{\link[stats:glm]{stats::glm()}} \code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[stats:optim]{stats::optim()}}
 }
 \author{
-Piotr Chlebicki, Maciej Beręsewicz
+Piotr Chlebicki, Maciej Beresewicz
 }

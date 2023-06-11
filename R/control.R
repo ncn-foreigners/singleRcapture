@@ -1,6 +1,7 @@
 #' @title Control parameters for regression
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' \loadmathjax
+#' 
 #' @description \code{controlMethod} constructs a list with all necessary 
 #' control parameters for regression fitting in 
 #' \code{estimatePopsize.fit} and \code{estimatePopsize}.
@@ -40,18 +41,16 @@
 #' so that these matrixes are positive defined. By default \code{TRUE}.
 #' @param weightsEpsilon small number to ensure positivity of weights matrixes. 
 #' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
-#' By default \mjseqn{= 1\cdot 10^{-8}}
+#' By default \code{1e-8}.
 #' @param momentumFactor experimental parameter in \code{IRLS} only allowing for 
 #' taking previous step into account at current step, i.e instead of 
 #' updating regression parameters as:
-#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-#' \cdot \text{step}_{(a)}}
+#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = 
+#' \boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
 #' the update will be made as:
-#' \mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+#' \mjsdeqn{
+#' \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
 #' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}
-#' @param useZtpoissonAsStart boolean value indicating whether to chose starting 
-#' parameters from \code{ztpoisson} regression this one is useful mostly for 
-#' various one inflated models.
 #' @param momentumActivation the value of log-likelihood reduction bellow 
 #' which momentum will apply.
 #' @param criterion criterion used to determine convergence in \code{IRLS}, 
@@ -60,33 +59,74 @@
 #' \code{verbose} should be saved to output object, by default \code{FALSE}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] 
+#' [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
 #' @export
-controlMethod <- function(epsilon = 1e-8,
-                          maxiter = 1000,
-                          verbose = 0,
-                          printEveryN = 1L,
-                          start = NULL,
-                          optimMethod = "L-BFGS-B",
-                          silent = FALSE,
-                          optimPass = FALSE,
-                          stepsize = 1,
-                          checkDiagWeights = TRUE,
-                          weightsEpsilon = 1e-8,
-                          momentumFactor = 0,
-                          saveIRLSlogs = FALSE,
-                          useZtpoissonAsStart = FALSE,
-                          momentumActivation = 5,
-                          criterion = c("coef", "abstol", "reltol")) {
-  if (!missing(criterion) && all(c("abstol", "reltol") %in% criterion)) {
+controlMethod <- function(epsilon             = 1e-8,
+                          maxiter             = 1000,
+                          verbose             = 0,
+                          printEveryN         = 1L,
+                          start               = NULL,
+                          optimMethod         = "L-BFGS-B",
+                          silent              = FALSE,
+                          optimPass           = FALSE,
+                          stepsize            = 1,
+                          checkDiagWeights    = TRUE,
+                          weightsEpsilon      = 1e-8,
+                          momentumFactor      = 0,
+                          saveIRLSlogs        = FALSE,
+                          momentumActivation  = 5,
+                          criterion           = c("coef", 
+                                                  "abstol", 
+                                                  "reltol")) {
+  
+  if (!missing(criterion) && all(c("abstol", "reltol") %in% criterion)) 
     stop("Choosing both absolute tolerance and relative tolerance for convergence criterion is not allowed.")
-  }
-  if (!missing(criterion) && all(!(c("coef", "abstol", "reltol") %in% criterion))) {
+  
+  if (!missing(criterion) && all(!(c("coef", "abstol", "reltol") %in% criterion))) 
     stop("At least one convergence criterion has to be chosen")
+  
+  #if (isFALSE(is.integer(printEveryN) & printEveryN > 0))
+  #  stop("printEveryN argument is either negative or not an integer")
+  
+  if (!isTRUE(is.finite(epsilon)) || !isTRUE(0 < epsilon) || isTRUE(length(epsilon) > 1))
+    stop("Argument epsilon has to be a positive numeric value (of length 1).")
+  
+  if (!isTRUE(is.finite(maxiter)) || !isTRUE(0 < maxiter) || isTRUE(length(maxiter) > 1))
+    stop("Argument maxiter has to be a positive numeric value (of length 1).")
+  
+  if (!isTRUE(is.finite(verbose)) || isTRUE(length(verbose) > 1))
+    stop("Argument verbose has to be a numeric value (of length 1).")
+  
+  if (!isTRUE(is.finite(printEveryN)) || !isFALSE(0 > printEveryN) || isTRUE(length(printEveryN) > 1)) {
+    stop("Argument printEveryN has to be a nonnegative numeric value (of length 1).")
+    # If it's not an int
+    printEveryN <- as.integer(printEveryN)
   }
-  if (isFALSE(is.integer(printEveryN) & printEveryN > 0)) {
-    stop("printEveryN argument is either negative or not an integer")
-  }
+  
+  if (!is.null(start) && !isTRUE(is.numeric(start)))
+    stop("Argument start has to be either a numeric vector or NULL.")
+  
+  if (!isTRUE(is.logical(silent)) || isTRUE(length(silent) > 1))
+    stop("Argument silent should be logical value (of length 1).")
+  
+  if (!isTRUE(is.logical(checkDiagWeights)) || isTRUE(length(checkDiagWeights) > 1))
+    stop("Argument checkDiagWeights should be logical value (of length 1).")
+  
+  if (!isTRUE(is.logical(saveIRLSlogs)) || isTRUE(length(saveIRLSlogs) > 1))
+    stop("Argument saveIRLSlogs should be logical value (of length 1).")
+  
+  if (!isTRUE(is.finite(stepsize)) || !isTRUE(0 < stepsize) || isTRUE(length(stepsize) > 1))
+    stop("Argument stepsize has to be a positive numeric value (of length 1).")
+  
+  if (!isTRUE(is.finite(momentumActivation)) || !isTRUE(0 < momentumActivation) || 
+       isTRUE(length(momentumActivation) > 1))
+    stop("Argument momentumActivation has to be a positive numeric value (of length 1).")
+  
+  if (!isTRUE(is.finite(momentumFactor)) || !isFALSE(0 > momentumFactor) || 
+       isTRUE(length(momentumFactor) > 1))
+    stop("Argument momentumFactor has to be a non negative numeric value (of length 1).")
+  
   list(
     epsilon             = epsilon,
     maxiter             = maxiter,
@@ -102,7 +142,6 @@ controlMethod <- function(epsilon = 1e-8,
     momentumFactor      = momentumFactor,
     momentumActivation  = momentumActivation,
     saveIRLSlogs        = saveIRLSlogs,
-    useZtpoissonAsStart = useZtpoissonAsStart,
     criterion           = if (missing(criterion)) c("coef", "abstol") else criterion
   )
 }
@@ -111,7 +150,7 @@ controlMethod <- function(epsilon = 1e-8,
 #' 
 #' @description \code{controlModel} constructs a list with all necessary 
 #' control parameters in \code{estimatePopsize} that are either specific to 
-#' selected model or don't fit anywhere else.
+#' selected model or do not fit anywhere else.
 #' 
 #' Specifying additional formulas should be done by using only right hand side of
 #' the formula also for now all variables from additional formulas should also be
@@ -128,8 +167,9 @@ controlMethod <- function(epsilon = 1e-8,
 #' based models.
 #' @param piFormula formula for probability parameter in pseudo hurdle zero 
 #' truncated and zero truncated pseudo hurdle models.
+#' 
 #' @return A list with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlMethod()] [singleRcapture::controlPopVar()]
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlMethod()] [singleRcapture::controlPopVar()] [singleRcapture::singleRmodels()]
 #' @export
 controlModel <- function(weightsAsCounts = FALSE,
                          omegaFormula = ~ 1,
@@ -145,6 +185,7 @@ controlModel <- function(weightsAsCounts = FALSE,
 }
 #' @title  Control parameters for population size estimation
 #' @author Piotr Chlebicki, Maciej Beręsewicz
+#' \loadmathjax
 #'
 #' @description Creating control parameters for population size estimation and 
 #' respective standard error and variance estimation.
@@ -157,7 +198,7 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @param B number of bootstrap samples to be performed (default 500).
 #' @param confType type of confidence interval for bootstrap confidence interval, 
 #' \code{"percentile"} by default. 
-#' Other possibility: \code{"studentized"} and \code{"basic"}.
+#' Other possibilities: \code{"studentized"} and \code{"basic"}.
 #' @param keepbootStat boolean value indicating whether to keep a vector of 
 #' statistics produced by bootstrap.
 #' @param traceBootstrapSize boolean value indicating whether to print size of 
@@ -169,17 +210,16 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' like \code{controlMethod} but for fitting models from bootstrap samples.
 #' @param sd indicates how to compute standard deviation of population 
 #' size estimator either as:
-#' \loadmathjax
 #' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
-#' for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}} has a normal 
-#' distribution) or for \code{normalMVUE} as  the unbiased minimal variance 
-#' estimator for normal distribution:
+#' for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}}
+#' has a normal distribution) or for \code{normalMVUE} as the unbiased 
+#' minimal variance estimator for normal distribution:
 #' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-#' \frac{\Gamma\left((N_{obs}-1)/2\right)}{\Gamma\left(N_{obs}/2\right)}
+#' \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
 #' \sqrt{\frac{N_{obs}}{2}}}
 #' where the ration involving gamma functions is computed by log gamma function.
 #' @param covType type of covariance matrix for regression parameters by default 
-#' observed information matrix, more options will be here in the future.
+#' observed information matrix.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.
 #' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlMethod()]
@@ -196,23 +236,56 @@ controlPopVar <- function(alpha = .05,
                           keepbootStat = TRUE,
                           traceBootstrapSize = FALSE,
                           bootstrapVisualTrace = FALSE,
-                          fittingMethod = NULL,
+                          fittingMethod = c("optim", "IRLS"),
                           bootstrapFitcontrol = NULL,
                           sd = c("sqrtVar", "normalMVUE"),
-                          covType = c("observedInform",
-                                      "Fisher")) {
+                          covType = c("observedInform", "Fisher")) {
+  
+  if (missing(fittingMethod)) fittingMethod <- "IRLS"
+  if (missing(bootType)) bootType <- "parametric"
+  if (missing(confType)) confType <- "percentilic"
+  if (missing(covType))  covType <- "observedInform"
+  if (missing(sd))       sd <- "sqrtVar"
+  
+  # I'm using !isTRUE instead of isFALSE because I do not wan't nulls to pass the tests
+  if (!isTRUE(is.finite(alpha)) || isTRUE(0 > alpha || 1 < alpha) || isTRUE(length(alpha) > 1))
+    stop("Argument alpha should be a numeric value between 0 and 1 (of length 1).")
+  
+  if (!isTRUE(sd %in% c("sqrtVar", "normalMVUE")) && !missing(sd))
+    stop("Argument sd should be a character with value either sqrtVar or normalMVUE.")
+  
+  if ((!isTRUE(covType %in% c("observedInform", "Fisher")) && !missing(covType)) || isTRUE(length(covType) > 1))
+    stop("Argument covType should be a character with value either observedInform or Fisher.")
+  
+  if (!isTRUE(is.infinite(trcount)) && !missing(trcount) || isTRUE(length(trcount) > 1))
+    stop("Argument trcount should be a proper numeric value (of length 1).")
+  
+  
+  if (!missing(bootType) && !isTRUE(bootType %in% c("parametric",
+                                                    "semiparametric",
+                                                    "nonparametric")))
+    stop("Argument bootType should be a character with value either in c(parametric, semiparametric, nonparametric).")
+  
+  if (!isTRUE(is.finite(B)) || isTRUE(B < 0) || isTRUE(length(B) > 1))
+    stop("Argument B should be a numeric value greater than 0 (of length 1).")
+  
+  if (!isTRUE(all(c(is.logical(traceBootstrapSize), is.logical(bootstrapVisualTrace)))) || 
+       isTRUE(length(bootstrapVisualTrace) > 1) || isTRUE(length(traceBootstrapSize) > 1))
+    stop("Arguments traceBootstrapSize and bootstrapVisualTrace should be logical values (of length 1).")
+    
+    
   list(
-    alpha = alpha,
-    trcount = trcount,
-    bootType = if(missing(bootType)) "parametric" else bootType,
-    B = B,
-    confType = if(missing(confType)) "percentilic" else confType,
-    keepbootStat = keepbootStat,
-    traceBootstrapSize = traceBootstrapSize,
     bootstrapVisualTrace = bootstrapVisualTrace,
-    fittingMethod = fittingMethod,
-    bootstrapFitcontrol = bootstrapFitcontrol,
-    sd = if(missing(sd)) "sqrtVar" else sd,
-    covType = if (missing(covType)) "observedInform" else covType
+    bootstrapFitcontrol  = bootstrapFitcontrol,
+    traceBootstrapSize   = traceBootstrapSize,
+    fittingMethod        = fittingMethod,
+    keepbootStat         = keepbootStat,
+    bootType             = bootType,
+    confType             = confType,
+    covType              = covType,
+    trcount              = trcount,
+    alpha                = alpha,
+    B                   = B,
+    sd                  = sd
   )
 }

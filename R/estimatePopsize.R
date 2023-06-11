@@ -14,8 +14,8 @@ NULL
 #' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
 #' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 #'
-#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, with 
-#' value 1 if kth unit was observed at least once and 0 otherwise.
+#' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator 
+#' variables, with value 1 if kth unit was observed at least once and 0 otherwise.
 #'
 #' @param data data frame or object coercible to data.frame class containing 
 #' data for the regression and population size estimation.
@@ -51,17 +51,20 @@ NULL
 #' 
 #' @details The generalized linear model is characterised by equation
 #' \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
-#' where \mjseqn{\boldsymbol{X}} is the (lm) model matrix. The vector 
-#' generalized linear model is similarly characterised by equations
+#' where \mjseqn{\boldsymbol{X}} is the (lm) model matrix. 
+#' The vector generalized linear model is similarly characterised by equations
 #' \mjsdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}
-#' where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model matrix constructed
-#' from appropriate formula (specified in \code{controlModel} parameter).
+#' where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model 
+#' matrix constructed from appropriate formula 
+#' (specified in \code{controlModel} parameter).
+#' 
 #' The \mjseqn{\boldsymbol{\eta}} is then a vector constructed as:
+#' 
 #' \mjsdeqn{\boldsymbol{\eta}=\begin{pmatrix}
-#' \boldsymbol{\eta}_{1}^{T} & 
-#' \boldsymbol{\eta}_{2}^{T} & 
-#' \dotso & 
-#' \boldsymbol{\eta}_{p}^{T}
+#' \boldsymbol{\eta}_{1} \cr 
+#' \boldsymbol{\eta}_{2} \cr
+#' \dotso \cr
+#' \boldsymbol{\eta}_{p}
 #' \end{pmatrix}^{T}}
 #' 
 #' and in cases of models in our package the (vlm) model matrix 
@@ -84,7 +87,7 @@ NULL
 #' \code{kronecker} multiplication of \code{X} and \code{constraints}.)
 #' In this package we use observed likelihood to fit regression models.
 #' 
-#' As mentioned aboce usually the population size estimation is done via:
+#' As mentioned above usually the population size estimation is done via:
 #' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
 #' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 #'
@@ -107,21 +110,26 @@ NULL
 #' There are two ways of estimating variance of estimate \mjseqn{\hat{N}},
 #' the first being \code{"analytic"} usually done by application of 
 #' law of total variance to \mjseqn{\hat{N}}:
+#'
 #' \mjsdeqn{\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
 #' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
 #' \text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}
+#' 
 #' and then by \mjseqn{\delta} method to 
-#' \mjseqn{\hat{N}|I_{1},\dotso I_{N}}:
+#' \mjseqn{\hat{N}|I_{1},\dots I_{N}}:
+#' 
 #' \mjsdeqn{\mathbb{E}\left(\text{var}
 #' \left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
-#' \left.\left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
+#' \left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
 #' \text{cov}\left(\boldsymbol{\beta}\right)
-#' \left(\frac{\partial(N|I_1,...,I_N)}{\partial\boldsymbol{\beta}}\right)
+#' \left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
 #' \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}
 #' 
 #' and the \mjseqn{\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)}
 #' term may be derived analytically (if we assume independence of
-#' observations) since \mjseqn{\hat{N}|I_{1},\dots,I_{n}} is just a constant. 
+#' observations) since \mjseqn{\hat{N}|I_{1},\dots,I_{n}}
+#' is just a constant. 
+#' 
 #' In general this gives us:
 #' \mjsdeqn{
 #' \begin{aligned}
@@ -138,66 +146,67 @@ NULL
 #' 
 #' Where the approximation on 6th line appears because in 5th line we sum over 
 #' all units, that includes unobserved units, since \mjseqn{I_{k}} are 
-#' independentand \mjseqn{I_{k}\sim b(\mathbb{P}(Y_{k}>0))} the 6th line
+#' independent and \mjseqn{I_{k}\sim b(\mathbb{P}(Y_{k}>0))} the 6th line
 #' is an unbiased estimator of the 5th line.
 #' 
 #' The other method for estimating variance is \code{"bootstrap"}, but since
-#' \mjseqn{N_{obs}=\sum_{k=1}^{N}I_{k}} is also a random
-#' variable bootstrap will not be as simple as just drawing \mjseqn{N_{obs}}
-#' units from data with replacement and just computing \mjseqn{\hat{N}}.
+#' \mjseqn{N_{obs}=\sum_{k=1}^{N}I_{k}} is also a random variable bootstrap 
+#' will not be as simple as just drawing \mjseqn{N_{obs}} units from data 
+#' with replacement and just computing \mjseqn{\hat{N}}.
 #' 
-#' Method described above is refered to in literature as \code{"nonparametric"}
+#' Method described above is referred to in literature as \code{"nonparametric"}
 #' bootstrap (see [controlPopVar()]), due to ignoring variability in observed
 #' sample size it is likely to underestimate variance.
 #' 
 #' A more sophisticated bootstrap procedure may be described as follows:
 #' 1. Compute the probability distribution as: 
-#' \mjsdeqn{\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, 
+#' \mjsdeqn{
+#' \frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}, 
 #' \frac{\boldsymbol{f}_{1}}{\hat{N}}, 
-#' \dotso, 
+#' \dots,
 #' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}
-#' where \mjseqn{\boldsymbol{f}_{n}} denotes observed marginal frequency of
-#' units being observed exactly n times, round the quantitites above to nearest 
-#' integer if necessary.
+#' where \mjseqn{\boldsymbol{f}_{n}} denotes observed 
+#' marginal frequency of units being observed exactly n times, round the 
+#' quantities above to nearest integer if necessary.
 #' 2. Draw \mjseqn{\hat{N}} units from the distribution above 
-#' (if \mjseqn{\hat{N}} is not an integer than draw \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
+#' (if \mjseqn{\hat{N}} is not an integer than draw 
+#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
 #' 3. Truncated units with \mjseqn{y=0}.
 #' 4. If there are covariates draw them from original data with replacement from 
 #' uniform distribution. For example if unit drawn to new data has 
 #' \mjseqn{y=2} choose one of covariate vectors from original data that 
 #' was associated with unit for which was observed 2 times.
-#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}}
-#' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting 
-#' point \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, 
-#' use them to compute \mjseqn{\hat{N}_{new}}.
+#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}} 
+#' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting point 
+#' \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, use them 
+#' to compute \mjseqn{\hat{N}_{new}}.
 #' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
-#' it is necessary to assume that the have a correct estimate \mjseqn{\hat{N}}
-#' in order to use this type of bootstrap.
+#' it is necessary to assume that the have a correct estimate 
+#' \mjseqn{\hat{N}} in order to use this type of bootstrap.
 #' 
 #' Lastly there is \code{"paramteric"} bootstrap where we assume that the 
 #' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
 #' bootstrap procedure may then be described as:
-#' 1. Draw \mjseqn{\hat{N}} covariate information vectors with replacement from
-#' data according to probability distribution 
+#' 
+#' 1. Draw \mjseqn{\hat{N}} covariate information vectors with 
+#' replacement from data according to probability distribution 
 #' \mjsdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}
-#' where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)}, 
+#' where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)},
 #' \mjseqn{N_{k}} is the contribution of kth unit i.e. 
 #' \mjseqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}} and
-#' \mjseqn{\lfloor \cdot\rfloor} is the floor function.
+#' \mjseqn{\lfloor\cdot\rfloor} is the floor function.
 #' 2. Determine \mjseqn{\boldsymbol{\eta}} matrix using estimate 
 #' \mjseqn{\hat{\boldsymbol{\beta}}}.
-#' 3. Generate \mjseqn{\boldsymbol{y}} (dependent variable) vector using
-#' \mjseqn{\boldsymbol{\eta}} and probability mass function associated with
-#' chosen model.
+#' 3. Generate \mjseqn{\boldsymbol{y}} (dependent variable) 
+#' vector using \mjseqn{\boldsymbol{\eta}} and 
+#' probability mass function associated with chosen model.
 #' 4. Truncated units with \mjseqn{y=0} and construct 
-#' \mjseqn{\boldsymbol{y}_{new}} and 
-#' \mjseqn{\boldsymbol{X}_{vlm new}}.
-#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on 
-#' \mjseqn{\boldsymbol{X}_{vlm new}}
+#' \mjseqn{\boldsymbol{y}_{new}} and \mjseqn{\boldsymbol{X}_{vlm new}}.
+#' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}} 
 #' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}
 #' use them to compute \mjseqn{\hat{N}_{new}}.
 #' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
@@ -210,15 +219,16 @@ NULL
 #' violated. In such cases post-hoc procedures are implemented in this package
 #' to address this issue.
 #' 
-#' Lastly confidence intervals for \mjseqn{\hat{N}} are computed (in analytic case)
-#' either by assuming that it follows a normal distribution or that variable
-#' \mjseqn{\ln(N-\hat{N})} follows a normal distribution. 
+#' Lastly confidence intervals for \mjseqn{\hat{N}} are computed 
+#' (in analytic case) either by assuming that it follows a normal distribution 
+#' or that variable \mjseqn{\ln(N-\hat{N})}
+#' follows a normal distribution. 
+#' 
 #' These estimates may be found using either \code{summary.singleR}
 #' method or \code{popSizeEst.singleR} function. They're labelled as 
 #' \code{normal} and \code{logNormal} respectively.
 #'
 #' @references General single source capture recapture literature:
-#' 
 #' 
 #' Zelterman, Daniel (1988). ‘Robust estimation in truncated discrete distributions
 #' with application to capture-recapture experiments’. In: Journal of statistical
@@ -289,7 +299,7 @@ NULL
 #'  \item{\code{weights} -- If \code{IRLS} method of estimation was chosen weights returned by \code{IRLS}, otherwise same as \code{priorWeights}.}
 #'  \item{\code{residuals} -- Vector of raw residuals.}
 #'  \item{\code{logL} -- Logarithm likelihood obtained at final iteration.}
-#'  \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihhod function.}
+#'  \item{\code{iter} -- Numbers of iterations performed in fitting or if \code{stats::optim} was used number of call to loglikelihood function.}
 #'  \item{\code{dfResiduals} -- Residual degrees of freedom.}
 #'  \item{\code{dfNull} -- Null degrees of freedom.}
 #'  \item{\code{fittValues} -- Data frame of fitted values for both mu (the expected value) and lambda (Poisson parameter).}
@@ -332,7 +342,9 @@ NULL
 #' [VGAM::vglm()] -- For more information on vector generalised linear models.
 #' 
 #' [singleRmodels()] -- For description of various models.
-#' @examples 
+
+#' @examples
+#' \donttest{
 #' # Model from 2003 publication 
 #' # Point and interval estimation of the
 #' # population size using the truncated Poisson regression mode
@@ -403,6 +415,7 @@ NULL
 #' )
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 #' summary(Model)
+#' }
 #' @importFrom stats model.frame model.matrix model.response
 #' @export
 estimatePopsize <- function(formula,
@@ -420,11 +433,13 @@ estimatePopsize <- function(formula,
                              subset = NULL,
                              naAction = NULL,
                              method = c("optim", 
-                                        "IRLS", 
-                                        "maxLik"),
+                                        "IRLS"),
                              popVar = c("analytic",
-                                         "bootstrap",
-                                         "noEst"),
+                                         "bootstrap"),
+                            # This will return in next update
+                            # I don't have the time to figure out if this 
+                            # breaks methods for this class
+                                         #"noEst"),
                              controlMethod = NULL,
                              controlModel = NULL,
                              controlPopVar = NULL,
@@ -433,7 +448,7 @@ estimatePopsize <- function(formula,
                              y = TRUE,
                              contrasts = NULL,
                              ...) {
-  if (missing(method)) method <- "optim"
+  if (missing(method)) method <- "IRLS"
   if (missing(popVar)) popVar <- "analytic"
   
   subset <- parse(text = deparse(substitute(subset)))
@@ -542,16 +557,14 @@ estimatePopsize <- function(formula,
 
   controlPopVar$trcount <- controlPopVar$trcount + wch$trr
   
-  Xvlm <- singleRinternalGetXvlmMatrix(X = subset(
-    modelFrame, 
-    select = colnames(modelFrame)[-(attr(terms, "response"))], 
-    subset = wch$reg
-  ), nPar = length(family$etaNames), formulas = formulas, parNames = family$etaNames)
+  Xvlm <- singleRinternalGetXvlmMatrix(
+    # this preserves terms attribute
+    X = modelFrame[wch$reg, , drop = FALSE],
+    formulas = formulas, 
+    parNames = family$etaNames
+  )
   
-  
-  start <- controlMethod$start #TODO:: Re-add use ztpoisson as start
-  if (isTRUE(controlMethod$useZtpoissonAsStart)) 
-    stop("useZtpoissonAsStart option is temporarily removed.")
+  start <- controlMethod$start
   
   if (is.null(start)) {
     eval(family$getStart)
@@ -645,7 +658,7 @@ estimatePopsize <- function(formula,
     POP <- singleRcaptureinternalpopulationEstimate(
       y = observed[wch$est],
       formulas = formulas,
-      X = variables[wch$est, ],
+      X = variables[wch$est, , drop = FALSE],
       grad = grad,
       hessian = hessian,
       popVar = popVar,
@@ -667,6 +680,7 @@ estimatePopsize <- function(formula,
       cov = NULL
     )
   }
+  
   structure(
     list(
       y = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names

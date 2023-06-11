@@ -14,12 +14,21 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   
   links[1] <- c(lambdaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-      "nontrunc" = lambda,
-      "trunc"    = 1 + lambda
-    )
+    
+    if (!deriv) {
+      switch (
+        type,
+        "nontrunc" = lambda,
+        "trunc" = 1 + lambda
+      )
+    } else {
+      switch (type,
+        "nontrunc" = lambdaLink(eta, inverse = TRUE, deriv = 1),
+        "trunc" = lambdaLink(eta, inverse = TRUE, deriv = 1)
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -139,9 +148,16 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
     sims
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))))
+    switch (type,
+      "trunc" = {
+        stats::dgeom(x = x, prob = 1 / (1 + lambda)) / 
+        (1 - stats::dgeom(x = 0, prob = 1 / (1 + lambda)))
+      },
+      "nontrunc" = stats::dgeom(x = x, prob = 1 / (1 + lambda))
+    )
   }
   
   getStart <- expression(

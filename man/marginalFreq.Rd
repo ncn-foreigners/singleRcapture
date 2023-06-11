@@ -35,7 +35,8 @@ computed marginal frequencies by as sum of probability density functions
 for each unit in data at each point i.e. kth element of marginal frequency
 table is given by \mjseqn{\sum_{j=1}^{N_{obs}}\mathbb{P}(Y_{j}=k|\eta_{j})}.
 For k=0 only (if specified at call) they are computed as
-\mjseqn{\hat{N}-N_{obs}} because \mjseqn{\boldsymbol{f}_{0}} is assumed to
+\mjseqn{\hat{N}-N_{obs}} because
+\mjseqn{\boldsymbol{f}_{0}} is assumed to
 the unobserved part of the studied population.
 
 These frequencies are useful in diagnostics for count data regression, such

@@ -3,7 +3,7 @@
 #' @importFrom stats dnbinom
 #' @importFrom rootSolve multiroot
 #' @export
-oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, 
+oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                        lambdaLink = c("log", "neglog"), 
                        alphaLink = c("log", "neglog"),
                        omegaLink = c("logit", "cloglog", "probit"), ...) {
@@ -33,15 +33,51 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8,
   links[1:3] <- c(lambdaLink, alphaLink, omegaLink)
   
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
-    switch (type,
-    nontrunc =  omega + (1 - omega) * lambda,
-    trunc    = (omega + (1 - omega) * lambda) / 
-    (1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha))
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" =  omega + (1 - omega) * lambda,
+        "trunc"    = (omega + (1 - omega) * lambda) / 
+        (1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            1 - omega,
+            0,
+            1 - lambda
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - omega) * (alpha * lambda + 1) ^ (1 / alpha - 1) *
+            ((alpha * lambda + 1) ^ (1 / alpha + 1) + 
+            ((alpha + 1) * omega - alpha - 1) * lambda - 1) /
+            ((alpha * lambda + 1) ^ (1 / alpha) + omega - 1) ^ 2,
+            (1 - omega) * ((1 - omega) * lambda + omega) * 
+            (lambda * alpha + 1) ^ (1 / alpha - 1) * 
+            ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha) /
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) + omega - 1) ^ 2),
+            -(alpha * lambda + 1) ^ (1 / alpha) *
+            ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1) /
+            (omega + (alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -77,14 +113,18 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8,
     omega  <-  omegaLink(eta[3], inverse = TRUE)
     P0 <- (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha)
     res <- c(0, 0)
-    k <- 1 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    k <- 2 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    # but here we compute the (1 - z) * psi function which takes 0 at y = 1
     finished <- c(FALSE, FALSE)
     while ((k < nSim) & !all(finished)) {
-      k <- k + 1 # but here we compute the (1 - z) * psi function which takes 0 at y = 1
-      prob <- (1 - omega) * stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
-      if (!is.finite(prob)) {prob <- 0}
-      toAdd <- c( compdigamma(y = k, alpha = alpha),
-                  comptrigamma(y = k, alpha = alpha)) * prob
+      prob <- (1 - omega) * stats::dnbinom(x = k:(k + eimStep), 
+                                           size = 1 / alpha, 
+                                           mu = lambda) / (1 - P0)
+      if (any(!is.finite(prob))) {prob <- 0}
+      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha),
+                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
+      toAdd <- colSums(toAdd)
+      k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }
@@ -92,7 +132,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8,
   }
   
   Wfun <- function(prior, eta, ...) {
-    #TODO
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
@@ -331,7 +370,7 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8,
               -sum(weight * (z * log(omega + (1 - omega) *
               lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1)) + 
               (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
-              lgamma(1 / alpha) - log(factorial(y)) - 
+              lgamma(1 / alpha) - lgamma(y + 1) - 
               (y + 1 / alpha) * log(1 + lambda * alpha) + 
               y * log(lambda * alpha)) -
               log(1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha))))

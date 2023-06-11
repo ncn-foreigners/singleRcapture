@@ -5,9 +5,9 @@
 \alias{stratifyPopsize.singleR}
 \title{Estimate size of sub populations.}
 \usage{
-stratifyPopsize(object, stratas, alpha, ...)
+stratifyPopsize(object, stratas, alpha, newdata, ...)
 
-\method{stratifyPopsize}{singleR}(object, stratas, alpha, cov = NULL, ...)
+\method{stratifyPopsize}{singleR}(object, stratas, alpha, newdata, cov = NULL, ...)
 }
 \arguments{
 \item{object}{an object on which the population size estimates should be based
@@ -33,6 +33,10 @@ in \code{model.frame}.
 Either a single numeric value or a vector of length equal to number of
 sub populations specified in \code{stratas}.
 If missing it is set to \code{.05} in \code{singleR} method.}
+
+\item{newdata}{a new data frame for which sizes of sub populations are to
+be estimated. If none provided \code{stratifyPopsize} acts on
+\code{model.frame} from \code{object}.}
 
 \item{...}{a vector of arguments to be passed to other functions.
 For \code{singleR} method for this functions arguments in \code{...} are
@@ -63,17 +67,17 @@ estimate for population size is Horwitz-Thompson type estimate:
 \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
 \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 
-where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables,
-with value 1 if kth unit was observed at least once and 0 otherwise and
-the inverse probabilistic weights weights for units observed in the data
-\mjseqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}
+where \mjseqn{I_{k}=I_{Y_{k} > 0}} are
+indicator variables, with value 1 if kth unit was observed at least once
+and 0 otherwise and the inverse probabilistic weights weights for
+units observed in the data \mjseqn{\tfrac{1}{\mathbb{P}(Y_{k}>0)}}
 are estimated using fitted linear predictors.
 
 The estimates for different sub populations are made by changing the
-\mjseqn{I_{k}=I_{Y_{k} > 0}} indicator variables to refer not to the
-population as a whole but to the sub populations that are being considered
-i.e. by changing values from 1 to 0 if kth unit is not a member of sub
-population that is being considered at the moment.
+\mjseqn{I_{k}=I_{Y_{k} > 0}} indicator variables to
+refer not to the population as a whole but to the sub populations that are
+being considered i.e. by changing values from 1 to 0 if kth unit is not a
+member of sub population that is being considered at the moment.
 
 The estimation of variance for these estimates and estimation of variance for
 estimate of population size for the whole population follow the same relation

@@ -30,7 +30,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     strap <- sample.int(replace = TRUE, n = n)
     ystrap <- as.numeric(y[strap])
     weightsStrap <- as.numeric(weights[strap])
-    Xstrap <- modelFrame[strap, ]
+    Xstrap <- modelFrame[strap, , drop = FALSE]
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
       colnames(Xstrap) <- colnames(modelFrame)
@@ -40,12 +40,10 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     family = family, observed = ystrap, popVar = "analytic")
     if (famName == "zelterman") {
       Xstrap1 <- singleRinternalGetXvlmMatrix(
-      X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
-      nPar = length(family$etaNames), formulas = formulas, family$etaNames)
+      X = Xstrap, formulas = formulas, family$etaNames)
     }
     Xstrap <- singleRinternalGetXvlmMatrix(
-    X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
-    nPar = length(family$etaNames), formulas = formulas, family$etaNames)
+    X = Xstrap, formulas = formulas, family$etaNames)
     theta <- NULL
     try(
       theta <- estimatePopsize.fit(
@@ -134,7 +132,7 @@ semparBoot <- function(family, formulas, y, X, beta,
     
     ystrap <- y[as.numeric(strap)]
     weightsStrap <- weights[as.numeric(strap)]
-    Xstrap <- modelFrame[strap, ]
+    Xstrap <- modelFrame[strap, , drop = FALSE]
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
     }
@@ -147,12 +145,10 @@ semparBoot <- function(family, formulas, y, X, beta,
     colnames(Xstrap) <- colnames(modelFrame)
     if (famName == "zelterman") {
       Xstrap1 <- singleRinternalGetXvlmMatrix(
-      X = subset(Xstrap, select = attr(modelFrame, "names")[-1]),
-      nPar = length(family$etaNames), formulas = formulas, family$etaNames)
+      X = Xstrap, formulas = formulas, family$etaNames)
     }
     Xstrap <- singleRinternalGetXvlmMatrix(
-    X = subset(Xstrap, select = attr(modelFrame, "names")[-1], subset = wch$reg), 
-    nPar = length(family$etaNames), formulas = formulas, family$etaNames)
+    X = Xstrap, formulas = formulas, family$etaNames)
     try(
       theta <- estimatePopsize.fit(
         y = ystrap[wch$reg],
@@ -259,15 +255,11 @@ parBoot <- function(family,
   while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
     weightsStrap <- as.numeric(weights[strap])
-    Xstrap <- modelFrame[strap, ]
-    if (!is.data.frame(Xstrap)) {
-      Xstrap <- as.data.frame(Xstrap)
-    }
+    Xstrap <- modelFrame[strap, , drop = FALSE]
     colnames(Xstrap) <- colnames(modelFrame)
     
     Xstrap <- singleRinternalGetXvlmMatrix(
-    X = subset(Xstrap, select = attr(modelFrame, "names")[-1]), 
-    nPar = length(family$etaNames), formulas = formulas, family$etaNames)
+    X = Xstrap, formulas = formulas, family$etaNames)
 
     ystrap <- dataFunc(
       n = N,

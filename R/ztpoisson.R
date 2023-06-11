@@ -17,12 +17,21 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
   
   links[1] <- c(lambdaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-    "nontrunc" = lambda,
-    "trunc" = lambda / (1 - exp(-lambda))
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = lambda,
+        "trunc" = lambda / (1 - exp(-lambda))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = lambdaLink(eta, inverse = TRUE, deriv = 1),
+        "trunc" = lambdaLink(eta, inverse = TRUE, deriv = 1) *
+          (exp(lambda) * (exp(lambda) - lambda - 1)) / (exp(lambda) - 1) ^ 2
+      )
+    }
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
@@ -68,7 +77,7 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       function(beta) {
         lambda <- lambdaLink((as.matrix(X) %*% beta)[, 1], inverse = TRUE)
         
-        -sum(weight * (y * log(lambda) - log(exp(lambda) - 1) - log(factorial(y))))
+        -sum(weight * (y * log(lambda) - log(exp(lambda) - 1) - lgamma(y + 1)))
       },
       function(beta) {
         eta <- as.matrix(X) %*% beta
@@ -107,9 +116,49 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
 
   devResids <- function(y, eta, wt, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    #hm1y <- ifelse(y > 1, VGAM::lambertW(-y * exp(-y)) + y, 0)
-    hm1y <- ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (y * log(lambda) - lambda - log(1 - exp(-lambda)) - y * ifelse(y > 1, log(hm1y), 0) + hm1y + ifelse(y > 1, log(1 - exp(-hm1y)), 0)))
+    
+    idealLambda <- tryCatch(
+      expr = {
+        suppressWarnings(
+          ifelse(y > 1, lamW::lambertW0(-y * exp(-y)) + y, 0)
+        )
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(idealLambda)) {
+      return(rep(0, length(y)))
+    }
+    
+    
+    logL <- y * log(lambda) - lambda - log(1 - exp(-lambda))
+    logSat <- y * ifelse(y > 1, log(idealLambda), 0) - idealLambda - ifelse(y > 1, log(1 - exp(-idealLambda)), 0)
+    
+    diff <- (y * log(lambda) - lambda - log(1 - exp(-lambda)) - 
+    y * ifelse(y > 1, log(idealLambda), 0) - 
+    idealLambda - ifelse(y > 1, log(1 - exp(-idealLambda)), 0)
+    )
+    
+    if (any(diff > 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which indicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
+    ### Here we take pairwise minimum because in specific situations
+    ### lambda and idealLambda are so close for some units that
+    ### their respective likelihoods differ only by machine epsilon
+    ### and rounding may cause warnings
+    
+    ### TLDR:: pmin must be here not because mathematical error, 
+    ### rather because of a rouding error
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, logL - logSat))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -145,9 +194,17 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     sims
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda))
+    
+    switch (type,
+      "trunc" = {
+        stats::dpois(x = x, lambda = lambda) / 
+        (1 - stats::dpois(x = 0, lambda = lambda))
+      },
+      "nontrunc" = stats::dpois(x = x, lambda = lambda)
+    )
   }
   
   getStart <- expression(
@@ -179,10 +236,10 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       etaNames  = c("lambda"),
       simulate  = simulate,
       getStart  = getStart,
-      extraInfo = list(
+      extraInfo = c(
         mean       = "lambda",
         variance   = "lambda",
-        popSizeEst = "(1+exp(-lambda)) ^ -1",
+        popSizeEst = "(1 + exp(-lambda)) ^ -1",
         meanTr     = "lambda / (1 - exp(-lambda))",
         varianceTr = 
           "(lambda / (1 - exp(-lambda))) * (1 + lambda - lambda / (1 - exp(-lambda)))"

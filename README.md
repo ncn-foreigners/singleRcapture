@@ -8,6 +8,8 @@
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
 [![Codecov test
 coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
 <!-- badges: end -->
 
 Capture-recapture type experiments are used to estimate the total
@@ -31,10 +33,10 @@ research process.
 Currently we’ve implemented most of the frequentist approaches used in
 literature such as:
 
-- Zero truncated poisson, geometric and negative binomial regression.
-- Zero truncated one inflated and one inflated zero truncated poisson
-  and gemetric models. (Negative binomial is currently in development.)
-- Zero one truncated poisson geometric and negative binomial models.
+- Zero truncated Poisson, geometric and negative binomial regression.
+- Zero truncated one inflated and one inflated zero truncated Poisson
+  and geometric models. (Negative binomial is currently in development.)
+- Zero one truncated Poisson geometric and negative binomial models.
 - Generalised Chao and Zelterman’s models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and non
   parametric.
@@ -51,6 +53,13 @@ You can install the development version of singleRcapture from
 remotes::install_github("ncn-foreigners/singleRcapture")
 ```
 
+or install the current stable version from
+[CRAN](https://cran.r-project.org/package=singleRcapture) with:
+
+``` r
+install.packages(singleRcapture)
+```
+
 ### Examples
 
 The main function of this package is `estimatePopsize` which fitts
@@ -60,7 +69,7 @@ estimate the population size.
 Lets look at a model from 2003 publication : Point and interval
 estimation of the population size using the truncated Poisson regression
 model Heijden, Peter GM van der et al. The call to `estimatePopsize`
-will look very simmilar to anyone who used the `stats::glm` function:
+will look very similar to anyone who used the `stats::glm` function:
 
 ``` r
 library(singleRcapture)
@@ -108,15 +117,15 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 #> Population size estimation results: 
 #> Point estimate 12690.35
 #> Observed proportion: 14.8% (N obs = 1880)
-#> Std. Error 2808.167
+#> Std. Error 2808.169
 #> 95% CI for the population size:
 #>           lowerBound upperBound
-#> normal      7186.446   18194.26
-#> logNormal   8431.276   19718.31
+#> normal      7186.444   18194.26
+#> logNormal   8431.275   19718.32
 #> 95% CI for the share of observed population:
 #>           lowerBound upperBound
-#> normal     10.332930   26.16036
-#> logNormal   9.534284   22.29793
+#> normal     10.332927   26.16037
+#> logNormal   9.534281   22.29793
 ```
 
 We implemented a method for `plot` function to visualise the model fit
@@ -184,7 +193,7 @@ approximately the same effect:
 plot(model, plotType = "dfpopContr")
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="75%" />
 
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
@@ -202,15 +211,15 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
     "Older males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == ">40yrs"
 ))
 #>   Observed Estimated ObservedPercentage  StdError normalLowerBound
-#> 1       20  931.4685           2.147147  955.0668      -1528.62062
-#> 2       78 1291.2513           6.040652  741.0066       -432.58790
-#> 3     1391 7337.0716          18.958518 1282.1412       4554.70930
-#> 4       91 1542.1889           5.900704  781.4751         10.52593
+#> 1       20   931.469           2.147146  955.0676      -1528.62209
+#> 2       78  1291.251           6.040652  741.0066       -432.58790
+#> 3     1391  7337.072          18.958516 1282.1419       4554.70841
+#> 4       91  1542.189           5.900703  781.4754         10.52561
 #>   normalUpperBound logNormalLowerBound logNormalUpperBound                 name
-#> 1         3391.558            119.2661            8389.170 Females from Surinam
+#> 1         3391.560            119.2661            8389.178 Females from Surinam
 #> 2         3015.090            405.4127            4573.791    Males from Turkey
-#> 3        10119.434           5134.8117           10834.789        Younger males
-#> 4         3073.852            630.7551            3992.676          Older males
+#> 3        10119.436           5134.8113           10834.792        Younger males
+#> 4         3073.853            630.7551            3992.677          Older males
 #>   confLevel
 #> 1      0.01
 #> 2      0.02
@@ -223,19 +232,19 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 ``` r
 stratifyPopsize(model, stratas = ~ gender / age)
 #>   Observed Estimated ObservedPercentage  StdError normalLowerBound
-#> 1      398  3811.092          10.443201 1153.9742       1549.34401
-#> 2     1482  8879.260          16.690579 1812.0803       5327.64833
-#> 3      378  3169.827          11.924942  880.9485       1443.19944
-#> 4     1391  7337.072          18.958518 1282.1412       4824.12101
-#> 5       20   641.265           3.118835  407.5266       -157.47248
-#> 6       91  1542.189           5.900704  781.4751         10.52593
+#> 1      398 3811.0924          10.443200 1153.9749       1549.34322
+#> 2     1482 8879.2613          16.690578 1812.0813       5327.64720
+#> 3      378 3169.8272          11.924940  880.9491       1443.19883
+#> 4     1391 7337.0721          18.958516 1282.1419       4824.12025
+#> 5       20  641.2651           3.118835  407.5268       -157.47265
+#> 6       91 1542.1892           5.900703  781.4754         10.52561
 #>   normalUpperBound logNormalLowerBound logNormalUpperBound
-#> 1         6072.840           2189.0441            6902.137
-#> 2        12430.873           6090.7756           13354.885
-#> 3         4896.454           1904.3123            5484.620
-#> 4         9850.022           5306.3301           10421.086
-#> 5         1440.002            212.3382            2026.727
-#> 6         3073.852            630.7551            3992.676
+#> 1         6072.842           2189.0439            6902.140
+#> 2        12430.875           6090.7752           13354.889
+#> 3         4896.456           1904.3121            5484.622
+#> 4         9850.024           5306.3298           10421.088
+#> 5         1440.003            212.3382            2026.728
+#> 6         3073.853            630.7551            3992.677
 #>                     name confLevel
 #> 1         gender==female      0.05
 #> 2           gender==male      0.05
@@ -260,8 +269,6 @@ modelInflated <- estimatePopsize(
         alpha = .01, # significance level 
     )
 )
-#> Warning in singleRcaptureinternalIRLSmultipar(dependent = y, covariates = X, :
-#> Convergence at halfstepsize
 summary(modelInflated)
 #> 
 #> Call:
@@ -271,7 +278,7 @@ summary(modelInflated)
 #> 
 #> Pearson Residuals:
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.357193 -0.357193 -0.357193  0.000343 -0.287637 10.233607 
+#> -0.357193 -0.357193 -0.357193  0.000343 -0.287637 10.233608 
 #> 
 #> Coefficients:
 #> -----------------------
@@ -295,17 +302,17 @@ summary(modelInflated)
 #> Number of iterations: 6
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 5661.521
+#> Point estimate 5661.522
 #> Observed proportion: 33.2% (N obs = 1880)
-#> Std. Error 963.9019
+#> Std. Error 963.9024
 #> 99% CI for the population size:
 #>           lowerBound upperBound
-#> normal      3178.674   8144.367
-#> logNormal   3861.507   9096.677
+#> normal      3178.674   8144.370
+#> logNormal   3861.508   9096.681
 #> 99% CI for the share of observed population:
 #>           lowerBound upperBound
-#> normal      23.08344   59.14416
-#> logNormal   20.66689   48.68565
+#> normal      23.08343   59.14416
+#> logNormal   20.66688   48.68564
 ```
 
 and the option to estimate standard error of population size estimate by
@@ -344,10 +351,10 @@ modelInflated2 <- estimatePopsize(
 #> information matrix because hessian of log-likelihood is not negative define.
 popSizeEst(modelInflated2)
 #> Point estimate: 5496.376
-#> Variance: 1435999
+#> Variance: 1552532
 #> 99% confidence intervals:
 #> lowerBound upperBound 
-#>   4259.711  10877.646
+#>   4320.925  11078.865
 ```
 
 the results are significantly different (the warning issued concerns the
@@ -360,7 +367,7 @@ the user):
 plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 200))
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="75%" />
 
 and information criteria support the favour model:
 

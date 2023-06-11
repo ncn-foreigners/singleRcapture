@@ -5,16 +5,29 @@
 \alias{redoPopEstimation.singleR}
 \title{Updating population size estimation results.}
 \usage{
-redoPopEstimation(object, ...)
+redoPopEstimation(object, newdata, ...)
 
-\method{redoPopEstimation}{singleR}(object, cov = NULL, ...)
+\method{redoPopEstimation}{singleR}(object, newdata, cov, weights, coef, control, popVar, ...)
 }
 \arguments{
 \item{object}{object for which update of population size estimation results will be done.}
 
+\item{newdata}{optional \code{data.frame} with new data for pop size estimation.}
+
 \item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
 
 \item{cov}{an updated covariance matrix estimate.}
+
+\item{weights}{optional vector of weights to use in population size estimation.}
+
+\item{coef}{optional vector of coefficients of regression on which to base
+population size estimation. If missing it is set to \code{coef(object)}.}
+
+\item{control}{similar to \code{controlPopVar} in \code{\link[=estimatePopsize]{estimatePopsize()}}.
+If missing set to controls provided on call to \code{object}.}
+
+\item{popVar}{similar to \code{popVar} in \code{\link[=estimatePopsize]{estimatePopsize()}}.
+If missing set to \code{"analytic"}.}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated
@@ -40,4 +53,7 @@ summary(Model, cov = cov,
 popSizeEst = redoPopEstimation(Model, cov = cov))
 # Compare to results with usual covariance matrix estimation
 summary(Model)
+
+## get confidence interval with larger significance level
+redoPopEstimation(Model, control = controlPopVar(alpha = .000001))
 }

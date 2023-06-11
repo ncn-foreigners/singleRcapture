@@ -22,13 +22,39 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
   
   links[1:2] <- c(lambdaLink, piLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-    "nontrunc" = (1 - exp(-lambda)) * (PI + lambda - PI * lambda),
-    "trunc" = PI + (1 - PI) * (2 + lambda)
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = (PI + (1 - PI) * (2 + lambda)) * lambda ^ 2 / 
+          (lambda ^ 2 + lambda + 1),
+        "trunc" = PI + (1 - PI) * (2 + lambda)
+      )
+    } else {
+      switch (type,
+        "nontrunc" = {
+          matrix(c(
+            -lambda * ((PI - 1) * lambda ^ 3 + (2 * PI - 2) * lambda ^ 2 + 
+            (4 * PI - 5) * lambda + 2 * PI - 4) / (lambda ^ 2 + lambda + 1) ^ 2,
+            -(1 + lambda) * lambda ^ 2 / (lambda ^ 2 + lambda + 1)
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                piLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        },
+        "trunc" = {
+          matrix(c(
+            1 - PI,
+            1 - 2 - lambda
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                piLink(eta[, 2], inverse = TRUE, deriv = 1)
+          ), ncol = 2)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -212,10 +238,24 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    ifelse(x == 1, PI, (1 - PI) * (lambda ^ (x - 2)) / (1 + lambda) ^ (x - 1))
+    
+    switch (type,
+      "trunc" = {
+        as.numeric(x == 1) * PI + as.numeric(x > 0) * 
+        (1 - PI) * stats::dnbinom(x = x, mu = lambda, size = 1) / 
+        (1 - 1 / (1 + lambda) - lambda * ((1 + lambda) ^ -2))
+      },
+      "nontrunc" = {
+        as.numeric(x == 0) * (1 + lambda) / (lambda ^ 2 + lambda + 1) +
+        as.numeric(x == 1) * PI * lambda ^ 2 / (lambda ^ 2 + lambda + 1) +
+        as.numeric(x > 1) * (1 - PI) * (lambda ^ x / (1 + lambda) ^ (x + 1)) *
+        (lambda + 1) ^ 2 / (lambda ^ 2 + lambda + 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {

@@ -14,12 +14,20 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
   
   links[1] <- c(lambdaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    switch (type,
-    "nontrunc" = lambda,
-    "trunc" = 2 + lambda
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = lambda,
+        "trunc" = 2 + lambda
+      )
+    } else {
+      switch (type,
+        "nontrunc" = lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+        "trunc" = lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+      )
+    }
   }
   
   variance <- function(eta, disp, type = "nontrunc", ...) {
@@ -135,16 +143,25 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    lb <- stats::pnbinom(lower, mu=lambda, size = 1)
-    ub <- stats::pnbinom(upper, mu=lambda, size = 1)
+    lb <- stats::pnbinom(lower, mu = lambda, size = 1)
+    ub <- stats::pnbinom(upper, mu = lambda, size = 1)
     p_u <- stats::runif(n, lb, ub)
-    sims <- stats::qnbinom(p_u, mu=lambda, size = 1)
+    sims <- stats::qnbinom(p_u, mu = lambda, size = 1)
     sims
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    stats::dgeom(x = x, prob = (1 / (1 + lambda))) / (1 - stats::dgeom(x = 0, prob = (1 / (1 + lambda))) - stats::dgeom(x = 1, prob = (1 / (1 + lambda))))
+    
+    switch (type,
+      "trunc" = {
+        stats::dgeom(x = x, prob = 1 / (1 + lambda)) / 
+        (1 - stats::dgeom(x = 0, prob = 1 / (1 + lambda)) - 
+        stats::dgeom(x = 1, prob = 1 / (1 + lambda)))
+      },
+      "nontrunc" = stats::dgeom(x = x, prob = 1 / (1 + lambda))
+    )
   }
   
   getStart <- expression(

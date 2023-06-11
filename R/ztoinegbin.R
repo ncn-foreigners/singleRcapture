@@ -3,7 +3,7 @@
 #' @importFrom stats dnbinom
 #' @importFrom rootSolve multiroot
 #' @export
-ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, 
+ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                        lambdaLink = c("log", "neglog"), 
                        alphaLink = c("log", "neglog"),
                        omegaLink = c("logit", "cloglog", "probit"), ...) {
@@ -33,14 +33,50 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
   links[1:3] <- c(lambdaLink, alphaLink, omegaLink)
   
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
-    switch (type,
-      nontrunc = omega * (1 - (1 + alpha * lambda) ^ (-1 / alpha)) + (1 - omega) * lambda,
-      trunc = omega + (1 - omega) * lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = omega * (1 - (1 + alpha * lambda) ^ (-1 / alpha)) + (1 - omega) * lambda,
+        "trunc" = omega + (1 - omega) * lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      )
+    } else {
+      switch (
+        type,
+        "nontrunc" = {
+          matrix(c(
+            1 + omega * (alpha * lambda + 1) ^ (-1 / alpha - 1) - omega,
+            -omega * (log(lambda * alpha + 1) / alpha ^ 2 -
+            lambda / (alpha * (lambda * alpha + 1))) / 
+            (lambda * alpha + 1) ^ (1 / alpha),
+            1 - lambda - 1 / (alpha * lambda + 1) ^ (1 / alpha)
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        },
+        "trunc" = {
+          matrix(c(
+            (1 - omega) * (alpha * lambda + 1) ^ (1 / alpha - 1) *
+            ((alpha * lambda + 1) ^ (1 / alpha + 1) +
+            (-alpha - 1) * lambda - 1) / 
+            ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2,
+            (1 - omega) * lambda * (lambda * alpha + 1) ^ (1 / alpha - 1) *
+            ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha) /
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2),
+            -lambda / (1 - (1 + alpha * lambda) ^ (-1 / alpha))
+          ) * c(
+            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
+          ), ncol = 3)
+        }
+      )
+    }
   }
   
   variance <- function(eta, type = "nontrunc", ...) {
@@ -78,14 +114,18 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
     res <- c(0, 0)
-    k <- 1 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    k <- 2 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    # but here we compute the (1 - z) * psi function which takes 0 at y = 1
     finished <- c(FALSE, FALSE)
     while ((k < nSim) & !all(finished)) {
-      k <- k + 1 # but here we compute the (1 - z) * psi function which takes 0 at y = 1
-      prob <- (1 - omega) * stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / (1 - P0)
-      if (!is.finite(prob)) {prob <- 0}
-      toAdd <- c( compdigamma(y = k, alpha = alpha),
-                 comptrigamma(y = k, alpha = alpha)) * prob
+      prob <- (1 - omega) * stats::dnbinom(x = k:(k + eimStep), 
+                                           size = 1 / alpha, 
+                                           mu = lambda) / (1 - P0)
+      if (any(!is.finite(prob))) {prob <- 0}
+      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha),
+                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
+      toAdd <- colSums(toAdd)
+      k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
     }
@@ -351,7 +391,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
               lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1) / 
               (1 - (1 + lambda * alpha) ^ (-1 / alpha))) + 
               (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
-              lgamma(1 / alpha) - log(factorial(y)) - 
+              lgamma(1 / alpha) - lgamma(y + 1) - 
               (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
               log(1 - (1 + lambda * alpha) ^ (-1 / alpha)))))
             },
@@ -627,7 +667,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
   
   devResids <- function (y, eta, wt, ...) {
     #TODO
-    # AAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa
     0
   }
   
@@ -662,16 +701,24 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     omega  <-  omegaLink(eta[, 3], inverse = TRUE)
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     
-    ifelse(x == 1, 
-    omega + (1 - omega) * 
-    stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha) / (1 - P0), 
-    (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0))
+    switch (type,
+      "trunc" = {
+        (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
+        (1 - P0) + omega * as.numeric(x == 1)
+      },
+      "nontrunc" = {
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) * 
+        (as.numeric(x == 0) + as.numeric(x > 0) * (1 - omega)) +
+        omega * (1 - P0) * as.numeric(x == 1)
+      }
+    )
   }
   
   simulate <- function(n, eta, lower = 0, upper = Inf) {
@@ -698,48 +745,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8,
     }
     sims
   }
-  
-  # getStart <- expression(
-  #   #TODO
-  #   start <- stats::glm.fit(
-  #     x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-  #     y = observed[wch$reg],
-  #     family = stats::poisson(),
-  #     weights = priorWeights[wch$reg],
-  #     ...
-  #   )$coefficients,
-  #   if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-  #   if (!is.null(controlMethod$alphaStart)) {
-  #     start <- c(start, controlMethod$alphaStart)
-  #   } else {
-  #     if (controlModel$alphaFormula == ~ 1) {
-  #       start <- c(start, family$links[[2]](abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
-  #     } else {
-  #       cc <- colnames(Xvlm)
-  #       cc <- cc[grepl(x = cc, pattern = "alpha$")]
-  #       cc <- unlist(strsplit(x = cc, ":alpha"))
-  #       cc <- sapply(cc, FUN = function(x) {
-  #         ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-  #       })
-  #       if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
-  #         start <- c(start, cc)
-  #       else
-  #         start <- c(start, -cc)
-  #     }
-  #   },
-  #   if (controlModel$omegaFormula == ~ 1) {
-  #     omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-  #     start <- c(start, family$links[[3]](omg / (1 - omg)))
-  #   } else {
-  #     cc <- colnames(Xvlm)
-  #     cc <- cc[grepl(x = cc, pattern = "omega$")]
-  #     cc <- unlist(strsplit(x = cc, ":omega"))
-  #     cc <- sapply(cc, FUN = function(x) {
-  #       ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-  #     })
-  #     start <- c(start, cc)
-  #   }
-  # )
   
   # new starting points
   

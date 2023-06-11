@@ -14,12 +14,22 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
   
   links[1] <- c(lambdaLink)
   
-  mu.eta <- function(eta, type = "trunc", ...) {
+  mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta, inverse = TRUE)
-    switch (type,
-    "nontrunc" = lambda,
-    "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
-    )
+    
+    if (!deriv) {
+      switch (type,
+        "nontrunc" = lambda,
+        "trunc" = (lambda - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
+      )
+    } else {
+      switch (type,
+        "nontrunc" = lambdaLink(eta, inverse = TRUE, deriv = 1),
+        "trunc" = lambdaLink(eta, inverse = TRUE, deriv = 1) *
+          (exp(2 * lambda) + (-lambda ^ 2 - 2) * exp(lambda) + 1) /
+          (exp(lambda) - lambda - 1) ^ 2
+      )
+    }
   }
 
   variance <- function(eta, type = "nontrunc", ...) {
@@ -69,7 +79,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
       function(beta) {
         eta <- as.matrix(X) %*% beta
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-        -sum(weight * (y * log(lambda) - lambda - log(factorial(y)) -
+        -sum(weight * (y * log(lambda) - lambda - lgamma(y + 1) -
         log(1 - exp(-lambda) - lambda * exp(-lambda))))
       },
       function(beta) {
@@ -127,14 +137,41 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     # not have dictionaries :( Also I checked it with rbenchmark::benchmark with many replications
     yUnq <- unique(y)
     lambdaSat <- sapply(yUnq, FUN = function(x) ifelse(x == 2, -Inf, inverseFunction(x)))
+    
+    idealLambda <- tryCatch(
+      expr = {
+        suppressWarnings(sapply(yUnq, 
+          FUN = function(x) ifelse(x == 2, -Inf, inverseFunction(x))
+        ))
+      },
+      error = function (e) {
+        warning("Deviance residuals could not have been computed and zero vector will be returned instead.", call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(idealLambda)) {
+      return(rep(0, length(y)))
+    }
+    
     lambdaSat <- lambdaLink(sapply(y, FUN = function(x) lambdaSat[yUnq == x]), inverse = TRUE)
     
-    lFit <- y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda))
-    lSat <- ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
+    diff <- y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)) -
+    ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
     y * log(lambdaSat) - lambdaSat - 
     log(1 - exp(-lambdaSat) - lambdaSat * exp(-lambdaSat)))
     
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (lFit - lSat))
+    if (any(diff > 0)) {
+      warning(paste0(
+        "Some of differences between log likelihood in sautrated model",
+        " and fitted model were positive which indicates either:\n",
+        "(1): A very good model fitt or\n",
+        "(2): Incorrect computation of saturated model",
+        "\nDouble check deviance before proceeding"
+      ))
+    }
+    
+    ## see comments in ztpoisson for explanation of pmin
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, diff))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -168,9 +205,18 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     f1 + f2
   }
   
-  dFun <- function (x, eta, type = "trunc") {
+  dFun <- function (x, eta, type = c("trunc", "nontrunc")) {
+    if (missing(type)) type <- "trunc"
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    stats::dpois(x = x, lambda = lambda) / (1 - stats::dpois(x = 0, lambda = lambda) - stats::dpois(x = 1, lambda = lambda))
+    
+    switch (type,
+      "trunc" = {
+        stats::dpois(x = x, lambda = lambda) / 
+        (1 - stats::dpois(x = 0, lambda = lambda) - 
+        stats::dpois(x = 1, lambda = lambda))
+      },
+      "nontrunc" = stats::dpois(x = x, lambda = lambda)
+    )
   }
 
   simulate <- function(n, eta, lower = 1, upper = Inf) {

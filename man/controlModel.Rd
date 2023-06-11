@@ -33,14 +33,14 @@ A list with selected parameters, it is also possible to call list directly.
 \description{
 \code{controlModel} constructs a list with all necessary
 control parameters in \code{estimatePopsize} that are either specific to
-selected model or don't fit anywhere else.
+selected model or do not fit anywhere else.
 
 Specifying additional formulas should be done by using only right hand side of
 the formula also for now all variables from additional formulas should also be
 included in the "main" formula.
 }
 \seealso{
-\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[=controlPopVar]{controlPopVar()}}
+\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[=controlPopVar]{controlPopVar()}} \code{\link[=singleRmodels]{singleRmodels()}}
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz

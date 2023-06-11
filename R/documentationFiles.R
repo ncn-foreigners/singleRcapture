@@ -13,20 +13,26 @@ NULL
 #' @param nSim,epsSim if working weights cannot be computed analytically these 
 #' arguments specify maximum number of simulations allowed and
 #' precision level for finding them numerically respectively.
-#' @param lambdaLink link for poisson parameter, \code{"log"} 
-#' by default except for logistic based models where only 
-#' \mjseqn{\ln\left(\tfrac{x}{2}\right)} is possible.
+#' @param lambdaLink link for Poisson parameter, \code{"log"} 
+#' by default except for zelterman's and chao's models where only 
+#' \mjseqn{\ln\left(\frac{x}{2}\right)} is possible.
 #' @param alphaLink link for dispersion parameter, \code{"log"} by default
 #' @param omegaLink link for inflation parameter, \code{"logit"} by default 
 #' @param piLink link for probability parameter,  \code{"logit"} by default
+#' @param eimStep a non negative integer describing 
+#' how many values should be used at each step of approximation
+#' of information matrixes when no analytic solution is available 
+#' (e.g. \code{"ztnegbin"}), default varies depending on a function.
+#' Higher value usually means faster convergence but may potentially cause
+#' issues with convergence.
 #' @param ... Additional arguments, not used for now.
 #' 
 #' @details Most of these functions are based on some "base" distribution with
 #' support \mjseqn{\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace} that describe
-#' distribution of \mjseqn{Y} before truncation. Currently they include:
+#' distribution of \mjseqn{Y}{Y}{} before truncation. Currently they include:
 #' \mjsdeqn{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 #' \begin{array}{cc}
-#' \frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{poisson distribution}  \cr
+#' \frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{Poisson distribution}  \cr
 #' \frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!} 
 #' \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 #' \left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} & 
@@ -35,22 +41,22 @@ NULL
 #' \text{geometric distribution}
 #' \end{array}
 #' \right.}
-#' where \mjseqn{\lambda} is the poisson parameter and 
+#' where \mjseqn{\lambda} is the Poisson parameter and 
 #' \mjseqn{\alpha} is the dispersion parameter. Geometric distribution
 #' is a special case of negative binomial distribution when 
 #' \mjseqn{\alpha=1} it is included because negative binomial 
 #' distribution is quite troublesome numerical regression in fitting.
 #' It is important to know that PMF of negative binomial distribution 
-#' approaches the PMF of poisson distribution when 
+#' approaches the PMF of Poisson distribution when 
 #' \mjseqn{\alpha\rightarrow 0^{+}}.
 #' 
 #' 
 #' **Note** in literature on single source capture recapture models 
 #' the dispersion parameter which introduces greater variability 
-#' in negative binomial distribution compared to poisson distribution is 
+#' in negative binomial distribution compared to Poisson distribution is 
 #' generally interpreted as explaining the *unobserved* heterogeneity
 #' i.e. presence of important unobserved independent variables.
-#' All these methods for estimating population size are tied to poisson 
+#' All these methods for estimating population size are tied to Poisson 
 #' processes hence we use \mjseqn{\lambda} as parameter symbol
 #' instead of \mjseqn{\mu} to emphasize this connection.
 #' Also will not be hard to see that **all** estimators derived from 
@@ -66,11 +72,11 @@ NULL
 #' 0 & \text{when }y=0
 #' \end{array}\right.}
 #' which allows us to estimate parameter values using only observed part of
-#' population. These models lead to the following estimates:
+#' population. These models lead to the following estimates, respectively:
 #' \mjsdeqn{
 #' \begin{aligned}
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &
-#' \text{ For poisson distribution} \cr
+#' \text{ For Poisson distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &
 #' \text{ For negative binomial distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &
@@ -82,15 +88,14 @@ NULL
 #' presence of **one inflation** the presence of which is somewhat similar in
 #' single source capture-recapture models to zero inflation in usual count data
 #' analysis. There are two ways in which one inflation may be understood,
-#' they relate to whether \mjseqn{\mathbb{P}(Y=0)} is modified by 
-#' inflation. The first approach is inflate (\mjseqn{\omega} parameter) 
-#' zero truncated distribution as:
+#' they relate to whether \mjseqn{\mathbb{P}(Y=0)} is 
+#' modified by inflation. The first approach is inflate 
+#' (\mjseqn{\omega} parameter) zero truncated distribution as:
 #' \mjsdeqn{
 #' \mathbb{P}_{new}(Y=y|Y>0) = \left\lbrace\begin{array}{cc}
 #' \omega + (1 - \omega)\mathbb{P}_{old}(Y=1|Y>0)& \text{when: } y = 1 \cr
 #' (1 - \omega) \mathbb{P}_{old}(Y=y|Y>0) & \text{when: } y \neq 1
-#' \end{array}\right.
-#' }
+#' \end{array}\right.}
 #' which corresponds to:
 #' \mjsdeqn{
 #' \mathbb{P}_{new}(Y=y) = \left\lbrace\begin{array}{cc}
@@ -109,7 +114,7 @@ NULL
 #' (1 - \omega) \mathbb{P}_{old}(Y=y) & \text{when: } y \neq 1
 #' \end{array}\right.
 #' }
-#' wchich them becomes:
+#' which then becomes:
 #' \mjsdeqn{
 #' \mathbb{P}_{new}(Y=y|Y>0) = \left\lbrace\begin{array}{cc}
 #' \frac{\omega}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)} + \frac{(1 - \omega)}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)}\mathbb{P}_{old}(Y=1)& \text{when: } y = 1 \cr
@@ -118,18 +123,20 @@ NULL
 #' }
 #' after truncation.
 #' It was shown by Böhning in 2022 paper that these approaches are equivalent 
-#' in terms of maximising likelihoods if we do not put formula on \mjseqn{\omega}.
-#' They can however lead to different population size estimates.
+#' in terms of maximising likelihoods if we do not put formula on 
+#' \mjseqn{\omega}. They can however lead to different 
+#' population size estimates.
 #' 
 #' For *zero truncated one inflated models* the formula for population size
 #' estimate \mjseqn{\hat{N}} does not change since 
 #' \mjseqn{\mathbb{P}(y=0)} remains the same but estimation of parameters 
 #' changes all calculations.
 #' 
-#' For *one inflated zero truncated models* population size estimates are expressed by:
+#' For *one inflated zero truncated models* population size estimates are 
+#' expressed, respectively by:
 #' \mjsdeqn{
 #' \begin{aligned}
-#' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &\text{ For base poisson distribution} \cr
+#' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &\text{ For base Poisson distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})(1+\\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &\text{ For base negative binomial distribution} \cr
 #' \hat{N} &= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k} + \omega_{k}} &\text{ For base geometric distribution}
 #' \end{aligned}
@@ -142,15 +149,15 @@ NULL
 #' +(N_{obs}-\boldsymbol{f}_{1})\ln{\left(1-\frac{\boldsymbol{f}_{1}}{N_{obs}}
 #' \right)} + \ell_{\text{zot}}
 #' }
-#' where \mjseqn{\ell_{\text{zot}}} is the log likelihood of zero one truncated
-#' distribution characterised by probability mass function:
+#' where \mjseqn{\ell_{\text{zot}}} is the log likelihood 
+#' of zero one truncated distribution characterised by probability mass function:
 #' \mjsdeqn{\mathbb{P}(Y=y|Y>1)=\left\lbrace
 #' \begin{array}{cc}
 #' \frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)-\mathbb{P}(Y=1)} & \text{when }y > 1 \cr
 #' 0 & \text{when }y\in\lbrace 0, 1\rbrace
 #' \end{array}\right.}
-#' where \mjseqn{\mathbb{P}(Y)} is the probability mass function of the "base"
-#' distribution. The identity above justifies use of zero one truncated,
+#' where \mjseqn{\mathbb{P}(Y)} is the probability mass function of 
+#' the "base" distribution. The identity above justifies use of zero one truncated,
 #' unfortunately it was only proven for intercept only models, however
 #' numerical simulations seem to indicate that even if the theorem cannot be
 #' extended for (non trivial) regression population size estimation is still
@@ -161,7 +168,7 @@ NULL
 #' \begin{aligned}
 #' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 #' \frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})} 
-#' &\text{ For base poisson distribution} \cr
+#' &\text{ For base Poisson distribution} \cr
 #' \hat{N} &= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
 #' \frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{
 #' 1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}} 
@@ -186,12 +193,10 @@ NULL
 #' \text{logit}(p_{k})=
 #' \ln\left(\frac{\lambda_{k}}{2}\right)=
 #' \boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}}
-#' where \mjseqn{\lambda_{k}} is the poisson parameter.
+#' where \mjseqn{\lambda_{k}} is the Poisson parameter.
 #' 
 #' The *zelterman* estimator of population size is expressed as:
-#' \mjsdeqn{
-#' \hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}
-#' }
+#' \mjsdeqn{\hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}}
 #' and *chao* estimator has the form:
 #' \mjsdeqn{
 #' \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
@@ -206,10 +211,12 @@ NULL
 #' \mjseqn{\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
 #' \frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^{T}\partial\boldsymbol{\beta}}
 #' } functions from 
-#' \mjseqn{\boldsymbol{y}} vector and \mjseqn{\boldsymbol{X}_{vlm}}
-#' (or just \mjseqn{\boldsymbol{X}} if applied to model with single linear predictor)
-#' the argument \code{deriv} with possible values in \code{0, 1, 2} provides which
-#' derivative to return with \code{0} being just the minus log-likelihood.
+#' \mjseqn{\boldsymbol{y}} vector and 
+#' \mjseqn{\boldsymbol{X}_{vlm}}
+#' (or just \mjseqn{\boldsymbol{X}} if applied to model 
+#' with single linear predictor) the argument \code{deriv} with possible 
+#' values in \code{0, 1, 2} provides which derivative to return with 
+#' \code{0} being just the minus log-likelihood.
 #' \item \code{links} -- List with link functions.
 #' \item \code{mu.eta, variance} -- Functions of linear predictors that
 #' return expected value and variance. There is a \code{type} argument with
@@ -228,11 +235,10 @@ NULL
 #' Not all family functions have these functions implemented yet.
 #' \item \code{pointEst, popVar} -- Functions that given prior weights
 #' linear predictors and in the later case also estimation of 
-#' \mjseqn{\text{cov}(\hat{\boldsymbol{\beta}})}
-#' and \mjseqn{\boldsymbol{X_{vlm}}} matrix return point estimate 
-#' for population size and analytic estimation of its variance.
-#' There is a additional boolean parameter \code{contr} in the former
-#' function that if set to true returns contribution of each unit.
+#' \mjseqn{\text{cov}(\hat{\boldsymbol{\beta}})} and \mjseqn{\boldsymbol{X_{vlm}}}
+#' matrix return point estimate for population size and analytic estimation 
+#' of its variance.There is a additional boolean parameter \code{contr} in the 
+#' former function that if set to true returns contribution of each unit.
 #' \item \code{etaNames} -- Names of linear predictors.
 #' \item \code{densityFunction} -- A function that given linear predictors 
 #' returns value of PMF at values \code{x}. Additional argument \code{type}
@@ -264,10 +270,10 @@ NULL
 #' models or units with count => 3 for \code{zelterman} of basic \code{chao}
 #' model) if set to \code{FALSE} (default) these units will not be included
 #' in results.
-#' @param type a type of 
+#' @param type a type of residual to return.
 #' @param maxitNew maximal number of iterations for regressions with starting 
-#' points \mjseqn{\hat{\boldsymbol{\beta}}} on data specified at call for 
-#' \code{model} after the removal of k'th row. By default 1.
+#' points \mjseqn{\hat{\boldsymbol{\beta}}} on data 
+#' specified at call for \code{model} after the removal of k'th row. By default 1.
 #' @param ... arguments passed to other methods. 
 #' Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no 
 #' \code{dfbeta} argument was provided and \code{controlMethod} is called in
@@ -317,7 +323,7 @@ NULL
 #' \boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}
 #' where: \mjseqn{\boldsymbol{W}=\mathbb{E}\left(\text{Diag}
 #' \left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}
-#' \partial\boldsymbol{\eta}}\right)\right)} 
+#' \partial\boldsymbol{\eta}}\right)\right)}
 #' and \mjseqn{\boldsymbol{X}} is a model (lm) matrix. 
 #' For vglm's present in the package it is instead :
 #' \mjsdeqn{\boldsymbol{X}_{vlm}
@@ -340,8 +346,9 @@ NULL
 #' is a block matrix constructed by taking the expected  value from diagonal 
 #' matrixes corresponding to second derivatives with respect to each linear 
 #' predictor (and mixed derivatives) and 
-#' \mjseqn{\boldsymbol{X}_{vlm}} is a model (vlm) matrix constructed using 
-#' specifications in \code{controlModel} and call to \code{estimatePopsize}.
+#' \mjseqn{\boldsymbol{X}_{vlm}} is a model (vlm) 
+#' matrix constructed using specifications in \code{controlModel} and 
+#' call to \code{estimatePopsize}.
 #'
 #'
 #' @seealso [estimatePopsize()] [stats::hatvalues()] [controlMethod()] [stats::dfbeta()]
@@ -357,14 +364,15 @@ NULL
 #' is a number of units in data and p is the number of regression parameters. 
 #' K'th row of this matrix corresponds to 
 #' \mjseqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}
-#' where \mjseqn{\hat{\boldsymbol{\beta}}_{-k}} is a vector of estimates
-#' for regression parameters after the removal of k'th row from the data.
+#' where \mjseqn{\hat{\boldsymbol{\beta}}_{-k}} is a vector of estimates for 
+#' regression parameters after the removal of k'th row from the data.
 #' \item \code{cooks.distance} -- A matrix with a single columns with
 #' values of cooks distance for every unit in \code{model.matrix}
 #' \item \code{residuals.singleR} -- A \code{data.frame} with chosen residuals.
 #' }
 #' 
 #' @examples
+#' \donttest{
 #' # For singleR class
 #' # Get simple model
 #' Model <- estimatePopsize(
@@ -382,6 +390,6 @@ NULL
 #' # It is also possible to not provide dfbeta then they will be
 #' # computed manually
 #' summary(dfpopsize(Model))
-#' 
+#' }
 #' @name regDiagSingleR
 NULL

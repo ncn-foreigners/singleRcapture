@@ -22,10 +22,26 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     strappedStatistic <- "No bootstrap performed"
     N <- family$pointEst(pw = weights, eta = eta) + trcount
     if (is.null(cov)) {
+      
       cov <- switch(control$covType, # Change covariance here by adding more cases
-      "observedInform" = solve(-hessian(beta)),
-      "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
+        "observedInform" = {
+          tryCatch(
+            expr = {suppressWarnings(solve(-hessian(beta)))},
+            error = function (e) "e"
+          )
+        },
+        "Fisher" = solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
       )
+      
+      if (isTRUE(cov == "e")) {
+        warning(
+          "The analytically computed hessian of log-likelihood is numerically singular.",
+          "Fisher information matrix will be used in population size estimation instead.",
+          sep = " "
+        )
+        control$covType <- "Fisher"
+        cov <- solve(singleRinternalMultiplyWeight(X = Xvlm, W = W) %*% Xvlm)
+      }
     }
     
     variation <- as.numeric(family$popVar(
@@ -35,28 +51,34 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       Xvlm = if (family$family == "zelterman") X else Xvlm
     ))
     
+    if (!is.finite(variation))
+      stop("Computed variance is infinite/NaN/NULL")
+    
     sd <- sqrt(variation)
     if (control$sd == "normalMVUE") {
-      sd <- sd / (sqrt(2 / (sizeObserved - 1)) * exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved - 1) / 2)))
+      sd <- sd / (sqrt(2 / (sizeObserved - 1)) * 
+      exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved - 1) / 2)))
     }
     
     G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
     confidenceInterval <- data.frame(t(data.frame(
-      "normal" = c(lowerBound = max(N - sc * sd, 
-                                         sizeObserved), 
-                        upperBound = N + sc * sd),
-      "logNormal" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G, 
-                                          sizeObserved), 
-                         upperBound = sizeObserved + (N - sizeObserved) * G)
+      "normal" = c(lowerBound = max(N - sc * sd, sizeObserved), 
+                   upperBound = N + sc * sd),
+      "logNormal" = c(lowerBound = sizeObserved + max((N - sizeObserved) / G, 0), 
+                      upperBound = sizeObserved + (N - sizeObserved) * G)
     )))
   } else if (grepl("bootstrap", popVar, fixed = TRUE)) {
-    funBoot <- switch(control$bootType,
-                      "parametric" = parBoot,
-                      "semiparametric" = semparBoot,
-                      "nonparametric" = noparBoot)
+    funBoot <- switch(
+      control$bootType,
+      "parametric" = parBoot,
+      "semiparametric" = semparBoot,
+      "nonparametric" = noparBoot
+    )
     
     N <- family$pointEst(
-      pw = if (family$family == "chao") weights[y %in% 1:2] else if (grepl(pattern = "^zot", x = family$family)) weights[y > 1] else weights,
+      pw = if (family$family == "chao") weights[y %in% 1:2] 
+      else if (grepl(pattern = "^zot", x = family$family)) weights[y > 1] 
+      else weights,
       eta = eta) + trcount
     
     strappedStatistic <- funBoot(
@@ -81,6 +103,10 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     }
     
     variation <- stats::var(strappedStatistic)
+    
+    
+    if (!is.finite(variation))
+      stop("Computed variance is infinite/NaN/NULL")
     
     sd <- sqrt(variation)
     if (control$sd == "normalMVUE") {
@@ -151,13 +177,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         "\nConsider lowering stepsize control parameter if fitting fails.\n")
   }
   
-  mu.eta <- family$mu.eta
-  validmu <- family$validmu
+  mu.eta   <- family$mu.eta
+  validmu  <- family$validmu
   variance <- family$variance
-  famName <- family$family
-  Zfun <- family$funcZ
-  Wfun <- family$Wfun
-  prior <- as.numeric(weights)
+  famName  <- family$family
+  Zfun     <- family$funcZ
+  Wfun     <- family$Wfun
+  prior    <- as.numeric(weights)
   
   iter <- 1
   step <- NULL
@@ -169,7 +195,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   }
   
   logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
-  grad <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
+  grad    <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
   
   logg <- NULL
   if (isTRUE(saveLog)) {
@@ -200,6 +226,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       }
     }
   )
+  
   convergence <- expression(
     any(
       if ("abstol" %in% crit) {
@@ -224,6 +251,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     halfstepsizing <- FALSE
     mu <- mu.eta(eta = eta, ...)
     if (!validmu(mu)) {
+      mu <- mu.eta(eta = eta, ...)
       stop(paste0(
         "Fit error infinite values reached consider another model,",
         "mu is too close to zero/infinity.\n"
@@ -241,13 +269,25 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       ))
     
     WPrev <- W
-    W <- Wfun(prior = prior, eta = eta, y = dependent)
+    tryCatch(
+      expr = {
+        W <- Wfun(prior = prior, eta = eta, y = dependent)
+      },
+      error = function (e) {
+        stop(cat(
+          "Working weight matrixes at iteration:", 
+          iter, 
+          "could not have been computer.", sep = " "
+        ))
+      }
+    )
     
     if (any(!is.finite(W))) {
       if (!silent) {
         warning(paste0(
           "NA's or NaN's or infinite values in weights matrixes ",
-          "detected IRLS may not work propperly.\n"
+          "detected IRLS may not work propperly.\n",
+          "Replacing these values by weightsEpsilon control parameter.\n"
         ))
       }
       W[!is.finite(W)] <- epsWeights
@@ -259,13 +299,25 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         W[, (1:parNum) ^ 2]
       )
     }
-    z <- eta + Zfun(eta = eta, weight = W, y = dependent)
-    if (any(is.nan(z))) {
+    
+    
+    err <- tryCatch(
+      expr = {
+        z <- eta + Zfun(eta = eta, weight = W, y = dependent)
+        FALSE
+      },
+      error = function (e) {
+        TRUE
+      }
+    )
+    
+    if (isTRUE(err)) {
       stop(paste0(
-        "Pseudo residuals could not be computed at current iteration, ",
-        "possibly infinite or non numeric values in weights appeared.\n"
-      ))
+        "Pseudo residuals of IRLS algorithm could not have been computed at iteration: ",
+        iter, "\nMost likely working weight matrixes could not have been inverted."
+      ), call. = FALSE)
     }
+    
     XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
@@ -278,8 +330,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     (step + if ((is.null(stepPrev) | !momentumFactor)) 0 else {
     if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0
     })
+    
     eta <- covariates %*% beta
     eta <- matrix(eta, ncol = parNum)
+    
     LPrev <- L
     L <- -logLike(beta)
     
@@ -349,6 +403,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         eval(addToLog)
       }
     }
+    
+    eta <- covariates %*% beta
+    eta <- matrix(eta, ncol = parNum)
+    
     if (trace > 0 && (iter - 1) %% printOften == 0) {cat(sep = "", "\n----\n")}
     converged <- eval(convergence)
 
@@ -395,28 +453,61 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     stop("Fit error infinite values reached consider another model,
           mu is too close to zero/infinity")
   }
-  
+
   list(coefficients = beta, iter = iter, weights = W, logg = logg)
 }
 # make Xvlm matrix
-singleRinternalGetXvlmMatrix <- function(X, nPar, formulas, parNames) {
-  formulas[[1]][[2]] <- NULL
+#' @importFrom stats terms
+singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL) {
+  if (length(formulas[[1]]) == 3) {
+    formulas[[1]][[2]] <- NULL
+  }
+  if (attr(attr(X, "terms"), "response") != 0) {
+    X <- X[, colnames(X)[-attr(attr(X, "terms"), "response")], drop = FALSE]
+  }
+  nPar <- length(parNames)
   Xses <- list()
-  parentFrame <- X
+  
   for (k in 1:nPar) {
-    Xses[[k]] <- model.matrix(formulas[[k]], data = parentFrame)
+    # TODO:: Add contrasts here
+    if (length(attr(terms(formulas[[k]], data = X), "term.labels")) != 0) {
+      if (attr(terms(formulas[[k]], data = X), "intercept") == 0) {
+        Xses[[k]] <- model.matrix(
+          ~ . - 1,
+          data = X[, attr(terms(formulas[[k]], data = X), "term.labels"), drop = FALSE]
+        )
+      } else {
+        Xses[[k]] <- model.matrix(
+          ~ .,
+          data = X[, attr(terms(formulas[[k]], data = X), "term.labels"), drop = FALSE]
+        )
+      }
+    } else {
+      Xses[[k]] <- model.matrix(
+        ~ 1,
+        X[, attr(terms(formulas[[k]], data = X), "term.labels"), drop = FALSE]
+      )
+      if (attr(terms(formulas[[k]], data = X), "intercept") == 0)
+        warning(paste0(
+          "One of formulas for the model has no variable ",
+          "and no intercept and will be coerced to ~ 1."
+        ))
+    }
     if (k != 1) {
       colnames(Xses[[k]]) <- paste0(colnames(Xses[[k]]), ":", parNames[k])
     }
   }
   hwm <- sapply(Xses, ncol)
-  # TODO: sparse matrix, maybe use Matrix
+  
+  # TODO:: Low priority but this could be much better 
+  # (without the need to allocate memmory for each X in Xses) 
+  # and for Xvlm which just stacks them
   Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
   colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
   row <- 0
   col <- 0
   for (k in Xses) {
-    Xvlm[(row+1):(row + nrow(k)), (col+1):(col + ncol(k))] <- as.matrix(k)
+    Xvlm[(row + 1):(row + nrow(k)), (col + 1):(col + ncol(k))] <- as.matrix(k)
     row <- row + nrow(k)
     col <- col + ncol(k)
   }
@@ -498,32 +589,32 @@ singleRinternalMultiplyWeight <- function (X, W, ...) {
   XbyW
 }
 # TODO
-cholFroW <- function(W, prior) {
-  if (NROW(W) != NROW(prior)) 
-    stop(paste0(
-      "Error in estimatePopsize.fit, working ",
-      "weights and prior weights suggest different number of observations."
-    ))
-  L <- list()
-  for (k in 1:NROW(W)) {
-    L[[k]] <- chol(matrix(prior[k] * W[k,], ncol = 2, nrow = 2))
-  }
-  L
-}
+# cholFroW <- function(W, prior) {
+#   if (NROW(W) != NROW(prior)) 
+#     stop(paste0(
+#       "Error in estimatePopsize.fit, working ",
+#       "weights and prior weights suggest different number of observations."
+#     ))
+#   L <- list()
+#   for (k in 1:NROW(W)) {
+#     L[[k]] <- chol(matrix(prior[k] * W[k,], ncol = 2, nrow = 2))
+#   }
+#   L
+# }
 # TODO
-MultibyCholW <- function(Z, X, cholW, which) {
-  # zmień na większą liczbe parametrów
-  W <- cholW
-  if (!is.null(Z)) {# 1 2 to par 3 to mieszane
-    return(c(Z[1:NROW(W)]*cholW[,1]+Z[NROW(W)+1:2*NROW(W)]*cholW[,3], Z[1:NROW(W)]*cholW[,2]))
-  } else if (!is.null(X)) {
-    # to samo co wyżej może wykorzystaj istniejące funkcje
-    # to jest explicite używając własnoći dekompozycji choleskiego
-    return(cbind(
-      rbind(cholW[,1]*X[1:(NROW(X)/2),1:which[1]]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
-            cholW[,2]*X[-(1:(NROW(X)/2)),1:which[1]]),
-      rbind(cholW[,1]*X[1:(NROW(X)/2),-(1:which[1])]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
-            cholW[,2]*X[-(1:(NROW(X)/2)),-(1:which[1])])
-    ))
-  }
-}
+# MultibyCholW <- function(Z, X, cholW, which) {
+#   # zmień na większą liczbe parametrów
+#   W <- cholW
+#   if (!is.null(Z)) {# 1 2 to par 3 to mieszane
+#     return(c(Z[1:NROW(W)]*cholW[,1]+Z[NROW(W)+1:2*NROW(W)]*cholW[,3], Z[1:NROW(W)]*cholW[,2]))
+#   } else if (!is.null(X)) {
+#     # to samo co wyżej może wykorzystaj istniejące funkcje
+#     # to jest explicite używając własnoći dekompozycji choleskiego
+#     return(cbind(
+#       rbind(cholW[,1]*X[1:(NROW(X)/2),1:which[1]]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
+#             cholW[,2]*X[-(1:(NROW(X)/2)),1:which[1]]),
+#       rbind(cholW[,1]*X[1:(NROW(X)/2),-(1:which[1])]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
+#             cholW[,2]*X[-(1:(NROW(X)/2)),-(1:which[1])])
+#     ))
+#   }
+# }

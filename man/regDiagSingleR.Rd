@@ -35,10 +35,10 @@ Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no
 \code{dfbeta} method.}
 
 \item{maxitNew}{maximal number of iterations for regressions with starting
-points \mjseqn{\hat{\boldsymbol{\beta}}} on data specified at call for
-\code{model} after the removal of k'th row. By default 1.}
+points \mjseqn{\hat{\boldsymbol{\beta}}} on data
+specified at call for \code{model} after the removal of k'th row. By default 1.}
 
-\item{type}{a type of}
+\item{type}{a type of residual to return.}
 
 \item{dfbeta}{if \code{dfbeta} was already obtained it is possible to pass
 them into function so that they need not be computed for the second time.}
@@ -62,8 +62,8 @@ removal of k'th unit from the data set.
 is a number of units in data and p is the number of regression parameters.
 K'th row of this matrix corresponds to
 \mjseqn{\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}}
-where \mjseqn{\hat{\boldsymbol{\beta}}_{-k}} is a vector of estimates
-for regression parameters after the removal of k'th row from the data.
+where \mjseqn{\hat{\boldsymbol{\beta}}_{-k}} is a vector of estimates for
+regression parameters after the removal of k'th row from the data.
 \item \code{cooks.distance} -- A matrix with a single columns with
 values of cooks distance for every unit in \code{model.matrix}
 \item \code{residuals.singleR} -- A \code{data.frame} with chosen residuals.
@@ -140,10 +140,12 @@ where:
 is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
 predictor (and mixed derivatives) and
-\mjseqn{\boldsymbol{X}_{vlm}} is a model (vlm) matrix constructed using
-specifications in \code{controlModel} and call to \code{estimatePopsize}.
+\mjseqn{\boldsymbol{X}_{vlm}} is a model (vlm)
+matrix constructed using specifications in \code{controlModel} and
+call to \code{estimatePopsize}.
 }
 \examples{
+\donttest{
 # For singleR class
 # Get simple model
 Model <- estimatePopsize(
@@ -161,7 +163,7 @@ plot(res)
 # It is also possible to not provide dfbeta then they will be
 # computed manually
 summary(dfpopsize(Model))
-
+}
 }
 \seealso{
 \code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[stats:influence.measures]{stats::hatvalues()}} \code{\link[=controlMethod]{controlMethod()}} \code{\link[stats:influence.measures]{stats::dfbeta()}}

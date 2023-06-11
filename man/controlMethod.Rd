@@ -18,7 +18,6 @@ controlMethod(
   weightsEpsilon = 1e-08,
   momentumFactor = 0,
   saveIRLSlogs = FALSE,
-  useZtpoissonAsStart = FALSE,
   momentumActivation = 5,
   criterion = c("coef", "abstol", "reltol")
 )
@@ -69,23 +68,20 @@ so that these matrixes are positive defined. By default \code{TRUE}.}
 
 \item{weightsEpsilon}{small number to ensure positivity of weights matrixes.
 Only matters if \code{checkDiagWeights} is set to \code{TRUE}.
-By default \mjseqn{= 1\cdot 10^{-8}}}
+By default \code{1e-8}.}
 
 \item{momentumFactor}{experimental parameter in \code{IRLS} only allowing for
 taking previous step into account at current step, i.e instead of
 updating regression parameters as:
-\mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
-\cdot \text{step}_{(a)}}
+\mjsdeqn{\boldsymbol{\beta}_{(a)} = 
+\boldsymbol{\beta}_{(a-1)} + \text{stepsize} \cdot \text{step}_{(a)}}
 the update will be made as:
-\mjsdeqn{\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
+\mjsdeqn{
+\boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
 \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}}
 
 \item{saveIRLSlogs}{logical value indicating if information specified in
 \code{verbose} should be saved to output object, by default \code{FALSE}.}
-
-\item{useZtpoissonAsStart}{boolean value indicating whether to chose starting
-parameters from \code{ztpoisson} regression this one is useful mostly for
-various one inflated models.}
 
 \item{momentumActivation}{the value of log-likelihood reduction bellow
 which momentum will apply.}
@@ -102,7 +98,8 @@ control parameters for regression fitting in
 \code{estimatePopsize.fit} and \code{estimatePopsize}.
 }
 \seealso{
-\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}} \code{\link[=controlModel]{controlModel()}} \code{\link[=controlPopVar]{controlPopVar()}}
+\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}}
+\code{\link[=controlModel]{controlModel()}} \code{\link[=controlPopVar]{controlPopVar()}}
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz
