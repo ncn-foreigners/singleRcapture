@@ -954,7 +954,8 @@ redoPopEstimation.singleR <- function(object,
                                       weights,
                                       coef,
                                       control,
-                                      popVar, 
+                                      popVar,
+                                      offset,
                                       ...) {
   if (missing(cov)) {
     cov <- vcov
@@ -974,6 +975,10 @@ redoPopEstimation.singleR <- function(object,
     pw <- if (missing(weights))
       object$priorWeights
     else weights
+    
+    offset <- if (missing(offset))
+      object$offset
+    else offset
     
     etaNew <- if (missing(coef))
       object$linearPredictors
@@ -1017,6 +1022,10 @@ redoPopEstimation.singleR <- function(object,
       rep(1, nn)
     else weights
     
+    offset <- if (missing(offset))
+      matrix(0, nrow = length(pw), ncol = length(family(object))$etaNames)
+    else offset
+    
     coef <- if (missing(coef)) stats::coef(object)
     
     etaNew <- matrix(
@@ -1026,7 +1035,7 @@ redoPopEstimation.singleR <- function(object,
         rownames(Xvlm),
         family(object)$etaNames
       )
-    )
+    ) + offset
   }
   
   singleRcaptureinternalpopulationEstimate(
@@ -1067,7 +1076,8 @@ redoPopEstimation.singleR <- function(object,
       family(object)$Wfun(prior = pw[wch$reg], eta = etaNew),
     sizeObserved = nn,
     modelFrame = MM,
-    cov = cov
+    cov = cov,
+    offset = offset[wch$est, , drop = FALSE]
   )
 }
 #' @method dfpopsize singleR

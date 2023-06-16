@@ -7,7 +7,17 @@
 \usage{
 redoPopEstimation(object, newdata, ...)
 
-\method{redoPopEstimation}{singleR}(object, newdata, cov, weights, coef, control, popVar, ...)
+\method{redoPopEstimation}{singleR}(
+  object,
+  newdata,
+  cov,
+  weights,
+  coef,
+  control,
+  popVar,
+  offset,
+  ...
+)
 }
 \arguments{
 \item{object}{object for which update of population size estimation results will be done.}
