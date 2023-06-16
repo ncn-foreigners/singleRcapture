@@ -383,10 +383,21 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     pseudoResid
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     if (is.null(weight)) {
       weight <- 1
     }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 3), rep(0, NROW(X) / 3), rep(0, NROW(X) / 3))
+    }
+    
+    
     y <- as.numeric(y)
     z <- as.numeric(y == 1)
     X <- as.matrix(X)
@@ -397,7 +408,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     switch (deriv,
             function(beta) {
-              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3)
+              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
               lambda <- lambdaLink(eta[, 1], inverse = TRUE)
               alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
               PI     <-     piLink(eta[, 3], inverse = TRUE)
@@ -413,7 +424,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))))
             },
             function(beta) {
-              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3)
+              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
               lambda <- lambdaLink(eta[, 1], inverse = TRUE)
               alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
               PI     <-     piLink(eta[, 3], inverse = TRUE)
@@ -472,7 +483,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
             },
             function(beta) {
               predNumbers <- attr(X, "hwm")
-              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3)
+              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
               lambda <- lambdaLink(eta[, 1], inverse = TRUE)
               alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
               PI     <-     piLink(eta[, 3], inverse = TRUE)

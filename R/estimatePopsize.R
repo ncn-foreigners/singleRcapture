@@ -46,6 +46,9 @@ NULL
 #' @param modelFrame,x,y logical value indicating whether to return model matrix, 
 #' dependent vector and model matrix as a part of output.
 #' @param contrasts not yet implemented.
+#' @param offset a matrix of offset values with number of columns matching the
+#' number of distribution parameters providing offset values to each of 
+#' linear predictors.
 #' @param ... additional optional arguments passed to other methods eg. 
 #' \code{estimatePopsize.fit}.
 #' 
@@ -419,34 +422,32 @@ NULL
 #' @importFrom stats model.frame model.matrix model.response
 #' @export
 estimatePopsize <- function(formula,
-                             data,
-                             model = c(
-                               "ztpoisson", "ztnegbin", "ztgeom", 
-                               "zotpoisson", "ztoipoisson", "oiztpoisson", 
-                               "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",  
-                               "ztoinegbin", "oiztnegbin", "ztHurdlenegbin", 
-                               "Hurdleztnegbin", "zotgeom", "ztoigeom",
-                               "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
-                               "zelterman", "chao"
-                             ),
-                             weights = NULL,
-                             subset = NULL,
-                             naAction = NULL,
-                             method = c("optim", 
-                                        "IRLS"),
-                             popVar = c("analytic",
-                                         "bootstrap"),
-                            # This will return in next update
-                            # I don't have the time to figure out if this 
-                            # breaks methods for this class
-                                         #"noEst"),
-                             controlMethod = NULL,
-                             controlModel = NULL,
-                             controlPopVar = NULL,
-                             modelFrame = TRUE,
-                             x = FALSE,
-                             y = TRUE,
-                             contrasts = NULL,
+                            data,
+                            model = c(
+                              "ztpoisson", "ztnegbin", "ztgeom",
+                              "zotpoisson", "ztoipoisson", "oiztpoisson",
+                              "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
+                              "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
+                              "Hurdleztnegbin", "zotgeom", "ztoigeom",
+                              "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
+                              "zelterman", "chao"
+                            ),
+                            weights  = NULL,
+                            subset   = NULL,
+                            naAction = NULL,
+                            method   = c("optim", 
+                                         "IRLS"),
+                            popVar   = c("analytic",
+                                         "bootstrap",
+                                         "noEst"),
+                            controlMethod = NULL,
+                            controlModel  = NULL,
+                            controlPopVar = NULL,
+                            modelFrame    = TRUE,
+                            x             = FALSE,
+                            y             = TRUE,
+                            contrasts     = NULL,
+                            offset,
                              ...) {
   if (missing(method)) method <- "IRLS"
   if (missing(popVar)) popVar <- "analytic"
@@ -572,45 +573,73 @@ estimatePopsize <- function(formula,
   
   names(start) <- colnames(Xvlm)
   
+  if (missing(offset)) {
+    offset <- matrix(
+      0, nrow = NROW(modelFrame), 
+      ncol = length(family$etaNames)
+    )
+  } else if (!is.matrix(offset)) {
+    offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
+  }
+  colnames(offset) <- family$etaNames
+  
   FITT <- estimatePopsize.fit(
-    y = observed[wch$reg],
-    X = Xvlm,
-    family = family,
-    control = controlMethod,
-    method = method,
+    y            = observed[wch$reg],
+    X            = Xvlm,
+    family       = family,
+    control      = controlMethod,
+    method       = method,
     priorWeights = priorWeights[wch$reg],
-    start = start
+    start        = start,
+    offset       = offset[wch$reg, , drop = FALSE]
   )
   
-  coefficients <- FITT$beta
+  coefficients        <- FITT$beta
   names(coefficients) <- names(start)
-  iter <- FITT$iter
-  dfReduced <- nrow(Xvlm) - length(coefficients)
-  IRLSlog <- FITT$logg
+  iter                <- FITT$iter
+  dfReduced           <- nrow(Xvlm) - length(coefficients)
+  IRLSlog             <- FITT$logg
   
   
-  logLike <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
-  weight = priorWeights[wch$reg])
+  logLike <- family$makeMinusLogLike(
+    y      = observed[wch$reg], 
+    X      = Xvlm,
+    weight = priorWeights[wch$reg],
+    offset = offset[wch$reg, , drop = FALSE]
+  )
   
-  grad <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm, 
-  weight = priorWeights[wch$reg], deriv = 1)
+  grad <- family$makeMinusLogLike(
+    y      = observed[wch$reg], 
+    X      = Xvlm, 
+    weight = priorWeights[wch$reg], 
+    deriv  = 1,
+    offset = offset[wch$reg, , drop = FALSE]
+  )
   
-  hessian <- family$makeMinusLogLike(y = observed[wch$reg], X = Xvlm,
-  weight = priorWeights[wch$reg], deriv = 2)
+  hessian <- family$makeMinusLogLike(
+    y      = observed[wch$reg], 
+    X      = Xvlm,
+    weight = priorWeights[wch$reg], 
+    deriv  = 2,
+    offset = offset[wch$reg, , drop = FALSE]
+  )
 
-  eta <- matrix(as.matrix(Xvlm) %*% coefficients, ncol = length(family$etaNames))
+  eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
+                          ncol = length(family$etaNames)) + offset[wch$reg, , drop = FALSE]
   colnames(eta) <- family$etaNames
   rownames(eta) <- rownames(variables[wch$reg])
-  weights <- FITT$weights
+  weights       <- FITT$weights
   
   if (family$family == "zelterman") {
-    eta <- matrix(as.matrix(variables) %*% coefficients, ncol = 1)
+    eta <- matrix(as.matrix(variables) %*% coefficients, ncol = 1) + offset
     colnames(eta) <- family$etaNames
     rownames(eta) <- rownames(variables)
   }
 
-  fitt <- data.frame(family$mu.eta(eta = eta),
-  family$mu.eta(eta = eta, type = "nontrunc"))
+  fitt <- data.frame(
+    family$mu.eta(eta = eta),
+    family$mu.eta(eta = eta, type = "nontrunc")
+  )
   colnames(fitt) <- c("truncated", "nontruncated")
   
   # (Real square) Matrix is negative define iff all eigen values have 
@@ -641,14 +670,15 @@ estimatePopsize <- function(formula,
   }
   
   nullDeviance <- as.numeric(NULL)
-  LOG <- -logLike(coefficients)
-  resRes <- priorWeights * (observed[wch$reg] - fitt)
+  LOG          <- -logLike(coefficients)
+  resRes       <- priorWeights * (observed[wch$reg] - fitt)
+  
   if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
 
   deviance <- sum(family$devResids(
-    y = observed[wch$reg], 
-    wt = priorWeights[wch$reg],
-    eta = if (family$family == "zelterman") cbind(eta[wch$reg,])
+    y   = observed[wch$reg], 
+    wt  = priorWeights[wch$reg],
+    eta = if (family$family == "zelterman") eta[wch$reg, , drop = FALSE]
           else eta
   ) ^ 2)
   
@@ -677,40 +707,42 @@ estimatePopsize <- function(formula,
             family$Wfun(prior = priorWeights, eta = eta),
       sizeObserved = sizeObserved,
       modelFrame = modelFrame,
-      cov = NULL
+      cov = NULL,
+      offset = offset
     )
   }
   
   structure(
     list(
-      y = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
-      X = if(isTRUE(returnElements[[2]])) variables else NULL,
-      formula = formulas,
-      call = match.call(),
-      coefficients = coefficients,
-      control = list(controlModel = controlModel,
-                     controlMethod = controlMethod),
-      nullDeviance = nullDeviance,
-      model = family,
-      deviance = deviance,
-      priorWeights = priorWeights,
-      weights = weights,
-      residuals = resRes,
-      logL = LOG,
-      iter = iter,
-      dfResidual = dfReduced,
-      dfNull = length(observed) - 1,
-      fittValues = fitt,
-      populationSize = POP,
-      modelFrame = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+      y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+      X                = if(isTRUE(returnElements[[2]])) variables else NULL,
+      modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+      formula          = formulas,
+      call             = match.call(),
+      coefficients     = coefficients,
+      control          = list(controlModel = controlModel,
+                              controlMethod = controlMethod),
+      nullDeviance     = nullDeviance,
+      model            = family,
+      deviance         = deviance,
+      priorWeights     = priorWeights,
+      weights          = weights,
+      residuals        = resRes,
+      logL             = LOG,
+      iter             = iter,
+      dfResidual       = dfReduced,
+      dfNull           = length(observed) - 1,
+      fittValues       = fitt,
+      populationSize   = POP,
       linearPredictors = eta,
-      trcount = controlPopVar$trcount,
-      sizeObserved = sizeObserved,
-      terms = terms,
-      contrasts = contrasts,
-      naAction = naAction,
-      which = wch,
-      fittingLog = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
+      offset           = offset,
+      trcount          = controlPopVar$trcount,
+      sizeObserved     = sizeObserved,
+      terms            = terms,
+      contrasts        = contrasts,
+      naAction         = naAction,
+      which            = wch,
+      fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
     ),
     class = c("singleR", "glm", "lm")
   )

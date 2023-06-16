@@ -4,7 +4,17 @@
 \alias{estimatePopsize.fit}
 \title{Regression fitting in single source capture-recapture models}
 \usage{
-estimatePopsize.fit(y, X, family, control, method, priorWeights, start, ...)
+estimatePopsize.fit(
+  y,
+  X,
+  family,
+  control,
+  method,
+  priorWeights,
+  start,
+  offset,
+  ...
+)
 }
 \arguments{
 \item{y}{vector of dependent variables.}
@@ -21,6 +31,8 @@ estimatePopsize.fit(y, X, family, control, method, priorWeights, start, ...)
 in \code{estimatePopsize}.}
 
 \item{start}{initial value of regression parameters.}
+
+\item{offset}{offset passed from by default passed from \code{\link[=estimatePopsize]{estimatePopsize()}}.}
 
 \item{...}{arguments to pass to other methods.}
 }
@@ -148,7 +160,8 @@ res <- estimatePopsize.fit(
   priorWeights = 1, 
   family = ztoigeom(), 
   control = controlMethod(verbose = 5), 
-  start = start
+  start = start,
+  offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 )
 
 # extract results
@@ -176,7 +189,8 @@ res2 <- estimatePopsize.fit(
   priorWeights = 1, 
   family = ztoigeom(), 
   start = start, 
-  control = controlMethod(verbose = 1)
+  control = controlMethod(verbose = 1),
+  offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 )
 # extract results
 

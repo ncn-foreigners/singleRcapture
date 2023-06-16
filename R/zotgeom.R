@@ -60,9 +60,18 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     (lambda - y + 2) / (lambda ^ 2 + lambda) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
@@ -72,13 +81,13 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         -sum(weight * ((y - 2) * log(lambda) - (y - 1) * log(1 + lambda)))
       },
       function(beta) {
-        eta <- X %*% beta
+        eta <- X %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G1 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
               (lambda - y + 2) / (lambda ^ 2 + lambda)
@@ -91,7 +100,7 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
         t(G1  * weight) %*% X
       },
       function(beta) {
-        eta <- X %*% beta
+        eta <- X %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         G1 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *

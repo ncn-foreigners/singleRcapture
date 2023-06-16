@@ -10,7 +10,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      control,
                                                      Xvlm, W, formulas,
                                                      sizeObserved,
-                                                     modelFrame, cov) {
+                                                     modelFrame, 
+                                                     cov, offset) {
   #if (popVar == "noEst") {return(NULL)} moved to main function to avoid copying function parameters
   hwm <- attr(Xvlm, "hwm")
   siglevel <- control$alpha
@@ -68,6 +69,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                       upperBound = sizeObserved + (N - sizeObserved) * G)
     )))
   } else if (grepl("bootstrap", popVar, fixed = TRUE)) {
+    
     funBoot <- switch(
       control$bootType,
       "parametric" = parBoot,
@@ -90,7 +92,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       visT = control$bootstrapVisualTrace,
       method = control$fittingMethod,
       controlBootstrapMethod = control$bootstrapFitcontrol,
-      N = N, Xvlm = Xvlm, modelFrame = modelFrame
+      N = N, Xvlm = Xvlm, modelFrame = modelFrame,
+      offset = offset
     )
 
     if (N < stats::quantile(strappedStatistic, .05)) {
@@ -167,6 +170,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                crit,
                                                printOften,
                                                saveLog,
+                                               offset,
                                                ...) {
   dg <- 8 # add to controll
   converged <- FALSE
@@ -194,8 +198,20 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     dependent <- dependent - 1
   }
   
-  logLike <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior)
-  grad    <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 1)
+  logLike <- family$makeMinusLogLike(
+    y      = dependent, 
+    X      = covariates, 
+    weight = prior, 
+    offset = offset
+  )
+  
+  grad    <- family$makeMinusLogLike(
+    y      = dependent, 
+    X      = covariates, 
+    weight = prior, 
+    deriv  = 1, 
+    offset = offset
+  )
   
   logg <- NULL
   if (isTRUE(saveLog)) {
@@ -244,9 +260,10 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   parNum <- length(family$etaNames)
   W <- prior
   LPrev <- -Inf
-  L <- -logLike(beta)
+  L   <- -logLike(beta)
   eta <- covariates %*% beta
-  eta <- matrix(eta, ncol = parNum)
+  eta <- matrix(eta, ncol = parNum) + offset
+  
   while (!converged & (iter < maxiter)) {
     halfstepsizing <- FALSE
     mu <- mu.eta(eta = eta, ...)
@@ -303,7 +320,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     
     err <- tryCatch(
       expr = {
-        z <- eta + Zfun(eta = eta, weight = W, y = dependent)
+        z <- eta + Zfun(eta = eta, weight = W, y = dependent) - offset
         FALSE
       },
       error = function (e) {
@@ -318,24 +335,25 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       ), call. = FALSE)
     }
     
-    XbyW <- singleRinternalMultiplyWeight(X = covariates, W = W)
+    XbyW     <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
-    A <- XbyW %*% covariates
-    B <- XbyW %*% as.numeric(z)
+    A        <- XbyW %*% covariates
+    B        <- XbyW %*% as.numeric(z)
     betaPrev <- beta
     stepPrev <- step
-    step <- solve(A,B) - betaPrev
+    step     <- solve(A,B) - betaPrev
+    
     beta <- betaPrev + stepsize * 
     (step + if ((is.null(stepPrev) | !momentumFactor)) 0 else {
     if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0
     })
     
     eta <- covariates %*% beta
-    eta <- matrix(eta, ncol = parNum)
+    eta <- matrix(eta, ncol = parNum) + offset
     
     LPrev <- L
-    L <- -logLike(beta)
+    L     <- -logLike(beta)
     
     if ((iter - 1) %% printOften == 0) {
       if (trace > 0) {cat(sep = "", "Iteration number ", iter, 
@@ -362,9 +380,9 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         cat("\nTaking a modified step....\n")
       }
       repeat {
-        h <- step <- h / 2
+        h    <- step <- h / 2
         beta <- betaPrev - h
-        L <- -logLike(beta)
+        L    <- -logLike(beta)
         if (isTRUE(L > LPrev) && is.finite(L)) {
           break
         }
@@ -375,7 +393,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
             if (!silent) {
               warning("IRLS half-stepping terminated because the step is too small.")
             }
-            L <- LPrev
+            L    <- LPrev
             beta <- betaPrev
           } else {
             if (!silent) {
@@ -405,7 +423,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     }
     
     eta <- covariates %*% beta
-    eta <- matrix(eta, ncol = parNum)
+    eta <- matrix(eta, ncol = parNum) + offset
     
     if (trace > 0 && (iter - 1) %% printOften == 0) {cat(sep = "", "\n----\n")}
     converged <- eval(convergence)

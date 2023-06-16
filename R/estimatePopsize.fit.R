@@ -16,6 +16,7 @@
 #' @param priorWeights vector of prior weights its the same argument as weights
 #' in \code{estimatePopsize}.
 #' @param start initial value of regression parameters.
+#' @param offset offset passed from by default passed from [estimatePopsize()].
 #' @param ... arguments to pass to other methods.
 #' 
 #' @details If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
@@ -132,7 +133,8 @@
 #'   priorWeights = 1, 
 #'   family = ztoigeom(), 
 #'   control = controlMethod(verbose = 5), 
-#'   start = start
+#'   start = start,
+#'   offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #' )
 #' 
 #' # extract results
@@ -160,7 +162,8 @@
 #'   priorWeights = 1, 
 #'   family = ztoigeom(), 
 #'   start = start, 
-#'   control = controlMethod(verbose = 1)
+#'   control = controlMethod(verbose = 1),
+#'   offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #' )
 #' # extract results
 #' 
@@ -190,6 +193,7 @@ estimatePopsize.fit <- function(y, X,
                                 method,
                                 priorWeights,
                                 start,
+                                offset,
                                 ...) {
   hwm <- attr(X, "hwm")
   tbgname <- colnames(X)
@@ -199,24 +203,25 @@ estimatePopsize.fit <- function(y, X,
   if (method == "IRLS") {
     
     FITT <- singleRcaptureinternalIRLSmultipar(
-      dependent = y,
-      covariates = X,
-      eps = control$epsilon,
-      family = family,
-      maxiter = control$maxiter,
-      weights = priorWeights,
-      start = start,
-      silent = control$silent,
-      trace = control$verbose,
-      stepsize = control$stepsize,
-      hwm = hwm,
-      momentumFactor = control$momentumFactor,
+      dependent          = y,
+      covariates         = X,
+      eps                = control$epsilon,
+      family             = family,
+      maxiter            = control$maxiter,
+      weights            = priorWeights,
+      start              = start,
+      silent             = control$silent,
+      trace              = control$verbose,
+      stepsize           = control$stepsize,
+      hwm                = hwm,
+      momentumFactor     = control$momentumFactor,
       momentumActivation = control$momentumActivation,
-      check = control$checkDiagWeights,
-      epsWeights = control$weightsEpsilon,
-      crit = control$criterion,
-      saveLog = control$saveIRLSlogs,
-      printOften = control$printEveryN
+      check              = control$checkDiagWeights,
+      epsWeights         = control$weightsEpsilon,
+      crit               = control$criterion,
+      saveLog            = control$saveIRLSlogs,
+      printOften         = control$printEveryN,
+      offset             = offset
     )
     
     iter <- FITT$iter
@@ -226,12 +231,14 @@ estimatePopsize.fit <- function(y, X,
   } else if (method == "optim") {
     logLike <- family$makeMinusLogLike(
       y = y, X = X, 
-      weight = priorWeights
+      weight = priorWeights,
+      offset = offset
     )
     grad <- family$makeMinusLogLike(
       y = y, X = X, 
       weight = priorWeights, 
-      deriv = 1
+      deriv  = 1,
+      offset = offset
     )
     
     weights <- priorWeights

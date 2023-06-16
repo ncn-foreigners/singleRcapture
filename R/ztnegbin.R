@@ -199,9 +199,17 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     pseudoResid
   }
 
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, ...) {
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
@@ -211,7 +219,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     switch (deriv,
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
@@ -220,7 +228,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         log(1 - (1 + lambda * alpha) ^ (-1 / alpha))))
       },
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
@@ -249,7 +257,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       },
       function(beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         res <- matrix(nrow = length(beta), 

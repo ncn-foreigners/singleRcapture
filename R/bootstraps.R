@@ -3,7 +3,7 @@
 noparBoot <- function(family, formulas, y, X, modelFrame,
                       beta, weights, trcount, numboot,
                       eta, trace, visT, controlBootstrapMethod = NULL,
-                      method, N, ...) {
+                      method, N, offset, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
@@ -30,6 +30,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     strap <- sample.int(replace = TRUE, n = n)
     ystrap <- as.numeric(y[strap])
     weightsStrap <- as.numeric(weights[strap])
+    offsetStrap <- offset[strap, , drop = FALSE]
     Xstrap <- modelFrame[strap, , drop = FALSE]
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
@@ -53,7 +54,8 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta)
+        start = jitter(beta),
+        offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
     )
@@ -64,9 +66,9 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta + offsetStrap, ncol = length(family$etaNames))
       } else {
-        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta + offsetStrap, ncol = length(family$etaNames))
       }
       if (isTRUE(trace)) {print(summary(theta))}
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
@@ -84,7 +86,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
 semparBoot <- function(family, formulas, y, X, beta,
                        weights, trcount, numboot, eta,
                        trace, visT, controlBootstrapMethod = NULL,
-                       method, N, modelFrame, ...) {
+                       method, N, modelFrame, offset, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
@@ -132,6 +134,7 @@ semparBoot <- function(family, formulas, y, X, beta,
     
     ystrap <- y[as.numeric(strap)]
     weightsStrap <- weights[as.numeric(strap)]
+    offsetStrap <- offset[as.numeric(strap), , drop = FALSE]
     Xstrap <- modelFrame[strap, , drop = FALSE]
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
@@ -157,7 +160,8 @@ semparBoot <- function(family, formulas, y, X, beta,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta)
+        start = jitter(beta),
+        offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
     )
@@ -200,6 +204,7 @@ parBoot <- function(family,
                     controlBootstrapMethod = NULL,
                     method,
                     modelFrame,
+                    offset,
                     ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
@@ -209,13 +214,11 @@ parBoot <- function(family,
   }
   
   if (family$family %in% c("chao", "zelterman")) {
-    cat("Probability model will be taken as given by poisson distribution",
-        "since zelterman and chao models are based on mixture of poisson",
-        "distribution semi-parametric bootstrap may be a better choice.", 
-        sep = "\n")
+    message(paste("Probability model will be taken as given by poisson distribution",
+                  "since zelterman and chao models are based on mixture of poisson",
+                  "distribution semi-parametric bootstrap may be a better choice.", 
+                  sep = "\n"))
   }
-  
-  dataFunc <- family$simulate
   
   
   if (isFALSE(grepl(x = famName, pattern = "^(zot|cha).*"))) {
@@ -255,26 +258,31 @@ parBoot <- function(family,
   while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
     weightsStrap <- as.numeric(weights[strap])
+    offsetStrap <- offset[strap, , drop = FALSE]
     Xstrap <- modelFrame[strap, , drop = FALSE]
     colnames(Xstrap) <- colnames(modelFrame)
     
     Xstrap <- singleRinternalGetXvlmMatrix(
     X = Xstrap, formulas = formulas, family$etaNames)
 
-    ystrap <- dataFunc(
+    ystrap <- family$simulate(
       n = N,
       eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
       lower = -1, upper = Inf
     )
+    
     weightsStrap <- weightsStrap[ystrap > 0]
+    offsetStrap <- offsetStrap[ystrap > 0, , drop = FALSE]
     strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
     strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
     hwm <- attr(Xstrap, "hwm")
-    Xstrap <- subset(Xstrap, subset = strap)
+    
+    Xstrap <- Xstrap[strap, , drop = FALSE]
     ystrap <- ystrap[ystrap > 0]
 
     if (isTRUE(trace)) cat("Iteration number:", k, 
                            "sample size:", length(ystrap), sep = " ")
+    
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
     family = family, observed = ystrap, popVar = "analytic")
     
@@ -293,7 +301,8 @@ parBoot <- function(family,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta)
+        start = jitter(beta),
+        offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
     )

@@ -66,10 +66,19 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
+    }
+    
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -77,13 +86,14 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
         -sum(weight * (y * log(lambda) - lambda - lgamma(y + 1) -
         log(1 - exp(-lambda) - lambda * exp(-lambda))))
       },
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G1 <- (-lambda/(-lambda -1 + exp(lambda)) + y / lambda - 1) * weight *
                lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
@@ -97,7 +107,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
         t(as.matrix(X)) %*% G1
       },
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         

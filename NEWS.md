@@ -1,3 +1,8 @@
+# singleRcapture 0.2.0.1
+
+* added `offset` argument to `estimatePopsize`
+* added 
+
 # singleRcapture 0.2.0
 
 ### The package is now at [CRAN](https://cran.r-project.org/package=singleRcapture)

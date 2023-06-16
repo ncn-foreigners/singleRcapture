@@ -59,11 +59,20 @@ zelterman <- function(lambdaLink = "loghalf",
     lambdaLink(eta, inverse = TRUE, deriv = 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight = 1, 
+                           NbyK = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -71,13 +80,13 @@ zelterman <- function(lambdaLink = "loghalf",
     
     switch (deriv,
             function(beta) {
-              eta <- as.matrix(X) %*% beta
+              eta <- as.matrix(X) %*% beta + offset
               lambda <- lambdaLink(eta, inverse = TRUE)
               -sum(weight * (z * log((lambda / 2) / (1 + lambda / 2)) + 
                             (1 - z) * log(1 / (1 + lambda / 2))))
             },
             function(beta) {
-              eta <- as.matrix(X) %*% beta
+              eta <- as.matrix(X) %*% beta + offset
               lambda <- lambdaLink(eta, inverse = TRUE)
               G0 <- (z / lambda - 1 / (2 + lambda)) * weight * 
                 lambdaLink(eta, inverse = TRUE, deriv = 1)
@@ -91,7 +100,7 @@ zelterman <- function(lambdaLink = "loghalf",
               t(X) %*% G0
             },
             function(beta) {
-              eta <- as.matrix(X) %*% beta
+              eta <- as.matrix(X) %*% beta + offset
               lambda <- lambdaLink(eta, inverse = TRUE)
               
               G00 <- (1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *

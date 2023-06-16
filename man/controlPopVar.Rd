@@ -60,7 +60,7 @@ minimal variance estimator for normal distribution:
 where the ration involving gamma functions is computed by log gamma function.}
 
 \item{covType}{type of covariance matrix for regression parameters by default
-observed information matrix, more options will be here in the future.}
+observed information matrix.}
 }
 \value{
 A list with selected parameters, it is also possible to call list directly.

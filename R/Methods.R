@@ -268,7 +268,7 @@ predict.singleR <- function(object,
         rownames(Xvlm),
         family(object)$etaNames
       )
-    )
+    ) + object$offset
     
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
       family = family(object), 
@@ -552,7 +552,8 @@ vcov.singleR <- function(object,
     type,
     "observedInform" = solve(
       -object$model$makeMinusLogLike(y = object$y[object$which$reg], X = X,
-      weight = object$priorWeights[object$which$reg], deriv = 2)(object$coefficients),
+      weight = object$priorWeights[object$which$reg], deriv = 2, 
+      offset = object$offset[object$which$reg, , drop = FALSE])(object$coefficients),
       ...
     ),
     "Fisher" = {
@@ -646,8 +647,8 @@ hatvalues.singleR <- function(model, ...) {
 #' @rdname regDiagSingleR
 #' @exportS3Method 
 dfbeta.singleR <- function(model,
-                          maxitNew = 1,
-                          ...) {
+                           maxitNew = 1,
+                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
   y <- if (is.null(model$y)) stats::model.response(X) else model$y
@@ -655,6 +656,7 @@ dfbeta.singleR <- function(model,
   y <- y[model$which$reg]
   cf <- model$coefficients
   pw <- model$priorWeights[model$which$reg]
+  offset <- model$offset[model$which$reg, , drop = FALSE]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
   
   for (k in 1:nrow(X)) {
@@ -674,7 +676,8 @@ dfbeta.singleR <- function(model,
       start = cf,
       family = model$model,
       priorWeights = pw[-k],
-      method = model$call$method
+      method = model$call$method,
+      offset = offset[-k, , drop = FALSE]
     )$beta
   }
   colnames(res) <- names(model$coefficients)
@@ -759,7 +762,7 @@ residuals.singleR <- function(object,
                               "nontruncatedResponse");
       data.frame(
         as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") 
-                                            object$linearPredictors[object$which$reg, ] 
+                                            object$linearPredictors[object$which$reg, , drop = FALSE] 
                                         else 
                                           object$linearPredictors,
                                         weight = object$weights, 
@@ -773,7 +776,7 @@ residuals.singleR <- function(object,
                                   res$truncated) / sqrt(
                                     object$model$variance(
                                       eta = if (object$model$family == "zelterman") 
-                                              object$linearPredictors[object$which$reg, ] 
+                                              object$linearPredictors[object$which$reg, , drop = FALSE] 
                                             else 
                                               object$linearPredictors, 
                                       type = "trunc")
@@ -785,7 +788,7 @@ residuals.singleR <- function(object,
              res$truncated) / sqrt((1 - hatvalues(object)) * 
                             object$model$variance(
                               eta = if (object$model$family == "zelterman") 
-                                object$linearPredictors[object$which$reg, ] 
+                                object$linearPredictors[object$which$reg, , drop = FALSE] 
                               else 
                                 object$linearPredictors, 
                               type = "trunc"
@@ -1151,12 +1154,13 @@ stratifyPopsize.singleR <- function(object,
   # convert stratas to list for all viable types of specifying the argument
   if (inherits(stratas, "formula")) {
     mf <- model.frame(stratas, model.frame(object))
-    mmf <- model.matrix(stratas, data = mf, 
-                        contrasts.arg = lapply(
-                          subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
-                          contrasts, contrasts = FALSE
-                          )
-                        )
+    mmf <- model.matrix(
+      stratas, data = mf, 
+      contrasts.arg = lapply(
+        subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
+        contrasts, contrasts = FALSE
+      )
+    )
     trm <- attr(mf, "terms")
     stratas <- list()
     for (k in attr(trm, "term.labels")) {
