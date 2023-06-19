@@ -40,6 +40,8 @@
 #'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
 #'   \item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
 #' }
+#' @param histKernels logical value indicating whether to add density lines
+#' to histogram.
 #' @param ... additional optional arguments passed to the following functions:
 #' \itemize{
 #'   \item For \code{plotType = "bootHist"}
@@ -96,6 +98,7 @@ plot.singleR <- function(x,
                                       "dfpopBox", "scaleLoc", "cooks",
                                       "hatplot", "strata"),
                          confIntStrata = c("normal", "logNormal"),
+                         histKernels = TRUE,
                          ...) {
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
@@ -143,13 +146,52 @@ plot.singleR <- function(x,
                       "Observed"),
            col = 1:2, pch = 21:22)
   },
-  bootHist = graphics::hist(
-    x$populationSize$boot,
-    ylab = "Number of bootstrap samples",
-    xlab = expression(hat(N)),
-    main = "Bootstrap of population size estimates",
-    ...
-  ),
+  bootHist = {
+    h <- graphics::hist(
+      x$populationSize$boot,
+      ylab = "Number of bootstrap samples",
+      xlab = expression(hat(N)),
+      main = "Bootstrap of population size estimates",
+      ...
+    );
+    if (isTRUE(histKernels)) {
+      xxx <- density(x$populationSize$boot, kernel = "epanechnikov");
+      graphics::lines(
+        x = xxx$x, 
+        y = dlnorm(
+          x       = xxx$x, 
+          meanlog = log(mean(x$populationSize$boot) / 
+                          sqrt(1 + var(x$populationSize$boot) / 
+                                 mean(x$populationSize$boot) ^ 2)),
+          sdlog   = sqrt(log(1 + var(x$populationSize$boot) / mean(x$populationSize$boot) ^ 2))
+        ) * length(x$populationSize$boot) * diff(h$breaks)[1], 
+        lty = 2, 
+        col = 8
+      )
+      graphics::lines(
+        x = xxx$x, 
+        y = dnorm(
+          x    = xxx$x, 
+          mean = mean(x$populationSize$boot),
+          sd   = sd(x$populationSize$boot)
+        ) * length(x$populationSize$boot) * diff(h$breaks)[1], 
+        lty = 3, 
+        col = 9
+      )
+      graphics::lines(
+        x = xxx$x, 
+        y = xxx$y * length(x$populationSize$boot) * diff(h$breaks)[1], 
+        lty = 4, 
+        col = 10
+      )
+      graphics::legend(
+        "topright",
+        c("log-normal density", "normal density", "Epanechnikov kernel"),
+        lty = 2:4,
+        col = 8:10
+      )
+    }
+  },
   rootogram = {
     M <- marginalFreq(x);
     FF <- M$table;

@@ -414,7 +414,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       y = observed[wch$reg],
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
-      ...
+      offset = offset[wch$reg, 1]
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     {

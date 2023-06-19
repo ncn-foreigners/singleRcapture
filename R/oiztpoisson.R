@@ -395,13 +395,13 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
       y = observed[wch$reg],
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
-      ...
+      offset = offset[wch$reg, 1]
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (is.null(controlMethod$omegaStart)) {
       if (controlModel$omegaFormula == ~ 1) {
         omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, family$links[[2]](omg))
+        start <- c(start, family$links[[2]](omg) - mean(offset[, 2]))
       } else {
         cc <- colnames(Xvlm)
         cc <- cc[grepl(x = cc, pattern = "omega$")]

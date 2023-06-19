@@ -178,7 +178,7 @@ zelterman <- function(lambdaLink = "loghalf",
       y = observed[wch$reg],
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
-      ...
+      offset = offset[wch$reg, 1]
     )$coefficients
   )
   

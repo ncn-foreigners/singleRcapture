@@ -172,7 +172,7 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       y = observed[wch$reg],
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
-      ...
+      offset = offset[wch$reg, 1]
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
   )

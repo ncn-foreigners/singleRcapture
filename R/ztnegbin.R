@@ -396,11 +396,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       y = observed[wch$reg],
       family = stats::poisson(),
       weights = priorWeights[wch$reg],
-      ...
+      offset = offset[wch$reg, 1]
     )$coefficients,
     if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
     if (controlModel$alphaFormula == ~ 1) {
-      start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
+      start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)) - mean(offset[,2]))
     } else {
       cc <- colnames(Xvlm)
       cc <- cc[grepl(x = cc, pattern = "alpha$")]
