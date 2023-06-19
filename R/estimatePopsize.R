@@ -565,14 +565,6 @@ estimatePopsize <- function(formula,
     parNames = family$etaNames
   )
   
-  start <- controlMethod$start
-  
-  if (is.null(start)) {
-    eval(family$getStart)
-  }
-  
-  names(start) <- colnames(Xvlm)
-  
   if (missing(offset)) {
     offset <- matrix(
       0, nrow = NROW(modelFrame), 
@@ -582,6 +574,14 @@ estimatePopsize <- function(formula,
     offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
   }
   colnames(offset) <- family$etaNames
+  
+  start <- controlMethod$start
+  
+  if (is.null(start)) {
+    eval(family$getStart)
+  }
+  
+  names(start) <- colnames(Xvlm)
   
   FITT <- estimatePopsize.fit(
     y            = observed[wch$reg],
