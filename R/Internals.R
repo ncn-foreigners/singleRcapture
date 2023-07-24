@@ -286,19 +286,19 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       ))
     
     WPrev <- W
-    W <- Wfun(prior = prior, eta = eta, y = dependent)
-    # tryCatch(
-    #   expr = {
-    #     W <- Wfun(prior = prior, eta = eta, y = dependent)
-    #   },
-    #   error = function (e) {
-    #     stop(
-    #       "Working weight matrixes at iteration:", 
-    #       iter, 
-    #       "could not have been computed.", sep = " "
-    #     )
-    #   }
-    # )
+    #W <- Wfun(prior = prior, eta = eta, y = dependent)
+    tryCatch(
+      expr = {
+        W <- Wfun(prior = prior, eta = eta, y = dependent)
+      },
+      error = function (e) {
+        stop(
+          "Working weight matrixes at iteration:",
+          iter,
+          "could not have been computed.", sep = " "
+        )
+      }
+    )
     
     if (any(!is.finite(W))) {
       if (!silent) {
