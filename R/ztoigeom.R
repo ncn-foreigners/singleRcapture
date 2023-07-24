@@ -76,23 +76,18 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     XXX <- (1 - omega) * (1 + lambda - 1 / (1 + lambda))
     #XXX <- Ey - z
       
-    G00 <- prior * (omegaLink(eta[, 2], inverse = TRUE, deriv = 2) *
-    (lambda * omega - z * lambda - z + 1) / ((omega - 1) * (lambda * omega + 1)) +
-    (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) *
+    G00 <- prior * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 *
     (-(lambda ^ 2 * omega ^ 2 + ((2 - 2 * z) * lambda - 2 * z * lambda ^ 2) * omega + 
-    z * lambda ^ 2 - z + 1) / ((omega - 1) ^ 2 * (lambda * omega + 1) ^ 2)))
+    z * lambda ^ 2 - z + 1) / ((omega - 1) ^ 2 * (lambda * omega + 1) ^ 2))
     
     G01 <- prior * z / ((1 + lambda * omega) ^ 2)
     G01 <- G01 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * 
                 lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
-    G11 <- prior * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
-    ((XXX - (lambda + 1) * (1 - z)) / (lambda * (lambda + 1)) -
-    ((1 - omega) * z) / ((lambda + 1) ^ 2 * ((1 - omega) / (lambda + 1) + omega))) +
-    (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) *
+    G11 <- prior * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 *
     ((2 * (1 - omega) * z) / ((lambda + 1) ^ 3 * ((1 - omega) / (lambda + 1) + omega)) -
     ((1 - omega) ^ 2 * z) / ((lambda + 1) ^ 4 * ((1 - omega) / (lambda + 1) + omega) ^ 2) + 
-    XXX / (lambda + 1) ^ 2 - (XXX - 1 + z) / lambda ^ 2))
+    XXX / (lambda + 1) ^ 2 - (XXX - 1 + z) / lambda ^ 2)
     
     matrix(
       -c(G11, # lambda

@@ -9,6 +9,7 @@
   plotType = c("qq", "marginal", "fitresid", "bootHist", "rootogram", "dfpopContr",
     "dfpopBox", "scaleLoc", "cooks", "hatplot", "strata"),
   confIntStrata = c("normal", "logNormal"),
+  histKernels = TRUE,
   ...
 )
 }
@@ -52,6 +53,9 @@ for each column of linear predictors.
 
 \item{confIntStrata}{confidence interval type to use for strata plot.
 Currently supported values are \code{"normal"} and \code{"logNormal"}.}
+
+\item{histKernels}{logical value indicating whether to add density lines
+to histogram.}
 
 \item{...}{additional optional arguments passed to the following functions:
 \itemize{

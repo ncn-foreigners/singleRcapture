@@ -77,13 +77,6 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     Ey <- mu.eta(eta)
     XXX <- Ey - z ## z here is the prob of 1 and XXX is expected for (1-z)*y
     
-    G1 <- (z  * (exp(lambda) * omega + 1 - omega) / 
-    (exp(lambda) * omega + lambda - omega * lambda) + 
-    XXX / lambda - exp(lambda) / (exp(lambda) - 1 + omega))
-    
-    G0 <- ((z * (exp(lambda) - lambda)) / (exp(lambda) * omega + lambda * (1 - omega)) - 
-           1 / (omega + exp(lambda) - 1) - (1 - z) / (1 - omega))
-    
     # omega^2 derivative
     G00 <- (-(z * (exp(lambda) - lambda) ^ 2) /
     (exp(lambda) * omega + lambda * (1 - omega)) ^2 +
@@ -102,14 +95,12 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     (omega * exp(lambda) + (1 - omega) * lambda) ^ 2 -
     exp(lambda) / (exp(lambda) + omega - 1) - XXX / lambda ^ 2)
     
-    G00 <- prior * (G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-                     G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2))
+    G00 <- prior * G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     G01 <- prior * G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
            omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
-    G11 <- prior * (G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) + 
-           G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2)
+    G11 <- prior * G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda

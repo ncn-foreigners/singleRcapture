@@ -73,22 +73,12 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     Ey <- mu.eta(eta)
     XXX <- Ey - z ## z here is the prob of 1 and XXX is expected for (1-z)*y
     
-    
-    G1 <- (z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / 
-    ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) + 
-    (XXX / lambda - XXX / (1 + lambda) - (1 - z) / (omega + lambda)))
-    
-    G0 <- (z * (lambda + 1) * (lambda ^ 2) / 
-    ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda)) - 
-    (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)))
-    
     # omega^2 derivative
     G00 <- (1 / ((lambda + omega) ^ 2) - z * ((lambda ^ 2 + lambda + 1) ^ 2) / 
     ((omega * (lambda ^ 2 + lambda + 1) + lambda) ^ 2) - 
     (1 - z) / ((1 - omega) ^ 2))
     
-    G00 <- prior * (G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 2) + 
-                    G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2)
+    G00 <- prior * G00 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed derivative
     G01 <- ((1 - z) / ((omega + lambda) ^ 2) + 
@@ -109,8 +99,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     (XXX / ((1 + lambda) ^ 2) - 
     XXX / (lambda ^ 2) + (1 - z) / ((omega + lambda) ^ 2)))
     
-    G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-            G1 *  lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
+    G11 <- prior * G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda

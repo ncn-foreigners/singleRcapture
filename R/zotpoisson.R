@@ -44,9 +44,6 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     Ey <- mu.eta(eta)
     
-    G1 <- (-lambda / (-lambda - 1 + exp(lambda)) + Ey / lambda - 1) *
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
-    
     G11 <- (-((lambda - Ey) * exp(lambda)+exp(lambda) + Ey - 1) /
     (lambda * (exp(lambda) - lambda - 1)) + 
     ((lambda - Ey) * exp(lambda) + (Ey - 1) * lambda + Ey) /
@@ -55,7 +52,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     (lambda * (exp(lambda) - lambda - 1) ^ 2)) *
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
-    matrix(-prior * (G11 + G1), 
+    matrix(-prior * G11, 
     ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   

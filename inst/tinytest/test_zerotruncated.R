@@ -395,8 +395,8 @@ beta <- c(.3, .2, -.3, .1,
 #             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
 
 fn <- ztnegbin(
-  lambdaLink = "neglog",
-  alphaLink = "neglog",
+  lambdaLink = "log",
+  alphaLink = "log",
   eimStep = 40
 )
 

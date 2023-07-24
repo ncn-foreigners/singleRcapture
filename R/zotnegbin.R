@@ -1,6 +1,6 @@
 #' @rdname singleRmodels
 #' @export
-zotnegbin <- function(nSim = 1000, epsSim = 1e-8, 
+zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6, 
                       lambdaLink = c("log", "neglog"), 
                       alphaLink = c("log", "neglog"),
                       ...) {
@@ -73,29 +73,37 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     )
   }
   
-  compExpect <- function (eta) {
-    lambda <- lambdaLink(eta[1], inverse = TRUE)
-    alpha  <-  alphaLink(eta[2], inverse = TRUE)
-    res <- res1 <- 0
-    k <- 1
-    repeat{
-      k <- k + 1 # 2 is the first possible y value for 0 truncated distribution
-      prob <- stats::dnbinom(x = k, size = 1 / alpha, mu = lambda) / 
-      (1 - stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda) - 
-      stats::dnbinom(x = 1, size = 1 / alpha, mu = lambda))
-      
-      toAdd <- prob * (digamma(1 / alpha) - digamma(k + 1 / alpha)) / alpha ^ 2
-      
-      toAdd1 <- (2 * (digamma(k + 1 / alpha) - digamma(1 / alpha)) / alpha ^ 3 +
-      (trigamma(k + 1 / alpha) - trigamma(1 / alpha)) / alpha ^ 4) * prob
-      
+  compExpect <- function(eta) {
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
+    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
+    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
+    #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
+    res <- rep(0, NROW(eta))
+    k <- 2 
+    finished <- rep(FALSE, NROW(eta))
+    while ((k < nSim) & !all(finished)) {
+      prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
+        stats::dnbinom(
+          x = x, 
+          size = 1 / alpha, 
+          mu = lambda
+        ) / (1 - P0 - P1)
+      })
+      trg <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
+        (2 * (digamma(x + 1 / alpha) - digamma(1 / alpha)) * alpha +
+           trigamma(x + 1 / alpha) - trigamma(1 / alpha)) / alpha ^ 4
+      })
+      prob[!(is.finite(prob))] <- 0
+      trg[!(is.finite(trg))] <- 0
+      toAdd <- trg * prob
+      toAdd <- rowSums(toAdd)
+      k <- k + eimStep + 1
       res <- res + toAdd
-      res1 <- res1 + toAdd1
-      if ((k == nSim) | ((abs(toAdd) < 1e-8) & (abs(toAdd1) < 1e-8))) {
-        break
-      }
+      finished <- abs(toAdd) < epsSim
     }
-    c(res, res1)
+    res
   }
   
   Wfun <- function(prior, eta, ...) {
@@ -105,22 +113,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     prob <- 1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
     lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)
     
-    Edig  <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
-    Etrig <- Edig[2, ]
-    Edig  <- Edig[1, ]
-    
-    G0 <- Ey / alpha + Edig -
-    (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
-    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
-    (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) +
-    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - Ey)) / (lambda * alpha + 1)
-    
-    G1 <- Ey / lambda + ((-1 / alpha-1) * alpha * lambda * 
-    (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
-    (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
-    lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) + 
-    (alpha * (-Ey - 1 / alpha)) / (alpha * lambda + 1)
+    Etrig <- compExpect(eta)
     
     # 2nd log(alpha) derivative
     
@@ -141,8 +134,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
     (lambda ^ 2 * (-1 / alpha - Ey)) / (lambda * alpha + 1) ^ 2 - Ey / alpha ^ 2
     
-    G00 <- G00 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-           G0  * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
+    G00 <- G00 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed derivative
     G01 <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
@@ -158,7 +150,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     ((2 * alpha ^ 3 + 2 * alpha ^ 2) * Ey - 2 * alpha ^ 2) * lambda + alpha ^ 2 * Ey) /
     (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
     
-
     G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                   alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
@@ -177,7 +168,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8,
     ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
     
     G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
-           G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
     
     matrix(
       -c(G11 * prior, # lambda predictor derivative without X matrix,

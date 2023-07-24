@@ -211,7 +211,11 @@ found the optimal regression coefficients it's here to provide more information
 to the user):
 
 ```{r, fig.show="hold", out.width="75%"}
-plot(modelInflated2, plotType = "bootHist", labels = TRUE, ylim = c(0, 200))
+plot(modelInflated2, 
+     plotType = "bootHist", 
+     labels = TRUE, 
+     ylim = c(0, 200),
+     histKernels = FALSE)
 ```
 
 and information criteria support the favour model:

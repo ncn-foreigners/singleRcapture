@@ -42,14 +42,11 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     Ey <- mu.eta(eta)
     
-    G1 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
-          (lambda - Ey + 2) / (lambda ^ 2 + lambda)
-    
     G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
            (lambda ^ 2 + (4 - 2 * Ey) * lambda - Ey + 2) / 
            (lambda ^ 2 * (lambda + 1) ^ 2)
     
-    matrix(- prior * (G11 + G1), ncol = 1, 
+    matrix(-prior * G11, ncol = 1, 
     dimnames = list(rownames(eta), c("lambda")))
   }
   

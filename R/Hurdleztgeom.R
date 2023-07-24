@@ -79,17 +79,10 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     #Ey <- mu.eta(eta)
     YY <- mu.eta(eta) - z ## expected for (1-z)Y
     
-    G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1) + 
-      (1 - z - YY) / (lambda + 1) + YY / lambda - 
-      (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1)) # lambda derivative
-    
-    G0 <- z / PI - (1 - z) / (1 - PI) - 
-      (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda)) # PI derivative
-    
     # PI^2 derivative
-    G00 <- -z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + 
-      ((lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))) ^ 2
-    G00 <- prior * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ^ 2))
+    G00 <- (-z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + 
+      ((lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))) ^ 2) *
+      piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * prior
     
     # mixed
     
@@ -98,14 +91,12 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
            piLink(eta[, 2], inverse = TRUE, deriv = 1) * prior
     
     # Beta^2 derivative
-    G11 <- ((YY - 1 + z) / (1 + lambda) ^ 2 - YY / lambda ^ 2) + 
+    G11 <- (((YY - 1 + z) / (1 + lambda) ^ 2 - YY / lambda ^ 2) + 
       z * (2 * (lambda ^ 2 + lambda + 1) - (2 * lambda + 1) ^ 2) / 
       (lambda ^ 2 + lambda + 1) ^ 2 + 
       (2 * lambda + PI) ^ 2 / (lambda ^ 2 + PI * (lambda + 1)) ^ 2 - 
-      2 / (lambda ^ 2 + PI * (lambda + 1))
-    
-    G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-            G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
+      2 / (lambda ^ 2 + PI * (lambda + 1))) * prior *
+      lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda

@@ -1,7 +1,6 @@
 #' @rdname singleRmodels
 #' @importFrom stats uniroot
 #' @importFrom stats dnbinom
-#' @importFrom rootSolve multiroot
 #' @export
 oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                        lambdaLink = c("log", "neglog"), 
@@ -106,24 +105,31 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   # Computing the expected value of di/trigamma functions on (y + 1/alpha)
-  
   compExpectG1 <- function(eta) {
-    lambda <- lambdaLink(eta[1], inverse = TRUE)
-    alpha  <-  alphaLink(eta[2], inverse = TRUE)
-    omega  <-  omegaLink(eta[3], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    omega  <-  omegaLink(eta[, 3], inverse = TRUE)
+    
     P0 <- (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha)
-    res <- c(0, 0)
-    k <- 2 # 1 is the first possible y value for 0 truncated distribution 1 inflated
+    res <- rep(0, NROW(eta))
+    k <- 2 # 1 is the first possible y value for 0 truncated hurdle distribution
     # but here we compute the (1 - z) * psi function which takes 0 at y = 1
-    finished <- c(FALSE, FALSE)
+    finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
-      prob <- (1 - omega) * stats::dnbinom(x = k:(k + eimStep), 
-                                           size = 1 / alpha, 
-                                           mu = lambda) / (1 - P0)
-      if (any(!is.finite(prob))) {prob <- 0}
-      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha),
-                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
-      toAdd <- colSums(toAdd)
+      prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
+        (1 - omega) * stats::dnbinom(
+          x = x, 
+          size = 1 / alpha, 
+          mu = lambda
+        ) / (1 - (1 - omega) * P0)
+      })
+      trg <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
+        comptrigamma(y = x, alpha = alpha)
+      })
+      prob[!(is.finite(prob))] <- 0
+      trg[!(is.finite(trg))] <- 0
+      toAdd <- trg * prob
+      toAdd <- rowSums(toAdd)
       k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
@@ -141,25 +147,16 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     XXX <- mu.eta(eta, type = "trunc") - z
     
-    Edig  <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpectG1(x)})
-    Etrig <- Edig[2, ]
-    Edig  <- Edig[1, ]
+    Etrig <- compExpectG1(eta)
     
     # omega
-    G0 <- z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1)) /
-    (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) - 
-    1 / ((alpha * lambda + 1) ^ (1 / alpha) * 
-    (1 - (1 - omega) / (alpha * lambda + 1) ^ (1 / alpha))) - 
-    (1 - z) / (1 - omega)
-    
     G00 <- -z * (1 - lambda * (alpha * lambda + 1) ^ (-1 / alpha- 1 )) ^ 2 /
     (omega + lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) * (1 - omega)) ^ 2 + 
     1 / ((alpha * lambda + 1) ^ (2 / alpha) * 
     (1 - (1 - omega) / (alpha * lambda + 1) ^ (1 / alpha)) ^ 2) -
     (1 - z) / (1 - omega) ^ 2
     
-    G00 <- G00 * omegaLink(eta[, 3], inverse = TRUE, deriv = 1) ^ 2 +
-            G0 * omegaLink(eta[, 3], inverse = TRUE, deriv = 2)
+    G00 <- G00 * omegaLink(eta[, 3], inverse = TRUE, deriv = 1) ^ 2
     
     # omega alpha
     G01 <- -(log(lambda * alpha + 1) / alpha ^ 2 - 
@@ -197,15 +194,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G02 <- G02 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                   omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
     # alpha
-    G1 <- (1 - omega) * (log(lambda * alpha + 1) / alpha ^ 2 - 
-    lambda / (alpha * (lambda * alpha + 1))) / 
-    ((lambda * alpha + 1) ^ (1 / alpha) * (1 - (1 - omega) / (lambda * alpha + 1) ^ (1 / alpha))) +
-    ((1 - z) * log(lambda * alpha + 1) / alpha ^ 2 + 
-    (lambda * (-(1 - z) / alpha - XXX)) / (lambda * alpha + 1) + XXX / alpha + Edig) + 
-    (1 - omega) * z * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
-    (lambda * alpha + 1)) / ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega)
-    
     G11 <- (1 - omega) * (log(lambda * alpha + 1) / alpha ^ 2 - 
     lambda / (alpha * (lambda * alpha + 1))) ^ 2 / 
     ((lambda * alpha + 1) ^ (1 / alpha) * (1 - (1 - omega) / (lambda * alpha + 1) ^ (1 / alpha))) +
@@ -230,8 +218,7 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) /
     ((1 - omega) * lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + omega)
     
-    G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-            G1 * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
+    G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # alpha lambda
     G12 <- z * ((1 - omega) * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
@@ -260,13 +247,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                   alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     #lambda
-    G2 <- z * ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1) +
-    (-1 / alpha - 1) * alpha * (1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) /
-    ((1 - omega) * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + omega) +
-    ((alpha * (-XXX - (1 - z) / alpha)) / (alpha * lambda + 1) + XXX / lambda) - 
-    ((1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 1)) / 
-    (1 - (1 - omega) / (alpha * lambda + 1) ^ (1 / alpha))
-    
     G22 <- (1 - omega) ^ 2 * (alpha * lambda + 1) ^ (-2 / alpha - 2) /
     (1 - (1 - omega) / (alpha * lambda + 1) ^ (1 / alpha)) ^ 2 +
     z * (2 * (-1 / alpha - 1) * alpha * (1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 2) +
@@ -280,8 +260,7 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     ((-1 / alpha - 1) * alpha * (1 - omega) * (alpha * lambda + 1) ^ (-1 / alpha - 2)) /
     (1 - (1 - omega) / (alpha * lambda + 1) ^ (1 / alpha))
     
-    G22 <- G22 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-            G2 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+    G22 <- G22 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G22 * prior, G12 * prior, G02 * prior,
@@ -693,8 +672,8 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     switch (type,
       "trunc" = ifelse(x == 1, 
         (omega + (1 - omega) * 
-        stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha)) / (1 - P0), 
-        (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - P0)
+        stats::dnbinom(x = 1, mu = lambda, size = 1 / alpha)) / (1 - (1 - omega) * P0), 
+        (1 - omega) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / (1 - (1 - omega) * P0)
       ),
       "nontrunc" = ifelse(x == 0, 
         (1 - omega) * P0, 

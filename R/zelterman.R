@@ -45,9 +45,7 @@ zelterman <- function(lambdaLink = "loghalf",
     z <- (lambda / 2) / (1 + lambda / 2)
     
     matrix(data = -prior * ((1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
-                              lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2 +
-                              (z / lambda - 1 / (lambda + 2)) *
-                              lambdaLink(eta, inverse = TRUE, deriv = 2)),
+                              lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2),
            ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   

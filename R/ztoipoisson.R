@@ -72,12 +72,9 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     z <- omega + (1 - omega) * lambda / (exp(lambda) - 1) # expected for I's
     #z <- ifelse(y == 1, y, 0)
     
-    G00 <- prior * ((-(z * (1 - lambda / (exp(lambda) - 1)) ^ 2) / 
+    G00 <- prior * (-(z * (1 - lambda / (exp(lambda) - 1)) ^ 2) / 
     (omega + (lambda * (1 - omega)) / (exp(lambda) - 1)) ^ 2 - 
-    (1 - z) / (1 - omega) ^ 2) * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) + 
-    ((z * (1 - lambda / (exp(lambda) - 1))) / 
-    (omega + (lambda * (1 - omega)) / (exp(lambda) - 1)) - 
-    (1 - z) / (1 - omega)) * omegaLink(eta[, 2], inverse = TRUE, deriv = 2))
+    (1 - z) / (1 - omega) ^ 2) * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed derivative
     G01 <- prior * (((z * ((lambda - 1) * exp(lambda) + 1)) / 
@@ -89,18 +86,14 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     # XXXX <- (1 - omega) * lambda * (exp(lambda) - 1) / (exp(lambda) - 1)
     XXXX <- (1 - omega) * lambda
     
-    G11 <- prior * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)  * 
-    ((1 - z) * (-exp(lambda) / (exp(lambda) - 1)) + XXXX / lambda +
-    (z * ((1 - omega) / (exp(lambda) - 1) - ((1 - omega) * lambda * exp(lambda)) /
-    (exp(lambda) - 1) ^ 2)) / (((1 - omega) * lambda) / (exp(lambda) - 1) + omega)) +
-    (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) * 
+    G11 <- prior * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
     ((1 - z) * (exp(2 * lambda) / (exp(lambda) - 1) ^ 2 - exp(lambda) / (exp(lambda) - 1))-
     XXXX / lambda ^ 2 + (z * ((2 * (1 - omega) * lambda * exp(2 * lambda)) / (exp(lambda) - 1) ^ 3-
     ((1 - omega) * lambda * exp(lambda)) / (exp(lambda) - 1) ^ 2-
     (2 * (1 - omega) * exp(lambda)) / (exp(lambda) - 1) ^ 2)) /
     (((1 - omega) * lambda) / (exp(lambda) - 1) + omega) - 
     (z * ((1 - omega) / (exp(lambda) - 1) - ((1 - omega) * lambda * exp(lambda))/
-    (exp(lambda) - 1) ^ 2) ^ 2) / (((1 - omega) * lambda) / (exp(lambda) - 1) + omega) ^ 2))
+    (exp(lambda) - 1) ^ 2) ^ 2) / (((1 - omega) * lambda) / (exp(lambda) - 1) + omega) ^ 2)
     
     matrix(
       -c(G11, # lambda

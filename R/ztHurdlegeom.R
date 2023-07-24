@@ -61,9 +61,10 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
-    "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ^ 2 + lambda - lambda * exp(-lambda)),
-    "trunc" = (PI + (1 - PI) * (lambda + lambda ^ 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ^ 2
-    )
+    "nontrunc" = (1 - 1 / (1 + lambda)) * (PI + (1 - PI) * lambda + 2 * lambda ^ 2),
+    "trunc" = (PI + (1 - PI) * (lambda * (1 + lambda) + lambda ^ 2 - lambda * (1 + lambda) ^ (-2)) / 
+      (1 - 1 / (1 + lambda) - lambda * (1 + lambda) ^ (-2)))
+    ) - mu.eta(eta = eta, type = type) ^ 2
   }
   
   Wfun <- function(prior, y, eta, ...) {

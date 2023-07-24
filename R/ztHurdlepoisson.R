@@ -76,16 +76,12 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     
     G00 <- -piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * 
     ((PI - z) / ((PI - 1) ^ 2 * PI) + (PI - z) / ((PI - 1) * PI ^ 2) -
-    1 / ((PI - 1) * PI)) + piLink(eta[, 2], inverse = TRUE, deriv = 2) * 
-    (z / PI - (1 - z) / (1 - PI))
+    1 / ((PI - 1) * PI))
     
     G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
-    ((-YY * exp(2 * lambda) + 
-    ((1 - z) * lambda ^ 3 + (z - 1) * lambda ^ 2 + 2 * YY * lambda + 2 * YY) * exp(lambda) +
-    (-YY - z + 1) * lambda ^ 2 - YY * 2 * lambda - YY)) / 
-    (lambda ^ 2 * (exp(lambda) - lambda - 1) ^ 2) +
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
-    (-(1 - z) * lambda / (-lambda - 1 + exp(lambda)) + YY / lambda - 1)
+    (-YY * exp(2 * lambda) + ((1 - z) * lambda ^ 3 + (z - 1) * lambda ^ 2 + 2 * YY * lambda + 2 * YY) * 
+    exp(lambda) + (-YY - z + 1) * lambda ^ 2 - YY * 2 * lambda - YY) / 
+    (lambda ^ 2 * (exp(lambda) - lambda - 1) ^ 2)
     
     matrix(
       -c(G11 * prior, # lambda

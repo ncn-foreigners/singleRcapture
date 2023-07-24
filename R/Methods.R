@@ -408,6 +408,7 @@ predict.singleR <- function(object,
 #' If missing set to controls provided on call to \code{object}.
 #' @param popVar similar to \code{popVar} in [estimatePopsize()].
 #' If missing set to \code{"analytic"}.
+#' @param offset TODO
 #' @param ... additional optional arguments, currently not used in \code{singleR} class method.
 #'
 #' @return An object of class \code{popSizeEstResults} containing updated 
@@ -1628,3 +1629,5 @@ df.residual.singleR <- function(object, ...) {
 #'   names(val) <- paste0("sim_", seq_len(nsim))
 #'   return(val)
 #' }
+#' 
+#' simulate.singleRfamily

@@ -523,18 +523,22 @@ estimatePopsize <- function(formula,
   
   combinedFromula <- singleRinternalMergeFormulas(formulas)
   
-  modelFrame <- stats::model.frame(combinedFromula, data,  ...)
-  variables <- stats::model.matrix(combinedFromula, modelFrame, contrasts = contrasts, ...)
-  terms <- attr(modelFrame, "terms")
+  modelFrame <- stats::model.frame(combinedFromula, 
+                                   data,  
+                                   ...)
+  variables  <- stats::model.matrix(combinedFromula, 
+                                    modelFrame, 
+                                    contrasts = contrasts, 
+                                    ...)
+  
+  terms     <- attr(modelFrame, "terms")
   contrasts <- attr(variables, "contrasts")
-  observed <- model.response(modelFrame)
+  observed  <- model.response(modelFrame)
   
   # It is both necessary and sufficient to check X_lm matrix to know whether
   # X_vlm matrix is full rank
   ## TODO:: Either start using Matrix package everywhere or use QR
   ## in fitting
-  if (qr(variables)$rank != NCOL(variables))
-    stop("The model matrix is not of full rank.")
   
   if (NCOL(observed) > 1) 
     stop("Single source capture-recapture models support only single dependent variable.")
@@ -548,10 +552,10 @@ estimatePopsize <- function(formula,
   }
   weights <- 1
   
-  if(!all(observed > 0)) {
+  if (!all(observed > 0)) {
     stop("Error in function estimatePopsize, data contains zero-counts.")
   }
-
+  ### TODO:: anihilate
   wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
                                                        observed = observed, 
                                                        popVar = popVar)

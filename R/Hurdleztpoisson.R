@@ -81,24 +81,15 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     
     YY <- mu.eta(eta) - z ## expected for (1-z)Y
     
-    G1 <- -(lambda * exp(-lambda) + (1 - PI) * exp(-lambda) - exp(-lambda)) /
-      (-lambda * exp(-lambda) - (1 - PI) * exp(-lambda) + 1) +
-      (z * (lambda * exp(-lambda) - exp(-lambda))) /
-      (1 - lambda * exp(-lambda)) + YY / lambda - 1 + z
-    
-    G0 <- z / PI - (1 - z) / (1 - PI) - 
-      exp(-lambda) / (-exp(-lambda) * (1 - PI) - lambda * exp(-lambda) + 1)
-    
     # PI^2 derivative
     G00 <- exp(-2 * lambda) / (-exp(-lambda) * (1 - PI) - lambda * exp(-lambda) + 1) ^ 2 - 
       z / PI ^ 2 - (1 - z) / (1 - PI) ^ 2
     
-    G00 <- G00 * piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-      G0  * piLink(eta[, 2], inverse = TRUE, deriv = 2)
+    G00 <- G00 * piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed
-    
     G01 <- (exp(lambda) - 1) / (exp(lambda) - lambda + PI - 1) ^ 2
+    
     G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
       piLink(eta[, 2], inverse = TRUE, deriv = 1)
     
@@ -112,8 +103,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       (z * (2 * exp(-lambda) - lambda * exp(-lambda))) /
       (1 - lambda * exp(-lambda)) - YY / lambda ^ 2
     
-    G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 +
-      G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+    G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda

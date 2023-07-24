@@ -45,8 +45,6 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     matrix( # returning as matrix to keep type consistency
       1 / (lambda * (lambda + 1)) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2,
       ncol = 1, dimnames = list(rownames(eta), c("lambda"))
-      # 0 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) first 
-      # derivative always zero after we take expected value
     )
   }
   

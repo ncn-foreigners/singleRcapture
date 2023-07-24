@@ -28,7 +28,7 @@ Imports:
     lamW,
     mathjaxr,
     sandwich,
-    rootSolve
+    nleqslv
 Suggests: 
     rmarkdown,
     knitr,

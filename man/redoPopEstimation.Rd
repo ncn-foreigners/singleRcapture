@@ -38,6 +38,8 @@ If missing set to controls provided on call to \code{object}.}
 
 \item{popVar}{similar to \code{popVar} in \code{\link[=estimatePopsize]{estimatePopsize()}}.
 If missing set to \code{"analytic"}.}
+
+\item{offset}{TODO}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated

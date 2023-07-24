@@ -88,7 +88,7 @@
 #' 
 #' @method plot singleR
 #' @return No return value only the plot being made.
-#' @importFrom stats ppoints qqline qqnorm
+#' @importFrom stats ppoints qqline qqnorm density dlnorm
 #' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows par
 #' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
 #' @export
