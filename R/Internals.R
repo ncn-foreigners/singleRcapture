@@ -341,9 +341,11 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
     A        <- XbyW %*% covariates
     B        <- XbyW %*% as.numeric(z)
+    
     if (any(!is.finite(A)) || any(!is.finite(B))) {
-      stop("Step IRLS could not have been computed at iteration", iter, call. = FALSE)
+      stop("IRLS step could not have been computed at iteration ", iter, call. = FALSE)
     }
+    
     betaPrev <- beta
     stepPrev <- step
     step     <- solve(A,B) - betaPrev

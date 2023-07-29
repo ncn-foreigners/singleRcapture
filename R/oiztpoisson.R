@@ -380,30 +380,51 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     sims
   }
   
+  # getStart <- expression(
+  #   start <- stats::glm.fit(
+  #     x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
+  #     y = observed[wch$reg],
+  #     family = stats::poisson(),
+  #     weights = priorWeights[wch$reg],
+  #     offset = offset[wch$reg, 1]
+  #   )$coefficients,
+  #   if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
+  #   if (is.null(controlMethod$omegaStart)) {
+  #     if (controlModel$omegaFormula == ~ 1) {
+  #       omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
+  #       start <- c(start, family$links[[2]](omg) - mean(offset[, 2]))
+  #     } else {
+  #       cc <- colnames(Xvlm)
+  #       cc <- cc[grepl(x = cc, pattern = "omega$")]
+  #       cc <- unlist(strsplit(x = cc, ":omega"))
+  #       cc <- sapply(cc, FUN = function(x) {
+  #         ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
+  #       })
+  #       start <- c(start, cc)
+  #     }
+  #   } else {
+  #     start <- c(start, controlMethod$omegaStart)
+  #   }
+  # )
+  
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      offset = offset[wch$reg, 1]
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (is.null(controlMethod$omegaStart)) {
-      if (controlModel$omegaFormula == ~ 1) {
-        omg <- (length(observed[wch$reg]) - sum(observed == 1)) / (sum(observed[wch$reg]) - length(observed[wch$reg]))
-        start <- c(start, family$links[[2]](omg) - mean(offset[, 2]))
-      } else {
-        cc <- colnames(Xvlm)
-        cc <- cc[grepl(x = cc, pattern = "omega$")]
-        cc <- unlist(strsplit(x = cc, ":omega"))
-        cc <- sapply(cc, FUN = function(x) {
-          ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-        })
-        start <- c(start, cc)
-      }
+    if (!is.null(controlMethod$start)) {
+      start <- controlMethod$start
     } else {
-      start <- c(start, controlMethod$omegaStart)
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](mean(observed == 1) + .01)
+      )
+      if (attr(terms, "intercept")) {
+        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):omega" %in% colnames(Xvlm)) {
+        start <- c(start, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        start <- c(start, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   
