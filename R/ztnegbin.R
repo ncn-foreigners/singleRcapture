@@ -440,27 +440,23 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      offset = offset[wch$reg, 1]
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (controlModel$alphaFormula == ~ 1) {
-      start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)) - mean(offset[,2]))
+    if (!is.null(controlMethod$start)) {
+      start <- controlMethod$start
     } else {
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "alpha$")]
-      cc <- unlist(strsplit(x = cc, ":alpha"))
-      cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-      })
-      if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
-        start <- c(start, cc)
-      else
-        start <- c(start, -cc)
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1)
+      )
+      if (attr(terms, "intercept")) {
+        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):alpha" %in% colnames(Xvlm)) {
+        start <- c(start, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        start <- c(start, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   

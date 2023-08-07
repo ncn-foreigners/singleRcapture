@@ -236,14 +236,18 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      offset = offset[wch$reg, 1]
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
+    if (!is.null(controlMethod$start)) {
+      start <- controlMethod$start
+    } else {
+      init <- c(
+        family$links[[1]](mean(observed))
+      )
+      if (attr(terms, "intercept")) {
+        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+    }
   )
   
   structure(

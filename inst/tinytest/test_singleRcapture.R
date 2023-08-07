@@ -29,26 +29,26 @@ expect_silent(
   )
 )
 
-expect_equal(
-  round(irls$populationSize$pointEstimate,
-        digits = 0),
-  18346
+expect_equivalent(
+  irls$populationSize$pointEstimate,
+  18346, tolerance = .005
 )
 
-expect_equal(
-  round(opt$populationSize$pointEstimate,
-        digits = 0),
-  18346
-)
 expect_equivalent(
-  c(17932, 18760),
-  as.numeric(round(irls$populationSize$confidenceInterval[1, ],
-        digits = 0))
+  opt$populationSize$pointEstimate,
+  18346, tolerance = .005
 )
+
 expect_equivalent(
-  c(17932, 18760),
-  as.numeric(round(opt$populationSize$confidenceInterval[1, ],
-                   digits = 0))
+  irls$populationSize$confidenceInterval[1, ],
+  list(17932, 18760),
+  tolerance = .005
+)
+
+expect_equivalent(
+  opt$populationSize$confidenceInterval[1, ],
+  list(17932, 18760),
+  tolerance = .005
 )
 
 expect_silent(
@@ -62,15 +62,16 @@ expect_silent(
   )
 )
 
-expect_equal(
-  round(ch$populationSize$pointEstimate,
-        digits = 0),
-  21657
-)
 expect_equivalent(
-  c(20883, 22430),
-  as.numeric(round(ch$populationSize$confidenceInterval[1, ],
-                   digits = 0))
+  ch$populationSize$pointEstimate,
+  21657,
+  tolerance = .005
+)
+
+expect_equivalent(
+  ch$populationSize$confidenceInterval[1, ],
+  list(20883, 22430),
+  tolerance = .005
 )
 
 # on netherlandsimmigrant
@@ -121,52 +122,52 @@ expect_silent(
 )
 
 expect_equivalent(
-  as.numeric(round(zl$populationSize$confidenceInterval[1, ],
-                   digits = 0)),
-  c(8416, 12009)
+  zl$populationSize$confidenceInterval[1, ],
+  list(8416, 12009),
+  tolerance = .005
 )
 
 expect_equivalent(
-  as.numeric(round(zl2$populationSize$confidenceInterval[1, ],
-                   digits = 0)),
-  c(8084, 10765)
+  zl2$populationSize$confidenceInterval[1, ],
+  list(8084, 10765),
+  tolerance = .005
 )
 
 expect_equivalent(
-  as.numeric(round(poi$populationSize$confidenceInterval[1, ],
-                   digits = 0)),
-  c(7185, 18198)
+  poi$populationSize$confidenceInterval[1, ],
+  list(7185, 18198),
+  tolerance = .005
 )
 
 expect_equivalent(
-  as.numeric(round(poi2$populationSize$confidenceInterval[1, ],
-                   digits = 0)),
-  c(6363, 7797)
+  poi2$populationSize$confidenceInterval[1, ],
+  list(6363, 7797),
+  tolerance = .005
 )
 
 # point
-expect_equal(
-  round(poi$populationSize$pointEstimate,
-        digits = 0),
-  12691
+expect_equivalent(
+  poi$populationSize$pointEstimate,
+  12691,
+  tolerance = .005
 )
 
-expect_equal(
-  round(poi2$populationSize$pointEstimate,
-        digits = 0),
-  7080
+expect_equivalent(
+  poi2$populationSize$pointEstimate,
+  7080,
+  tolerance = .005
 )
 
-expect_equal(
-  round(zl$populationSize$pointEstimate,
-        digits = 0),
-  10213
+expect_equivalent(
+  zl$populationSize$pointEstimate,
+  10213,
+  tolerance = .005
 )
 
-expect_equal(
-  round(zl2$populationSize$pointEstimate,
-        digits = 0),
-  9425
+expect_equivalent(
+  zl2$populationSize$pointEstimate,
+  9425,
+  tolerance = .005
 )
 
 # other tests

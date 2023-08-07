@@ -579,13 +579,18 @@ estimatePopsize <- function(formula,
   }
   colnames(offset) <- family$etaNames
   
+  
   start <- controlMethod$start
   
   if (is.null(start)) {
     eval(family$getStart)
   }
   
+  # print(start)
+  # stop("abc")
+  
   names(start) <- colnames(Xvlm)
+  
   
   FITT <- estimatePopsize.fit(
     y            = observed[wch$reg],

@@ -302,14 +302,14 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
         family$links[[2]](mean(observed == 1) + .01)
       )
       if (attr(terms, "intercept")) {
-        start <- c(init[1] - mean(offset[, 1]), rep(0, attr(Xvlm, "hwm")[1] - 1))
+        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
       } else {
         start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
       }
       if ("(Intercept):pi" %in% colnames(Xvlm)) {
         start <- c(start, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
       } else {
-        start <- c(start - mean(offset[, 2]), rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+        start <- c(start, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
       }
     }
   )
