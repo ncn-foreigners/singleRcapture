@@ -244,3 +244,4 @@ expect_error(
   estimatePopsize(formula = cbind(TOTAL_SUB, log_size) ~ log_distance, 
                   data = farmsubmission, model = ztpoisson)
 )
+

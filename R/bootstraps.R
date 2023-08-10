@@ -26,12 +26,15 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
   }
   
   while (k <= numboot) {
-    # TODO:: since modelframe is needed maybe revisit it and save some memmory on response
-    strap <- sample.int(replace = TRUE, n = n)
-    ystrap <- as.numeric(y[strap])
+    # TODO:: since modelframe is needed maybe revisit it and save some memory on response
+    strap        <- sample.int(replace = TRUE, n = n)
+    
+    ystrap       <- as.numeric(y[strap])
     weightsStrap <- as.numeric(weights[strap])
-    offsetStrap <- offset[strap, , drop = FALSE]
-    Xstrap <- modelFrame[strap, , drop = FALSE]
+    #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+    offsetStrap  <- offset[strap, , drop = FALSE]
+    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
       colnames(Xstrap) <- colnames(modelFrame)
@@ -54,7 +57,8 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta),
+        coefStart = jitter(beta),
+        etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
         offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
@@ -66,9 +70,9 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta + offsetStrap, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       } else {
-        theta <- matrix(Xstrap %*% theta + offsetStrap, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       }
       if (isTRUE(trace)) {print(summary(theta))}
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
@@ -132,10 +136,12 @@ semparBoot <- function(family, formulas, y, X, beta,
     }
     strap <- rows
     
-    ystrap <- y[as.numeric(strap)]
+    ystrap       <- y[as.numeric(strap)]
     weightsStrap <- weights[as.numeric(strap)]
-    offsetStrap <- offset[as.numeric(strap), , drop = FALSE]
-    Xstrap <- modelFrame[strap, , drop = FALSE]
+    #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+    offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
+    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
     }
@@ -160,7 +166,8 @@ semparBoot <- function(family, formulas, y, X, beta,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta),
+        coefStart = jitter(beta),
+        etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
         offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
@@ -172,9 +179,9 @@ semparBoot <- function(family, formulas, y, X, beta,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       } else {
-        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
@@ -257,9 +264,12 @@ parBoot <- function(family,
   k <- 1
   while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
+    
     weightsStrap <- as.numeric(weights[strap])
-    offsetStrap <- offset[strap, , drop = FALSE]
-    Xstrap <- modelFrame[strap, , drop = FALSE]
+    offsetStrap  <- offset[strap, , drop = FALSE]
+    #etaStrap     <- eta[strap, , drop = FALSE]
+    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    
     colnames(Xstrap) <- colnames(modelFrame)
     
     Xstrap <- singleRinternalGetXvlmMatrix(
@@ -272,7 +282,9 @@ parBoot <- function(family,
     )
     
     weightsStrap <- weightsStrap[ystrap > 0]
-    offsetStrap <- offsetStrap[ystrap > 0, , drop = FALSE]
+    #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
+    offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+    
     strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
     strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
     hwm <- attr(Xstrap, "hwm")
@@ -301,7 +313,8 @@ parBoot <- function(family,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta),
+        coefStart = jitter(beta),
+        etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
         offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
@@ -314,9 +327,9 @@ parBoot <- function(family,
       k <- k - 1
     } else {
       if (famName != "zelterman") {
-        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       } else {
-        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)

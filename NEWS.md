@@ -2,6 +2,7 @@
 
 * added `offset` argument to `estimatePopsize`
 * added 
+* Overhaul of starting points (new methods and added linear predictors start in `IRLS`)
 
 # singleRcapture 0.2.0
 

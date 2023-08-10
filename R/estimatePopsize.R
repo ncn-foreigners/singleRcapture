@@ -579,17 +579,24 @@ estimatePopsize <- function(formula,
   }
   colnames(offset) <- family$etaNames
   
-  
-  start <- controlMethod$start
-  
-  if (is.null(start)) {
+  if (!is.null(controlMethod$coefStart) || !is.null(controlMethod$etaStart)) {
+    if (method == "IRLS") {
+      etaStart  <- controlMethod$etaStart
+      coefStart <- controlMethod$coefStart
+      if (is.null(etaStart)) {
+        etaStart <- Xvlm %*% coefStart
+      }
+    } else if (method == "optim") {
+      etaStart  <- controlMethod$etaStart
+      coefStart <- controlMethod$coefStart
+      if (is.null(coefStart)) {
+        eval(family$getStart)
+      }
+    }
+  }
+  else {
     eval(family$getStart)
   }
-  
-  # print(start)
-  # stop("abc")
-  
-  names(start) <- colnames(Xvlm)
   
   
   FITT <- estimatePopsize.fit(
@@ -599,12 +606,13 @@ estimatePopsize <- function(formula,
     control      = controlMethod,
     method       = method,
     priorWeights = priorWeights[wch$reg],
-    start        = start,
+    coefStart    = coefStart,
+    etaStart     = etaStart,
     offset       = offset[wch$reg, , drop = FALSE]
   )
   
   coefficients        <- FITT$beta
-  names(coefficients) <- names(start)
+  names(coefficients) <- colnames(Xvlm)
   iter                <- FITT$iter
   dfReduced           <- nrow(Xvlm) - length(coefficients)
   IRLSlog             <- FITT$logg

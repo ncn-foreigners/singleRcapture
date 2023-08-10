@@ -236,16 +236,19 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    if (!is.null(controlMethod$start)) {
-      start <- controlMethod$start
-    } else {
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        log(observed)
+      ) + offset
+      etaStart <- etaStart[(observed > 1), , drop = FALSE]
+    } else if (method == "optim") {
       init <- c(
         family$links[[1]](mean(observed))
       )
       if (attr(terms, "intercept")) {
-        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
       } else {
-        start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
       }
     }
   )

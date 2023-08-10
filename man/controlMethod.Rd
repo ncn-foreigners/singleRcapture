@@ -9,7 +9,8 @@ controlMethod(
   maxiter = 1000,
   verbose = 0,
   printEveryN = 1L,
-  start = NULL,
+  coefStart = NULL,
+  etaStart = NULL,
   optimMethod = "L-BFGS-B",
   silent = FALSE,
   optimPass = FALSE,
@@ -46,8 +47,11 @@ if \code{optim} method was chosen verbose will be passed to \code{\link[stats:op
 \item{printEveryN}{integer value indicating how often to print information
 specified in \code{verbose}, by default set to \code{1}.}
 
-\item{start}{initial parameters for regression coefficients
-if \code{NULL} they will be derived internally.}
+\item{coefStart, etaStart}{initial parameters for regression coefficients
+or linear predictors if \code{NULL}. For \code{IRLS} fitting only \code{etaStart}
+is needed so if \code{coefStart} is provided it will be converted to \code{etaStart},
+for \code{optim} fitting \code{coefStart} is neccesary and argument \code{etaStart}
+will be ignored.}
 
 \item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default
 except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.}

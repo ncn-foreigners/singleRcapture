@@ -650,3 +650,4 @@ AA <- summary(marginalFreq(M1), dropl5 = "group")
 expect_true(
   all(AA$Test$`P(>X^2)` > .05)
 )
+

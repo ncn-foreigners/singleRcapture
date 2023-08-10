@@ -156,7 +156,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                family,
                                                formulas,
                                                covariates,
-                                               start,
+                                               etaStart,
                                                weights,
                                                maxiter = 10000,
                                                eps = .Machine$double.eps,
@@ -192,7 +192,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   iter <- 1
   step <- NULL
   betaPrev <- NULL
-  beta <- start
+  beta <- rep(0, NCOL(covariates))
   
   if (famName %in% c("chao", "zelterman")) {
     dependent <- dependent - 1
@@ -260,9 +260,8 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   parNum <- length(family$etaNames)
   W <- prior
   LPrev <- -Inf
-  L   <- -logLike(beta)
-  eta <- covariates %*% beta
-  eta <- matrix(eta, ncol = parNum) + offset
+  L   <- -Inf
+  eta <- etaStart
   
   while (!converged & (iter < maxiter)) {
     halfstepsizing <- FALSE
@@ -348,12 +347,17 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     
     betaPrev <- beta
     stepPrev <- step
-    step     <- solve(A,B) - betaPrev
+    step     <- solve(A,B)
     
-    beta <- betaPrev + stepsize * 
-    (step + if ((is.null(stepPrev) | !momentumFactor)) 0 else {
-    if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0
-    })
+    if (!is.null(betaPrev)) {
+      step <- step - betaPrev
+      beta <- betaPrev + stepsize * 
+        (step + if ((is.null(stepPrev) | !momentumFactor)) 0 else {
+          if (L-LPrev < momentumActivation) momentumFactor * stepPrev else 0
+        })
+    } else {
+      beta <- step
+    }
     
     eta <- covariates %*% beta
     eta <- matrix(eta, ncol = parNum) + offset

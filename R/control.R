@@ -25,8 +25,11 @@
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
 #' @param printEveryN integer value indicating how often to print information
 #' specified in \code{verbose}, by default set to \code{1}.
-#' @param start initial parameters for regression coefficients
-#' if \code{NULL} they will be derived internally.
+#' @param coefStart,etaStart initial parameters for regression coefficients
+#' or linear predictors if \code{NULL}. For \code{IRLS} fitting only \code{etaStart}
+#' is needed so if \code{coefStart} is provided it will be converted to \code{etaStart},
+#' for \code{optim} fitting \code{coefStart} is neccesary and argument \code{etaStart}
+#' will be ignored.
 #' @param silent logical, indicating whether warnings in \code{IRLS} method should be suppressed.
 #' @param optimPass optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 #' if FALSE then list of control parameters will be inferred from other parameters.
@@ -66,7 +69,8 @@ controlMethod <- function(epsilon             = 1e-8,
                           maxiter             = 1000,
                           verbose             = 0,
                           printEveryN         = 1L,
-                          start               = NULL,
+                          coefStart           = NULL,
+                          etaStart            = NULL,
                           optimMethod         = "L-BFGS-B",
                           silent              = FALSE,
                           optimPass           = FALSE,
@@ -104,8 +108,11 @@ controlMethod <- function(epsilon             = 1e-8,
     printEveryN <- as.integer(printEveryN)
   }
   
-  if (!is.null(start) && !isTRUE(is.numeric(start)))
-    stop("Argument start has to be either a numeric vector or NULL.")
+  if (!is.null(etaStart) && !isTRUE(is.numeric(etaStart)))
+    stop("Argument etaStart has to be either a numeric vector or NULL.")
+  
+  if (!is.null(coefStart) && !isTRUE(is.numeric(coefStart)))
+    stop("Argument coefStart has to be either a numeric vector or NULL.")
   
   if (!isTRUE(is.logical(silent)) || isTRUE(length(silent) > 1))
     stop("Argument silent should be logical value (of length 1).")
@@ -132,7 +139,8 @@ controlMethod <- function(epsilon             = 1e-8,
     maxiter             = maxiter,
     verbose             = verbose,
     printEveryN         = printEveryN,
-    start               = start,
+    etaStart            = etaStart,
+    coefStart           = coefStart,
     optimMethod         = optimMethod,
     silent              = silent,
     optimPass           = optimPass,

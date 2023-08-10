@@ -559,6 +559,13 @@ vcov.singleR <- function(object,
     ),
     "Fisher" = {
       if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights[object$which$reg], eta = object$linearPredictors)};
+      if (isTRUE(object$control$controlMethod$checkDiagWeights)) {
+        W[, (1:length(family(object)$etaNames)) ^ 2] <- ifelse(
+          W[, (1:length(family(object)$etaNames)) ^ 2] < object$control$controlMethod$weightsEpsilon, 
+          object$control$controlMethod$weightsEpsilon, 
+          W[, (1:length(family(object)$etaNames)) ^ 2]
+        )
+      };
       solve(
       singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
@@ -649,22 +656,30 @@ hatvalues.singleR <- function(model, ...) {
 #' @exportS3Method 
 dfbeta.singleR <- function(model,
                            maxitNew = 1,
+                           trace = FALSE,
                            ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
   y <- if (is.null(model$y)) stats::model.response(X) else model$y
   X <- X[model$which$reg, , drop = FALSE]
   y <- y[model$which$reg]
-  cf <- model$coefficients
+  cf <- coef(model)
   pw <- model$priorWeights[model$which$reg]
   offset <- model$offset[model$which$reg, , drop = FALSE]
   res <- matrix(nrow = nrow(X), ncol = length(cf))
+  if (family(model)$family == "zelterman") {
+    eta <- model$linearPredictors[model$which$reg, , drop = FALSE]
+  } else {
+    eta <- model$linearPredictors
+  }
   
   for (k in 1:nrow(X)) {
+    if (isTRUE(trace)) {
+      cat("-----\nRemoving observation number: ", k, "\n", sep = "")
+    }
     res[k, ] <- cf - estimatePopsize.fit(
       control = controlMethod(
-        silent = TRUE, 
-        start = cf,
+        silent = TRUE,
         maxiter = maxitNew + 1,
         ...
       ),
@@ -674,14 +689,15 @@ dfbeta.singleR <- function(model,
         formulas = model$formula, 
         parNames = model$model$etaNames
       ),
-      start = cf,
+      coefStart = cf,
+      etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
       family = model$model,
       priorWeights = pw[-k],
       method = model$call$method,
       offset = offset[-k, , drop = FALSE]
     )$beta
   }
-  colnames(res) <- names(model$coefficients)
+  colnames(res) <- names(cf)
   res
 }
 

@@ -11,7 +11,8 @@ estimatePopsize.fit(
   control,
   method,
   priorWeights,
-  start,
+  coefStart,
+  etaStart,
   offset,
   ...
 )
@@ -30,7 +31,8 @@ estimatePopsize.fit(
 \item{priorWeights}{vector of prior weights its the same argument as weights
 in \code{estimatePopsize}.}
 
-\item{start}{initial value of regression parameters.}
+\item{etaStart, coefStart}{initial value of regression parameters or
+linear predictors.}
 
 \item{offset}{offset passed from by default passed from \code{\link[=estimatePopsize]{estimatePopsize()}}.}
 
@@ -127,41 +129,39 @@ results are identical.
 }
 \examples{
 \donttest{
-# Get data
 summary(farmsubmission)
 
 # construct vglm model matrix
 X <- matrix(data = 0, nrow = 2 * NROW(farmsubmission), ncol = 7)
 X[1:NROW(farmsubmission), 1:4] <- model.matrix(
-  ~ 1 + log_size + log_distance + C_TYPE, 
-  farmsubmission
+~ 1 + log_size + log_distance + C_TYPE, 
+farmsubmission
 )
+
 
 X[-(1:NROW(farmsubmission)), 5:7] <- X[1:NROW(farmsubmission), c(1, 3, 4)]
 
-# this atrrtibute tells the function which elements of the design matrix 
+# this attribute tells the function which elements of the design matrix 
 # correspond to which linear predictor 
 attr(X, "hwm") <- c(4, 3)
 
 # get starting points
 start <- glm.fit(
-  y = farmsubmission$TOTAL_SUB, 
-  x = X[1:NROW(farmsubmission), 1:4], 
-  family = poisson()
+y = farmsubmission$TOTAL_SUB, 
+x = X[1:NROW(farmsubmission), 1:4], 
+family = poisson()
 )$coefficients
 
-start <- c(start, 0, 0, 0)
-
-# call function
 res <- estimatePopsize.fit(
-  y = farmsubmission$TOTAL_SUB, 
-  X = X, 
-  method = "IRLS", 
-  priorWeights = 1, 
-  family = ztoigeom(), 
-  control = controlMethod(verbose = 5), 
-  start = start,
-  offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
+y = farmsubmission$TOTAL_SUB, 
+X = X, 
+method = "IRLS", 
+priorWeights = 1, 
+family = ztoigeom(), 
+control = controlMethod(verbose = 5), 
+coefStart = c(start, 0, 0, 0),
+etaStart = matrix(X \%*\% c(start, 0, 0, 0), ncol = 2),
+offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 )
 
 # extract results
@@ -170,7 +170,7 @@ res <- estimatePopsize.fit(
 res$beta
 
 # check likelihood
-ll <- ztnegbin()$makeMinusLogLike(y = farmsubmission$TOTAL_SUB, X = X)
+ll <- ztoigeom()$makeMinusLogLike(y = farmsubmission$TOTAL_SUB, X = X)
 
 -ll(res$beta)
 
@@ -188,8 +188,8 @@ res2 <- estimatePopsize.fit(
   method = "optim", 
   priorWeights = 1, 
   family = ztoigeom(), 
-  start = start, 
-  control = controlMethod(verbose = 1),
+  coefStart = c(start, 0, 0, 0),
+  control = controlMethod(verbose = 1, silent = TRUE),
   offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 )
 # extract results

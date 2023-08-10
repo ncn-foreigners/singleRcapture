@@ -14,7 +14,7 @@ dfpopsize(model, ...)
 
 \method{hatvalues}{singleR}(model, ...)
 
-\method{dfbeta}{singleR}(model, maxitNew = 1, ...)
+\method{dfbeta}{singleR}(model, maxitNew = 1, trace = FALSE, ...)
 
 \method{residuals}{singleR}(
   object,
@@ -37,6 +37,8 @@ Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no
 \item{maxitNew}{maximal number of iterations for regressions with starting
 points \mjseqn{\hat{\boldsymbol{\beta}}} on data
 specified at call for \code{model} after the removal of k'th row. By default 1.}
+
+\item{trace}{logical value specifying whether to tracking results.}
 
 \item{type}{a type of residual to return.}
 

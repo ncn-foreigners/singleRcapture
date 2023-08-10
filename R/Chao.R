@@ -172,13 +172,16 @@ chao <- function(lambdaLink = "loghalf",
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      offset = offset[wch$reg, 1]
-    )$coefficients
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        .35 * (sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1)
+      ) + offset
+      etaStart <- etaStart[(observed %in% 1:2), , drop = FALSE]
+      #stop("abc")
+    } else if (method == "optim") {
+      init <- mean((sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1))
+      coefStart <- rep(family$links[[1]](init) / NCOL(variables), NCOL(variables))
+    }
   )
   
   structure(

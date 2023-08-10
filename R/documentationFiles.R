@@ -271,6 +271,7 @@ NULL
 #' model) if set to \code{FALSE} (default) these units will not be included
 #' in results.
 #' @param type a type of residual to return.
+#' @param trace logical value specifying whether to tracking results.
 #' @param maxitNew maximal number of iterations for regressions with starting 
 #' points \mjseqn{\hat{\boldsymbol{\beta}}} on data 
 #' specified at call for \code{model} after the removal of k'th row. By default 1.
