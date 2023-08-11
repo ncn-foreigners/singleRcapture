@@ -486,9 +486,10 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   getStart <- expression(
     if (method == "IRLS") {
+      init <- log(abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1)
       etaStart <- cbind(
-        log(observed),
-        abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1
+        family$links[[1]](observed),
+        family$links[[2]](ifelse(init < -.5, .1, init + .7)),
       ) + offset
       etaStart <- etaStart[(observed > 1), , drop = FALSE]
     } else if (method == "optim") {

@@ -340,15 +340,17 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     mu <- mu.eta(eta = eta)
     
     logLikFit <- wt * (
-      lgamma(y + 1/alpha) - lgamma(1/alpha) -
-      lgamma(y+1) - (y + 1/alpha) * log(1+alpha * lambda) +
-      y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ** (-1/alpha))
+      lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
+      lgamma(y + 1) - (y + 1 / alpha) * log(1 + alpha * lambda) +
+      y * log(lambda * alpha) - log(1 - (1 + alpha * lambda) ^ (-1 / alpha))
     )
     
+    yUnq <- unique(y)
+    
     findL <- function(t) {
-      yNow <- y[t]
+      yNow <- yUnq[t]
       nleqslv::nleqslv(
-        x = c(.5, log(yNow), 1),
+        x = -c(.5, log(yNow), ifelse(yNow < 10, 1, 2)),
         fn = function(x) {
           s <- x[1]
           l <- exp(x[2])
@@ -366,24 +368,44 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       )$x
     }
     
-    logLikIdeal <- sapply(1:length(y), FUN = function(x) {
-      ifelse(y[x] == 1, 0, {
+    # saturated parameters for:
+    # y=2: -0.7470362, 0.4660108, -18.1857991
+    # y=3: -0.2417077, 1.0372472, -18.5938499
+    
+    # logLikIdeal <- sapply(1:length(y), FUN = function(x) {
+    #   ifelse(y[x] == 1, 0, ifelse(y[x] == 2, -1.127613, ifelse(y[x] == 3, -1.440092, {
+    #     xx <- findL(x)
+    #     lagrange <- xx[1]
+    #     l <- exp(xx[2])
+    #     a <- exp(xx[3])
+    #     wt[x] * (lgamma(y[x] + 1/a) - lgamma(1/a) -
+    #     lgamma(y[x]+1) - (y[x] + 1/a) * log(1+a * l) +
+    #     y[x] * log(l * a) - log(1 - (1+a * l) ** (-1/a))
+    #     )
+    #   })))
+    # })
+    
+    logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
+      ifelse(yUnq[x] == 1, 0, {
         xx <- findL(x)
         lagrange <- xx[1]
         l <- exp(xx[2])
         a <- exp(xx[3])
-        wt[x] * (lgamma(y[x] + 1/a) - lgamma(1/a) -
-        lgamma(y[x]+1) - (y[x] + 1/a) * log(1+a * l) +
-        y[x] * log(l * a) - log(1 - (1+a * l) ** (-1/a))
-        )
+        (lgamma(yUnq[x] + 1 / a) - lgamma(1 / a) -
+        lgamma(yUnq[x] + 1) - (yUnq[x] + 1 / a) * log(1 + a * l) +
+        yUnq[x] * log(l * a) - log(1 - (1 + a * l) ^ (-1 / a)))
       })
     })
+    
+    logLikIdeal <- sapply(1:length(y), FUN = function(x) {
+      logLikIdeal[yUnq == y[x]] * wt[x]
+    })
 
-    diff <- logLikFit - logLikIdeal
+    diff <- logLikIdeal - logLikFit
     
-    diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
+    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
     
-    sign(y - mu) * sqrt(-2 * wt * diff)
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -442,8 +464,8 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   getStart <- expression(
     if (method == "IRLS") {
       etaStart <- cbind(
-        log(observed),
-        abs((observed / mean(observed) - 1) / mean(observed)) + .1
+        family$links[[1]](observed),
+        family$links[[2]](abs((observed / mean(observed) - 1) / mean(observed)) + .1)
       ) + offset
       #print(summary(etaStart))
       #stop("abc")

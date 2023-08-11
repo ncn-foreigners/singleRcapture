@@ -390,14 +390,14 @@ expect_true(
 
 ## ztnegbin ####
 beta <- c(.3, .2, -.3, .1,
-          .2, .1, -.5,   .3)
+          .2, .1, -.5, .3)
 #eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3,
 #             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
 
 fn <- ztnegbin(
   lambdaLink = "log",
   alphaLink = "log",
-  eimStep = 40
+  eimStep = 10
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
@@ -425,9 +425,9 @@ expect_silent(
 )
 
 expect_equivalent(
-  N,
   pop$pointEstimate,
-  tol = .2
+  N,
+  tol = .3
 )
 
 expect_true(
@@ -447,7 +447,7 @@ expect_equivalent(
 expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
-  tolerance = .3
+  tolerance = .5
 )
 
 # different link

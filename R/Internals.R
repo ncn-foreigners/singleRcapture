@@ -457,7 +457,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   }
   
   if (trace > 4) {
-    hhh <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 2)(beta)
+    hhh <- family$makeMinusLogLike(y = dependent, X = covariates, weight = prior, deriv = 2, offset = offset)(beta)
     cat("Value of analytically computed hessian at fitted regression coefficients:\n")
     print(hhh)
     cat("The matrix above has the following eigen values:\n", 

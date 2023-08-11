@@ -584,7 +584,7 @@ estimatePopsize <- function(formula,
       etaStart  <- controlMethod$etaStart
       coefStart <- controlMethod$coefStart
       if (is.null(etaStart)) {
-        etaStart <- Xvlm %*% coefStart
+        etaStart <- matrix(Xvlm %*% coefStart, ncol = length(family$etaNames))
       }
     } else if (method == "optim") {
       etaStart  <- controlMethod$etaStart
