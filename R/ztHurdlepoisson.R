@@ -336,8 +336,8 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
   getStart <- expression(
     if (method == "IRLS") {
       etaStart <- cbind(
-        log(observed),
-        (sizeObserved * (observed == 1) + .5) / (sizeObserved + 1)
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
     } else if (method == "optim") {
       init <- c(

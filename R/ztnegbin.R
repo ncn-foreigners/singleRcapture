@@ -1,7 +1,7 @@
 #' @rdname singleRmodels
 #' @importFrom stats uniroot
 #' @importFrom stats dnbinom
-#' @importFrom nleqslv nleqslv
+#' @importFrom stats optim
 #' @export
 ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                      lambdaLink = c("log", "neglog"), 
@@ -339,69 +339,110 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     mu <- mu.eta(eta = eta)
     
-    logLikFit <- wt * (
-      lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
-      lgamma(y + 1) - (y + 1 / alpha) * log(1 + alpha * lambda) +
+    logLikFit <- (
+      lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
+      (y + 1 / alpha) * log(1 + alpha * lambda) +
       y * log(lambda * alpha) - log(1 - (1 + alpha * lambda) ^ (-1 / alpha))
     )
     
     yUnq <- unique(y)
     
+    if (any(yUnq > 77)) {
+      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+    }
+    
+    # findL <- function(t) {
+    #   yNow <- yUnq[t]
+    #   nleqslv::nleqslv(
+    #     x = -c(.5, log(yNow), ifelse(yNow < 10, 1, 2)),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    #        
+    #       prob <- 1 - (1+a*l)^(-1/a)
+    #       prob <- 1 / prob
+    #       c(l*prob - yNow,# s der
+    #         yNow/l+(1+yNow*a)/(1+l*a)+s*yNow*l-(yNow-l)/(l*(1+l*a))-s*yNow*(yNow-l)/(l*(1+l*a)),# lambda der
+    #         (1+yNow*a)*l+(yNow-l)*(1+s*yNow)*((1+a*l)*log(1+a*l)-a*l)+l*(1+a*l)*(digamma(1/a)+log(a)+log(yNow+1/a))-(digamma(yNow+1/a)+1)*(1+a*l)*l)#alpha der
+    #     },
+    #     control = list(
+    #       xtol = .Machine$double.eps
+    #     )
+    #   )$x
+    # }
+    
+    ## This could be more stable but this will do for now
+    
     findL <- function(t) {
       yNow <- yUnq[t]
-      nleqslv::nleqslv(
-        x = -c(.5, log(yNow), ifelse(yNow < 10, 1, 2)),
+      stats::optim(
+        #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
+        par = c(0, log(yNow), -10),
         fn = function(x) {
           s <- x[1]
           l <- exp(x[2])
           a <- exp(x[3])
-           
+          
           prob <- 1 - (1+a*l)^(-1/a)
           prob <- 1 / prob
-          c(l*prob - yNow,# s der
-            yNow/l+(1+yNow*a)/(1+l*a)+s*yNow*l-(yNow-l)/(l*(1+l*a))-s*yNow*(yNow-l)/(l*(1+l*a)),# lambda der
-            (1+yNow*a)*l+(yNow-l)*(1+s*yNow)*((1+a*l)*log(1+a*l)-a*l)+l*(1+a*l)*(digamma(1/a)+log(a)+log(yNow+1/a))-(digamma(yNow+1/a)+1)*(1+a*l)*l)#alpha der
+          sum(c((l*prob - yNow) * 4.5,# s der
+            yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
+            (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2,#alpha der
+            #this is experimental
+            lgamma(yNow+1/a)-lgamma(1/a) - lgamma(yNow+1)-(yNow+1/a)*log(1+a*l)+yNow*log(l*a)-log(1-(1+a*l)^(-1/a))) ^ 2) ^ .5
         },
-        control = list(
-          xtol = .Machine$double.eps
-        )
-      )$x
+        method = "BFGS",
+        control = list(maxit = 10000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+      )$par
     }
     
-    # saturated parameters for:
-    # y=2: -0.7470362, 0.4660108, -18.1857991
-    # y=3: -0.2417077, 1.0372472, -18.5938499
+    ### for testing 
+    # findL <- function(yNow) {
+    #   stats::optim(
+    #     par = c(0, .6, -14),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    # 
+    #       prob <- 1 - (1+a*l)^(-1/a)
+    #       prob <- 1 / prob
+    #       sum(c((l*prob - yNow) * 10,# s der
+    #             yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
+    #             (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2) ^ 2) ^ .5#alpha der
+    #     },
+    #     method = "BFGS",
+    #     control = list(maxit = 100000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+    #   )
+    # }
     
-    # logLikIdeal <- sapply(1:length(y), FUN = function(x) {
-    #   ifelse(y[x] == 1, 0, ifelse(y[x] == 2, -1.127613, ifelse(y[x] == 3, -1.440092, {
-    #     xx <- findL(x)
-    #     lagrange <- xx[1]
-    #     l <- exp(xx[2])
-    #     a <- exp(xx[3])
-    #     wt[x] * (lgamma(y[x] + 1/a) - lgamma(1/a) -
-    #     lgamma(y[x]+1) - (y[x] + 1/a) * log(1+a * l) +
-    #     y[x] * log(l * a) - log(1 - (1+a * l) ** (-1/a))
-    #     )
-    #   })))
-    # })
-    
-    logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
-      ifelse(yUnq[x] == 1, 0, {
-        xx <- findL(x)
-        lagrange <- xx[1]
-        l <- exp(xx[2])
-        a <- exp(xx[3])
-        (lgamma(yUnq[x] + 1 / a) - lgamma(1 / a) -
-        lgamma(yUnq[x] + 1) - (yUnq[x] + 1 / a) * log(1 + a * l) +
-        yUnq[x] * log(l * a) - log(1 - (1 + a * l) ^ (-1 / a)))
+    suppressWarnings({
+      logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
+        ifelse(yUnq[x] == 1, 0, {
+          xx <- findL(x)
+          lagrange <- xx[1]
+          l <- exp(xx[2])
+          a <- exp(xx[3])
+          (lgamma(yUnq[x] + 1 / a) - lgamma(1 / a) -
+              lgamma(yUnq[x] + 1) - (yUnq[x] + 1 / a) * log(1 + a * l) +
+              yUnq[x] * log(l * a) - log(1 - (1 + a * l) ^ (-1 / a)))
+        })
       })
     })
     
     logLikIdeal <- sapply(1:length(y), FUN = function(x) {
-      logLikIdeal[yUnq == y[x]] * wt[x]
+      logLikIdeal[yUnq == y[x]]
     })
 
     diff <- logLikIdeal - logLikFit
+    
+    if (any(logLikFit > 0)) {
+      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      diff[logLikFit > 0]   <- 0
+    } else if (any(diff < 0)) {
+      warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
+    }
     
     #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
     
@@ -463,9 +504,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   getStart <- expression(
     if (method == "IRLS") {
+      # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
+      init <- log(abs((observed / mean(observed) - 1) / observed) + .1)
       etaStart <- cbind(
-        family$links[[1]](observed),
-        family$links[[2]](abs((observed / mean(observed) - 1) / mean(observed)) + .1)
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](ifelse(init < -.5, .1, init + .55))
       ) + offset
       #print(summary(etaStart))
       #stop("abc")

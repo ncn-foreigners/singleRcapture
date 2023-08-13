@@ -27,8 +27,7 @@ Imports:
     stats,
     lamW,
     mathjaxr,
-    sandwich,
-    nleqslv
+    sandwich
 Suggests: 
     rmarkdown,
     knitr,

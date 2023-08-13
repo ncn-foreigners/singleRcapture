@@ -733,14 +733,17 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   getStart <- expression(
     if (method == "IRLS") {
-      init <- log(abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1)
+      # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
+      init <- log(abs((observed / mean(observed) - 1) / observed) + .1)
+      #init <- abs((observed / mean(observed) + 1) / mean(observed)) + .1
       etaStart <- cbind(
-        family$links[[1]](observed),
-        family$links[[2]](ifelse(init < -.5, .1, init + .7)),
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](ifelse(init < -.5, .1, init + .55)),
         (sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
       ) + offset
-      #print(summary(etaStart))
-      #stop("abc")
+      # print(summary(etaStart))
+      # print(summary(cbind(family$links[[1]](etaStart[,1], inverse = TRUE),family$links[[2]](etaStart[,2], inverse = TRUE),family$links[[3]](etaStart[,3], inverse = TRUE))))
+      # stop("abc")
     } else if (method == "optim") {
       init <- c(
         family$links[[1]](mean(observed)),

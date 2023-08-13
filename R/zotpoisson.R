@@ -238,7 +238,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
   getStart <- expression(
     if (method == "IRLS") {
       etaStart <- cbind(
-        log(observed)
+        pmin(family$links[[1]](observed), family$links[[1]](12))
       ) + offset
       etaStart <- etaStart[(observed > 1), , drop = FALSE]
     } else if (method == "optim") {
