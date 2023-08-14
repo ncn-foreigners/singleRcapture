@@ -695,8 +695,8 @@ estimatePopsize <- function(formula,
   deviance <- sum(family$devResids(
     y   = observed[wch$reg], 
     wt  = priorWeights[wch$reg],
-    eta = if (family$family == "zelterman") eta[wch$reg, , drop = FALSE]
-          else eta
+    eta = if (family$family == "zelterman") (eta + offset)[wch$reg, , drop = FALSE]
+          else eta + offset[wch$reg, , drop = FALSE]
   ) ^ 2)
   
   if (popVar == "noEst") {

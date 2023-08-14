@@ -649,8 +649,78 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   devResids <- function (y, eta, wt, ...) {
-    #TODO
-    0
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    omega  <-  omegaLink(eta[, 3], inverse = TRUE)
+    z <- (y == 1)
+    mu <- mu.eta(eta = eta)
+    
+    logLikFit <- (
+      z * log(omega + (1 - omega) * lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1) / 
+      (1 - (1 + lambda * alpha) ^ (-1 / alpha))) + (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
+      lgamma(1 / alpha) - lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
+      log(1 - (1 + lambda * alpha) ^ (-1 / alpha)))
+    )
+    
+    yUnq <- unique(y)
+    
+    if (any(yUnq > 77)) {
+      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+    }
+    
+    findL <- function(t) {
+      yNow <- yUnq[t]
+      stats::optim(
+        #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
+        par = c(0, log(yNow), -10),
+        fn = function(x) {
+          s <- x[1]
+          l <- exp(x[2])
+          a <- exp(x[3])
+          
+          prob <- 1 - (1+a*l)^(-1/a)
+          prob <- 1 / prob
+          sum(c((l*prob - yNow) * 4.5,# s der
+                yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
+                (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2,#alpha der
+                #this is experimental
+                lgamma(yNow+1/a)-lgamma(1/a) - lgamma(yNow+1)-(yNow+1/a)*log(1+a*l)+yNow*log(l*a)-log(1-(1+a*l)^(-1/a))) ^ 2) ^ .5
+        },
+        method = "BFGS",
+        control = list(maxit = 10000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+      )$par
+    }
+    
+    suppressWarnings({
+      logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
+        ifelse(yUnq[x] == 1, 0, {
+          xx <- findL(x)
+          lagrange <- xx[1]
+          l <- exp(xx[2])
+          a <- exp(xx[3])
+          (lgamma(yUnq[x] + 1 / a) - lgamma(1 / a) -
+              lgamma(yUnq[x] + 1) - (yUnq[x] + 1 / a) * log(1 + a * l) +
+              yUnq[x] * log(l * a) - log(1 - (1 + a * l) ^ (-1 / a)))
+        })
+      })
+    })
+    
+    logLikIdeal <- sapply(1:length(y), FUN = function(x) {
+      logLikIdeal[yUnq == y[x]]
+    })
+    
+    diff <- logLikIdeal - logLikFit
+    
+    if (any(logLikFit > 0)) {
+      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      diff[logLikFit > 0]   <- 0
+    } else if (any(diff < 0)) {
+      warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
+    }
+    
+    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
+    
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

@@ -375,52 +375,195 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
 
   devResids <- function (y, eta, wt, ...) {
-    # lambda <- exp(eta[, 1])
-    # alpha <- exp(eta[, 2])
-    
+    ### TODO:: bad search for y=3, rest is ok
+    # lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    # alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    # mu <- mu.eta(eta = eta)
     # 
-    # logLikFit <- (lgamma(y + 1/alpha) - lgamma(1/alpha) -
-    # lgamma(y + 1) - (y + 1/alpha) * log(1+alpha * lambda) +
-    # y * log(lambda * alpha) - log(1 - (1+alpha * lambda) ^ (-1/alpha) -
-    # lambda * ((1+alpha * lambda) ^ (-1-1/alpha))))
+    # logLikFit <- (
+    #   lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
+    #   (y + 1 / alpha) * log(1 + lambda * alpha) +
+    #   y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
+    #   lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha))
+    # )
     # 
+    # yUnq <- unique(y)
     # 
-    # yUnq <- unique(y) # see comments in zotpoisson
-    # findL <- function(yNow) {
-    #   root <- rootSolve::multiroot(
-    #     start = c(1, mean(lambda), mean(alpha)),# maybe pick better starting points
-    #     f = function(x) {# TODO:: provide analytic jacobian matrix will make it faster and more reliable
-    #       s <- log(x[1]) # this is the lagrange multiplier and has no constraints of positivity
-    #       l <- x[2]
-    #       a <- x[3] # including constraints
-    #       
-    #       # c(log(l-l*((1+a*l)^(-1-1/a)))-log(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))-log(yNow),#sder
-    #       #   yNow/l-(1+a*yNow)/(1+a*l)+s/l+s*(1+a)*((1+a*l)^(-2-1/a))/(1-(1+a*l)^(-1-1/a))-(1+s)*l*(1+a)*((1+a*l)^(-2-1/a))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a))),#lambda der
-    #       #   (digamma(1/a)-digamma(yNow+1/a))/(a^2)-l*(yNow+1/a)/(1+a*l)+log(1+a*l)/(a^2)+
-    #       #   yNow/a-s*((1+a*l)^(-1-1/a))*(log(1+a*l)/(a^2)-l*(1+1/a)/(1+a*l))/(1-(1+a*l)^(-1-1/a))+
-    #       #   (1+s)*((log(1+a*l)/(a^2)-l/(a*(1+a*l)))/((1+a*l)^(1/a))+l*((1+a*l)^(-1-1/a))*
-    #       #   (log(1+a*l)/(a^2)-l*(1+1/a)/(1+a*l)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a))))#alpha der
-    #       c(log(l-l*(a*l+1)^(-1/a-1))-log(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-log(yNow),#sder
-    #         -((-1/a-1)*a*(-s-1)*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(s*(-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1))/(l-l*(a*l+1)^(-1/a-1))+(a*(-yNow-1/a))/(a*l+1)+yNow/l,#lambda der
-    #         ((-s-1)*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)-(l*s*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(l-l*(l*a+1)^(-1/a-1))+(log(l*a+1)-digamma(1/a+yNow)+digamma(1/a))/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a)
-    #     }, maxiter = 10000, positive = TRUE
-    #   )$root
-    #   print(root)
-    #   root <- log(root)
-    #   
-    #   (lgamma(yNow + exp(-root[3])) - lgamma(exp(-root[3])) -
-    #   log(factorial(yNow)) - (yNow + exp(-root[3])) * log(1+exp(root[2] + root[3])) +
-    #   yNow * (root[2]+root[3]) - log(1 - (1+exp(root[2] + root[3])) ^ (-exp(-root[3])) -
-    #   exp(root[2]) * ((1+exp(root[2] + root[3])) ^ (-1-exp(-root[3])))))
+    # if (any(yUnq > 77)) {
+    #   warning("Curently numerical deviance is unreliable for counts greater than 78.")
     # }
-    # logLikIdeal <- sapply(yUnq, FUN = function(x) {
-    #   ifelse(x == 2, 0, findL(x))
+    # 
+    # ## This could be more stable but this will do for now
+    # 
+    # findL <- function(t) {
+    #   yNow <- yUnq[t]
+    #   stats::optim(
+    #     #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
+    #     par = c(0, log(yNow), -10),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    # 
+    #       sum(c(((l-l*((1+a*l)^(-1-1/a)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))-yNow),# s der
+    #             s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
+    #             s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2,#alpha der
+    #             #this is experimental
+    #             lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a))) ^ 2) ^ .5
+    #     },
+    #     method = "BFGS",
+    #     control = list(maxit = 10000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+    #   )$par
+    # }
+    # 
+    # findL <- function(t) {
+    #   yNow <- yUnq[t]
+    #   nleqslv::nleqslv(
+    #     x = c(0, log(yNow), -10),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    #       
+    #       c(((l-l*((1+a*l)^(-1-1/a)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))-yNow),# s der
+    #         s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
+    #         s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2)#alpha der
+    #     },
+    #     jac = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    #       d12.21 <- ((a*l+1)^(2/a)*(a^2*l^2+2*a*l+1)+(a*l+1)^(1/a)*((-a^2-2*a-1)*l^2-2*a*l-2)+1)/((a*l+1)^(1/a+1)+(-a-1)*l-1)^2
+    #       d13.31 <- (l^2*((l*a+1)^(1/a)*(l*a^2+(l+1)*a+1)*log(l*a+1)+(l*a+1)^(1/a)*((1-2*l)*a^2-l*a)-a^2))/(a^2*((l*a+1)^(1/a+1)-l*a-l-1)^2)
+    #       d22.22 <- s*((-2*(-1/a-1)*a*(a*l+1)^(-1/a-2)-(-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+((-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+(2*(-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+(2*(-1/a-1)^2*a^2*l^2*(a*l+1)^(-2/a-4)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^3)+((-1/a-1)*a*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)^2*a^2*l^2*(a*l+1)^(-2/a-4))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2-(a^2*(-yNow-1/a))/(a*l+1)^2-yNow/l^2
+    #       d23.32 <- (((l*a+1)^(2/a)*(l^5*s*a^5+(5*l^4*s-l^4)*a^4+((-l^5+2*l^4+9*l^3)*s-l^4-3*l^3)*a^3+((-3*l^4+6*l^3+7*l^2)*s-3*l^3-3*l^2)*a^2+((-3*l^3+6*l^2+2*l)*s-3*l^2-l)*a+(2*l-l^2)*s-l)+(l*a+1)^(1/a)*(-l^5*s*a^5+((-3*l^5-5*l^4)*s+l^4)*a^4+((-3*l^5-10*l^4-9*l^3)*s+2*l^4+3*l^3)*a^3+((-l^5-7*l^4-13*l^3-7*l^2)*s+l^4+5*l^3+3*l^2)*a^2+((-2*l^4-5*l^3-8*l^2-2*l)*s+2*l^3+4*l^2+l)*a+(-l^3-l^2-2*l)*s+l^2+l))*log(l*a+1)+(l*a+1)^(2/a)*((3*l^3*yNow-l^5*s-2*l^4)*a^5+((3*l^3+9*l^2)*yNow+(2*l^5-8*l^4+2*l^3)*s-8*l^3)*a^4+((6*l^2+9*l)*yNow+(l^5+2*l^4-13*l^3+4*l^2)*s+l^4-10*l^2)*a^3+((3*l+3)*yNow+(2*l^4-2*l^3-6*l^2+2*l)*s+2*l^3-4*l)*a^2+((l^3-2*l^2)*s+l^2)*a)+(l*a+1)^(3/a)*((l^4-l^3*yNow)*a^5+(3*l^3-3*l^2*yNow)*a^4+(3*l^2-3*l*yNow)*a^3+(l-yNow)*a^2)+(l*a+1)^(1/a)*((-3*l^3*yNow+l^5*s+l^4)*a^5+((-6*l^3-9*l^2)*yNow+(3*l^5+8*l^4-4*l^3)*s+7*l^3)*a^4+((-3*l^3-12*l^2-9*l)*yNow+(3*l^5+7*l^4+13*l^3-8*l^2)*s-2*l^4+3*l^3+11*l^2)*a^3+((-3*l^2-6*l-3)*yNow+(l^5+4*l^4+6*l^3+6*l^2-4*l)*s-l^4-3*l^3+3*l^2+5*l)*a^2+((l^4+l^3+2*l^2)*s-l^3-l^2)*a)+l^3*yNow*a^5+((3*l^3+3*l^2)*yNow+2*l^3*s-2*l^3)*a^4+((3*l^3+6*l^2+3*l)*yNow+4*l^2*s-3*l^3-4*l^2)*a^3+((l^3+3*l^2+3*l+1)*yNow+2*l*s-l^3-3*l^2-2*l)*a^2)/(a^2*(l*a+1)^2*((l*a+1)^(1/a+1)-l*a-l-1)^3)
+    #       d33.33 <- s*((2*(l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^3-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+(2*l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))+(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-yNow))/(l*a+1)^2-yNow/a^2+(2*digamma(1/a+yNow))/a^3-(2*digamma(1/a))/a^3+trigamma(1/a+yNow)/a^4-trigamma(1/a)/a^4
+    #       
+    #       matrix(c(0, d12.21, d13.31,
+    #                d12.21, d22.22, d23.32,
+    #                d13.31, d23.32, d33.33), nrow = 3)
+    #     }
+    #   )
+    # }
+    # 
+    # findL <- function(yNow) {
+    #   nleqslv::nleqslv(
+    #     x = c(0, 0, -9),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    # 
+    #       c(((l-l*((1+a*l)^(-1-1/a)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))-yNow),# s der
+    #         s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
+    #         s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2)#alpha der
+    #     },
+    #     jac = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    #       d12.21 <- ((a*l+1)^(2/a)*(a^2*l^2+2*a*l+1)+(a*l+1)^(1/a)*((-a^2-2*a-1)*l^2-2*a*l-2)+1)/((a*l+1)^(1/a+1)+(-a-1)*l-1)^2
+    #       d13.31 <- (l^2*((l*a+1)^(1/a)*(l*a^2+(l+1)*a+1)*log(l*a+1)+(l*a+1)^(1/a)*((1-2*l)*a^2-l*a)-a^2))/(a^2*((l*a+1)^(1/a+1)-l*a-l-1)^2)
+    #       d22.22 <- s*((-2*(-1/a-1)*a*(a*l+1)^(-1/a-2)-(-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+((-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+(2*(-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+(2*(-1/a-1)^2*a^2*l^2*(a*l+1)^(-2/a-4)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^3)+((-1/a-1)*a*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)^2*a^2*l^2*(a*l+1)^(-2/a-4))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2-(a^2*(-yNow-1/a))/(a*l+1)^2-yNow/l^2
+    #       d23.32 <- (((l*a+1)^(2/a)*(l^5*s*a^5+(5*l^4*s-l^4)*a^4+((-l^5+2*l^4+9*l^3)*s-l^4-3*l^3)*a^3+((-3*l^4+6*l^3+7*l^2)*s-3*l^3-3*l^2)*a^2+((-3*l^3+6*l^2+2*l)*s-3*l^2-l)*a+(2*l-l^2)*s-l)+(l*a+1)^(1/a)*(-l^5*s*a^5+((-3*l^5-5*l^4)*s+l^4)*a^4+((-3*l^5-10*l^4-9*l^3)*s+2*l^4+3*l^3)*a^3+((-l^5-7*l^4-13*l^3-7*l^2)*s+l^4+5*l^3+3*l^2)*a^2+((-2*l^4-5*l^3-8*l^2-2*l)*s+2*l^3+4*l^2+l)*a+(-l^3-l^2-2*l)*s+l^2+l))*log(l*a+1)+(l*a+1)^(2/a)*((3*l^3*yNow-l^5*s-2*l^4)*a^5+((3*l^3+9*l^2)*yNow+(2*l^5-8*l^4+2*l^3)*s-8*l^3)*a^4+((6*l^2+9*l)*yNow+(l^5+2*l^4-13*l^3+4*l^2)*s+l^4-10*l^2)*a^3+((3*l+3)*yNow+(2*l^4-2*l^3-6*l^2+2*l)*s+2*l^3-4*l)*a^2+((l^3-2*l^2)*s+l^2)*a)+(l*a+1)^(3/a)*((l^4-l^3*yNow)*a^5+(3*l^3-3*l^2*yNow)*a^4+(3*l^2-3*l*yNow)*a^3+(l-yNow)*a^2)+(l*a+1)^(1/a)*((-3*l^3*yNow+l^5*s+l^4)*a^5+((-6*l^3-9*l^2)*yNow+(3*l^5+8*l^4-4*l^3)*s+7*l^3)*a^4+((-3*l^3-12*l^2-9*l)*yNow+(3*l^5+7*l^4+13*l^3-8*l^2)*s-2*l^4+3*l^3+11*l^2)*a^3+((-3*l^2-6*l-3)*yNow+(l^5+4*l^4+6*l^3+6*l^2-4*l)*s-l^4-3*l^3+3*l^2+5*l)*a^2+((l^4+l^3+2*l^2)*s-l^3-l^2)*a)+l^3*yNow*a^5+((3*l^3+3*l^2)*yNow+2*l^3*s-2*l^3)*a^4+((3*l^3+6*l^2+3*l)*yNow+4*l^2*s-3*l^3-4*l^2)*a^3+((l^3+3*l^2+3*l+1)*yNow+2*l*s-l^3-3*l^2-2*l)*a^2)/(a^2*(l*a+1)^2*((l*a+1)^(1/a+1)-l*a-l-1)^3)
+    #       d33.33 <- s*((2*(l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^3-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+(2*l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))+(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-yNow))/(l*a+1)^2-yNow/a^2+(2*digamma(1/a+yNow))/a^3-(2*digamma(1/a))/a^3+trigamma(1/a+yNow)/a^4-trigamma(1/a)/a^4
+    # 
+    #       matrix(c(0, d12.21, d13.31,
+    #                d12.21, d22.22, d23.32,
+    #                d13.31, d23.32, d33.33), nrow = 3)
+    #     },
+    #     global = "hook",
+    #     control = list(
+    #       ftol = .Machine$double.eps,
+    #       maxit = 10000, xtol = .Machine$double.eps
+    #     )
+    #   )
+    # }
+    # fff(3)
+    # (xx <- findL(3))
+    # (a <- xx$x[3] |> exp())
+    # (l <- xx$x[2] |> exp())
+    # (l-l*((1+a*l)^(-1-1/a)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))
+    # logLikFit[y==3] |> max()
+    # eta[y==3,][715, ]
+    
+    # findL <- function(yNow) {
+    #   stats::optim(
+    #     #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
+    #     par = c(0, log(2), -8),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    # 
+    #       sum(c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s der
+    #             #experimenta;
+    #             #lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a)),
+    #             s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
+    #             s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2) ^ 2)#alpha der
+    #     },
+    #     gr = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    #       d12.21 <- ((a*l+1)^(2/a)*(a^2*l^2+2*a*l+1)+(a*l+1)^(1/a)*((-a^2-2*a-1)*l^2-2*a*l-2)+1)/((a*l+1)^(1/a+1)+(-a-1)*l-1)^2
+    #       d13.31 <- (l^2*((l*a+1)^(1/a)*(l*a^2+(l+1)*a+1)*log(l*a+1)+(l*a+1)^(1/a)*((1-2*l)*a^2-l*a)-a^2))/(a^2*((l*a+1)^(1/a+1)-l*a-l-1)^2)
+    #       d22.22 <- s*((-2*(-1/a-1)*a*(a*l+1)^(-1/a-2)-(-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+((-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+(2*(-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2+(2*(-1/a-1)^2*a^2*l^2*(a*l+1)^(-2/a-4)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^3)+((-1/a-1)*a*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-2)*(-1/a-1)*a^2*l*(a*l+1)^(-1/a-3))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)^2*a^2*l^2*(a*l+1)^(-2/a-4))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2-(a^2*(-yNow-1/a))/(a*l+1)^2-yNow/l^2
+    #       d23.32 <- (((l*a+1)^(2/a)*(l^5*s*a^5+(5*l^4*s-l^4)*a^4+((-l^5+2*l^4+9*l^3)*s-l^4-3*l^3)*a^3+((-3*l^4+6*l^3+7*l^2)*s-3*l^3-3*l^2)*a^2+((-3*l^3+6*l^2+2*l)*s-3*l^2-l)*a+(2*l-l^2)*s-l)+(l*a+1)^(1/a)*(-l^5*s*a^5+((-3*l^5-5*l^4)*s+l^4)*a^4+((-3*l^5-10*l^4-9*l^3)*s+2*l^4+3*l^3)*a^3+((-l^5-7*l^4-13*l^3-7*l^2)*s+l^4+5*l^3+3*l^2)*a^2+((-2*l^4-5*l^3-8*l^2-2*l)*s+2*l^3+4*l^2+l)*a+(-l^3-l^2-2*l)*s+l^2+l))*log(l*a+1)+(l*a+1)^(2/a)*((3*l^3*yNow-l^5*s-2*l^4)*a^5+((3*l^3+9*l^2)*yNow+(2*l^5-8*l^4+2*l^3)*s-8*l^3)*a^4+((6*l^2+9*l)*yNow+(l^5+2*l^4-13*l^3+4*l^2)*s+l^4-10*l^2)*a^3+((3*l+3)*yNow+(2*l^4-2*l^3-6*l^2+2*l)*s+2*l^3-4*l)*a^2+((l^3-2*l^2)*s+l^2)*a)+(l*a+1)^(3/a)*((l^4-l^3*yNow)*a^5+(3*l^3-3*l^2*yNow)*a^4+(3*l^2-3*l*yNow)*a^3+(l-yNow)*a^2)+(l*a+1)^(1/a)*((-3*l^3*yNow+l^5*s+l^4)*a^5+((-6*l^3-9*l^2)*yNow+(3*l^5+8*l^4-4*l^3)*s+7*l^3)*a^4+((-3*l^3-12*l^2-9*l)*yNow+(3*l^5+7*l^4+13*l^3-8*l^2)*s-2*l^4+3*l^3+11*l^2)*a^3+((-3*l^2-6*l-3)*yNow+(l^5+4*l^4+6*l^3+6*l^2-4*l)*s-l^4-3*l^3+3*l^2+5*l)*a^2+((l^4+l^3+2*l^2)*s-l^3-l^2)*a)+l^3*yNow*a^5+((3*l^3+3*l^2)*yNow+2*l^3*s-2*l^3)*a^4+((3*l^3+6*l^2+3*l)*yNow+4*l^2*s-3*l^3-4*l^2)*a^3+((l^3+3*l^2+3*l+1)*yNow+2*l*s-l^3-3*l^2-2*l)*a^2)/(a^2*(l*a+1)^2*((l*a+1)^(1/a+1)-l*a-l-1)^3)
+    #       d33.33 <- s*((2*(l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^3-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+(2*l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))+(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-yNow))/(l*a+1)^2-yNow/a^2+(2*digamma(1/a+yNow))/a^3-(2*digamma(1/a))/a^3+trigamma(1/a+yNow)/a^4-trigamma(1/a)/a^4
+    # 
+    #       f2 <- 2*c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s der
+    #       s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
+    #       s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2)
+    # 
+    #       c(sum(f2 * c(0, d12.21, d13.31)),
+    #         sum(f2 * c(d12.21, d22.22, d23.32)),
+    #         sum(f2 * c(d13.31, d23.32, d33.33)))
+    #     },
+    #     method = "CG",
+    #     control = list(maxit = 10000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+    #   )
+    # }
+    # fff(3)
+    # (xx <- findL(3))
+    # (a <- xx$par[3] |> exp())
+    # (l <- xx$par[2] |> exp())
+    # (l-l*((1+a*l)^(-1-1/a)))/(1-(1+a*l)^(-1/a)-l*((1+a*l)^(-1-1/a)))
+    # logLikFit[y==3] |> max()
+    # eta[y==3,][715, ]
+    # 
+    # 
+    # suppressWarnings({
+    #   logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
+    #     ifelse(yUnq[x] == 2, 0, {
+    #       xx <- findL(x)
+    #       lagrange <- xx[1]
+    #       l <- exp(xx[2])
+    #       a <- exp(xx[3])
+    #       (lgamma(yUnq[x] + 1 / a) - lgamma(1 / a) - lgamma(yUnq[x] + 1) - 
+    #       (yUnq[x] + 1 / a) * log(1 + a * l) + yUnq[x] * log(l * a) - 
+    #       log(1 - (1 + a * l) ^ (-1 / a)) - l * (1 + l * a) ^ (-1 - 1 / a))
+    #     })
+    #   })
     # })
     # 
-    # logLikIdeal <- sapply(y, FUN = function(x) logLikIdeal[yUnq == x])
+    # logLikIdeal <- sapply(1:length(y), FUN = function(x) {
+    #   logLikIdeal[yUnq == y[x]]
+    # })
     # 
-    # sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * (logLikFit - logLikIdeal))
-    NULL
+    # diff <- logLikIdeal - logLikFit
+    # 
+    # if (any(logLikFit > 0)) {
+    #   warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+    #   diff[logLikFit > 0]   <- 0
+    # } else if (any(diff < 0)) {
+    #   warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
+    # }
+    # 
+    # #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
+    # 
+    # sign(y - mu) * sqrt(2 * wt * diff)
+    0
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
