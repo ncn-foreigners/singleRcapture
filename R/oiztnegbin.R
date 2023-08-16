@@ -46,34 +46,26 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     } else {
       switch (type,
         "nontrunc" = {
-          matrix(c(
-            1 - omega,
-            0,
-            1 - lambda
-          ) * c(
-            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
-             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
-             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
-          ), ncol = 3)
+          cbind(lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                 alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+                 omegaLink(eta[, 3], inverse = TRUE, deriv = 1)) * 
+          cbind(1 - omega, 0, 1 - lambda)
         },
         "trunc" = {
-          matrix(c(
-            (1 - omega) * (alpha * lambda + 1) ^ (1 / alpha - 1) *
-            ((alpha * lambda + 1) ^ (1 / alpha + 1) + 
-            ((alpha + 1) * omega - alpha - 1) * lambda - 1) /
-            ((alpha * lambda + 1) ^ (1 / alpha) + omega - 1) ^ 2,
-            (1 - omega) * ((1 - omega) * lambda + omega) * 
-            (lambda * alpha + 1) ^ (1 / alpha - 1) * 
-            ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha) /
-            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) + omega - 1) ^ 2),
-            -(alpha * lambda + 1) ^ (1 / alpha) *
-            ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1) /
-            (omega + (alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2
-          ) * c(
-            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
-             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
-             omegaLink(eta[, 3], inverse = TRUE, deriv = 1)
-          ), ncol = 3)
+          cbind((1 - omega) * (alpha * lambda + 1) ^ (1 / alpha - 1) *
+                ((alpha * lambda + 1) ^ (1 / alpha + 1) + 
+                ((alpha + 1) * omega - alpha - 1) * lambda - 1) /
+                ((alpha * lambda + 1) ^ (1 / alpha) + omega - 1) ^ 2,
+                (1 - omega) * ((1 - omega) * lambda + omega) * 
+                (lambda * alpha + 1) ^ (1 / alpha - 1) * 
+                ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha) /
+                (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) + omega - 1) ^ 2),
+                -(alpha * lambda + 1) ^ (1 / alpha) *
+                ((lambda - 1) * (alpha * lambda + 1) ^ (1 / alpha) + 1) /
+                (omega + (alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2) * 
+          cbind(lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
+                 alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
+                 omegaLink(eta[, 3], inverse = TRUE, deriv = 1))
         }
       )
     }

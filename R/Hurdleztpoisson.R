@@ -304,8 +304,8 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     diff <- ifelse(
       y == 1,
       -(log(PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))),
-      ifelse(y == 2, log(2),
-      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
+      ifelse(y == 2, 0,
+      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - lgamma(y + 1)) - 
       (log(1 - PI) + y * log(lambda) - lambda - lgamma(y + 1) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
     )
     

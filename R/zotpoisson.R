@@ -131,6 +131,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
 
   devResids <- function(y, eta, wt, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    #print(table(y))
     
     inverseFunction <- function(y) {stats::uniroot(
       f = function(x) {mu.eta(x) - y}, 
@@ -163,8 +164,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     lambdaSat <- lambdaLink(sapply(y, FUN = function(x) lambdaSat[yUnq == x]), inverse = TRUE)
     
     diff <- y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)) -
-    ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
-    y * log(lambdaSat) - lambdaSat - 
+    ifelse(y == 2, lgamma(y + 1), y * log(lambdaSat) - lambdaSat - 
     log(1 - exp(-lambdaSat) - lambdaSat * exp(-lambdaSat)))
     
     if (any(diff > 0)) {
@@ -176,9 +176,8 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
         "\nDouble check deviance before proceeding"
       ))
     }
-    
-    ## see comments in ztpoisson for explanation of pmin
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, diff))
+
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * diff)
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {

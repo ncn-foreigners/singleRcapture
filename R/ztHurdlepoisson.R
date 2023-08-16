@@ -147,7 +147,7 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         logistic <- -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI)))
-        zot <- -sum(weight * (1 - z) * (y * log(lambda) - lambda - log(factorial(y)) - log(1 - exp(-lambda) - lambda * exp(-lambda))))
+        zot <- -sum(weight * (1 - z) * (y * log(lambda) - lambda - lgamma(y + 1) - log(1 - exp(-lambda) - lambda * exp(-lambda))))
         zot + logistic
       },
       function(beta) {
@@ -245,9 +245,9 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     idealLambda <- exp(etaSat)
     diff <- ifelse(
       y == 1,
-      -log(PI), ifelse(y == 2, log(2),
-      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
-      (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)))
+      -log(PI), ifelse(y == 2, 0,
+      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - lgamma(y + 1)) - 
+      (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)) - lgamma(y + 1))
     )
     
     if (any(diff < 0)) {
