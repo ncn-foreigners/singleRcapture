@@ -482,12 +482,7 @@ estimatePopsize <- function(formula,
     bootstrapFitcontrol = controlMethod(
       epsilon = 1e-3, 
       maxiter = 20, 
-      optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
-                        grepl(x = family$family, pattern = "^ztoi")  || 
-                        grepl(x = family$family, pattern = "^oizt"))
-        "Nelder-Mead" 
-      else 
-        "L-BFGS-B", 
+      optimMethod = "Nelder-Mead", 
       silent = TRUE
     )
   )

@@ -27,7 +27,10 @@ Imports:
     stats,
     lamW,
     mathjaxr,
-    sandwich
+    sandwich,
+    doParallel,
+    foreach,
+    parallel
 Suggests: 
     rmarkdown,
     knitr,

@@ -14,7 +14,7 @@ dfpopsize(model, ...)
 
 \method{hatvalues}{singleR}(model, ...)
 
-\method{dfbeta}{singleR}(model, maxitNew = 1, trace = FALSE, ...)
+\method{dfbeta}{singleR}(model, maxitNew = 1, trace = FALSE, cores = 1, ...)
 
 \method{residuals}{singleR}(
   object,

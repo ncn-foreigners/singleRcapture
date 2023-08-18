@@ -11,7 +11,7 @@ controlMethod(
   printEveryN = 1L,
   coefStart = NULL,
   etaStart = NULL,
-  optimMethod = "L-BFGS-B",
+  optimMethod = "Nelder-Mead",
   silent = FALSE,
   optimPass = FALSE,
   stepsize = 1,
@@ -53,8 +53,7 @@ is needed so if \code{coefStart} is provided it will be converted to \code{etaSt
 for \code{optim} fitting \code{coefStart} is neccesary and argument \code{etaStart}
 will be ignored.}
 
-\item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used L-BFGS-B is the default
-except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.}
+\item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used  \code{"Nelder-Mead"} is the default .}
 
 \item{silent}{logical, indicating whether warnings in \code{IRLS} method should be suppressed.}
 

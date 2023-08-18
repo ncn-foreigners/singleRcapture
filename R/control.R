@@ -33,8 +33,7 @@
 #' @param silent logical, indicating whether warnings in \code{IRLS} method should be suppressed.
 #' @param optimPass optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 #' if FALSE then list of control parameters will be inferred from other parameters.
-#' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default 
-#' except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.
+#' @param optimMethod method of [stats::optim()] used  \code{"Nelder-Mead"} is the default .
 #' @param stepsize only for \code{IRLS}, scaling of updates to \code{beta} vector 
 #' lower value means slower convergence but more accuracy by default 1. 
 #' In general if fitting algorithm fails lowering this value tends to 
@@ -71,7 +70,7 @@ controlMethod <- function(epsilon             = 1e-8,
                           printEveryN         = 1L,
                           coefStart           = NULL,
                           etaStart            = NULL,
-                          optimMethod         = "L-BFGS-B",
+                          optimMethod         = "Nelder-Mead",
                           silent              = FALSE,
                           optimPass           = FALSE,
                           stepsize            = 1,

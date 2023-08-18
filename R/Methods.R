@@ -652,11 +652,17 @@ hatvalues.singleR <- function(model, ...) {
 }
 #' @method dfbeta singleR
 #' @importFrom stats dfbeta
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
+#' @importFrom doParallel registerDoParallel
 #' @rdname regDiagSingleR
 #' @exportS3Method 
 dfbeta.singleR <- function(model,
                            maxitNew = 1,
                            trace = FALSE,
+                           cores = 1,
                            ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
@@ -666,37 +672,71 @@ dfbeta.singleR <- function(model,
   cf <- coef(model)
   pw <- model$priorWeights[model$which$reg]
   offset <- model$offset[model$which$reg, , drop = FALSE]
-  res <- matrix(nrow = nrow(X), ncol = length(cf))
   if (family(model)$family == "zelterman") {
     eta <- model$linearPredictors[model$which$reg, , drop = FALSE]
   } else {
     eta <- model$linearPredictors
   }
   
-  for (k in 1:nrow(X)) {
-    if (isTRUE(trace)) {
-      cat("-----\nRemoving observation number: ", k, "\n", sep = "")
+  if (cores > 1) {
+    cl <- parallel::makeCluster(cores)
+    doParallel::registerDoParallel(cl)
+    on.exit(parallel::stopCluster(cl))
+    #parallel::clusterExport(cl, c("singleRinternalGetXvlmMatrix", "cf", "y", "X", "maxitNew", "model", "pw", "offset", "eta"), envir = environment())
+    
+    res <- foreach::`%dopar%`(
+        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
+        ex = {
+          c(cf - estimatePopsize.fit(
+            control = controlMethod(
+              silent = TRUE,
+              maxiter = maxitNew + 1,
+              ...
+            ),
+            y = y[-k],
+            X = singleRinternalGetXvlmMatrix(
+              X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
+              formulas = model$formula,
+              parNames = model$model$etaNames
+            ),
+            coefStart = cf,
+            etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+            family = model$model,
+            priorWeights = pw[-k],
+            method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+            offset = offset[-k, , drop = FALSE]
+          )$beta)
+        }
+      )
+  } else {
+    res <- matrix(nrow = nrow(X), ncol = length(cf))
+    
+    for (k in 1:nrow(X)) {
+      if (isTRUE(trace)) {
+        cat("-----\nRemoving observation number: ", k, "\n", sep = "")
+      }
+      res[k, ] <- cf - estimatePopsize.fit(
+        control = controlMethod(
+          silent = TRUE,
+          maxiter = maxitNew + 1,
+          ...
+        ),
+        y = y[-k],
+        X = singleRinternalGetXvlmMatrix(
+          X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
+          formulas = model$formula, 
+          parNames = model$model$etaNames
+        ),
+        coefStart = cf,
+        etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+        family = model$model,
+        priorWeights = pw[-k],
+        method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+        offset = offset[-k, , drop = FALSE]
+      )$beta
     }
-    res[k, ] <- cf - estimatePopsize.fit(
-      control = controlMethod(
-        silent = TRUE,
-        maxiter = maxitNew + 1,
-        ...
-      ),
-      y = y[-k],
-      X = singleRinternalGetXvlmMatrix(
-        X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
-        formulas = model$formula, 
-        parNames = model$model$etaNames
-      ),
-      coefStart = cf,
-      etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
-      family = model$model,
-      priorWeights = pw[-k],
-      method = model$call$method,
-      offset = offset[-k, , drop = FALSE]
-    )$beta
   }
+  
   colnames(res) <- names(cf)
   res
 }
