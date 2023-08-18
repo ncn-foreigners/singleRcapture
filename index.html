@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -139,15 +139,15 @@
 <span><span class="co">#&gt; Population size estimation results: </span></span>
 <span><span class="co">#&gt; Point estimate 12690.35</span></span>
 <span><span class="co">#&gt; Observed proportion: 14.8% (N obs = 1880)</span></span>
-<span><span class="co">#&gt; Std. Error 2808.169</span></span>
+<span><span class="co">#&gt; Std. Error 2808.167</span></span>
 <span><span class="co">#&gt; 95% CI for the population size:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal      7186.444   18194.26</span></span>
-<span><span class="co">#&gt; logNormal   8431.275   19718.32</span></span>
+<span><span class="co">#&gt; normal      7186.446   18194.26</span></span>
+<span><span class="co">#&gt; logNormal   8431.276   19718.31</span></span>
 <span><span class="co">#&gt; 95% CI for the share of observed population:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal     10.332927   26.16037</span></span>
-<span><span class="co">#&gt; logNormal   9.534281   22.29793</span></span></code></pre></div>
+<span><span class="co">#&gt; normal     10.332930   26.16036</span></span>
+<span><span class="co">#&gt; logNormal   9.534284   22.29793</span></span></code></pre></div>
 <p>We implemented a method for <code>plot</code> function to visualise the model fit and other usefull diagnostic information. One of which is <code>rootogram</code>, a type of plot that compares fitted and observed marginal frequencies:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span><span class="op">)</span></span></code></pre></div>
@@ -206,15 +206,15 @@
 <span>    <span class="st">"Older males"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">age</span> <span class="op">==</span> <span class="st">"&gt;40yrs"</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Observed Estimated ObservedPercentage  StdError normalLowerBound</span></span>
-<span><span class="co">#&gt; 1       20   931.469           2.147146  955.0676      -1528.62209</span></span>
-<span><span class="co">#&gt; 2       78  1291.251           6.040652  741.0066       -432.58790</span></span>
-<span><span class="co">#&gt; 3     1391  7337.072          18.958516 1282.1419       4554.70841</span></span>
-<span><span class="co">#&gt; 4       91  1542.189           5.900703  781.4754         10.52561</span></span>
+<span><span class="co">#&gt; 1       20  931.4685           2.147147  955.0668      -1528.62062</span></span>
+<span><span class="co">#&gt; 2       78 1291.2513           6.040652  741.0066       -432.58790</span></span>
+<span><span class="co">#&gt; 3     1391 7337.0716          18.958518 1282.1412       4554.70930</span></span>
+<span><span class="co">#&gt; 4       91 1542.1889           5.900704  781.4751         10.52593</span></span>
 <span><span class="co">#&gt;   normalUpperBound logNormalLowerBound logNormalUpperBound                 name</span></span>
-<span><span class="co">#&gt; 1         3391.560            119.2661            8389.178 Females from Surinam</span></span>
+<span><span class="co">#&gt; 1         3391.558            119.2661            8389.170 Females from Surinam</span></span>
 <span><span class="co">#&gt; 2         3015.090            405.4127            4573.791    Males from Turkey</span></span>
-<span><span class="co">#&gt; 3        10119.436           5134.8113           10834.792        Younger males</span></span>
-<span><span class="co">#&gt; 4         3073.853            630.7551            3992.677          Older males</span></span>
+<span><span class="co">#&gt; 3        10119.434           5134.8117           10834.789        Younger males</span></span>
+<span><span class="co">#&gt; 4         3073.852            630.7551            3992.676          Older males</span></span>
 <span><span class="co">#&gt;   confLevel</span></span>
 <span><span class="co">#&gt; 1      0.01</span></span>
 <span><span class="co">#&gt; 2      0.02</span></span>
@@ -224,19 +224,19 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, stratas <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">/</span> <span class="va">age</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Observed Estimated ObservedPercentage  StdError normalLowerBound</span></span>
-<span><span class="co">#&gt; 1      398 3811.0924          10.443200 1153.9749       1549.34322</span></span>
-<span><span class="co">#&gt; 2     1482 8879.2613          16.690578 1812.0813       5327.64720</span></span>
-<span><span class="co">#&gt; 3      378 3169.8272          11.924940  880.9491       1443.19883</span></span>
-<span><span class="co">#&gt; 4     1391 7337.0721          18.958516 1282.1419       4824.12025</span></span>
-<span><span class="co">#&gt; 5       20  641.2651           3.118835  407.5268       -157.47265</span></span>
-<span><span class="co">#&gt; 6       91 1542.1892           5.900703  781.4754         10.52561</span></span>
+<span><span class="co">#&gt; 1      398  3811.092          10.443201 1153.9742       1549.34401</span></span>
+<span><span class="co">#&gt; 2     1482  8879.260          16.690579 1812.0803       5327.64833</span></span>
+<span><span class="co">#&gt; 3      378  3169.827          11.924942  880.9485       1443.19944</span></span>
+<span><span class="co">#&gt; 4     1391  7337.072          18.958518 1282.1412       4824.12101</span></span>
+<span><span class="co">#&gt; 5       20   641.265           3.118835  407.5266       -157.47248</span></span>
+<span><span class="co">#&gt; 6       91  1542.189           5.900704  781.4751         10.52593</span></span>
 <span><span class="co">#&gt;   normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
-<span><span class="co">#&gt; 1         6072.842           2189.0439            6902.140</span></span>
-<span><span class="co">#&gt; 2        12430.875           6090.7752           13354.889</span></span>
-<span><span class="co">#&gt; 3         4896.456           1904.3121            5484.622</span></span>
-<span><span class="co">#&gt; 4         9850.024           5306.3298           10421.088</span></span>
-<span><span class="co">#&gt; 5         1440.003            212.3382            2026.728</span></span>
-<span><span class="co">#&gt; 6         3073.853            630.7551            3992.677</span></span>
+<span><span class="co">#&gt; 1         6072.840           2189.0441            6902.137</span></span>
+<span><span class="co">#&gt; 2        12430.873           6090.7756           13354.885</span></span>
+<span><span class="co">#&gt; 3         4896.454           1904.3123            5484.620</span></span>
+<span><span class="co">#&gt; 4         9850.022           5306.3301           10421.086</span></span>
+<span><span class="co">#&gt; 5         1440.002            212.3382            2026.727</span></span>
+<span><span class="co">#&gt; 6         3073.852            630.7551            3992.676</span></span>
 <span><span class="co">#&gt;                     name confLevel</span></span>
 <span><span class="co">#&gt; 1         gender==female      0.05</span></span>
 <span><span class="co">#&gt; 2           gender==male      0.05</span></span>
@@ -257,6 +257,8 @@
 <span>        alpha <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># significance level </span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in singleRcaptureinternalIRLSmultipar(dependent = y, covariates = X, :</span></span>
+<span><span class="co">#&gt; Convergence at halfstepsize</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">modelInflated</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -266,7 +268,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pearson Residuals:</span></span>
 <span><span class="co">#&gt;      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span></span>
-<span><span class="co">#&gt; -0.357193 -0.357193 -0.357193  0.000343 -0.287637 10.233608 </span></span>
+<span><span class="co">#&gt; -0.357193 -0.357193 -0.357193  0.000343 -0.287637 10.233607 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
@@ -290,17 +292,17 @@
 <span><span class="co">#&gt; Number of iterations: 6</span></span>
 <span><span class="co">#&gt; -----------------------</span></span>
 <span><span class="co">#&gt; Population size estimation results: </span></span>
-<span><span class="co">#&gt; Point estimate 5661.522</span></span>
+<span><span class="co">#&gt; Point estimate 5661.521</span></span>
 <span><span class="co">#&gt; Observed proportion: 33.2% (N obs = 1880)</span></span>
-<span><span class="co">#&gt; Std. Error 963.9024</span></span>
+<span><span class="co">#&gt; Std. Error 963.9019</span></span>
 <span><span class="co">#&gt; 99% CI for the population size:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal      3178.674   8144.370</span></span>
-<span><span class="co">#&gt; logNormal   3861.508   9096.681</span></span>
+<span><span class="co">#&gt; normal      3178.674   8144.367</span></span>
+<span><span class="co">#&gt; logNormal   3861.507   9096.677</span></span>
 <span><span class="co">#&gt; 99% CI for the share of observed population:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal      23.08343   59.14416</span></span>
-<span><span class="co">#&gt; logNormal   20.66688   48.68564</span></span></code></pre></div>
+<span><span class="co">#&gt; normal      23.08344   59.14416</span></span>
+<span><span class="co">#&gt; logNormal   20.66689   48.68565</span></span></code></pre></div>
 <p>and the option to estimate standard error of population size estimate by bootstrap, models with more than one distribution parameter being dependent on covariates and some non standard link functions for example:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">modelInflated2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
@@ -333,13 +335,17 @@
 <span><span class="co">#&gt; information matrix because hessian of log-likelihood is not negative define.</span></span>
 <span><span class="fu"><a href="reference/popSizeEst.html">popSizeEst</a></span><span class="op">(</span><span class="va">modelInflated2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Point estimate: 5496.376</span></span>
-<span><span class="co">#&gt; Variance: 1552532</span></span>
+<span><span class="co">#&gt; Variance: 1440065</span></span>
 <span><span class="co">#&gt; 99% confidence intervals:</span></span>
 <span><span class="co">#&gt; lowerBound upperBound </span></span>
-<span><span class="co">#&gt;   4320.925  11078.865</span></span></code></pre></div>
+<span><span class="co">#&gt;   4259.711  10877.648</span></span></code></pre></div>
 <p>the results are significantly different (the warning issued concerns the second derivative test for existence of local minimum, here it was inconclusive but we manually checked that fitting process found the optimal regression coefficients it’s here to provide more information to the user):</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated2</span>, plotType <span class="op">=</span> <span class="st">"bootHist"</span>, labels <span class="op">=</span> <span class="cn">TRUE</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated2</span>, </span>
+<span>     plotType <span class="op">=</span> <span class="st">"bootHist"</span>, </span>
+<span>     labels <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">200</span><span class="op">)</span>,</span>
+<span>     histKernels <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="75%"></p>
 <p>and information criteria support the favour model:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  First model: AIC = 1736.854 BIC = 1759.01</span></span>

@@ -14,7 +14,7 @@ reduction) to population size estimation and standard error estimation."><!-- ma
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,17 @@ reduction) to population size estimation and standard error estimation.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for singleR</span></span>
-<span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">cov</span>, <span class="va">weights</span>, <span class="va">coef</span>, <span class="va">control</span>, <span class="va">popVar</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">redoPopEstimation</span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  <span class="va">cov</span>,</span>
+<span>  <span class="va">weights</span>,</span>
+<span>  <span class="va">coef</span>,</span>
+<span>  <span class="va">control</span>,</span>
+<span>  <span class="va">popVar</span>,</span>
+<span>  <span class="va">offset</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -98,6 +108,10 @@ If missing set to controls provided on call to <code>object</code>.</p></dd>
 <dt>popVar</dt>
 <dd><p>similar to <code>popVar</code> in <code><a href="estimatePopsize.html">estimatePopsize()</a></code>.
 If missing set to <code>"analytic"</code>.</p></dd>
+
+
+<dt>offset</dt>
+<dd><p>TODO</p></dd>
 
 </dl></div>
     <div class="section level2">

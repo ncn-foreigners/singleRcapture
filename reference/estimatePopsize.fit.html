@@ -16,7 +16,7 @@ just regression fitting estimatePopsize.fit is much faster."><!-- mathjax --><sc
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,18 @@ just regression fitting <code>estimatePopsize.fit</code> is much faster.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">estimatePopsize.fit</span><span class="op">(</span><span class="va">y</span>, <span class="va">X</span>, <span class="va">family</span>, <span class="va">control</span>, <span class="va">method</span>, <span class="va">priorWeights</span>, <span class="va">start</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">estimatePopsize.fit</span><span class="op">(</span></span>
+<span>  <span class="va">y</span>,</span>
+<span>  <span class="va">X</span>,</span>
+<span>  <span class="va">family</span>,</span>
+<span>  <span class="va">control</span>,</span>
+<span>  <span class="va">method</span>,</span>
+<span>  <span class="va">priorWeights</span>,</span>
+<span>  <span class="va">coefStart</span>,</span>
+<span>  <span class="va">etaStart</span>,</span>
+<span>  <span class="va">offset</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -90,8 +101,13 @@ just regression fitting <code>estimatePopsize.fit</code> is much faster.</p>
 in <code>estimatePopsize</code>.</p></dd>
 
 
-<dt>start</dt>
-<dd><p>initial value of regression parameters.</p></dd>
+<dt>etaStart, coefStart</dt>
+<dd><p>initial value of regression parameters or
+linear predictors.</p></dd>
+
+
+<dt>offset</dt>
+<dd><p>offset passed from by default passed from <code><a href="estimatePopsize.html">estimatePopsize()</a></code>.</p></dd>
 
 
 <dt>...</dt>
@@ -184,7 +200,6 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="co"># Get data</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    TOTAL_SUB        log_size       log_distance      C_TYPE    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   : 1.00   Min.   : 0.000   Min.   : 4.102   Beef :5336  </span>
@@ -197,44 +212,44 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-in"><span><span class="co"># construct vglm model matrix</span></span></span>
 <span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fl">0</span>, nrow <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">log_size</span> <span class="op">+</span> <span class="va">log_distance</span> <span class="op">+</span> <span class="va">C_TYPE</span>, </span></span>
-<span class="r-in"><span>  <span class="va">farmsubmission</span></span></span>
+<span class="r-in"><span><span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">log_size</span> <span class="op">+</span> <span class="va">log_distance</span> <span class="op">+</span> <span class="va">C_TYPE</span>, </span></span>
+<span class="r-in"><span><span class="va">farmsubmission</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">X</span><span class="op">[</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span>, <span class="fl">5</span><span class="op">:</span><span class="fl">7</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># this atrrtibute tells the function which elements of the design matrix </span></span></span>
+<span class="r-in"><span><span class="co"># this attribute tells the function which elements of the design matrix </span></span></span>
 <span class="r-in"><span><span class="co"># correspond to which linear predictor </span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">X</span>, <span class="st">"hwm"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># get starting points</span></span></span>
 <span class="r-in"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm.fit</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
-<span class="r-in"><span>  x <span class="op">=</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, </span></span>
-<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
+<span class="r-in"><span>x <span class="op">=</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, </span></span>
+<span class="r-in"><span>family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># call function</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">estimatePopsize.fit</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
-<span class="r-in"><span>  X <span class="op">=</span> <span class="va">X</span>, </span></span>
-<span class="r-in"><span>  method <span class="op">=</span> <span class="st">"IRLS"</span>, </span></span>
-<span class="r-in"><span>  priorWeights <span class="op">=</span> <span class="fl">1</span>, </span></span>
-<span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>  start <span class="op">=</span> <span class="va">start</span></span></span>
+<span class="r-in"><span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span></span>
+<span class="r-in"><span>X <span class="op">=</span> <span class="va">X</span>, </span></span>
+<span class="r-in"><span>method <span class="op">=</span> <span class="st">"IRLS"</span>, </span></span>
+<span class="r-in"><span>priorWeights <span class="op">=</span> <span class="fl">1</span>, </span></span>
+<span class="r-in"><span>family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>coefStart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>etaStart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 1 log-likelihood: -17455.372</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.255494347  0.521900283 -0.048255922  0.321168020 -1.297382847  0.049409082 -0.726587214</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  1178.8778</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  Inf</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    639.53919  4035.62183  6732.72078   672.31223  -316.39394 -3358.16739  -229.50394</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 1.4296549</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 2.2554943</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 2 log-likelihood: -17289.531</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.859491920  0.627917105 -0.063516471  0.573159952 -2.327571214  0.074464787 -0.734988992</span>
@@ -280,7 +295,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.78602286  0.61698772 -0.06441877  0.53495927 -3.19325142  0.12969021 -1.08314735</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00072206104</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0149254818 -0.0442854058 -0.2585639445 -0.0671445437 -0.0089103073 -0.1428452785 -0.0408361061</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0149254818 -0.0442854057 -0.2585639447 -0.0671445437 -0.0089103073 -0.1428452785 -0.0408361062</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
@@ -290,7 +305,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.783307402  0.617006834 -0.064659772  0.534565433 -3.160032510  0.126742033 -1.087078105</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000086867327</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.0219006963  0.2137543745  0.2878052106  0.0210725208 -0.0038258075 -0.0055588958  0.0088000042</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.0219006963  0.2137543746  0.2878052106  0.0210725209 -0.0038258075 -0.0055588958  0.0088000042</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
@@ -300,7 +315,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.785132183  0.617029483 -0.064506904  0.534668321 -3.181900933  0.128724679 -1.085840518</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00002149725</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00917986044 -0.07823752443 -0.12764140872 -0.01528913764  0.00031447068 -0.01459257985 -0.00776040765</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00917986044 -0.07823752459 -0.12764140875 -0.01528913765  0.00031447068 -0.01459257979 -0.00776040764</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
@@ -310,7 +325,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784182050  0.617023943 -0.064588093  0.534586386 -3.170374939  0.127687086 -1.086727858</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000064244196</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00580810483  0.05244014315  0.07853720971  0.00778331026 -0.00057098473  0.00429221923  0.00373823937</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00580810483  0.05244014308  0.07853720969  0.00778331026 -0.00057098473  0.00429221923  0.00373823936</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
@@ -320,7 +335,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784725925  0.617028507 -0.064541975  0.534626993 -3.176948180  0.128280435 -1.086273279</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.0000019945583</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00307033641 -0.02728421574 -0.04201045327 -0.00448214637  0.00022935424 -0.00326931977 -0.00221219809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00307033640 -0.02728421578 -0.04201045323 -0.00448214636  0.00022935423 -0.00326931974 -0.00221219809</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
@@ -330,17 +345,17 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.78442528  0.61702627 -0.06456754  0.53460327 -3.17330966  0.12795232 -1.08653540</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000061988248</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00175710834  0.01568170311  0.02390375484  0.00247668339 -0.00014882078  0.00161926857  0.00120723719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.00175710834  0.01568170308  0.02390375509  0.00247668339 -0.00014882078  0.00161926854  0.00120723718</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.003638518</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0036385179</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 12 log-likelihood: -17278.761</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784593634  0.617027580 -0.064553239  0.534616288 -3.175346365  0.128136053 -1.086390890</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000019314757</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.000968762329 -0.008641334460 -0.013216142982 -0.001385713883  0.000077984444 -0.000953809236 -0.000679710379</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.000968762335 -0.008641334486 -0.013216142801 -0.001385713885  0.000077984443 -0.000953809224 -0.000679710375</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
@@ -350,31 +365,31 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784499807  0.617026860 -0.064561213  0.534608978 -3.174211159  0.128033659 -1.086471902</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000000060121238</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.000543879335  0.004849594700  0.007409081643  0.000772957749 -0.000044801249  0.000519451062  0.000377932801</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.000543879313  0.004849594635  0.007409081183  0.000772957725 -0.000044801248  0.000519451022  0.000377932787</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0011352062</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0011352061</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 14 log-likelihood: -17278.761</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784552191  0.617027265 -0.064556762  0.534613048 -3.174844941  0.128090828 -1.086426773</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.000000018728315</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.00030256412 -0.00269909106 -0.00412482646 -0.00043127032  0.00002466148 -0.00029328220 -0.00021122304</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.000302564116 -0.002699090918 -0.004124826390 -0.000431270305  0.000024661479 -0.000293282192 -0.000211223030</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00063378216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00063378213</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 15 log-likelihood: -17278.761</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Parameter vector:  -2.784522964  0.617027040 -0.064559245  0.534610775 -3.174491334  0.128058932 -1.086451974</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> log-likelihood reduction:  0.00000000583168</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.000169118292  0.001508137338  0.002304647304  0.000240720382 -0.000013855243  0.000162719794  0.000117791119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.000169118288  0.001508137174  0.002304647039  0.000240720352 -0.000013855242  0.000162719750  0.000117791108</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00035360722</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00035360718</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of analytically computed hessian at fitted regression coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             [,1]         [,2]         [,3]        [,4]       [,5]        [,6]</span>
@@ -404,10 +419,10 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.08645197</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># check likelihood</span></span></span>
-<span class="r-in"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="singleRmodels.html">ztnegbin</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">makeMinusLogLike</span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">makeMinusLogLike</span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">-</span><span class="fu">ll</span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -19536.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -17278.76</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># number of iterations</span></span></span>
 <span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">iter</span></span></span>
@@ -431,82 +446,531 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"optim"</span>, </span></span>
 <span class="r-in"><span>  priorWeights <span class="op">=</span> <span class="fl">1</span>, </span></span>
 <span class="r-in"><span>  family <span class="op">=</span> <span class="fu"><a href="singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>  start <span class="op">=</span> <span class="va">start</span>, </span></span>
-<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  coefStart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="controlMethod.html">controlMethod</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="fl">1</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   10 value 17321.626463</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   20 value 17301.696934</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   30 value 17281.887033</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   40 value 17281.801823</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   50 value 17281.438921</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   60 value 17280.194225</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   70 value 17280.189477</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   80 value 17280.165879</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter   90 value 17280.101570</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  100 value 17279.317722</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  110 value 17279.279067</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  120 value 17279.259879</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  130 value 17279.226906</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  140 value 17279.052366</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  150 value 17279.005464</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  160 value 17278.951191</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  170 value 17278.932703</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  180 value 17278.912052</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  190 value 17278.806103</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  200 value 17278.762829</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  210 value 17278.762367</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  220 value 17278.762064</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  230 value 17278.761986</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  240 value 17278.761801</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  250 value 17278.761737</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  260 value 17278.761686</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  270 value 17278.761593</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  280 value 17278.761579</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  290 value 17278.761450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  300 value 17278.761338</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  310 value 17278.761323</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  320 value 17278.761321</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  330 value 17278.761317</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  340 value 17278.761309</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  350 value 17278.761304</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  360 value 17278.761293</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  370 value 17278.761291</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  380 value 17278.761288</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  390 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  400 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  410 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  420 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  430 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  440 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  450 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  460 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  470 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  480 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  490 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  500 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  510 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  520 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter  530 value 17278.761287</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> final  value 17278.761287 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> converged</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Nelder-Mead direct search function minimizer</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function value for initial parameters = 18634.249443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Scaled convergence tolerance is 0.000186342</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Stepsize computed as 0.082584</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BUILD              8 20695.993313 18634.249443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      10 20521.906450 18634.249443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION        12 19390.030449 18203.536957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      14 18936.678302 18203.536957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      16 18749.996003 18203.536957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      18 18737.148786 18203.536957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      20 18718.703486 18203.536957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         22 18670.005025 17895.311480</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      24 18634.249443 17895.311480</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      26 18560.534560 17895.311480</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         28 18449.746468 17588.420920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      30 18295.895431 17588.420920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      32 18222.396059 17588.420920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      34 18203.536957 17588.420920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      36 18087.422161 17588.420920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      38 18005.031702 17588.420920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION        40 18001.913029 17584.422405</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION        42 17895.311480 17527.021914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      44 17780.944181 17527.021914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      46 17712.559384 17527.021914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION      48 17643.578220 17527.021914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         50 17621.199586 17473.997274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      52 17602.520321 17473.997274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION      54 17594.799573 17473.997274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      56 17588.420920 17473.997274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      58 17584.422405 17473.997274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         60 17556.846275 17447.303959</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         62 17555.104630 17408.736552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      64 17528.536402 17408.736552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      66 17527.021914 17408.736552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         68 17511.009990 17375.624732</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      70 17506.001244 17375.624732</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      72 17473.997274 17375.624732</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      74 17459.682283 17375.624732</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION        76 17447.303959 17374.438952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION         78 17431.820752 17359.678457</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION        80 17410.856537 17352.512930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      82 17408.736552 17352.512930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      84 17392.430571 17352.512930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      86 17383.843739 17352.512930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      88 17375.624732 17352.512930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION      90 17374.438952 17352.512930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION        92 17364.440518 17351.391717</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      94 17361.269788 17351.391717</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION      96 17359.678457 17351.391717</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION      98 17359.333428 17351.391717</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        100 17359.195000 17340.073149</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     102 17355.280449 17340.073149</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     104 17354.737924 17340.073149</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     106 17352.512930 17340.073149</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     108 17352.283989 17340.073149</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        110 17351.931319 17334.816229</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     112 17351.391717 17334.816229</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     114 17349.077477 17334.816229</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     116 17346.861518 17334.816229</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        118 17344.774811 17327.221865</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     120 17344.768718 17327.221865</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        122 17340.363390 17314.895018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     124 17340.073149 17314.895018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     126 17337.014069 17314.895018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     128 17336.611433 17314.895018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     130 17334.816229 17314.895018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        132 17330.280767 17308.580216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     134 17327.221865 17308.580216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     136 17324.616040 17308.580216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       138 17320.961818 17307.339443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     140 17320.314061 17307.339443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       142 17316.412981 17307.294606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     144 17314.895018 17307.294606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     146 17311.221319 17307.294606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       148 17310.240780 17305.855235</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     150 17309.024781 17305.855235</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     152 17308.580216 17305.855235</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       154 17307.909389 17304.751271</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     156 17307.607430 17304.751271</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     158 17307.339443 17304.751271</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        160 17307.294606 17303.969236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     162 17306.726648 17303.969236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     164 17306.486915 17303.969236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     166 17306.013269 17303.969236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     168 17305.855235 17303.969236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       170 17305.566500 17303.365745</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     172 17304.769833 17303.365745</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     174 17304.751271 17303.365745</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        176 17304.679762 17302.760257</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     178 17304.415232 17302.760257</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     180 17304.272835 17302.760257</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        182 17304.232531 17301.382173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     184 17303.969236 17301.382173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     186 17303.740306 17301.382173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     188 17303.561302 17301.382173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     190 17303.365745 17301.382173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       192 17303.285629 17301.216054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        194 17302.760257 17300.566315</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        196 17302.374881 17299.438766</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        198 17302.365881 17298.338665</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        200 17301.538607 17296.617465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     202 17301.386247 17296.617465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     204 17301.382173 17296.617465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     206 17301.216054 17296.617465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        208 17300.566315 17294.656203</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        210 17299.438766 17292.415140</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     212 17298.338665 17292.415140</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     214 17297.787001 17292.415140</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       216 17297.283737 17292.315917</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       218 17296.776034 17290.819569</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        220 17296.617465 17289.284957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     222 17294.656203 17289.284957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     224 17294.447369 17289.284957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     226 17292.619840 17289.284957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       228 17292.415140 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     230 17292.315917 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     232 17290.819569 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     234 17290.333239 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     236 17290.198503 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     238 17290.030554 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     240 17289.707101 17289.050671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       242 17289.446684 17289.049956</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       244 17289.402572 17288.762931</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     246 17289.314216 17288.762931</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     248 17289.284957 17288.762931</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     250 17289.237020 17288.755874</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       252 17289.231432 17288.591829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     254 17289.050671 17288.591829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     256 17289.049956 17288.591829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     258 17288.965069 17288.591829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     260 17288.779011 17288.591829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     262 17288.766114 17288.591829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       264 17288.762931 17288.553874</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     266 17288.760612 17288.553874</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     268 17288.755874 17288.553874</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       270 17288.712718 17288.530741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     272 17288.644400 17288.530741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        274 17288.613052 17288.437051</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     276 17288.606964 17288.437051</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        278 17288.591829 17288.369092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     280 17288.588782 17288.369092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     282 17288.553874 17288.369092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        284 17288.542682 17288.275532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     286 17288.531198 17288.275532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     288 17288.530741 17288.275532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     290 17288.469459 17288.275532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        292 17288.461014 17288.127850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     294 17288.437051 17288.127850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     296 17288.369092 17288.127850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     298 17288.347618 17288.127850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     300 17288.313219 17288.127850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        302 17288.295935 17288.071792</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        304 17288.275532 17287.915686</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     306 17288.214888 17287.915686</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     308 17288.211032 17287.915686</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        310 17288.173100 17287.842214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     312 17288.141906 17287.842214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     314 17288.127850 17287.842214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        316 17288.071792 17287.733682</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        318 17288.054470 17287.663282</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        320 17287.989272 17287.507624</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     322 17287.919537 17287.507624</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     324 17287.915686 17287.507624</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     326 17287.856498 17287.507624</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       328 17287.842214 17287.490634</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     330 17287.733682 17287.490634</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       332 17287.663282 17287.438068</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     334 17287.555894 17287.438068</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     336 17287.551441 17287.438068</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       338 17287.547247 17287.422322</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       340 17287.542002 17287.418701</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       342 17287.507624 17287.368868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     344 17287.490634 17287.368868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     346 17287.444486 17287.368868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     348 17287.438762 17287.368868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     350 17287.438068 17287.368868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        352 17287.422322 17287.329022</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        354 17287.418701 17287.274393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     356 17287.391509 17287.274393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     358 17287.381359 17287.274393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     360 17287.375030 17287.274393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     362 17287.371807 17287.274393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     364 17287.368868 17287.274393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       366 17287.329022 17287.274032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     368 17287.327098 17287.274032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        370 17287.322765 17287.246248</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     372 17287.316574 17287.246248</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        374 17287.308329 17287.210843</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     376 17287.304794 17287.210843</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     378 17287.279608 17287.210843</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       380 17287.274393 17287.210366</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       382 17287.274032 17287.209122</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     384 17287.264744 17287.209122</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       386 17287.246248 17287.183411</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     388 17287.223877 17287.183411</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     390 17287.214413 17287.183411</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     392 17287.213088 17287.183411</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        394 17287.210843 17287.178084</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     396 17287.210366 17287.178084</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     398 17287.209122 17287.178084</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       400 17287.197803 17287.172953</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        402 17287.196607 17287.164829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     404 17287.192398 17287.164829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        406 17287.183411 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     408 17287.183094 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     410 17287.181404 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     412 17287.178084 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     414 17287.173517 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     416 17287.172953 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     418 17287.165027 17287.148789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        420 17287.164829 17287.142664</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     422 17287.164534 17287.142664</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        424 17287.161998 17287.140674</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     426 17287.160519 17287.140674</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        428 17287.154476 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     430 17287.153672 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     432 17287.148789 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     434 17287.147540 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     436 17287.146752 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     438 17287.142664 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     440 17287.140674 17287.127103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       442 17287.138106 17287.127061</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        444 17287.131886 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     446 17287.130480 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     448 17287.129088 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     450 17287.128934 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     452 17287.128336 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     454 17287.127103 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     456 17287.127061 17287.110761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        458 17287.122784 17287.105926</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     460 17287.121627 17287.105926</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        462 17287.120146 17287.101582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     464 17287.118771 17287.101582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     466 17287.117855 17287.101582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        468 17287.117130 17287.090721</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     470 17287.110761 17287.090721</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     472 17287.108359 17287.090721</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     474 17287.107134 17287.090721</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        476 17287.105926 17287.081849</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     478 17287.104244 17287.081849</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        480 17287.101582 17287.080130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     482 17287.096149 17287.080130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        484 17287.095793 17287.074699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     486 17287.093227 17287.074699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     488 17287.090721 17287.074699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     490 17287.086551 17287.074699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       492 17287.086412 17287.074418</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     494 17287.081849 17287.074418</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     496 17287.080130 17287.074418</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       498 17287.077153 17287.073950</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       500 17287.076483 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     502 17287.075898 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     504 17287.075565 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     506 17287.075074 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     508 17287.074699 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     510 17287.074418 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     512 17287.073950 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     514 17287.073404 17287.072432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        516 17287.072984 17287.071689</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     518 17287.072957 17287.071689</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        520 17287.072911 17287.071281</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     522 17287.072872 17287.071281</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        524 17287.072566 17287.070932</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     526 17287.072496 17287.070932</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       528 17287.072432 17287.070705</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     530 17287.072040 17287.070705</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        532 17287.071689 17287.069928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     534 17287.071602 17287.069928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     536 17287.071281 17287.069928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     538 17287.071085 17287.069928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       540 17287.070932 17287.069704</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     542 17287.070818 17287.069704</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       544 17287.070705 17287.069688</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       546 17287.070279 17287.069497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       548 17287.070113 17287.069324</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     550 17287.070091 17287.069324</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     552 17287.070013 17287.069324</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       554 17287.069928 17287.069224</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     556 17287.069704 17287.069224</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        558 17287.069688 17287.069019</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        560 17287.069605 17287.068864</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     562 17287.069502 17287.068864</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     564 17287.069497 17287.068864</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        566 17287.069324 17287.068482</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     568 17287.069285 17287.068482</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        570 17287.069224 17287.068173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        572 17287.069019 17287.067727</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     574 17287.068980 17287.067727</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        576 17287.068959 17287.066896</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        578 17287.068864 17287.065841</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     580 17287.068771 17287.065841</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        582 17287.068482 17287.064747</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     584 17287.068173 17287.064747</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        586 17287.067970 17287.063322</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     588 17287.067727 17287.063322</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        590 17287.066896 17287.061580</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     592 17287.066709 17287.061580</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     594 17287.066510 17287.061580</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        596 17287.065841 17287.057767</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     598 17287.064747 17287.057767</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        600 17287.063788 17287.053859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     602 17287.063322 17287.053859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     604 17287.062792 17287.053859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     606 17287.062126 17287.053859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        608 17287.061580 17287.050184</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        610 17287.058435 17287.045782</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     612 17287.057767 17287.045782</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     614 17287.057359 17287.045782</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        616 17287.057193 17287.037166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     618 17287.053911 17287.037166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     620 17287.053859 17287.037166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     622 17287.050184 17287.037166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     624 17287.048790 17287.037166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        626 17287.046966 17287.027006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     628 17287.045782 17287.027006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        630 17287.041585 17287.015525</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     632 17287.037975 17287.015525</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     634 17287.037776 17287.015525</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     636 17287.037537 17287.015525</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        638 17287.037166 17287.002045</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     640 17287.029130 17287.002045</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     642 17287.027006 17287.002045</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        644 17287.021112 17286.982852</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     646 17287.020505 17286.982852</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     648 17287.020369 17286.982852</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        650 17287.015525 17286.962921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     652 17287.006234 17286.962921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     654 17287.003316 17286.962921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     656 17287.002045 17286.962921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     658 17286.999773 17286.962921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        660 17286.994995 17286.933690</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     662 17286.982852 17286.933690</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     664 17286.977870 17286.933690</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     666 17286.975300 17286.933690</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     668 17286.974307 17286.933690</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        670 17286.969127 17286.897589</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     672 17286.962921 17286.897589</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     674 17286.956414 17286.897589</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        676 17286.943420 17286.853826</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     678 17286.937677 17286.853826</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     680 17286.935539 17286.853826</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        682 17286.933690 17286.809961</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     684 17286.911841 17286.809961</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     686 17286.906427 17286.809961</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        688 17286.897589 17286.764565</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        690 17286.877846 17286.704552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     692 17286.872431 17286.704552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        694 17286.853826 17286.604256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     696 17286.822022 17286.604256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     698 17286.811029 17286.604256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     700 17286.809961 17286.604256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        702 17286.764565 17286.493497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     704 17286.736274 17286.493497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        706 17286.704552 17286.355870</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     708 17286.657383 17286.355870</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     710 17286.628318 17286.355870</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        712 17286.621506 17286.141094</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     714 17286.604256 17286.141094</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     716 17286.503365 17286.141094</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     718 17286.493497 17286.141094</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        720 17286.414390 17285.877458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     722 17286.366513 17285.877458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     724 17286.355870 17285.877458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     726 17286.251140 17285.877458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        728 17286.244105 17285.662233</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        730 17286.223061 17285.393569</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     732 17286.141094 17285.393569</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     734 17285.992524 17285.393569</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     736 17285.964793 17285.393569</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        738 17285.889261 17284.967393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     740 17285.877458 17284.967393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        742 17285.662233 17284.823201</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        744 17285.587027 17284.571260</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        746 17285.430175 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     748 17285.411444 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     750 17285.393569 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     752 17285.061522 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     754 17284.967393 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     756 17284.823201 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     758 17284.663334 17284.208648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        760 17284.571260 17284.082158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        762 17284.471298 17283.933635</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       764 17284.370237 17283.918499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     766 17284.326906 17283.918499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     768 17284.242090 17283.918499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     770 17284.232223 17283.918499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        772 17284.208648 17283.684327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     774 17284.082158 17283.684327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     776 17284.006206 17283.684327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     778 17283.954602 17283.684327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     780 17283.943643 17283.684327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        782 17283.941150 17283.629046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     784 17283.933635 17283.629046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        786 17283.918499 17283.432835</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     788 17283.855866 17283.432835</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     790 17283.737787 17283.432835</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        792 17283.707141 17283.177089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     794 17283.691961 17283.177089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     796 17283.684327 17283.177089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     798 17283.629046 17283.177089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        800 17283.480788 17283.019801</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        802 17283.464836 17282.857567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     804 17283.432835 17282.857567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     806 17283.427379 17282.857567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       808 17283.273719 17282.810344</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     810 17283.192011 17282.810344</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        812 17283.177089 17282.773026</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     814 17283.100216 17282.773026</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        816 17283.019801 17282.431349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     818 17282.924383 17282.431349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     820 17282.882981 17282.431349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     822 17282.857567 17282.431349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     824 17282.826993 17282.431349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        826 17282.810344 17282.134774</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     828 17282.773026 17282.134774</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     830 17282.673630 17282.134774</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        832 17282.551561 17281.917158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     834 17282.507799 17281.917158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     836 17282.441034 17281.917158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        838 17282.431349 17281.805083</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        840 17282.328334 17281.485386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     842 17282.207399 17281.485386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        844 17282.134774 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     846 17281.971962 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     848 17281.930907 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     850 17281.917158 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     852 17281.805083 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     854 17281.637799 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     856 17281.542150 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     858 17281.485386 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     860 17281.450381 17281.177471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        862 17281.448390 17280.945651</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     864 17281.369614 17280.945651</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     866 17281.303934 17280.945651</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        868 17281.250802 17280.800450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     870 17281.238533 17280.800450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     872 17281.223261 17280.800450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        874 17281.177471 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     876 17281.024470 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     878 17280.950337 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     880 17280.945651 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     882 17280.939912 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     884 17280.816046 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     886 17280.800450 17280.488585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       888 17280.738456 17280.447101</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       890 17280.664631 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     892 17280.577249 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     894 17280.566783 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     896 17280.538991 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     898 17280.511395 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     900 17280.488585 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     902 17280.459344 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     904 17280.447101 17280.390325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       906 17280.446459 17280.382631</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     908 17280.422497 17280.382631</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     910 17280.420917 17280.381469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     912 17280.406656 17280.381469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     914 17280.406429 17280.381469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     916 17280.394455 17280.379401</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     918 17280.390325 17280.379401</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     920 17280.388261 17280.379401</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       922 17280.387657 17280.375301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     924 17280.387214 17280.375301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       926 17280.382631 17280.374067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     928 17280.382496 17280.374067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       930 17280.381469 17280.373924</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     932 17280.379656 17280.373924</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> HI-REDUCTION     934 17280.379401 17280.373924</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     936 17280.377978 17280.373666</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       938 17280.377712 17280.372196</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        940 17280.375615 17280.367543</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     942 17280.375301 17280.367543</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     944 17280.374265 17280.367543</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     946 17280.374067 17280.367543</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     948 17280.373924 17280.367543</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       950 17280.373666 17280.366638</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       952 17280.372196 17280.366393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     954 17280.370941 17280.366393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        956 17280.369039 17280.360078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     958 17280.368943 17280.360078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     960 17280.368258 17280.360078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     962 17280.367543 17280.360078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     964 17280.366638 17280.360078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     966 17280.366395 17280.360078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        968 17280.366393 17280.358415</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        970 17280.364882 17280.356231</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        972 17280.364704 17280.352703</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        974 17280.361998 17280.350130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        976 17280.360738 17280.346336</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     978 17280.360395 17280.346336</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     980 17280.360078 17280.346336</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> REFLECTION       982 17280.358415 17280.344675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     984 17280.356231 17280.344675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     986 17280.352703 17280.344675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     988 17280.350130 17280.344675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     990 17280.349130 17280.344675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXTENSION        992 17280.348501 17280.341423</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     994 17280.347252 17280.341423</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     996 17280.346336 17280.341423</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION     998 17280.346022 17280.341423</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LO-REDUCTION    1000 17280.345873 17280.341423</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Exiting from Nelder Mead minimizer</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     1002 function evaluations used</span>
 <span class="r-in"><span><span class="co"># extract results</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># regression coefficient vector</span></span></span>
 <span class="r-in"><span><span class="va">res2</span><span class="op">$</span><span class="va">beta</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.78454129  0.61702723 -0.06455763  0.53461080 -3.17474390  0.12808225</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.08644778</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.64077894  0.62582753 -0.08293688  0.53247068 -0.12437312 -0.16298836</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [7] -1.10550227</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># check likelihood</span></span></span>
 <span class="r-in"><span><span class="op">-</span><span class="fu">ll</span><span class="op">(</span><span class="va">res2</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -19536.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -17280.34</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># number of calls to log lik function</span></span></span>
 <span class="r-in"><span><span class="co"># since optim does not return the number of</span></span></span>
 <span class="r-in"><span><span class="co"># iterations</span></span></span>
 <span class="r-in"><span><span class="va">res2</span><span class="op">$</span><span class="va">iter</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function gradient </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      643      643 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     1002       NA </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># optim does not calculated working weights</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res2</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span></span>

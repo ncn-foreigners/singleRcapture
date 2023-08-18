@@ -14,7 +14,7 @@ estimatePopsize.fit and estimatePopsize."><!-- mathjax --><script src="https://c
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,8 +62,9 @@ control parameters for regression fitting in
 <span>  maxiter <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  printEveryN <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  start <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  optimMethod <span class="op">=</span> <span class="st">"L-BFGS-B"</span>,</span>
+<span>  coefStart <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  etaStart <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  optimMethod <span class="op">=</span> <span class="st">"Nelder-Mead"</span>,</span>
 <span>  silent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  optimPass <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  stepsize <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -106,14 +107,16 @@ taken into account when considering convergence (and all of the above).</p></li>
 specified in <code>verbose</code>, by default set to <code>1</code>.</p></dd>
 
 
-<dt>start</dt>
+<dt>coefStart, etaStart</dt>
 <dd><p>initial parameters for regression coefficients
-if <code>NULL</code> they will be derived internally.</p></dd>
+or linear predictors if <code>NULL</code>. For <code>IRLS</code> fitting only <code>etaStart</code>
+is needed so if <code>coefStart</code> is provided it will be converted to <code>etaStart</code>,
+for <code>optim</code> fitting <code>coefStart</code> is neccesary and argument <code>etaStart</code>
+will be ignored.</p></dd>
 
 
 <dt>optimMethod</dt>
-<dd><p>method of <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> used L-BFGS-B is the default
-except for negative binomial and one inflated models where <code>"Nelder-Mead"</code> is used.</p></dd>
+<dd><p>method of <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> used  <code>"Nelder-Mead"</code> is the default .</p></dd>
 
 
 <dt>silent</dt>

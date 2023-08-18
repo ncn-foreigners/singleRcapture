@@ -16,7 +16,7 @@ are omitted."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,7 @@ are omitted.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">hatvalues</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for singleR</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">dfbeta</a></span><span class="op">(</span><span class="va">model</span>, maxitNew <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">dfbeta</a></span><span class="op">(</span><span class="va">model</span>, maxitNew <span class="op">=</span> <span class="fl">1</span>, trace <span class="op">=</span> <span class="cn">FALSE</span>, cores <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for singleR</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span></span>
@@ -99,6 +99,17 @@ Notably <code>dfpopsize.singleR</code> calls <code>dfbeta.singleR</code> if no
 <dd><p>maximal number of iterations for regressions with starting
 points <em></em>\(\hat{\boldsymbol{\beta}}\) on data
 specified at call for <code>model</code> after the removal of k'th row. By default 1.</p></dd>
+
+
+<dt>trace</dt>
+<dd><p>logical value specifying whether to tracking results.</p></dd>
+
+
+<dt>cores</dt>
+<dd><p>Number of processor cores to be used,
+any number greater than 1 activates code designed with <code>doParallel</code>,
+<code>foreach</code> and <code>parallel</code> packages. Note that for now using parallel
+computing makes tracing impossible so <code>trace</code> parameter is ignored in this case.</p></dd>
 
 
 <dt>type</dt>

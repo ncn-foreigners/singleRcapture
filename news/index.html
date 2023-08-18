@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,17 @@
       <small>Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0.1" id="singlercapture-0201">singleRcapture 0.2.0.1<a class="anchor" aria-label="anchor" href="#singlercapture-0201"></a></h2>
+<ul><li>Added <code>offset</code> argument to <code>estimatePopsize</code>
+</li>
+<li>Added options for parallel computing in <code>bootstrap</code> and in <code>dfbeta</code>
+</li>
+<li>Added deviance for all negative binomial based models. (NOTE: I believe that they are very slow for now and may change after I verify one theoretical results that will speed these computations)</li>
+<li>Overhaul of starting points (new methods and added linear predictors start in <code>IRLS</code>)</li>
+<li>Code for weights in <code>IRLS</code> fitting was speed up</li>
+<li>Minor bugfixes</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="singlercapture-020">singleRcapture 0.2.0<a class="anchor" aria-label="anchor" href="#singlercapture-020"></a></h2><p class="text-muted">CRAN release: 2023-06-11</p>
 <div class="section level4">
