@@ -14,7 +14,7 @@ dfpopsize(model, ...)
 
 \method{hatvalues}{singleR}(model, ...)
 
-\method{dfbeta}{singleR}(model, maxitNew = 1, ...)
+\method{dfbeta}{singleR}(model, maxitNew = 1, trace = FALSE, cores = 1, ...)
 
 \method{residuals}{singleR}(
   object,
@@ -37,6 +37,13 @@ Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no
 \item{maxitNew}{maximal number of iterations for regressions with starting
 points \mjseqn{\hat{\boldsymbol{\beta}}} on data
 specified at call for \code{model} after the removal of k'th row. By default 1.}
+
+\item{trace}{logical value specifying whether to tracking results.}
+
+\item{cores}{Number of processor cores to be used,
+any number greater than 1 activates code designed with \code{doParallel},
+\code{foreach} and \code{parallel} packages. Note that for now using parallel
+computing makes tracing impossible so \code{trace} parameter is ignored in this case.}
 
 \item{type}{a type of residual to return.}
 

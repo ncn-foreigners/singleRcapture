@@ -72,12 +72,9 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     z <- omega + (1 - omega) * lambda / (exp(lambda) - 1) # expected for I's
     #z <- ifelse(y == 1, y, 0)
     
-    G00 <- prior * ((-(z * (1 - lambda / (exp(lambda) - 1)) ^ 2) / 
+    G00 <- prior * (-(z * (1 - lambda / (exp(lambda) - 1)) ^ 2) / 
     (omega + (lambda * (1 - omega)) / (exp(lambda) - 1)) ^ 2 - 
-    (1 - z) / (1 - omega) ^ 2) * (omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2) + 
-    ((z * (1 - lambda / (exp(lambda) - 1))) / 
-    (omega + (lambda * (1 - omega)) / (exp(lambda) - 1)) - 
-    (1 - z) / (1 - omega)) * omegaLink(eta[, 2], inverse = TRUE, deriv = 2))
+    (1 - z) / (1 - omega) ^ 2) * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed derivative
     G01 <- prior * (((z * ((lambda - 1) * exp(lambda) + 1)) / 
@@ -89,18 +86,14 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     # XXXX <- (1 - omega) * lambda * (exp(lambda) - 1) / (exp(lambda) - 1)
     XXXX <- (1 - omega) * lambda
     
-    G11 <- prior * (lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)  * 
-    ((1 - z) * (-exp(lambda) / (exp(lambda) - 1)) + XXXX / lambda +
-    (z * ((1 - omega) / (exp(lambda) - 1) - ((1 - omega) * lambda * exp(lambda)) /
-    (exp(lambda) - 1) ^ 2)) / (((1 - omega) * lambda) / (exp(lambda) - 1) + omega)) +
-    (lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2) * 
+    G11 <- prior * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
     ((1 - z) * (exp(2 * lambda) / (exp(lambda) - 1) ^ 2 - exp(lambda) / (exp(lambda) - 1))-
     XXXX / lambda ^ 2 + (z * ((2 * (1 - omega) * lambda * exp(2 * lambda)) / (exp(lambda) - 1) ^ 3-
     ((1 - omega) * lambda * exp(lambda)) / (exp(lambda) - 1) ^ 2-
     (2 * (1 - omega) * exp(lambda)) / (exp(lambda) - 1) ^ 2)) /
     (((1 - omega) * lambda) / (exp(lambda) - 1) + omega) - 
     (z * ((1 - omega) / (exp(lambda) - 1) - ((1 - omega) * lambda * exp(lambda))/
-    (exp(lambda) - 1) ^ 2) ^ 2) / (((1 - omega) * lambda) / (exp(lambda) - 1) + omega) ^ 2))
+    (exp(lambda) - 1) ^ 2) ^ 2) / (((1 - omega) * lambda) / (exp(lambda) - 1) + omega) ^ 2)
     
     matrix(
       -c(G11, # lambda
@@ -142,11 +135,21 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     pseudoResid
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
+    }
+    
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -154,14 +157,14 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         omega  <-  omegaLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         -sum(weight * (-log(1 + exp(eta[, 2])) + z * log(exp(eta[, 2]) + lambda / (exp(lambda) - 1)) +
         (1 - z) * (y * log(lambda) - log(exp(lambda) - 1) - lgamma(y + 1))))
       },
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         omega  <-  omegaLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -186,7 +189,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
       },
       function (beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         omega  <-  omegaLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
 
@@ -357,22 +360,27 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
   
   # new
   getStart <- expression(
-    if (!is.null(controlMethod$start)) {
-      start <- controlMethod$start
-    } else {
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        (sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
+      ) + offset
+      # print(summary(etaStart))
+      # stop("abc")
+    } else if (method == "optim") {
       init <- c(
         family$links[[1]](mean(observed)),
         family$links[[2]](mean(observed == 1) + .01)
       )
       if (attr(terms, "intercept")) {
-        start <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
       } else {
-        start <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
       }
       if ("(Intercept):omega" %in% colnames(Xvlm)) {
-        start <- c(start, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+        coefStart <- c(coefStart, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
       } else {
-        start <- c(start, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+        coefStart <- c(coefStart, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
       }
     }
   )

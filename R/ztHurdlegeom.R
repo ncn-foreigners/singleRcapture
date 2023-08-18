@@ -61,9 +61,10 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     switch (type,
-    "nontrunc" = PI * (1 - exp(-lambda)) + (1 - PI) * (lambda ^ 2 + lambda - lambda * exp(-lambda)),
-    "trunc" = (PI + (1 - PI) * (lambda + lambda ^ 2 - lambda * exp(-lambda)) / (1 - exp(-lambda))) - (PI + (1 - PI) * lambda) ^ 2
-    )
+    "nontrunc" = (1 - 1 / (1 + lambda)) * (PI + (1 - PI) * lambda + 2 * lambda ^ 2),
+    "trunc" = (PI + (1 - PI) * (lambda * (1 + lambda) + lambda ^ 2 - lambda * (1 + lambda) ^ (-2)) / 
+      (1 - 1 / (1 + lambda) - lambda * (1 + lambda) ^ (-2)))
+    ) - mu.eta(eta = eta, type = type) ^ 2
   }
   
   Wfun <- function(prior, y, eta, ...) {
@@ -119,10 +120,19 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     pseudoResid
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
     }
     z <- as.numeric(y == 1)
     
@@ -131,7 +141,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -139,7 +149,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
         (1 - z) * ((y - 2) * log(lambda) - (y - 1) * log(1 + lambda))))
       },
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -160,7 +170,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
       },
       function (beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -284,24 +294,26 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (is.null(controlMethod$piStart)) {
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "pi$")]
-      cc <- unlist(strsplit(x = cc, ":pi"))
-      cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-      })
-      start <- c(start, cc)
-    } else {
-      start <- c(start, controlMethod$piStart)
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+      ) + offset
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](mean(observed == 1) + .01)
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):pi" %in% colnames(Xvlm)) {
+        coefStart <- c(coefStart, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        coefStart <- c(coefStart, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   

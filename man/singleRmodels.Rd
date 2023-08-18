@@ -81,6 +81,7 @@ zotgeom(lambdaLink = c("log", "neglog"), ...)
 zotnegbin(
   nSim = 1000,
   epsSim = 1e-08,
+  eimStep = 6,
   lambdaLink = c("log", "neglog"),
   alphaLink = c("log", "neglog"),
   ...

@@ -15,7 +15,9 @@
 #' @param method method of estimation same as in \code{estimatePopsize}.
 #' @param priorWeights vector of prior weights its the same argument as weights
 #' in \code{estimatePopsize}.
-#' @param start initial value of regression parameters.
+#' @param etaStart,coefStart initial value of regression parameters or
+#' linear predictors.
+#' @param offset offset passed from by default passed from [estimatePopsize()].
 #' @param ... arguments to pass to other methods.
 #' 
 #' @details If \code{method} argument was set to \code{"optim"} the \code{stats::optim}
@@ -99,40 +101,40 @@
 #' 
 #' @examples 
 #' \donttest{
-#' # Get data
+# Get data
 #' summary(farmsubmission)
 #' 
 #' # construct vglm model matrix
 #' X <- matrix(data = 0, nrow = 2 * NROW(farmsubmission), ncol = 7)
 #' X[1:NROW(farmsubmission), 1:4] <- model.matrix(
-#'   ~ 1 + log_size + log_distance + C_TYPE, 
-#'   farmsubmission
+#' ~ 1 + log_size + log_distance + C_TYPE, 
+#' farmsubmission
 #' )
+#' 
 #' 
 #' X[-(1:NROW(farmsubmission)), 5:7] <- X[1:NROW(farmsubmission), c(1, 3, 4)]
 #' 
-#' # this atrrtibute tells the function which elements of the design matrix 
+#' # this attribute tells the function which elements of the design matrix 
 #' # correspond to which linear predictor 
 #' attr(X, "hwm") <- c(4, 3)
 #' 
 #' # get starting points
 #' start <- glm.fit(
-#'   y = farmsubmission$TOTAL_SUB, 
-#'   x = X[1:NROW(farmsubmission), 1:4], 
-#'   family = poisson()
+#' y = farmsubmission$TOTAL_SUB, 
+#' x = X[1:NROW(farmsubmission), 1:4], 
+#' family = poisson()
 #' )$coefficients
-#'
-#' start <- c(start, 0, 0, 0)
 #' 
-#' # call function
 #' res <- estimatePopsize.fit(
-#'   y = farmsubmission$TOTAL_SUB, 
-#'   X = X, 
-#'   method = "IRLS", 
-#'   priorWeights = 1, 
-#'   family = ztoigeom(), 
-#'   control = controlMethod(verbose = 5), 
-#'   start = start
+#' y = farmsubmission$TOTAL_SUB, 
+#' X = X, 
+#' method = "IRLS", 
+#' priorWeights = 1, 
+#' family = ztoigeom(), 
+#' control = controlMethod(verbose = 5), 
+#' coefStart = c(start, 0, 0, 0),
+#' etaStart = matrix(X %*% c(start, 0, 0, 0), ncol = 2),
+#' offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #' )
 #' 
 #' # extract results
@@ -141,7 +143,7 @@
 #' res$beta
 #' 
 #' # check likelihood
-#' ll <- ztnegbin()$makeMinusLogLike(y = farmsubmission$TOTAL_SUB, X = X)
+#' ll <- ztoigeom()$makeMinusLogLike(y = farmsubmission$TOTAL_SUB, X = X)
 #' 
 #' -ll(res$beta)
 #' 
@@ -159,8 +161,9 @@
 #'   method = "optim", 
 #'   priorWeights = 1, 
 #'   family = ztoigeom(), 
-#'   start = start, 
-#'   control = controlMethod(verbose = 1)
+#'   coefStart = c(start, 0, 0, 0),
+#'   control = controlMethod(verbose = 1, silent = TRUE),
+#'   offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #' )
 #' # extract results
 #' 
@@ -189,7 +192,9 @@ estimatePopsize.fit <- function(y, X,
                                 control,
                                 method,
                                 priorWeights,
-                                start,
+                                coefStart,
+                                etaStart,
+                                offset,
                                 ...) {
   hwm <- attr(X, "hwm")
   tbgname <- colnames(X)
@@ -199,24 +204,25 @@ estimatePopsize.fit <- function(y, X,
   if (method == "IRLS") {
     
     FITT <- singleRcaptureinternalIRLSmultipar(
-      dependent = y,
-      covariates = X,
-      eps = control$epsilon,
-      family = family,
-      maxiter = control$maxiter,
-      weights = priorWeights,
-      start = start,
-      silent = control$silent,
-      trace = control$verbose,
-      stepsize = control$stepsize,
-      hwm = hwm,
-      momentumFactor = control$momentumFactor,
+      dependent          = y,
+      covariates         = X,
+      eps                = control$epsilon,
+      family             = family,
+      maxiter            = control$maxiter,
+      weights            = priorWeights,
+      etaStart           = etaStart,
+      silent             = control$silent,
+      trace              = control$verbose,
+      stepsize           = control$stepsize,
+      hwm                = hwm,
+      momentumFactor     = control$momentumFactor,
       momentumActivation = control$momentumActivation,
-      check = control$checkDiagWeights,
-      epsWeights = control$weightsEpsilon,
-      crit = control$criterion,
-      saveLog = control$saveIRLSlogs,
-      printOften = control$printEveryN
+      check              = control$checkDiagWeights,
+      epsWeights         = control$weightsEpsilon,
+      crit               = control$criterion,
+      saveLog            = control$saveIRLSlogs,
+      printOften         = control$printEveryN,
+      offset             = offset
     )
     
     iter <- FITT$iter
@@ -226,12 +232,14 @@ estimatePopsize.fit <- function(y, X,
   } else if (method == "optim") {
     logLike <- family$makeMinusLogLike(
       y = y, X = X, 
-      weight = priorWeights
+      weight = priorWeights,
+      offset = offset
     )
     grad <- family$makeMinusLogLike(
       y = y, X = X, 
       weight = priorWeights, 
-      deriv = 1
+      deriv  = 1,
+      offset = offset
     )
     
     weights <- priorWeights
@@ -260,7 +268,7 @@ estimatePopsize.fit <- function(y, X,
       expr = {
         FITT <- stats::optim(
           fn = logLike,
-          par = start,
+          par = coefStart,
           gr = function(x) -grad(x),
           method = methodopt,
           # hessian = TRUE,
@@ -325,7 +333,7 @@ estimatePopsize.fit <- function(y, X,
     stop("fitting error try another model
           (negative binomial models are highly volitile)")
   }
-
+  
   beta <- as.vector(beta)
 
   list(

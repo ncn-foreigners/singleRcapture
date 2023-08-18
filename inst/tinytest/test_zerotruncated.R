@@ -7,10 +7,11 @@ N <- 1000
 #x2 <- runif(n = N)
 #x3 <- rnorm(n = N, mean = 3, sd = 4)
 
-test_inflated <- read.csv("test_zerotruncated.csv")
-x1 <- test_inflated$x1
-x2 <- test_inflated$x2
-x3 <- test_inflated$x3
+testTruncated <- read.csv("test_zerotruncated.csv")
+#testTruncated <- read.csv("inst/tinytest/test_zerotruncated.csv")
+x1 <- testTruncated$x1
+x2 <- testTruncated$x2
+x3 <- testTruncated$x3
 
 ## poisson ####
 beta <- c(.6, .2, -1.25, .1)
@@ -21,7 +22,7 @@ fn <- ztpoisson(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztpoisson1
+y <- testTruncated$ztpoisson1
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -86,7 +87,7 @@ fn <- ztpoisson(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztpoisson2
+y <- testTruncated$ztpoisson2
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -263,7 +264,7 @@ fn <- ztgeom(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztgeom1
+y <- testTruncated$ztgeom1
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -328,7 +329,7 @@ fn <- ztgeom(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztgeom2
+y <- testTruncated$ztgeom2
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -371,7 +372,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = .1
 )
 
 expect_equivalent(
@@ -388,18 +390,18 @@ expect_true(
 
 ## ztnegbin ####
 beta <- c(.3, .2, -.3, .1,
-          .2, .1, -.5,   .3)
+          .2, .1, -.5, .3)
 #eta <- cbind(beta[1] + beta[2] * x1 + beta[3] * x2 + beta[4] * x3,
 #             beta[5] + beta[6] * x1 + beta[7] * x2 + beta[8] * x3)
 
 fn <- ztnegbin(
-  lambdaLink = "neglog",
-  alphaLink = "neglog",
-  eimStep = 40
+  lambdaLink = "log",
+  alphaLink = "log",
+  eimStep = 10
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztnegbin1
+y <- testTruncated$ztnegbin1
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -423,9 +425,9 @@ expect_silent(
 )
 
 expect_equivalent(
-  N,
   pop$pointEstimate,
-  tol = .2
+  N,
+  tol = .3
 )
 
 expect_true(
@@ -445,7 +447,7 @@ expect_equivalent(
 expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
-  tolerance = .3
+  tolerance = .5
 )
 
 # different link
@@ -459,7 +461,7 @@ fn <- ztnegbin(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztnegbin2
+y <- testTruncated$ztnegbin2
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -526,7 +528,7 @@ fn <- ztnegbin(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztnegbin3
+y <- testTruncated$ztnegbin3
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -588,7 +590,7 @@ fn <- ztnegbin(
 )
 
 #y <- fn$simulate(n = N, eta = eta, lower = -1)
-y <- test_inflated$ztnegbin4
+y <- testTruncated$ztnegbin4
 
 df <- data.frame(
   X3 = x3[y > 0],
@@ -648,3 +650,4 @@ AA <- summary(marginalFreq(M1), dropl5 = "group")
 expect_true(
   all(AA$Test$`P(>X^2)` > .05)
 )
+

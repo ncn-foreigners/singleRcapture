@@ -76,16 +76,12 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     
     G00 <- -piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * 
     ((PI - z) / ((PI - 1) ^ 2 * PI) + (PI - z) / ((PI - 1) * PI ^ 2) -
-    1 / ((PI - 1) * PI)) + piLink(eta[, 2], inverse = TRUE, deriv = 2) * 
-    (z / PI - (1 - z) / (1 - PI))
+    1 / ((PI - 1) * PI))
     
     G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
-    ((-YY * exp(2 * lambda) + 
-    ((1 - z) * lambda ^ 3 + (z - 1) * lambda ^ 2 + 2 * YY * lambda + 2 * YY) * exp(lambda) +
-    (-YY - z + 1) * lambda ^ 2 - YY * 2 * lambda - YY)) / 
-    (lambda ^ 2 * (exp(lambda) - lambda - 1) ^ 2) +
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
-    (-(1 - z) * lambda / (-lambda - 1 + exp(lambda)) + YY / lambda - 1)
+    (-YY * exp(2 * lambda) + ((1 - z) * lambda ^ 3 + (z - 1) * lambda ^ 2 + 2 * YY * lambda + 2 * YY) * 
+    exp(lambda) + (-YY - z + 1) * lambda ^ 2 - YY * 2 * lambda - YY) / 
+    (lambda ^ 2 * (exp(lambda) - lambda - 1) ^ 2)
     
     matrix(
       -c(G11 * prior, # lambda
@@ -125,11 +121,21 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     pseudoResid
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
     }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
+    }
+    
     z <- as.numeric(y == 1)
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -137,15 +143,15 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         logistic <- -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI)))
-        zot <- -sum(weight * (1 - z) * (y * log(lambda) - lambda - log(factorial(y)) - log(1 - exp(-lambda) - lambda * exp(-lambda))))
+        zot <- -sum(weight * (1 - z) * (y * log(lambda) - lambda - lgamma(y + 1) - log(1 - exp(-lambda) - lambda * exp(-lambda))))
         zot + logistic
       },
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -166,7 +172,7 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
       },
       function (beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -239,9 +245,9 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     idealLambda <- exp(etaSat)
     diff <- ifelse(
       y == 1,
-      -log(PI), ifelse(y == 2, log(2),
-      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
-      (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)))
+      -log(PI), ifelse(y == 2, 0,
+      y * etaSat - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - lgamma(y + 1)) - 
+      (log(1 - PI) + y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)) - lgamma(y + 1))
     )
     
     if (any(diff < 0)) {
@@ -328,24 +334,26 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (is.null(controlMethod$piStart)) {
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "pi$")]
-      cc <- unlist(strsplit(x = cc, ":pi"))
-      cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-      })
-      start <- c(start, cc)
-    } else {
-      start <- c(start, controlMethod$piStart)
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+      ) + offset
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](mean(observed == 1) + .01)
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):pi" %in% colnames(Xvlm)) {
+        coefStart <- c(coefStart, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        coefStart <- c(coefStart, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   

@@ -1,7 +1,5 @@
 #' @rdname singleRmodels
 #' @importFrom lamW lambertW0
-#' @importFrom stats glm.fit
-#' @importFrom stats poisson
 #' @export
 ztpoisson <- function(lambdaLink = c("log", "neglog"),
                       ...) {
@@ -46,14 +44,11 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     Ey <- mu.eta(eta)
     
-    G1 <- (Ey / lambda - 1 / (1 - exp(-lambda))) * 
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
-    
     G11 <- (exp(2 * lambda) / (exp(lambda) - 1) ^ 2 -
     exp(lambda) / (exp(lambda) - 1) - Ey / lambda ^ 2) *
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
-    matrix(-prior * (G11 + G1), ncol = 1, 
+    matrix(-prior * G11, ncol = 1, 
            dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -64,10 +59,19 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight)
   }
 
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -75,12 +79,13 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        lambda <- lambdaLink((as.matrix(X) %*% beta)[, 1], inverse = TRUE)
+        lambda <- lambdaLink((as.matrix(X) %*% beta + offset)[, 1], 
+                             inverse = TRUE)
         
         -sum(weight * (y * log(lambda) - log(exp(lambda) - 1) - lgamma(y + 1)))
       },
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         G1 <- (y / lambda - 1 / (1-exp(-lambda))) * weight * 
@@ -95,7 +100,7 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
         t(as.matrix(X)) %*% G1
       },
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         G1 <- (y / lambda - 1 / (1 - exp(-lambda))) * 
@@ -208,14 +213,20 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12))
+      ) + offset
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed))
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+    }
   )
   
   structure(

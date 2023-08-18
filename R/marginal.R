@@ -33,6 +33,7 @@ marginalFreq <- function(object,
   if (missing(range)) {range <- (min(y):max(y))}
   y <- table(y)[names(table(y)) %in% as.character(range)]
   y <- y[!is.na(y)]
+  
   trcount <- object$trcount
   if(!is.null(onecount)) {
     trcount <- onecount
@@ -45,8 +46,7 @@ marginalFreq <- function(object,
     1:nrow(object$linearPredictors), 
     FUN = function(x) {object$model$densityFunction(
       x = range, 
-      eta = matrix(object$linearPredictors[x, ], 
-                   ncol = length(object$model$etaNames))
+      eta = object$linearPredictors[x, , drop = FALSE]
     )}
   )
   res <- rowSums(res)

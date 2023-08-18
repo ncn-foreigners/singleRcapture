@@ -1,7 +1,7 @@
 #' @rdname singleRmodels
 #' @importFrom stats uniroot
 #' @importFrom stats dnbinom
-#' @importFrom rootSolve multiroot
+#' @importFrom stats optim
 #' @export
 ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                      lambdaLink = c("log", "neglog"), 
@@ -87,18 +87,29 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   # Computing the expected value of di/trigamma functions on (y + 1/alpha)
   
   compExpect <- function(eta) {
-    lambda <- lambdaLink(eta[1], inverse = TRUE)
-    alpha  <-  alphaLink(eta[2], inverse = TRUE)
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    res <- res1 <- 0
+    #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
+    res <- rep(0, NROW(eta))
     k <- 1
-    finished <- c(FALSE, FALSE)
+    finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
-      prob <- stats::dnbinom(x = k:(k + eimStep), size = 1 / alpha, mu = lambda) / (1 - P0)
-      if (any(!is.finite(prob))) prob <- 0
-      toAdd <- cbind(compdigamma(y = k:(k + eimStep), alpha = alpha), 
-                     comptrigamma(y = k:(k + eimStep), alpha = alpha)) * prob
-      toAdd <- colSums(toAdd)
+      prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
+        stats::dnbinom(
+          x = x, 
+          size = 1 / alpha, 
+          mu = lambda
+        ) / (1 - P0)
+      })
+      trg <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
+        comptrigamma(y = x, alpha = alpha)
+      })
+      prob[!(is.finite(prob))] <- 0
+      trg[!(is.finite(trg))] <- 0
+      toAdd <- trg * prob
+      toAdd <- rowSums(toAdd)
       k <- k + eimStep + 1
       res <- res + toAdd
       finished <- abs(toAdd) < epsSim
@@ -110,11 +121,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     Ey <- mu.eta(eta = eta)
-    Edig <- apply(X = eta, MARGIN = 1, FUN = function(x) {compExpect(x)})
-    Etrig <- Edig[2,]
-    Edig <- Edig[1,]
+    Etrig <- compExpect(eta)
     
-    G00 <- ((Etrig + ((lambda * alpha + 1) ^ (1 / alpha) * 
+    G00 <- prior * (Etrig + ((lambda * alpha + 1) ^ (1 / alpha) * 
     (lambda ^ 2 * alpha ^ 2 + 2 * lambda * alpha + 1) * log(lambda * alpha + 1) ^ 2 +
     ((lambda * alpha + 1) ^ (1 / alpha) * (2 * lambda ^ 2 * alpha ^ 3 + 
     (4 * lambda - 2 * lambda ^ 2) * alpha ^ 2 + (2 - 2 * lambda) * alpha) + 
@@ -127,11 +136,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     2 * Ey * lambda * alpha ^ 3 - Ey * alpha ^ 2) /
     (alpha ^ 4 * (lambda * alpha + 1) ^ 2 * 
     ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2)) * 
-    alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-    (Edig + ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) +
-    (Ey - lambda) * alpha * (lambda * alpha + 1) ^ (1 / alpha) - Ey * alpha) /
-    (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) - 1))) *
-    alphaLink(eta[, 1], inverse = TRUE, deriv = 2))
+    alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed derivative
     G01 <- -((alpha * lambda + 1) ^ (1 / alpha + 1) *
@@ -145,13 +150,10 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     # second beta derivative
     
-    G11 <- (((alpha * lambda + 1) ^ (2 / alpha) * (alpha * lambda ^ 2 - 2 * alpha * Ey * lambda - Ey) +
+    G11 <- prior * ((alpha * lambda + 1) ^ (2 / alpha) * (alpha * lambda ^ 2 - 2 * alpha * Ey * lambda - Ey) +
     (alpha * lambda + 1) ^ (1 / alpha) * ((1 - alpha) * lambda ^ 2 + 4 * alpha * Ey * lambda + 2 * Ey) - 2 * alpha * Ey * lambda - Ey) /
     (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2) *
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 -
-    ((lambda - Ey) * (alpha * lambda + 1) ^ (1 / alpha) + Ey) /
-    (lambda * (alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) - 1)) *
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda
@@ -199,9 +201,17 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     pseudoResid
   }
 
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, ...) {
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
@@ -211,7 +221,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     switch (deriv,
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
@@ -220,7 +230,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         log(1 - (1 + lambda * alpha) ^ (-1 / alpha))))
       },
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
@@ -249,7 +259,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       },
       function(beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         res <- matrix(nrow = length(beta), 
@@ -325,8 +335,118 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
 
   devResids <- function (y, eta, wt, ...) {
-    # TODO:: implement theoritical results
-    0
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    mu <- mu.eta(eta = eta)
+    
+    logLikFit <- (
+      lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
+      (y + 1 / alpha) * log(1 + alpha * lambda) +
+      y * log(lambda * alpha) - log(1 - (1 + alpha * lambda) ^ (-1 / alpha))
+    )
+    
+    yUnq <- unique(y)
+    
+    if (any(yUnq > 77)) {
+      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+    }
+    
+    # findL <- function(t) {
+    #   yNow <- yUnq[t]
+    #   nleqslv::nleqslv(
+    #     x = -c(.5, log(yNow), ifelse(yNow < 10, 1, 2)),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    #        
+    #       prob <- 1 - (1+a*l)^(-1/a)
+    #       prob <- 1 / prob
+    #       c(l*prob - yNow,# s der
+    #         yNow/l+(1+yNow*a)/(1+l*a)+s*yNow*l-(yNow-l)/(l*(1+l*a))-s*yNow*(yNow-l)/(l*(1+l*a)),# lambda der
+    #         (1+yNow*a)*l+(yNow-l)*(1+s*yNow)*((1+a*l)*log(1+a*l)-a*l)+l*(1+a*l)*(digamma(1/a)+log(a)+log(yNow+1/a))-(digamma(yNow+1/a)+1)*(1+a*l)*l)#alpha der
+    #     },
+    #     control = list(
+    #       xtol = .Machine$double.eps
+    #     )
+    #   )$x
+    # }
+    
+    ## This could be more stable but this will do for now
+    
+    findL <- function(t) {
+      yNow <- yUnq[t]
+      stats::optim(
+        #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
+        par = c(0, log(yNow), -10),
+        fn = function(x) {
+          s <- x[1]
+          l <- exp(x[2])
+          a <- exp(x[3])
+          
+          prob <- 1 - (1+a*l)^(-1/a)
+          prob <- 1 / prob
+          sum(c((l*prob - yNow) * 4.5,# s der
+            yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
+            (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2,#alpha der
+            #this is experimental
+            lgamma(yNow+1/a)-lgamma(1/a) - lgamma(yNow+1)-(yNow+1/a)*log(1+a*l)+yNow*log(l*a)-log(1-(1+a*l)^(-1/a))) ^ 2) ^ .5
+        },
+        method = "BFGS",
+        control = list(maxit = 10000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+      )$par
+    }
+    
+    ### for testing 
+    # findL <- function(yNow) {
+    #   stats::optim(
+    #     par = c(0, .6, -14),
+    #     fn = function(x) {
+    #       s <- x[1]
+    #       l <- exp(x[2])
+    #       a <- exp(x[3])
+    # 
+    #       prob <- 1 - (1+a*l)^(-1/a)
+    #       prob <- 1 / prob
+    #       sum(c((l*prob - yNow) * 10,# s der
+    #             yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
+    #             (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2) ^ 2) ^ .5#alpha der
+    #     },
+    #     method = "BFGS",
+    #     control = list(maxit = 100000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
+    #   )
+    # }
+    
+    suppressWarnings({
+      logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
+        ifelse(yUnq[x] == 1, 0, {
+          xx <- findL(x)
+          lagrange <- xx[1]
+          l <- exp(xx[2])
+          a <- exp(xx[3])
+          (lgamma(yUnq[x] + 1 / a) - lgamma(1 / a) -
+              lgamma(yUnq[x] + 1) - (yUnq[x] + 1 / a) * log(1 + a * l) +
+              yUnq[x] * log(l * a) - log(1 - (1 + a * l) ^ (-1 / a)))
+        })
+      })
+    })
+    
+    logLikIdeal <- sapply(1:length(y), FUN = function(x) {
+      logLikIdeal[yUnq == y[x]]
+    })
+
+    diff <- logLikIdeal - logLikFit
+    
+    if (any(logLikFit > 0)) {
+      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      diff[logLikFit > 0]   <- 0
+    } else if (any(diff < 0)) {
+      warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
+    }
+    
+    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
+    
+    sign(y - mu) * sqrt(2 * wt * diff)
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -383,27 +503,30 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (controlModel$alphaFormula == ~ 1) {
-      start <- c(start, log(abs(mean(observed[wch$reg] ^ 2) - mean(observed[wch$reg])) / (mean(observed[wch$reg]) ^ 2 + .25)))
-    } else {
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "alpha$")]
-      cc <- unlist(strsplit(x = cc, ":alpha"))
-      cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-      })
-      if (attr(family$links, "linkNames")[1] == attr(family$links, "linkNames")[2])
-        start <- c(start, cc)
-      else
-        start <- c(start, -cc)
+    if (method == "IRLS") {
+      # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
+      init <- log(abs((observed / mean(observed) - 1) / observed) + .1)
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](ifelse(init < -.5, .1, init + .55))
+      ) + offset
+      #print(summary(etaStart))
+      #stop("abc")
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1)
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):alpha" %in% colnames(Xvlm)) {
+        coefStart <- c(coefStart, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        coefStart <- c(coefStart, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   

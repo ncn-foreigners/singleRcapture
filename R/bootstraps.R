@@ -3,7 +3,7 @@
 noparBoot <- function(family, formulas, y, X, modelFrame,
                       beta, weights, trcount, numboot,
                       eta, trace, visT, controlBootstrapMethod = NULL,
-                      method, N, ...) {
+                      method, N, offset, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
@@ -26,11 +26,15 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
   }
   
   while (k <= numboot) {
-    # TODO:: since modelframe is needed maybe revisit it and save some memmory on response
-    strap <- sample.int(replace = TRUE, n = n)
-    ystrap <- as.numeric(y[strap])
+    # TODO:: since modelframe is needed maybe revisit it and save some memory on response
+    strap        <- sample.int(replace = TRUE, n = n)
+    
+    ystrap       <- as.numeric(y[strap])
     weightsStrap <- as.numeric(weights[strap])
-    Xstrap <- modelFrame[strap, , drop = FALSE]
+    #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+    offsetStrap  <- offset[strap, , drop = FALSE]
+    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
       colnames(Xstrap) <- colnames(modelFrame)
@@ -53,7 +57,9 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta)
+        coefStart = jitter(beta),
+        etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+        offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
     )
@@ -64,9 +70,9 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       } else {
-        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       }
       if (isTRUE(trace)) {print(summary(theta))}
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
@@ -80,11 +86,86 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
   
   strappedStatistic
 }
+# multicore
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
+#' @importFrom doParallel registerDoParallel
+noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
+                                beta, weights, trcount, numboot,
+                                eta, cores, controlBootstrapMethod = NULL,
+                                method, N, offset, ...) {
+  n <- length(y)
+  famName <- family$family
+  
+  if (length(weights) == 1) {
+    weights <- rep(1, n)
+  }
+  
+  cl <- parallel::makeCluster(cores)
+  doParallel::registerDoParallel(cl)
+  on.exit(parallel::stopCluster(cl))
+  
+  strappedStatistic <- foreach::`%dopar%`(
+    obj = foreach::foreach(k = 1:numboot, .combine = c),
+    ex = {
+      theta <- NULL
+      while (is.null(theta)) {
+        # TODO:: since modelframe is needed maybe revisit it and save some memory on response
+        strap        <- sample.int(replace = TRUE, n = n)
+        
+        ystrap       <- as.numeric(y[strap])
+        weightsStrap <- as.numeric(weights[strap])
+        #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+        offsetStrap  <- offset[strap, , drop = FALSE]
+        Xstrap       <- modelFrame[strap, , drop = FALSE]
+        
+        if (!is.data.frame(Xstrap)) {
+          Xstrap <- as.data.frame(Xstrap)
+          colnames(Xstrap) <- colnames(modelFrame)
+        }
+        
+        wch <- singleRcaptureinternalDataCleanupSpecialCases(
+          family = family, observed = ystrap, popVar = "analytic")
+        if (famName == "zelterman") {
+          Xstrap1 <- singleRinternalGetXvlmMatrix(
+            X = Xstrap, formulas = formulas, family$etaNames)
+        }
+        Xstrap <- singleRinternalGetXvlmMatrix(
+          X = Xstrap, formulas = formulas, family$etaNames)
+        try(
+          theta <- estimatePopsize.fit(
+            y = ystrap[wch$reg],
+            X = Xstrap,
+            family = family,
+            control = controlBootstrapMethod,
+            method = method,
+            priorWeights = weightsStrap[wch$reg],
+            coefStart = jitter(beta),
+            etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+            offset = offsetStrap[wch$reg, , drop = FALSE]
+          )$beta,
+          silent = TRUE
+        )
+      }
+      if (famName == "zelterman") {
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
+      } else {
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
+      }
+      family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
+    }
+  )
+  
+  strappedStatistic
+}
 # semi parametric
+#' @importFrom graphics points
 semparBoot <- function(family, formulas, y, X, beta,
                        weights, trcount, numboot, eta,
                        trace, visT, controlBootstrapMethod = NULL,
-                       method, N, modelFrame, ...) {
+                       method, N, modelFrame, offset, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
   famName <- family$family
@@ -130,9 +211,12 @@ semparBoot <- function(family, formulas, y, X, beta,
     }
     strap <- rows
     
-    ystrap <- y[as.numeric(strap)]
+    ystrap       <- y[as.numeric(strap)]
     weightsStrap <- weights[as.numeric(strap)]
-    Xstrap <- modelFrame[strap, , drop = FALSE]
+    #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+    offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
+    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
     }
@@ -157,7 +241,9 @@ semparBoot <- function(family, formulas, y, X, beta,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta)
+        coefStart = jitter(beta),
+        etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+        offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
     )
@@ -168,9 +254,9 @@ semparBoot <- function(family, formulas, y, X, beta,
       k <- k - 1
     } else {
       if (famName == "zelterman") {
-        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       } else {
-        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
@@ -183,10 +269,106 @@ semparBoot <- function(family, formulas, y, X, beta,
   
   strappedStatistic
 }
-#' @importFrom stats rpois
-#' @importFrom stats rnbinom
-#' @importFrom stats rgeom
-#' @importFrom stats optim
+# multicore
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
+#' @importFrom doParallel registerDoParallel
+semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
+                               beta, weights, trcount, numboot,
+                               eta, cores, controlBootstrapMethod = NULL,
+                               method, N, offset, ...) {
+  n <- length(y)
+  famName <- family$family
+  
+  if (length(weights) == 1) {
+    weights <- rep(1, n)
+  }
+  
+  N <- round(sum(N))
+  
+  yTab <- table(y)
+  yTab <- c("0" = N - sum(yTab), yTab) / N
+  prob <- 0:max(as.numeric(names(yTab)))
+  names(prob) <- prob
+  prob[names(yTab)] <- yTab
+  prob[!(names(prob) %in% names(yTab))] <- 0
+  yTab <- table(y)
+  getX <- function(val, num) {
+    sample(which(y == names(strap)[j]), size = num, replace = TRUE)
+  }
+  
+  cl <- parallel::makeCluster(cores)
+  doParallel::registerDoParallel(cl)
+  on.exit(parallel::stopCluster(cl))
+  
+  strappedStatistic <- foreach::`%dopar%`(
+    obj = foreach::foreach(k = 1:numboot, .combine = c),
+    ex = {
+      theta <- NULL
+      while (is.null(theta)) {
+        strap1 <- stats::rmultinom(n = 1, size = N, prob = prob)
+        strap <- as.numeric(strap1)
+        names(strap) <- rownames(strap1)
+        strap <- strap[as.numeric(names(strap)) != 0]
+        rows <- NULL
+        for (j in 1:length(strap)) {
+          rows <- c(rows, getX(val = names(strap)[j], num = strap[j]))
+        }
+        strap <- rows
+        
+        ystrap       <- y[as.numeric(strap)]
+        weightsStrap <- weights[as.numeric(strap)]
+        #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+        offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
+        Xstrap       <- modelFrame[strap, , drop = FALSE]
+        
+        if (!is.data.frame(Xstrap)) {
+          Xstrap <- as.data.frame(Xstrap)
+        }
+        
+        wch <- singleRcaptureinternalDataCleanupSpecialCases(
+          family = family, observed = ystrap, popVar = "analytic")
+        
+        theta <- NULL
+        colnames(Xstrap) <- colnames(modelFrame)
+        
+        if (famName == "zelterman") {
+          Xstrap1 <- singleRinternalGetXvlmMatrix(
+            X = Xstrap, formulas = formulas, family$etaNames)
+        }
+        
+        Xstrap <- singleRinternalGetXvlmMatrix(
+          X = Xstrap, formulas = formulas, family$etaNames)
+        
+        try(
+          theta <- estimatePopsize.fit(
+            y = ystrap[wch$reg],
+            X = Xstrap,
+            family = family,
+            control = controlBootstrapMethod,
+            method = method,
+            priorWeights = weightsStrap[wch$reg],
+            coefStart = jitter(beta),
+            etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+            offset = offsetStrap[wch$reg, , drop = FALSE]
+          )$beta,
+          silent = TRUE
+        )
+      }
+      if (famName == "zelterman") {
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
+      } else {
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
+      }
+      family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
+    }
+  )
+  
+  strappedStatistic
+}
+#' @importFrom graphics points
 parBoot <- function(family,
                     formulas,
                     y, X,
@@ -200,6 +382,7 @@ parBoot <- function(family,
                     controlBootstrapMethod = NULL,
                     method,
                     modelFrame,
+                    offset,
                     ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
@@ -209,13 +392,11 @@ parBoot <- function(family,
   }
   
   if (family$family %in% c("chao", "zelterman")) {
-    cat("Probability model will be taken as given by poisson distribution",
-        "since zelterman and chao models are based on mixture of poisson",
-        "distribution semi-parametric bootstrap may be a better choice.", 
-        sep = "\n")
+    message(paste("Probability model will be taken as given by poisson distribution",
+                  "since zelterman and chao models are based on mixture of poisson",
+                  "distribution semi-parametric bootstrap may be a better choice.", 
+                  sep = "\n"))
   }
-  
-  dataFunc <- family$simulate
   
   
   if (isFALSE(grepl(x = famName, pattern = "^(zot|cha).*"))) {
@@ -254,27 +435,37 @@ parBoot <- function(family,
   k <- 1
   while (k <= numboot) {
     strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
+    
     weightsStrap <- as.numeric(weights[strap])
-    Xstrap <- modelFrame[strap, , drop = FALSE]
+    offsetStrap  <- offset[strap, , drop = FALSE]
+    #etaStrap     <- eta[strap, , drop = FALSE]
+    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    
     colnames(Xstrap) <- colnames(modelFrame)
     
     Xstrap <- singleRinternalGetXvlmMatrix(
     X = Xstrap, formulas = formulas, family$etaNames)
 
-    ystrap <- dataFunc(
+    ystrap <- family$simulate(
       n = N,
       eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
       lower = -1, upper = Inf
     )
+    
     weightsStrap <- weightsStrap[ystrap > 0]
+    #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
+    offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+    
     strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
     strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
     hwm <- attr(Xstrap, "hwm")
-    Xstrap <- subset(Xstrap, subset = strap)
+    
+    Xstrap <- Xstrap[strap, , drop = FALSE]
     ystrap <- ystrap[ystrap > 0]
 
     if (isTRUE(trace)) cat("Iteration number:", k, 
                            "sample size:", length(ystrap), sep = " ")
+    
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
     family = family, observed = ystrap, popVar = "analytic")
     
@@ -293,7 +484,9 @@ parBoot <- function(family,
         control = controlBootstrapMethod,
         method = method,
         priorWeights = weightsStrap[wch$reg],
-        start = jitter(beta)
+        coefStart = jitter(beta),
+        etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+        offset = offsetStrap[wch$reg, , drop = FALSE]
       )$beta,
       silent = TRUE
     )
@@ -305,9 +498,9 @@ parBoot <- function(family,
       k <- k - 1
     } else {
       if (famName != "zelterman") {
-        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       } else {
-        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames))
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
       }
       est <- family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
       if (visT) graphics::points(k - 1, est, pch = 1)
@@ -318,6 +511,125 @@ parBoot <- function(family,
     }
     
   }
+  
+  strappedStatistic
+}
+# multicore
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
+#' @importFrom doParallel registerDoParallel
+parBootMultiCore <- function(family, formulas, y, X, modelFrame,
+                               beta, weights, trcount, numboot,
+                               eta, cores, controlBootstrapMethod = NULL,
+                               method, N, offset, ...) {
+  n <- length(y)
+  famName <- family$family
+  if (length(weights) == 1) {
+    weights <- rep(1, length(y))
+  }
+  
+  if (family$family %in% c("chao", "zelterman")) {
+    message(paste("Probability model will be taken as given by poisson distribution",
+                  "since zelterman and chao models are based on mixture of poisson",
+                  "distribution semi-parametric bootstrap may be a better choice.", 
+                  sep = "\n"))
+  }
+  
+  
+  if (isFALSE(grepl(x = famName, pattern = "^(zot|cha).*"))) {
+    contr <- family$pointEst(pw = weights,
+                             eta = eta,
+                             contr = TRUE)
+  } else {
+    contr <- vector(mode = "numeric", length = length(y))
+    cond <- switch(
+      substr(famName, 1, 3),
+      "zot" = (y != 1),
+      "cha" = (y < 3)
+    )
+    contr[cond] <- family$pointEst(pw = weights[cond],
+                                   eta = eta,
+                                   contr = TRUE)
+    contr[!cond] <- 1
+  }
+  N <- round(sum(contr))
+  prob <- contr - floor(contr)
+  contr <- floor(contr) + stats::rbinom(n = n, size = 1, prob = prob)
+  
+  prob <- contr / N
+  
+  cl <- parallel::makeCluster(cores)
+  doParallel::registerDoParallel(cl)
+  on.exit(parallel::stopCluster(cl))
+  
+  strappedStatistic <- foreach::`%dopar%`(
+    obj = foreach::foreach(k = 1:numboot, .combine = c),
+    ex = {
+      strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
+      
+      weightsStrap <- as.numeric(weights[strap])
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      #etaStrap     <- eta[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+      
+      colnames(Xstrap) <- colnames(modelFrame)
+      
+      Xstrap <- singleRinternalGetXvlmMatrix(
+        X = Xstrap, formulas = formulas, family$etaNames)
+      
+      ystrap <- family$simulate(
+        n = N,
+        eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
+        lower = -1, upper = Inf
+      )
+      
+      weightsStrap <- weightsStrap[ystrap > 0]
+      #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
+      offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+      
+      strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
+      strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
+      hwm <- attr(Xstrap, "hwm")
+      
+      Xstrap <- Xstrap[strap, , drop = FALSE]
+      ystrap <- ystrap[ystrap > 0]
+      
+      wch <- singleRcaptureinternalDataCleanupSpecialCases(
+        family = family, observed = ystrap, popVar = "analytic")
+      
+      theta <- NULL
+      
+      if (famName == "zelterman") {
+        Xstrap1 <- Xstrap
+      }
+      Xstrap <- subset(Xstrap, subset = rep(wch$reg, length(family$etaNames)))
+      attr(Xstrap, "hwm") <- hwm
+      
+      try(
+        theta <- estimatePopsize.fit(
+          y = ystrap[wch$reg],
+          X = Xstrap,
+          family = family,
+          control = controlBootstrapMethod,
+          method = method,
+          priorWeights = weightsStrap[wch$reg],
+          coefStart = jitter(beta),
+          etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+          offset = offsetStrap[wch$reg, , drop = FALSE]
+        )$beta,
+        silent = TRUE
+      )
+      
+      if (famName == "zelterman") {
+        theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
+      } else {
+        theta <- matrix(Xstrap %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
+      }
+      family$pointEst(pw = weightsStrap[wch$est], eta = theta) + wch$trr
+    }
+  )
   
   strappedStatistic
 }

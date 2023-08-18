@@ -5,6 +5,7 @@ N <- 500
 x1 <- rep(0:3, c(99, 228, 137, 36))
 ## generated data from distributions
 test_inflated <- read.csv("test_inflated.csv")
+#test_inflated <- read.csv("inst/tinytest/test_inflated.csv")
 
 # Ztoi ####
 
@@ -884,7 +885,6 @@ expect_true(
 )
 
 # Hurdlezt ####
-
 # poisson
 beta <- c(.6, -.3, -.5, .1)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -965,7 +965,7 @@ M1 <- estimatePopsize(
   controlModel = controlModel(
     piFormula = ~ X
   ),
-  controlMethod = controlMethod(silent = TRUE)
+  controlMethod = controlMethod(silent = TRUE, stepsize = .3)
 )
 
 expect_silent(summary(M1))

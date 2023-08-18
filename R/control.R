@@ -25,13 +25,15 @@
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
 #' @param printEveryN integer value indicating how often to print information
 #' specified in \code{verbose}, by default set to \code{1}.
-#' @param start initial parameters for regression coefficients
-#' if \code{NULL} they will be derived internally.
+#' @param coefStart,etaStart initial parameters for regression coefficients
+#' or linear predictors if \code{NULL}. For \code{IRLS} fitting only \code{etaStart}
+#' is needed so if \code{coefStart} is provided it will be converted to \code{etaStart},
+#' for \code{optim} fitting \code{coefStart} is neccesary and argument \code{etaStart}
+#' will be ignored.
 #' @param silent logical, indicating whether warnings in \code{IRLS} method should be suppressed.
 #' @param optimPass optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 #' if FALSE then list of control parameters will be inferred from other parameters.
-#' @param optimMethod method of [stats::optim()] used L-BFGS-B is the default 
-#' except for negative binomial and one inflated models where \code{"Nelder-Mead"} is used.
+#' @param optimMethod method of [stats::optim()] used  \code{"Nelder-Mead"} is the default .
 #' @param stepsize only for \code{IRLS}, scaling of updates to \code{beta} vector 
 #' lower value means slower convergence but more accuracy by default 1. 
 #' In general if fitting algorithm fails lowering this value tends to 
@@ -66,8 +68,9 @@ controlMethod <- function(epsilon             = 1e-8,
                           maxiter             = 1000,
                           verbose             = 0,
                           printEveryN         = 1L,
-                          start               = NULL,
-                          optimMethod         = "L-BFGS-B",
+                          coefStart           = NULL,
+                          etaStart            = NULL,
+                          optimMethod         = "Nelder-Mead",
                           silent              = FALSE,
                           optimPass           = FALSE,
                           stepsize            = 1,
@@ -104,8 +107,11 @@ controlMethod <- function(epsilon             = 1e-8,
     printEveryN <- as.integer(printEveryN)
   }
   
-  if (!is.null(start) && !isTRUE(is.numeric(start)))
-    stop("Argument start has to be either a numeric vector or NULL.")
+  if (!is.null(etaStart) && !isTRUE(is.numeric(etaStart)))
+    stop("Argument etaStart has to be either a numeric vector or NULL.")
+  
+  if (!is.null(coefStart) && !isTRUE(is.numeric(coefStart)))
+    stop("Argument coefStart has to be either a numeric vector or NULL.")
   
   if (!isTRUE(is.logical(silent)) || isTRUE(length(silent) > 1))
     stop("Argument silent should be logical value (of length 1).")
@@ -132,7 +138,8 @@ controlMethod <- function(epsilon             = 1e-8,
     maxiter             = maxiter,
     verbose             = verbose,
     printEveryN         = printEveryN,
-    start               = start,
+    etaStart            = etaStart,
+    coefStart           = coefStart,
     optimMethod         = optimMethod,
     silent              = silent,
     optimPass           = optimPass,
@@ -193,6 +200,11 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @param alpha significance level, 0.05 used by default.
 #' @param trcount truncated count - a number to be added to point estimator 
 #' and both sides of confidence intervals.
+#' @param cores For bootstrap only, number of processor cores to be used,
+#' any number greater than 1 activates code designed with \code{doParallel}, 
+#' \code{foreach} and \code{parallel} packages. Note that for now using parallel
+#' computing makes tracing impossible so \code{traceBootstrapSize} and 
+#' \code{bootstrapVisualTrace} parameters are ignored in this case.
 #' @param bootType bootstrap type. Default is \code{"parametric"}, 
 #' other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.
 #' @param B number of bootstrap samples to be performed (default 500).
@@ -239,7 +251,8 @@ controlPopVar <- function(alpha = .05,
                           fittingMethod = c("optim", "IRLS"),
                           bootstrapFitcontrol = NULL,
                           sd = c("sqrtVar", "normalMVUE"),
-                          covType = c("observedInform", "Fisher")) {
+                          covType = c("observedInform", "Fisher"),
+                          cores = 1L) {
   
   if (missing(fittingMethod)) fittingMethod <- "IRLS"
   if (missing(bootType)) bootType <- "parametric"
@@ -284,8 +297,9 @@ controlPopVar <- function(alpha = .05,
     confType             = confType,
     covType              = covType,
     trcount              = trcount,
+    cores                = cores,
     alpha                = alpha,
-    B                   = B,
-    sd                  = sd
+    B                    = B,
+    sd                   = sd
   )
 }

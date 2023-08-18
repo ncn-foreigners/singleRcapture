@@ -1,7 +1,7 @@
 Package: singleRcapture
 Type: Package
 Title: Single-Source Capture-Recapture Models
-Version: 0.2.0
+Version: 0.2.0.1
 Authors@R:
     c(person(given = "Piotr",
              family = "Chlebicki",
@@ -28,7 +28,9 @@ Imports:
     lamW,
     mathjaxr,
     sandwich,
-    rootSolve
+    doParallel,
+    foreach,
+    parallel
 Suggests: 
     rmarkdown,
     knitr,

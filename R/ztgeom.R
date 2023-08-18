@@ -45,8 +45,6 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     matrix( # returning as matrix to keep type consistency
       1 / (lambda * (lambda + 1)) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2,
       ncol = 1, dimnames = list(rownames(eta), c("lambda"))
-      # 0 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) first 
-      # derivative always zero after we take expected value
     )
   }
   
@@ -57,7 +55,13 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     if (is.null(weight)) {
       weight <- 1
     }
@@ -69,13 +73,13 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         -sum(weight * ((y - 1) * log(lambda) - y * log(1 + lambda)))
       },
       function(beta) {
-        eta <- X %*% beta
+        eta <- X %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G1 <- (y - 1) / lambda - y / (1 + lambda)
         G1 <- weight * G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
@@ -89,7 +93,7 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
         t(G1) %*% X
       },
       function(beta) {
-        eta <- X %*% beta
+        eta <- X %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         G1 <- (y - 1) / lambda - y / (1 + lambda)
@@ -161,14 +165,20 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12))
+      ) + offset
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed))
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+    }
   )
   
   structure(

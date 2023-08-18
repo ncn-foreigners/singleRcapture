@@ -45,9 +45,7 @@ zelterman <- function(lambdaLink = "loghalf",
     z <- (lambda / 2) / (1 + lambda / 2)
     
     matrix(data = -prior * ((1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
-                              lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2 +
-                              (z / lambda - 1 / (lambda + 2)) *
-                              lambdaLink(eta, inverse = TRUE, deriv = 2)),
+                              lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2),
            ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -59,11 +57,20 @@ zelterman <- function(lambdaLink = "loghalf",
     lambdaLink(eta, inverse = TRUE, deriv = 1) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight = 1, 
+                           NbyK = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -71,13 +78,13 @@ zelterman <- function(lambdaLink = "loghalf",
     
     switch (deriv,
             function(beta) {
-              eta <- as.matrix(X) %*% beta
+              eta <- as.matrix(X) %*% beta + offset
               lambda <- lambdaLink(eta, inverse = TRUE)
               -sum(weight * (z * log((lambda / 2) / (1 + lambda / 2)) + 
                             (1 - z) * log(1 / (1 + lambda / 2))))
             },
             function(beta) {
-              eta <- as.matrix(X) %*% beta
+              eta <- as.matrix(X) %*% beta + offset
               lambda <- lambdaLink(eta, inverse = TRUE)
               G0 <- (z / lambda - 1 / (2 + lambda)) * weight * 
                 lambdaLink(eta, inverse = TRUE, deriv = 1)
@@ -91,7 +98,7 @@ zelterman <- function(lambdaLink = "loghalf",
               t(X) %*% G0
             },
             function(beta) {
-              eta <- as.matrix(X) %*% beta
+              eta <- as.matrix(X) %*% beta + offset
               lambda <- lambdaLink(eta, inverse = TRUE)
               
               G00 <- (1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
@@ -164,13 +171,16 @@ zelterman <- function(lambdaLink = "loghalf",
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        .35 * (sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1)
+      ) + offset
+      etaStart <- etaStart[(observed %in% 1:2), , drop = FALSE]
+      #stop("abc")
+    } else if (method == "optim") {
+      init <- mean((sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1))
+      coefStart <- rep(family$links[[1]](init) / NCOL(variables), NCOL(variables))
+    }
   )
   
   structure(

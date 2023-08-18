@@ -44,9 +44,6 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     Ey <- mu.eta(eta)
     
-    G1 <- (-lambda / (-lambda - 1 + exp(lambda)) + Ey / lambda - 1) *
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
-    
     G11 <- (-((lambda - Ey) * exp(lambda)+exp(lambda) + Ey - 1) /
     (lambda * (exp(lambda) - lambda - 1)) + 
     ((lambda - Ey) * exp(lambda) + (Ey - 1) * lambda + Ey) /
@@ -55,7 +52,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     (lambda * (exp(lambda) - lambda - 1) ^ 2)) *
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
-    matrix(-prior * (G11 + G1), 
+    matrix(-prior * G11, 
     ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -66,10 +63,19 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight
   }
 
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
+    }
+    
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -77,13 +83,14 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+        
         -sum(weight * (y * log(lambda) - lambda - lgamma(y + 1) -
         log(1 - exp(-lambda) - lambda * exp(-lambda))))
       },
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G1 <- (-lambda/(-lambda -1 + exp(lambda)) + y / lambda - 1) * weight *
                lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
@@ -97,7 +104,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
         t(as.matrix(X)) %*% G1
       },
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         
@@ -124,6 +131,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
 
   devResids <- function(y, eta, wt, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    #print(table(y))
     
     inverseFunction <- function(y) {stats::uniroot(
       f = function(x) {mu.eta(x) - y}, 
@@ -156,8 +164,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     lambdaSat <- lambdaLink(sapply(y, FUN = function(x) lambdaSat[yUnq == x]), inverse = TRUE)
     
     diff <- y * log(lambda) - lambda - log(1 - exp(-lambda) - lambda * exp(-lambda)) -
-    ifelse(y == 2, log(2), # log(2) is the limit as lambda->0^+
-    y * log(lambdaSat) - lambdaSat - 
+    ifelse(y == 2, lgamma(y + 1), y * log(lambdaSat) - lambdaSat - 
     log(1 - exp(-lambdaSat) - lambdaSat * exp(-lambdaSat)))
     
     if (any(diff > 0)) {
@@ -169,9 +176,8 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
         "\nDouble check deviance before proceeding"
       ))
     }
-    
-    ## see comments in ztpoisson for explanation of pmin
-    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, diff))
+
+    sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * diff)
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -229,14 +235,21 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12))
+      ) + offset
+      etaStart <- etaStart[(observed > 1), , drop = FALSE]
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed))
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+    }
   )
   
   structure(

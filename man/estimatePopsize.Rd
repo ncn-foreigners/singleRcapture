@@ -15,7 +15,7 @@ estimatePopsize(
   subset = NULL,
   naAction = NULL,
   method = c("optim", "IRLS"),
-  popVar = c("analytic", "bootstrap"),
+  popVar = c("analytic", "bootstrap", "noEst"),
   controlMethod = NULL,
   controlModel = NULL,
   controlPopVar = NULL,
@@ -23,6 +23,7 @@ estimatePopsize(
   x = FALSE,
   y = TRUE,
   contrasts = NULL,
+  offset,
   ...
 )
 }
@@ -68,6 +69,10 @@ More information included in \code{\link[=controlPopVar]{controlPopVar()}}.}
 dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{not yet implemented.}
+
+\item{offset}{a matrix of offset values with number of columns matching the
+number of distribution parameters providing offset values to each of
+linear predictors.}
 
 \item{...}{additional optional arguments passed to other methods eg.
 \code{estimatePopsize.fit}.}

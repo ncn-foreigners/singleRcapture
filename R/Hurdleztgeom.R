@@ -79,17 +79,10 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     #Ey <- mu.eta(eta)
     YY <- mu.eta(eta) - z ## expected for (1-z)Y
     
-    G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1) + 
-      (1 - z - YY) / (lambda + 1) + YY / lambda - 
-      (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1)) # lambda derivative
-    
-    G0 <- z / PI - (1 - z) / (1 - PI) - 
-      (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda)) # PI derivative
-    
     # PI^2 derivative
-    G00 <- -z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + 
-      ((lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))) ^ 2
-    G00 <- prior * (G0 * (PI * (1 - PI) * (1 - 2 * PI)) + G00 * ((PI * (1 - PI)) ^ 2))
+    G00 <- (-z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + 
+      ((lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))) ^ 2) *
+      piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * prior
     
     # mixed
     
@@ -98,14 +91,12 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
            piLink(eta[, 2], inverse = TRUE, deriv = 1) * prior
     
     # Beta^2 derivative
-    G11 <- ((YY - 1 + z) / (1 + lambda) ^ 2 - YY / lambda ^ 2) + 
+    G11 <- (((YY - 1 + z) / (1 + lambda) ^ 2 - YY / lambda ^ 2) + 
       z * (2 * (lambda ^ 2 + lambda + 1) - (2 * lambda + 1) ^ 2) / 
       (lambda ^ 2 + lambda + 1) ^ 2 + 
       (2 * lambda + PI) ^ 2 / (lambda ^ 2 + PI * (lambda + 1)) ^ 2 - 
-      2 / (lambda ^ 2 + PI * (lambda + 1))
-    
-    G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-            G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * prior
+      2 / (lambda ^ 2 + PI * (lambda + 1))) * prior *
+      lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda
@@ -332,24 +323,26 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    if (is.null(controlMethod$piStart)) {
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "pi$")]
-      cc <- unlist(strsplit(x = cc, ":pi"))
-      cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0) # TODO: gosh this is terrible pick a better method
-      })
-      start <- c(start, cc)
-    } else {
-      start <- c(start, controlMethod$piStart)
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+      ) + offset
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](mean(observed == 1) + .01)
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):pi" %in% colnames(Xvlm)) {
+        coefStart <- c(coefStart, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        coefStart <- c(coefStart, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   

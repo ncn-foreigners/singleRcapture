@@ -42,14 +42,11 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     Ey <- mu.eta(eta)
     
-    G1 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
-          (lambda - Ey + 2) / (lambda ^ 2 + lambda)
-    
     G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
            (lambda ^ 2 + (4 - 2 * Ey) * lambda - Ey + 2) / 
            (lambda ^ 2 * (lambda + 1) ^ 2)
     
-    matrix(- prior * (G11 + G1), ncol = 1, 
+    matrix(-prior * G11, ncol = 1, 
     dimnames = list(rownames(eta), c("lambda")))
   }
   
@@ -60,9 +57,18 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     (lambda - y + 2) / (lambda ^ 2 + lambda) / weight
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
     }
     y <- as.numeric(y)
     X <- as.matrix(X)
@@ -72,13 +78,13 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- as.matrix(X) %*% beta
+        eta <- as.matrix(X) %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         -sum(weight * ((y - 2) * log(lambda) - (y - 1) * log(1 + lambda)))
       },
       function(beta) {
-        eta <- X %*% beta
+        eta <- X %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G1 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
               (lambda - y + 2) / (lambda ^ 2 + lambda)
@@ -91,7 +97,7 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
         t(G1  * weight) %*% X
       },
       function(beta) {
-        eta <- X %*% beta
+        eta <- X %*% beta + offset
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
         G1 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) *
@@ -165,14 +171,21 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, ],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12))
+      ) + offset
+      etaStart <- etaStart[(observed > 1), , drop = FALSE]
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed))
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+    }
   )
   
   structure(

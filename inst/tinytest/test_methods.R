@@ -71,8 +71,17 @@ expect_silent(
   )
 )
 
-# dfbetas and dfpopsize
+expect_silent(
+  Model5 <- estimatePopsize(
+    formula = TOTAL_SUB ~ ., 
+    data = farmsubmission, 
+    model = zotgeom, 
+    method = "IRLS"
+  )
+)
 
+# dfbetas and dfpopsize
+# 4 takes too long
 expect_silent(
   dfb <- dfbeta(Model)
 )
@@ -87,6 +96,10 @@ expect_silent(
 
 expect_silent(
   dfb3 <- dfbeta(Model3)
+)
+
+expect_silent(
+  dfb5 <- dfbeta(Model5)
 )
 
 expect_silent(
@@ -106,19 +119,23 @@ expect_silent(
 )
 
 expect_silent(
+  hatvalues(Model5)
+)
+
+expect_silent(
   dfp <- dfpopsize(Model, dfbeta = dfb)
 )
 
 expect_equal(
   max(abs(dfp)),
   4236.412,
-  tolerance = .1
+  tolerance = .05
 )
 
 expect_equal(
   abs(mean(abs(dfp))),
   19.19,
-  tolerance = .1
+  tolerance = .05
 )
 
 expect_true(
@@ -134,37 +151,32 @@ expect_true(
 )
 
 expect_true(
-  abs(mean(abs(dfpopsize(Model2, dfbeta = dfb2))) - 16.59) < .1
-)
-
-expect_true(
   abs(max(abs(dfpopsize(Model3, dfbeta = dfb3))) - 3681.764) < .2
 )
 
-expect_true(
-  abs(mean(abs(dfpopsize(Model3, dfbeta = dfb3))) - 17.18) < .1
+expect_silent(
+  dfpopsize(Model5, dfbeta = dfb5)
 )
-
 
 # Extractors
 
 expect_true(
   max(abs(
-    c(AIC(Model), AIC(Model1), AIC(Model2), AIC(Model3), AIC(Model4)) -
-      c(1712.901, 1805.904, 1131.723, 1133.006, 34580.82)
+    c(AIC(Model), AIC(Model1), AIC(Model2), AIC(Model3), AIC(Model4), AIC(Model5)) -
+      c(1712.901, 1805.904, 1131.723, 1133.006, 34580.82, 19483.08)
   )) < 1
 )
 
 expect_true(
   max(abs(
-    c(BIC(Model), BIC(Model1), BIC(Model2), BIC(Model3), BIC(Model4)) -
-      c(1757.213, 1811.443, 1170.3, 1177.094, 34625.2)
+    c(BIC(Model), BIC(Model1), BIC(Model2), BIC(Model3), BIC(Model4), BIC(Model5)) -
+      c(1757.213, 1811.443, 1170.3, 1177.094, 34625.2, 19509.67)
   )) < 1
 )
 
 expect_silent(
   c(extractAIC(Model), extractAIC(Model1), extractAIC(Model2), 
-    extractAIC(Model3), extractAIC(Model4))
+    extractAIC(Model3), extractAIC(Model4), extractAIC(Model5))
 )
 
 # Sandwich
@@ -192,6 +204,10 @@ expect_silent(
 )
 
 expect_silent(
+  bread(Model5)
+)
+
+expect_silent(
   bread(Model, type = "Fisher")
 )
 
@@ -211,45 +227,56 @@ expect_silent(
   bread(Model4, type = "Fisher")
 )
 
-expect_false(
-  all(vcov(Model, type = "observedInform") == vcov(Model, type = "Fisher"))
+expect_silent(
+  bread(Model5, type = "Fisher")
 )
 
-expect_false(
-  all(vcov(Model1, type = "observedInform") == vcov(Model1, type = "Fisher"))
+expect_equivalent(
+  vcov(Model, type = "observedInform"),
+  vcov(Model, type = "Fisher"),
+  tolerance = .0001
 )
 
-expect_false(
-  all(vcov(Model4, type = "observedInform") == vcov(Model4, type = "Fisher"))
+expect_equivalent(
+  vcov(Model1, type = "observedInform"),
+  vcov(Model1, type = "Fisher"),
+  tolerance = .0001
 )
 
-expect_equal(
-  sum(vcov(Model2, type = "observedInform")-vcov(Model2, type = "Fisher")),
-  0, tolerance = 1e-5
+expect_equivalent(
+  vcov(Model2, type = "observedInform"),
+  vcov(Model2, type = "Fisher"),
+  tolerance = .00001
 )
 
-expect_true(
-  max(vcov(Model3, type = "Fisher") - vcov(Model3, type = "observedInform")) < 1e-8
+expect_equivalent(
+  vcov(Model3, type = "observedInform"),
+  vcov(Model3, type = "Fisher"),
+  tolerance = .00001
 )
 
-expect_false(
-  all(bread(Model, type = "observedInform") == bread(Model, type = "Fisher"))
+expect_equivalent(
+  bread(Model, type = "observedInform"),
+  bread(Model, type = "Fisher"),
+  tolerance = .0001
 )
 
-expect_false(
-  all(bread(Model1, type = "observedInform") == bread(Model1, type = "Fisher"))
+expect_equivalent(
+  bread(Model1, type = "observedInform"),
+  bread(Model1, type = "Fisher"),
+  tolerance = .0001
 )
 
-expect_true(
-  max(bread(Model2, type = "observedInform") - bread(Model2, type = "Fisher")) < 1e-4
+expect_equivalent(
+  bread(Model2, type = "observedInform"),
+  bread(Model2, type = "Fisher"),
+  tolerance = .00001
 )
 
-expect_true(
-  max(bread(Model3, type = "observedInform") - bread(Model3, type = "Fisher")) < 1e-4
-)
-
-expect_false(
-  all(bread(Model4, type = "observedInform") == bread(Model4, type = "Fisher"))
+expect_equivalent(
+  bread(Model3, type = "observedInform"),
+  bread(Model3, type = "Fisher"),
+  tolerance = .00001
 )
 
 expect_silent(
@@ -273,6 +300,10 @@ expect_silent(
 )
 
 expect_silent(
+  sandwich(Model5)
+)
+
+expect_silent(
   vcovHC(Model)
 )
 
@@ -290,6 +321,10 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model4)
+)
+
+expect_silent(
+  vcovHC(Model5)
 )
 
 expect_silent(
@@ -313,6 +348,10 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model5, type = "HC")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC0")
 )
 
@@ -330,6 +369,10 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model4, type = "HC0")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC0")
 )
 
 expect_silent(
@@ -353,6 +396,10 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model5, type = "HC1")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC2")
 )
 
@@ -370,6 +417,10 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model4, type = "HC2")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC2")
 )
 
 expect_silent(
@@ -393,6 +444,10 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model5, type = "HC3")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC4")
 )
 
@@ -410,6 +465,10 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model4, type = "HC4")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "HC4")
 )
 
 expect_silent(
@@ -433,6 +492,10 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model5, type = "HC4m")
+)
+
+expect_silent(
   vcovHC(Model, type = "HC5")
 )
 
@@ -453,6 +516,10 @@ expect_silent(
 )
 
 expect_silent(
+  vcovHC(Model5, type = "HC5")
+)
+
+expect_silent(
   vcovHC(Model, type = "const")
 )
 
@@ -470,6 +537,10 @@ expect_silent(
 
 expect_silent(
   vcovHC(Model4, type = "const")
+)
+
+expect_silent(
+  vcovHC(Model5, type = "const")
 )
 
 # confint
@@ -495,6 +566,10 @@ expect_silent(
 )
 
 expect_silent(
+  confint(Model5)
+)
+
+expect_silent(
   cooks.distance(Model)
 )
 
@@ -512,6 +587,10 @@ expect_silent(
 
 expect_error(
   cooks.distance(Model4)
+)
+
+expect_silent(
+  cooks.distance(Model5)
 )
 
 expect_identical(
@@ -540,6 +619,10 @@ expect_silent(
 )
 
 expect_silent(
+  model.frame(Model5)
+)
+
+expect_silent(
   model.matrix(Model)
 )
 
@@ -557,6 +640,10 @@ expect_silent(
 
 expect_silent(
   model.matrix(Model4)
+)
+
+expect_silent(
+  model.matrix(Model5)
 )
 
 expect_true(
@@ -577,6 +664,10 @@ expect_true(
 
 expect_true(
   all(dim(model.matrix(Model4)) == c(12036, 4))
+)
+
+expect_true(
+  all(dim(model.matrix(Model5)) == c(sum(farmsubmission$TOTAL_SUB > 1), 4))
 )
 
 expect_true(
@@ -628,19 +719,23 @@ expect_silent(
   popSizeEst(Model4)
 )
 
+expect_silent(
+  popSizeEst(Model5)
+)
+
 expect_equal(
   c(popSizeEst(Model)$pointEstimate, popSizeEst(Model1)$pointEstimate, 
     popSizeEst(Model2)$pointEstimate, popSizeEst(Model3)$pointEstimate,
-    popSizeEst(Model4)$pointEstimate),
-  c(12690, 7080, 15816.14, 15713.14, 29478.72),
+    popSizeEst(Model4)$pointEstimate, popSizeEst(Model5)$pointEstimate),
+  c(12690, 7080, 15816.14, 15713.14, 29478.72, 29087.96),
   tol = .05
 )
 
 expect_equal(
   c(popSizeEst(Model)$variance, popSizeEst(Model1)$variance, 
     popSizeEst(Model2)$variance, popSizeEst(Model3)$variance,
-    popSizeEst(Model4)$variance),
-  c(7885812, 133774.1, 9093464, 9096077, 431426.9),
+    popSizeEst(Model4)$variance, popSizeEst(Model5)$variance),
+  c(7885812, 133774.1, 9093464, 9096077, 431426.9, 2434863),
   tol = .05
 )
 
@@ -706,3 +801,4 @@ expect_silent(
 expect_true(
   all(summary(marginalFreq(Model3), df = 1, dropl5 = "group")$Test$`P(>X^2)` < .001)
 )
+

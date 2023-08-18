@@ -268,7 +268,7 @@ predict.singleR <- function(object,
         rownames(Xvlm),
         family(object)$etaNames
       )
-    )
+    ) + object$offset
     
     wch <- singleRcaptureinternalDataCleanupSpecialCases(
       family = family(object), 
@@ -408,6 +408,7 @@ predict.singleR <- function(object,
 #' If missing set to controls provided on call to \code{object}.
 #' @param popVar similar to \code{popVar} in [estimatePopsize()].
 #' If missing set to \code{"analytic"}.
+#' @param offset TODO
 #' @param ... additional optional arguments, currently not used in \code{singleR} class method.
 #'
 #' @return An object of class \code{popSizeEstResults} containing updated 
@@ -552,11 +553,19 @@ vcov.singleR <- function(object,
     type,
     "observedInform" = solve(
       -object$model$makeMinusLogLike(y = object$y[object$which$reg], X = X,
-      weight = object$priorWeights[object$which$reg], deriv = 2)(object$coefficients),
+      weight = object$priorWeights[object$which$reg], deriv = 2, 
+      offset = object$offset[object$which$reg, , drop = FALSE])(object$coefficients),
       ...
     ),
     "Fisher" = {
       if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights[object$which$reg], eta = object$linearPredictors)};
+      if (isTRUE(object$control$controlMethod$checkDiagWeights)) {
+        W[, (1:length(family(object)$etaNames)) ^ 2] <- ifelse(
+          W[, (1:length(family(object)$etaNames)) ^ 2] < object$control$controlMethod$weightsEpsilon, 
+          object$control$controlMethod$weightsEpsilon, 
+          W[, (1:length(family(object)$etaNames)) ^ 2]
+        )
+      };
       solve(
       singleRinternalMultiplyWeight(X = X, W = W) %*% X,
       ...
@@ -643,41 +652,92 @@ hatvalues.singleR <- function(model, ...) {
 }
 #' @method dfbeta singleR
 #' @importFrom stats dfbeta
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
+#' @importFrom doParallel registerDoParallel
 #' @rdname regDiagSingleR
 #' @exportS3Method 
 dfbeta.singleR <- function(model,
-                          maxitNew = 1,
-                          ...) {
+                           maxitNew = 1,
+                           trace = FALSE,
+                           cores = 1,
+                           ...) {
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleR(model, ...)
   y <- if (is.null(model$y)) stats::model.response(X) else model$y
   X <- X[model$which$reg, , drop = FALSE]
   y <- y[model$which$reg]
-  cf <- model$coefficients
+  cf <- coef(model)
   pw <- model$priorWeights[model$which$reg]
-  res <- matrix(nrow = nrow(X), ncol = length(cf))
-  
-  for (k in 1:nrow(X)) {
-    res[k, ] <- cf - estimatePopsize.fit(
-      control = controlMethod(
-        silent = TRUE, 
-        start = cf,
-        maxiter = maxitNew + 1,
-        ...
-      ),
-      y = y[-k],
-      X = singleRinternalGetXvlmMatrix(
-        X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
-        formulas = model$formula, 
-        parNames = model$model$etaNames
-      ),
-      start = cf,
-      family = model$model,
-      priorWeights = pw[-k],
-      method = model$call$method
-    )$beta
+  offset <- model$offset[model$which$reg, , drop = FALSE]
+  if (family(model)$family == "zelterman") {
+    eta <- model$linearPredictors[model$which$reg, , drop = FALSE]
+  } else {
+    eta <- model$linearPredictors
   }
-  colnames(res) <- names(model$coefficients)
+  
+  if (cores > 1) {
+    cl <- parallel::makeCluster(cores)
+    doParallel::registerDoParallel(cl)
+    on.exit(parallel::stopCluster(cl))
+    #parallel::clusterExport(cl, c("singleRinternalGetXvlmMatrix", "cf", "y", "X", "maxitNew", "model", "pw", "offset", "eta"), envir = environment())
+    
+    res <- foreach::`%dopar%`(
+        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
+        ex = {
+          c(cf - estimatePopsize.fit(
+            control = controlMethod(
+              silent = TRUE,
+              maxiter = maxitNew + 1,
+              ...
+            ),
+            y = y[-k],
+            X = singleRinternalGetXvlmMatrix(
+              X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
+              formulas = model$formula,
+              parNames = model$model$etaNames
+            ),
+            coefStart = cf,
+            etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+            family = model$model,
+            priorWeights = pw[-k],
+            method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+            offset = offset[-k, , drop = FALSE]
+          )$beta)
+        }
+      )
+  } else {
+    res <- matrix(nrow = nrow(X), ncol = length(cf))
+    
+    for (k in 1:nrow(X)) {
+      if (isTRUE(trace)) {
+        cat("-----\nRemoving observation number: ", k, "\n", sep = "")
+      }
+      res[k, ] <- cf - estimatePopsize.fit(
+        control = controlMethod(
+          silent = TRUE,
+          maxiter = maxitNew + 1,
+          ...
+        ),
+        y = y[-k],
+        X = singleRinternalGetXvlmMatrix(
+          X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
+          formulas = model$formula, 
+          parNames = model$model$etaNames
+        ),
+        coefStart = cf,
+        etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+        family = model$model,
+        priorWeights = pw[-k],
+        method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+        offset = offset[-k, , drop = FALSE]
+      )$beta
+    }
+  }
+  
+  colnames(res) <- names(cf)
   res
 }
 
@@ -759,7 +819,7 @@ residuals.singleR <- function(object,
                               "nontruncatedResponse");
       data.frame(
         as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") 
-                                            object$linearPredictors[object$which$reg, ] 
+                                            object$linearPredictors[object$which$reg, , drop = FALSE] 
                                         else 
                                           object$linearPredictors,
                                         weight = object$weights, 
@@ -773,7 +833,7 @@ residuals.singleR <- function(object,
                                   res$truncated) / sqrt(
                                     object$model$variance(
                                       eta = if (object$model$family == "zelterman") 
-                                              object$linearPredictors[object$which$reg, ] 
+                                              object$linearPredictors[object$which$reg, , drop = FALSE] 
                                             else 
                                               object$linearPredictors, 
                                       type = "trunc")
@@ -785,7 +845,7 @@ residuals.singleR <- function(object,
              res$truncated) / sqrt((1 - hatvalues(object)) * 
                             object$model$variance(
                               eta = if (object$model$family == "zelterman") 
-                                object$linearPredictors[object$which$reg, ] 
+                                object$linearPredictors[object$which$reg, , drop = FALSE] 
                               else 
                                 object$linearPredictors, 
                               type = "trunc"
@@ -951,7 +1011,8 @@ redoPopEstimation.singleR <- function(object,
                                       weights,
                                       coef,
                                       control,
-                                      popVar, 
+                                      popVar,
+                                      offset,
                                       ...) {
   if (missing(cov)) {
     cov <- vcov
@@ -971,6 +1032,10 @@ redoPopEstimation.singleR <- function(object,
     pw <- if (missing(weights))
       object$priorWeights
     else weights
+    
+    offset <- if (missing(offset))
+      object$offset
+    else offset
     
     etaNew <- if (missing(coef))
       object$linearPredictors
@@ -1014,6 +1079,10 @@ redoPopEstimation.singleR <- function(object,
       rep(1, nn)
     else weights
     
+    offset <- if (missing(offset))
+      matrix(0, nrow = length(pw), ncol = length(family(object))$etaNames)
+    else offset
+    
     coef <- if (missing(coef)) stats::coef(object)
     
     etaNew <- matrix(
@@ -1023,7 +1092,7 @@ redoPopEstimation.singleR <- function(object,
         rownames(Xvlm),
         family(object)$etaNames
       )
-    )
+    ) + offset
   }
   
   singleRcaptureinternalpopulationEstimate(
@@ -1064,7 +1133,8 @@ redoPopEstimation.singleR <- function(object,
       family(object)$Wfun(prior = pw[wch$reg], eta = etaNew),
     sizeObserved = nn,
     modelFrame = MM,
-    cov = cov
+    cov = cov,
+    offset = offset[wch$est, , drop = FALSE]
   )
 }
 #' @method dfpopsize singleR
@@ -1151,12 +1221,13 @@ stratifyPopsize.singleR <- function(object,
   # convert stratas to list for all viable types of specifying the argument
   if (inherits(stratas, "formula")) {
     mf <- model.frame(stratas, model.frame(object))
-    mmf <- model.matrix(stratas, data = mf, 
-                        contrasts.arg = lapply(
-                          subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
-                          contrasts, contrasts = FALSE
-                          )
-                        )
+    mmf <- model.matrix(
+      stratas, data = mf, 
+      contrasts.arg = lapply(
+        subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
+        contrasts, contrasts = FALSE
+      )
+    )
     trm <- attr(mf, "terms")
     stratas <- list()
     for (k in attr(trm, "term.labels")) {
@@ -1614,3 +1685,5 @@ df.residual.singleR <- function(object, ...) {
 #'   names(val) <- paste0("sim_", seq_len(nsim))
 #'   return(val)
 #' }
+#' 
+#' simulate.singleRfamily

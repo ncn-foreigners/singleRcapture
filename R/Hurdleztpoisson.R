@@ -81,24 +81,15 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     
     YY <- mu.eta(eta) - z ## expected for (1-z)Y
     
-    G1 <- -(lambda * exp(-lambda) + (1 - PI) * exp(-lambda) - exp(-lambda)) /
-      (-lambda * exp(-lambda) - (1 - PI) * exp(-lambda) + 1) +
-      (z * (lambda * exp(-lambda) - exp(-lambda))) /
-      (1 - lambda * exp(-lambda)) + YY / lambda - 1 + z
-    
-    G0 <- z / PI - (1 - z) / (1 - PI) - 
-      exp(-lambda) / (-exp(-lambda) * (1 - PI) - lambda * exp(-lambda) + 1)
-    
     # PI^2 derivative
     G00 <- exp(-2 * lambda) / (-exp(-lambda) * (1 - PI) - lambda * exp(-lambda) + 1) ^ 2 - 
       z / PI ^ 2 - (1 - z) / (1 - PI) ^ 2
     
-    G00 <- G00 * piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-      G0  * piLink(eta[, 2], inverse = TRUE, deriv = 2)
+    G00 <- G00 * piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
     # mixed
-    
     G01 <- (exp(lambda) - 1) / (exp(lambda) - lambda + PI - 1) ^ 2
+    
     G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
       piLink(eta[, 2], inverse = TRUE, deriv = 1)
     
@@ -112,8 +103,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       (z * (2 * exp(-lambda) - lambda * exp(-lambda))) /
       (1 - lambda * exp(-lambda)) - YY / lambda ^ 2
     
-    G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 +
-      G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+    G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
     matrix(
       -c(G11, # lambda
@@ -158,10 +148,19 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     pseudoResid
   }
   
-  minusLogLike <- function(y, X, weight = 1, NbyK = FALSE, vectorDer = FALSE, deriv = 0, ...) {
+  minusLogLike <- function(y, X, 
+                           weight    = 1, 
+                           NbyK      = FALSE, 
+                           vectorDer = FALSE, 
+                           deriv     = 0,
+                           offset, 
+                           ...) {
     y <- as.numeric(y)
     if (is.null(weight)) {
       weight <- 1
+    }
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
     }
     z <- as.numeric(y == 1)
     
@@ -170,7 +169,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     
     switch (deriv,
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
 
@@ -179,7 +178,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
         log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
       },
       function(beta) {
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -204,7 +203,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
       },
       function (beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
-        eta <- matrix(as.matrix(X) %*% beta, ncol = 2)
+        eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
@@ -305,8 +304,8 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     diff <- ifelse(
       y == 1,
       -(log(PI) + log(1 - lambda * exp(-lambda)) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))),
-      ifelse(y == 2, log(2),
-      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda))) - 
+      ifelse(y == 2, 0,
+      y * log(idealLambda) - idealLambda - log(1 - exp(-idealLambda) - idealLambda * exp(-idealLambda)) - lgamma(y + 1)) - 
       (log(1 - PI) + y * log(lambda) - lambda - lgamma(y + 1) - log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
     )
     
@@ -400,22 +399,29 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   getStart <- expression(
-    start <- stats::glm.fit(
-      x = variables[wch$reg, 1:attr(Xvlm, "hwm")[1]],
-      y = observed[wch$reg],
-      family = stats::poisson(),
-      weights = priorWeights[wch$reg],
-      ...
-    )$coefficients,
-    if (attr(family$links, "linkNames")[1] == "neglog") start <- -start,
-    {
-      cc <- colnames(Xvlm)
-      cc <- cc[grepl(x = cc, pattern = "pi$")]
-      cc <- unlist(strsplit(x = cc, ":pi"))
-      cc <- sapply(cc, FUN = function(x) {
-        ifelse(x %in% names(start), start[x], 0)
-      })
-      start <- c(start, cc)
+    if (method == "IRLS") {
+      etaStart <- cbind(
+        pmin(family$links[[1]](observed), family$links[[1]](12)),
+        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+      ) + offset
+      # print(summary(etaStart))
+      # print(summary(cbind(exp(etaStart[,1]), family$links[[2]](etaStart[,2], inverse = TRUE))))
+      # stop("abc")
+    } else if (method == "optim") {
+      init <- c(
+        family$links[[1]](mean(observed)),
+        family$links[[2]](mean(observed == 1) + .01)
+      )
+      if (attr(terms, "intercept")) {
+        coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))
+      } else {
+        coefStart <- rep(init[1] / attr(Xvlm, "hwm")[1], attr(Xvlm, "hwm")[1])
+      }
+      if ("(Intercept):pi" %in% colnames(Xvlm)) {
+        coefStart <- c(coefStart, init[2], rep(0, attr(Xvlm, "hwm")[2] - 1))
+      } else {
+        coefStart <- c(coefStart, rep(init[2] / attr(Xvlm, "hwm")[2], attr(Xvlm, "hwm")[2]))
+      }
     }
   )
   

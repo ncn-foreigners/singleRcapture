@@ -7,7 +7,17 @@
 \usage{
 redoPopEstimation(object, newdata, ...)
 
-\method{redoPopEstimation}{singleR}(object, newdata, cov, weights, coef, control, popVar, ...)
+\method{redoPopEstimation}{singleR}(
+  object,
+  newdata,
+  cov,
+  weights,
+  coef,
+  control,
+  popVar,
+  offset,
+  ...
+)
 }
 \arguments{
 \item{object}{object for which update of population size estimation results will be done.}
@@ -28,6 +38,8 @@ If missing set to controls provided on call to \code{object}.}
 
 \item{popVar}{similar to \code{popVar} in \code{\link[=estimatePopsize]{estimatePopsize()}}.
 If missing set to \code{"analytic"}.}
+
+\item{offset}{TODO}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated
