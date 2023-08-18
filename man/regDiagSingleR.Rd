@@ -40,6 +40,11 @@ specified at call for \code{model} after the removal of k'th row. By default 1.}
 
 \item{trace}{logical value specifying whether to tracking results.}
 
+\item{cores}{Number of processor cores to be used,
+any number greater than 1 activates code designed with \code{doParallel},
+\code{foreach} and \code{parallel} packages. Note that for now using parallel
+computing makes tracing impossible so \code{trace} parameter is ignored in this case.}
+
 \item{type}{a type of residual to return.}
 
 \item{dfbeta}{if \code{dfbeta} was already obtained it is possible to pass

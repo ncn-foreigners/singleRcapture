@@ -70,31 +70,50 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
     )))
   } else if (grepl("bootstrap", popVar, fixed = TRUE)) {
     
-    funBoot <- switch(
-      control$bootType,
-      "parametric" = parBoot,
-      "semiparametric" = semparBoot,
-      "nonparametric" = noparBoot
-    )
-    
     N <- family$pointEst(
       pw = if (family$family == "chao") weights[y %in% 1:2] 
       else if (grepl(pattern = "^zot", x = family$family)) weights[y > 1] 
       else weights,
       eta = eta) + trcount
     
-    strappedStatistic <- funBoot(
-      family = family, formulas = formulas,
-      y = y, X = X, hwm = hwm,
-      beta = beta, weights = weights,
-      trcount = trcount, numboot = numboot,
-      eta = eta, trace = control$traceBootstrapSize,
-      visT = control$bootstrapVisualTrace,
-      method = control$fittingMethod,
-      controlBootstrapMethod = control$bootstrapFitcontrol,
-      N = N, Xvlm = Xvlm, modelFrame = modelFrame,
-      offset = offset
-    )
+    if (control$cores > 1) {
+      funBoot <- switch(
+        control$bootType,
+        "parametric" = parBootMultiCore,
+        "semiparametric" = semparBootMultiCore,
+        "nonparametric" = noparBootMultiCore
+      )
+      strappedStatistic <- funBoot(
+        family = family, formulas = formulas,
+        y = y, X = X, hwm = hwm,
+        beta = beta, weights = weights,
+        trcount = trcount, numboot = numboot,
+        eta = eta, cores = control$cores,
+        method = control$fittingMethod,
+        controlBootstrapMethod = control$bootstrapFitcontrol,
+        N = N, Xvlm = Xvlm, modelFrame = modelFrame,
+        offset = offset
+      )
+    } else {
+      funBoot <- switch(
+        control$bootType,
+        "parametric" = parBoot,
+        "semiparametric" = semparBoot,
+        "nonparametric" = noparBoot
+      )
+      strappedStatistic <- funBoot(
+        family = family, formulas = formulas,
+        y = y, X = X, hwm = hwm,
+        beta = beta, weights = weights,
+        trcount = trcount, numboot = numboot,
+        eta = eta, trace = control$traceBootstrapSize,
+        visT = control$bootstrapVisualTrace,
+        method = control$fittingMethod,
+        controlBootstrapMethod = control$bootstrapFitcontrol,
+        N = N, Xvlm = Xvlm, modelFrame = modelFrame,
+        offset = offset
+      )
+    }
 
     if (N < stats::quantile(strappedStatistic, .05)) {
       warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")

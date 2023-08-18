@@ -270,6 +270,10 @@ NULL
 #' models or units with count => 3 for \code{zelterman} of basic \code{chao}
 #' model) if set to \code{FALSE} (default) these units will not be included
 #' in results.
+#' @param cores Number of processor cores to be used,
+#' any number greater than 1 activates code designed with \code{doParallel}, 
+#' \code{foreach} and \code{parallel} packages. Note that for now using parallel 
+#' computing makes tracing impossible so \code{trace} parameter is ignored in this case.
 #' @param type a type of residual to return.
 #' @param trace logical value specifying whether to tracking results.
 #' @param maxitNew maximal number of iterations for regressions with starting 

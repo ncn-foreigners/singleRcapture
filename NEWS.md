@@ -1,8 +1,13 @@
 # singleRcapture 0.2.0.1
 
-* added `offset` argument to `estimatePopsize`
-* added 
+* Added `offset` argument to `estimatePopsize`
+* Added options for parallel computing in `bootstrap` and in `dfbeta`
+* Added deviance for all negative binomial based models. 
+  (NOTE: I believe that they are very slow for now and may change after I verify
+  one theoretical results that will speed these computations)
 * Overhaul of starting points (new methods and added linear predictors start in `IRLS`)
+* Code for weights in `IRLS` fitting was speed up
+* Minor bugfixes
 
 # singleRcapture 0.2.0
 

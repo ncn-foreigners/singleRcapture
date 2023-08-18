@@ -200,6 +200,11 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @param alpha significance level, 0.05 used by default.
 #' @param trcount truncated count - a number to be added to point estimator 
 #' and both sides of confidence intervals.
+#' @param cores For bootstrap only, number of processor cores to be used,
+#' any number greater than 1 activates code designed with \code{doParallel}, 
+#' \code{foreach} and \code{parallel} packages. Note that for now using parallel
+#' computing makes tracing impossible so \code{traceBootstrapSize} and 
+#' \code{bootstrapVisualTrace} parameters are ignored in this case.
 #' @param bootType bootstrap type. Default is \code{"parametric"}, 
 #' other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.
 #' @param B number of bootstrap samples to be performed (default 500).
@@ -246,7 +251,8 @@ controlPopVar <- function(alpha = .05,
                           fittingMethod = c("optim", "IRLS"),
                           bootstrapFitcontrol = NULL,
                           sd = c("sqrtVar", "normalMVUE"),
-                          covType = c("observedInform", "Fisher")) {
+                          covType = c("observedInform", "Fisher"),
+                          cores = 1L) {
   
   if (missing(fittingMethod)) fittingMethod <- "IRLS"
   if (missing(bootType)) bootType <- "parametric"
@@ -291,8 +297,9 @@ controlPopVar <- function(alpha = .05,
     confType             = confType,
     covType              = covType,
     trcount              = trcount,
+    cores                = cores,
     alpha                = alpha,
-    B                   = B,
-    sd                  = sd
+    B                    = B,
+    sd                   = sd
   )
 }
