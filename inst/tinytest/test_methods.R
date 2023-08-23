@@ -1,23 +1,23 @@
 # test simulate
-# set.seed(123)
-# expect_equivalent(
-#   {N <- 10000
-#    gender <- rbinom(N, 1, 0.2)
-#    eta <- -1 + 0.5*gender
-#    disp <- 1
-#    counts <- rnbinom(N, mu = exp(eta), size = disp)
-#    df <- data.frame(gender, eta, counts)
-#    df2 <- subset(df, counts > 0)
-#    mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, 
-#                              data = df2,
-#                              model = "ztnegbin", 
-#                              method = "optim",
-#                              pop.var = "analytic")
-#    mid1_sim <- simulate(mod1, 10)
-#    dim(mid1_sim)
-#   },
-#   c(2920, 10)
-# )
+set.seed(123)
+expect_equivalent(
+  {N <- 10000
+   gender <- rbinom(N, 1, 0.2)
+   eta <- -1 + 0.5*gender
+   counts <- rnbinom(N, mu = exp(eta), size = 1)
+   df <- data.frame(gender, eta, counts)
+   df2 <- subset(df, counts > 0)
+   mod1 <-  estimatePopsize(
+     formula = counts ~ 1 + gender,
+     data = df2,
+     model = "ztnegbin",
+     method = "optim"
+   )
+   mid1_sim <- simulate(mod1, 10)
+   dim(mid1_sim)
+  },
+  c(2920, 10)
+)
 
 expect_silent(
   Model <- estimatePopsize(

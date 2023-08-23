@@ -1632,7 +1632,8 @@ df.residual.singleR <- function(object, ...) {
 #' @title Generating data in singleRcapture
 #' 
 #' @description
-#' An S3class for \code{stats::simulate} to handle \code{singleR} objects.
+#' An S3 method for \code{stats::simulate} to handle \code{singleR} and 
+#' \code{singleRfamily} classes.
 #'
 #' @param object an object representing a fitted model.
 #' @param nsim a numeric scalar specifying:
@@ -1670,6 +1671,7 @@ df.residual.singleR <- function(object, ...) {
 #' @method simulate singleR
 #' @exportS3Method
 #' @name simulate
+#' @export
 simulate.singleR <- function(object, nsim = 1, seed = NULL, ...) {
   n <- nobs(object)
   val <- simulate(
@@ -1690,6 +1692,7 @@ simulate.singleR <- function(object, nsim = 1, seed = NULL, ...) {
 #' @importFrom stats simulate
 #' @method simulate singleRfamily
 #' @exportS3Method
+#' @export
 simulate.singleRfamily <- function(object, 
                                    nsim,
                                    seed = NULL, 

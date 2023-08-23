@@ -32,7 +32,8 @@ full distribution.}
 a \code{data.frame} with \code{n} rows and \code{nsim} columns.
 }
 \description{
-An S3class for \code{stats::simulate} to handle \code{singleR} objects.
+An S3 method for \code{stats::simulate} to handle \code{singleR} and
+\code{singleRfamily} classes.
 }
 \examples{
 N <- 10000
@@ -42,6 +43,7 @@ eta <- -1 + 0.5*gender
 counts <- simulate(ztpoisson(), eta = cbind(eta), seed = 1)
 df <- data.frame(gender, eta, counts)
 df2 <- subset(df, counts > 0)
+### check coverage with summary
 mod1 <-  estimatePopsize(
   formula       = counts ~ 1 + gender, 
   data          = df2, 
