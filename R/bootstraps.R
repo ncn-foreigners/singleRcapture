@@ -567,60 +567,61 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
     ex = {
-      strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
-      
-      weightsStrap <- as.numeric(weights[strap])
-      offsetStrap  <- offset[strap, , drop = FALSE]
-      #etaStrap     <- eta[strap, , drop = FALSE]
-      Xstrap       <- modelFrame[strap, , drop = FALSE]
-      
-      colnames(Xstrap) <- colnames(modelFrame)
-      
-      Xstrap <- singleRinternalGetXvlmMatrix(
-        X = Xstrap, formulas = formulas, family$etaNames)
-      
-      ystrap <- family$simulate(
-        n = N,
-        eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
-        lower = -1, upper = Inf
-      )
-      
-      weightsStrap <- weightsStrap[ystrap > 0]
-      #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
-      offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
-      
-      strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
-      strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
-      hwm <- attr(Xstrap, "hwm")
-      
-      Xstrap <- Xstrap[strap, , drop = FALSE]
-      ystrap <- ystrap[ystrap > 0]
-      
-      wch <- singleRcaptureinternalDataCleanupSpecialCases(
-        family = family, observed = ystrap, popVar = "analytic")
-      
       theta <- NULL
-      
-      if (famName == "zelterman") {
-        Xstrap1 <- Xstrap
+      while (is.null(theta)) {
+        strap <- sample.int(replace = TRUE, n = n, size = N, prob = prob)
+        
+        weightsStrap <- as.numeric(weights[strap])
+        offsetStrap  <- offset[strap, , drop = FALSE]
+        #etaStrap     <- eta[strap, , drop = FALSE]
+        Xstrap       <- modelFrame[strap, , drop = FALSE]
+        
+        colnames(Xstrap) <- colnames(modelFrame)
+        
+        Xstrap <- singleRinternalGetXvlmMatrix(
+          X = Xstrap, formulas = formulas, family$etaNames)
+        
+        ystrap <- family$simulate(
+          n = N,
+          eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
+          lower = -1, upper = Inf
+        )
+        
+        weightsStrap <- weightsStrap[ystrap > 0]
+        #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
+        offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+        
+        strap <- rep(FALSE, length(family$etaNames) * length(ystrap))
+        strap[rep(ystrap > 0, length(family$etaNames))] <- TRUE
+        hwm <- attr(Xstrap, "hwm")
+        
+        Xstrap <- Xstrap[strap, , drop = FALSE]
+        ystrap <- ystrap[ystrap > 0]
+        
+        wch <- singleRcaptureinternalDataCleanupSpecialCases(
+          family = family, observed = ystrap, popVar = "analytic")
+        
+        if (famName == "zelterman") {
+          Xstrap1 <- Xstrap
+        }
+        Xstrap <- subset(Xstrap, subset = rep(wch$reg, length(family$etaNames)))
+        attr(Xstrap, "hwm") <- hwm
+        
+        try(
+          theta <- estimatePopsize.fit(
+            y = ystrap[wch$reg],
+            X = Xstrap,
+            family = family,
+            control = controlBootstrapMethod,
+            method = method,
+            priorWeights = weightsStrap[wch$reg],
+            coefStart = jitter(beta),
+            etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
+            offset = offsetStrap[wch$reg, , drop = FALSE]
+          )$beta,
+          silent = TRUE
+        )
       }
-      Xstrap <- subset(Xstrap, subset = rep(wch$reg, length(family$etaNames)))
-      attr(Xstrap, "hwm") <- hwm
-      
-      try(
-        theta <- estimatePopsize.fit(
-          y = ystrap[wch$reg],
-          X = Xstrap,
-          family = family,
-          control = controlBootstrapMethod,
-          method = method,
-          priorWeights = weightsStrap[wch$reg],
-          coefStart = jitter(beta),
-          etaStart = matrix(Xstrap %*% jitter(beta), ncol = NCOL(offsetStrap)) + offsetStrap[wch$reg, , drop = FALSE],
-          offset = offsetStrap[wch$reg, , drop = FALSE]
-        )$beta,
-        silent = TRUE
-      )
       
       if (famName == "zelterman") {
         theta <- matrix(Xstrap1 %*% theta, ncol = length(family$etaNames)) + offsetStrap[wch$est, , drop = FALSE]
