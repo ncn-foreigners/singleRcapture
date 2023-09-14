@@ -2,11 +2,11 @@
 % Please edit documentation in R/Methods.R
 \name{simulate}
 \alias{simulate}
-\alias{simulate.singleR}
+\alias{simulate.singleRStaticCountData}
 \alias{simulate.singleRfamily}
 \title{Generating data in singleRcapture}
 \usage{
-\method{simulate}{singleR}(object, nsim = 1, seed = NULL, ...)
+\method{simulate}{singleRStaticCountData}(object, nsim = 1, seed = NULL, ...)
 
 \method{simulate}{singleRfamily}(object, nsim, seed = NULL, eta, truncated = FALSE, ...)
 }
@@ -15,7 +15,7 @@
 
 \item{nsim}{a numeric scalar specifying:
 \itemize{
-\item number of response vectors to simulate in \code{simulate.singleR}, defaults to \code{1L}.
+\item number of response vectors to simulate in \code{simulate.singleRStaticCountData}, defaults to \code{1L}.
 \item number of units to draw in \code{simulate.singleRfamily}, defaults to \code{NROW(eta)}.
 }}
 
@@ -32,7 +32,7 @@ full distribution.}
 a \code{data.frame} with \code{n} rows and \code{nsim} columns.
 }
 \description{
-An S3 method for \code{stats::simulate} to handle \code{singleR} and
+An S3 method for \code{stats::simulate} to handle \code{singleRStaticCountData} and
 \code{singleRfamily} classes.
 }
 \examples{

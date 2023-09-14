@@ -50,7 +50,7 @@ NULL
 #' number of distribution parameters providing offset values to each of 
 #' linear predictors.
 #' @param ... additional optional arguments passed to other methods eg. 
-#' \code{estimatePopsize.fit}.
+#' \code{estimatePopsizeFit}.
 #' 
 #' @details The generalized linear model is characterised by equation
 #' \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
@@ -84,7 +84,7 @@ NULL
 #' this differs from convention in \code{VGAM} package (if we only consider our 
 #' special cases of vglm models) but this is just a convention and does not 
 #' affect the model, this convention is taken because it makes fitting with 
-#' IRLS (explanation of algorithm in [estimatePopsize.fit()]) algorithm easier.
+#' IRLS (explanation of algorithm in [estimatePopsizeFit()]) algorithm easier.
 #' (If \code{constraints} matrixes in \code{vglm} match the ones we implicitly
 #' use the \code{vglm} model matrix differs with respect to order of 
 #' \code{kronecker} multiplication of \code{X} and \code{constraints}.)
@@ -227,8 +227,8 @@ NULL
 #' or that variable \mjseqn{\ln(N-\hat{N})}
 #' follows a normal distribution. 
 #' 
-#' These estimates may be found using either \code{summary.singleR}
-#' method or \code{popSizeEst.singleR} function. They're labelled as 
+#' These estimates may be found using either \code{summary.singleRStaticCountData}
+#' method or \code{popSizeEst.singleRStaticCountData} function. They're labelled as 
 #' \code{normal} and \code{logNormal} respectively.
 #'
 #' @references General single source capture recapture literature:
@@ -287,7 +287,7 @@ NULL
 #' Yee, T. W. (2015). Vector Generalized Linear and Additive Models: 
 #' With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 #'
-#' @returns Returns an object of class \code{c("singleR", "glm", "lm")}
+#' @returns Returns an object of class \code{c("singleRStaticCountData", "singleR", "glm", "lm")}
 #' with type \code{list} containing:\cr
 #' \itemize{
 #'  \item{\code{y} -- Vector of dependent variable if specified at function call.}
@@ -330,13 +330,13 @@ NULL
 #' 
 #' [controlModel()] -- For control parameters related to model specification.
 #' 
-#' [estimatePopsize.fit()] -- For more information on fitting procedure in
+#' [estimatePopsizeFit()] -- For more information on fitting procedure in
 #' \code{esitmate_popsize}.
 #' 
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
 #' estimation results are applying post-hoc procedures.
 #' 
-#' [summary.singleR()] -- For summarising important information about the
+#' [summary.singleRStaticCountData()] -- For summarising important information about the
 #' model and population size estimation results.
 #' 
 #' [marginalFreq()] -- For information on marginal frequencies and comparison
@@ -419,36 +419,42 @@ NULL
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 #' summary(Model)
 #' }
+#' @export
+estimatePopsize <- function(formula, 
+                            ...) {
+  UseMethod("estimatePopsize")
+}
+#' @rdname estimatePopsize
 #' @importFrom stats model.frame model.matrix model.response
 #' @export
-estimatePopsize <- function(formula,
-                            data,
-                            model = c(
-                              "ztpoisson", "ztnegbin", "ztgeom",
-                              "zotpoisson", "ztoipoisson", "oiztpoisson",
-                              "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
-                              "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
-                              "Hurdleztnegbin", "zotgeom", "ztoigeom",
-                              "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
-                              "zelterman", "chao"
-                            ),
-                            weights  = NULL,
-                            subset   = NULL,
-                            naAction = NULL,
-                            method   = c("optim", 
-                                         "IRLS"),
-                            popVar   = c("analytic",
-                                         "bootstrap",
-                                         "noEst"),
-                            controlMethod = NULL,
-                            controlModel  = NULL,
-                            controlPopVar = NULL,
-                            modelFrame    = TRUE,
-                            x             = FALSE,
-                            y             = TRUE,
-                            contrasts     = NULL,
-                            offset,
-                             ...) {
+estimatePopsize.default <- function(formula,
+                                    data,
+                                    model = c(
+                                      "ztpoisson", "ztnegbin", "ztgeom",
+                                      "zotpoisson", "ztoipoisson", "oiztpoisson",
+                                      "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
+                                      "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
+                                      "Hurdleztnegbin", "zotgeom", "ztoigeom",
+                                      "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
+                                      "zelterman", "chao"
+                                    ),
+                                    weights  = NULL,
+                                    subset   = NULL,
+                                    naAction = NULL,
+                                    method   = c("optim", 
+                                                 "IRLS"),
+                                    popVar   = c("analytic",
+                                                 "bootstrap",
+                                                 "noEst"),
+                                    controlMethod = NULL,
+                                    controlModel  = NULL,
+                                    controlPopVar = NULL,
+                                    modelFrame    = TRUE,
+                                    x             = FALSE,
+                                    y             = TRUE,
+                                    contrasts     = NULL,
+                                    offset,
+                                    ...) {
   if (missing(method)) method <- "IRLS"
   if (missing(popVar)) popVar <- "analytic"
   
@@ -594,7 +600,7 @@ estimatePopsize <- function(formula,
   }
   
   
-  FITT <- estimatePopsize.fit(
+  FITT <- estimatePopsizeFit(
     y            = observed[wch$reg],
     X            = Xvlm,
     family       = family,
@@ -756,6 +762,6 @@ estimatePopsize <- function(formula,
       which            = wch,
       fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
     ),
-    class = c("singleR", "glm", "lm")
+    class = c("singleRStaticCountData", "singleR", "glm", "lm")
   )
 }

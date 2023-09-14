@@ -2,12 +2,12 @@
 % Please edit documentation in R/Methods.R
 \name{redoPopEstimation}
 \alias{redoPopEstimation}
-\alias{redoPopEstimation.singleR}
+\alias{redoPopEstimation.singleRStaticCountData}
 \title{Updating population size estimation results.}
 \usage{
 redoPopEstimation(object, newdata, ...)
 
-\method{redoPopEstimation}{singleR}(
+\method{redoPopEstimation}{singleRStaticCountData}(
   object,
   newdata,
   cov,
@@ -24,7 +24,7 @@ redoPopEstimation(object, newdata, ...)
 
 \item{newdata}{optional \code{data.frame} with new data for pop size estimation.}
 
-\item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
+\item{...}{additional optional arguments, currently not used in \code{singleRStaticCountData} class method.}
 
 \item{cov}{an updated covariance matrix estimate.}
 

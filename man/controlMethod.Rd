@@ -98,10 +98,10 @@ List with selected parameters, it is also possible to call list directly.
 \description{
 \code{controlMethod} constructs a list with all necessary
 control parameters for regression fitting in
-\code{estimatePopsize.fit} and \code{estimatePopsize}.
+\code{estimatePopsizeFit} and \code{estimatePopsize}.
 }
 \seealso{
-\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}}
+\code{\link[=estimatePopsize]{estimatePopsize()}} \code{\link[=estimatePopsizeFit]{estimatePopsizeFit()}}
 \code{\link[=controlModel]{controlModel()}} \code{\link[=controlPopVar]{controlPopVar()}}
 }
 \author{

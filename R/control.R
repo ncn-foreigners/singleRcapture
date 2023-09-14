@@ -4,7 +4,7 @@
 #' 
 #' @description \code{controlMethod} constructs a list with all necessary 
 #' control parameters for regression fitting in 
-#' \code{estimatePopsize.fit} and \code{estimatePopsize}.
+#' \code{estimatePopsizeFit} and \code{estimatePopsize}.
 #'
 #' @param epsilon tolerance for fitting algorithms by default \code{1e-8}.
 #' @param maxiter maximum number of iterations.
@@ -61,7 +61,7 @@
 #' \code{verbose} should be saved to output object, by default \code{FALSE}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
-#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsize.fit()] 
+#' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::estimatePopsizeFit()] 
 #' [singleRcapture::controlModel()] [singleRcapture::controlPopVar()]
 #' @export
 controlMethod <- function(epsilon             = 1e-8,

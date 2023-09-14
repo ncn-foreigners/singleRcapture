@@ -2,9 +2,12 @@
 % Please edit documentation in R/estimatePopsize.R
 \name{estimatePopsize}
 \alias{estimatePopsize}
+\alias{estimatePopsize.default}
 \title{Single source capture-recapture models}
 \usage{
-estimatePopsize(
+estimatePopsize(formula, ...)
+
+\method{estimatePopsize}{default}(
   formula,
   data,
   model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
@@ -30,6 +33,9 @@ estimatePopsize(
 \arguments{
 \item{formula}{formula for the model to be fitted, only applied to the "main"
 linear predictor. Only single response models are available.}
+
+\item{...}{additional optional arguments passed to other methods eg.
+\code{estimatePopsizeFit}.}
 
 \item{data}{data frame or object coercible to data.frame class containing
 data for the regression and population size estimation.}
@@ -73,12 +79,9 @@ dependent vector and model matrix as a part of output.}
 \item{offset}{a matrix of offset values with number of columns matching the
 number of distribution parameters providing offset values to each of
 linear predictors.}
-
-\item{...}{additional optional arguments passed to other methods eg.
-\code{estimatePopsize.fit}.}
 }
 \value{
-Returns an object of class \code{c("singleR", "glm", "lm")}
+Returns an object of class \code{c("singleRStaticCountData", "singleR", "glm", "lm")}
 with type \code{list} containing:\cr
 \itemize{
 \item{\code{y} -- Vector of dependent variable if specified at function call.}
@@ -156,7 +159,7 @@ is constructed as a block matrix:
 this differs from convention in \code{VGAM} package (if we only consider our
 special cases of vglm models) but this is just a convention and does not
 affect the model, this convention is taken because it makes fitting with
-IRLS (explanation of algorithm in \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}}) algorithm easier.
+IRLS (explanation of algorithm in \code{\link[=estimatePopsizeFit]{estimatePopsizeFit()}}) algorithm easier.
 (If \code{constraints} matrixes in \code{vglm} match the ones we implicitly
 use the \code{vglm} model matrix differs with respect to order of
 \code{kronecker} multiplication of \code{X} and \code{constraints}.)
@@ -304,8 +307,8 @@ Lastly confidence intervals for \mjseqn{\hat{N}} are computed
 or that variable \mjseqn{\ln(N-\hat{N})}
 follows a normal distribution.
 
-These estimates may be found using either \code{summary.singleR}
-method or \code{popSizeEst.singleR} function. They're labelled as
+These estimates may be found using either \code{summary.singleRStaticCountData}
+method or \code{popSizeEst.singleRStaticCountData} function. They're labelled as
 \code{normal} and \code{logNormal} respectively.
 }
 \examples{
@@ -449,13 +452,13 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 
 \code{\link[=controlModel]{controlModel()}} -- For control parameters related to model specification.
 
-\code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}} -- For more information on fitting procedure in
+\code{\link[=estimatePopsizeFit]{estimatePopsizeFit()}} -- For more information on fitting procedure in
 \code{esitmate_popsize}.
 
 \code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=redoPopEstimation]{redoPopEstimation()}} -- For extracting population size
 estimation results are applying post-hoc procedures.
 
-\code{\link[=summary.singleR]{summary.singleR()}} -- For summarising important information about the
+\code{\link[=summary.singleRStaticCountData]{summary.singleRStaticCountData()}} -- For summarising important information about the
 model and population size estimation results.
 
 \code{\link[=marginalFreq]{marginalFreq()}} -- For information on marginal frequencies and comparison

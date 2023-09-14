@@ -2,29 +2,29 @@
 % Please edit documentation in R/Methods.R, R/documentationFiles.R
 \name{dfpopsize}
 \alias{dfpopsize}
-\alias{hatvalues.singleR}
-\alias{dfbeta.singleR}
-\alias{residuals.singleR}
-\alias{cooks.distance.singleR}
-\alias{dfpopsize.singleR}
+\alias{hatvalues.singleRStaticCountData}
+\alias{dfbeta.singleRStaticCountData}
+\alias{residuals.singleRStaticCountData}
+\alias{cooks.distance.singleRStaticCountData}
+\alias{dfpopsize.singleRStaticCountData}
 \alias{regDiagSingleR}
 \title{Regression diagnostics in \code{singleRcapture}}
 \usage{
 dfpopsize(model, ...)
 
-\method{hatvalues}{singleR}(model, ...)
+\method{hatvalues}{singleRStaticCountData}(model, ...)
 
-\method{dfbeta}{singleR}(model, maxitNew = 1, trace = FALSE, cores = 1, ...)
+\method{dfbeta}{singleRStaticCountData}(model, maxitNew = 1, trace = FALSE, cores = 1, ...)
 
-\method{residuals}{singleR}(
+\method{residuals}{singleRStaticCountData}(
   object,
   type = c("pearson", "pearsonSTD", "response", "working", "deviance", "all"),
   ...
 )
 
-\method{cooks.distance}{singleR}(model, ...)
+\method{cooks.distance}{singleRStaticCountData}(model, ...)
 
-\method{dfpopsize}{singleR}(model, dfbeta = NULL, observedPop = FALSE, ...)
+\method{dfpopsize}{singleRStaticCountData}(model, dfbeta = NULL, observedPop = FALSE, ...)
 }
 \arguments{
 \item{model, object}{object of \code{singleR} class.}

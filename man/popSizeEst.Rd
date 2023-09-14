@@ -2,22 +2,22 @@
 % Please edit documentation in R/Methods.R
 \name{popSizeEst}
 \alias{popSizeEst}
-\alias{popSizeEst.singleR}
+\alias{popSizeEst.singleRStaticCountData}
 \title{Extract population size estimation results.}
 \usage{
 popSizeEst(object, ...)
 
-\method{popSizeEst}{singleR}(object, ...)
+\method{popSizeEst}{singleRStaticCountData}(object, ...)
 }
 \arguments{
 \item{object}{object with population size estimates.}
 
-\item{...}{additional optional arguments, currently not used in \code{singleR} class method.}
+\item{...}{additional optional arguments, currently not used in \code{singleRStaticCountData} class method.}
 }
 \value{
 An object of class \code{popSizeEstResults} containing population size estimation results.
 }
 \description{
-An extractor function with \code{singleR} method for extracting
+An extractor function with \code{singleRStaticCountData} method for extracting
 important information regarding pop size estimate.
 }

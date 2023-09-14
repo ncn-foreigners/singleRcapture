@@ -50,7 +50,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     X = Xstrap, formulas = formulas, family$etaNames)
     theta <- NULL
     try(
-      theta <- estimatePopsize.fit(
+      theta <- estimatePopsizeFit(
         y = ystrap[wch$reg],
         X = Xstrap,
         family = family,
@@ -135,7 +135,7 @@ noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
         Xstrap <- singleRinternalGetXvlmMatrix(
           X = Xstrap, formulas = formulas, family$etaNames)
         try(
-          theta <- estimatePopsize.fit(
+          theta <- estimatePopsizeFit(
             y = ystrap[wch$reg],
             X = Xstrap,
             family = family,
@@ -234,7 +234,7 @@ semparBoot <- function(family, formulas, y, X, beta,
     Xstrap <- singleRinternalGetXvlmMatrix(
     X = Xstrap, formulas = formulas, family$etaNames)
     try(
-      theta <- estimatePopsize.fit(
+      theta <- estimatePopsizeFit(
         y = ystrap[wch$reg],
         X = Xstrap,
         family = family,
@@ -343,7 +343,7 @@ semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
           X = Xstrap, formulas = formulas, family$etaNames)
         
         try(
-          theta <- estimatePopsize.fit(
+          theta <- estimatePopsizeFit(
             y = ystrap[wch$reg],
             X = Xstrap,
             family = family,
@@ -477,7 +477,7 @@ parBoot <- function(family,
     attr(Xstrap, "hwm") <- hwm
     
     try(
-      theta <- estimatePopsize.fit(
+      theta <- estimatePopsizeFit(
         y = ystrap[wch$reg],
         X = Xstrap,
         family = family,
@@ -608,7 +608,7 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
         attr(Xstrap, "hwm") <- hwm
         
         try(
-          theta <- estimatePopsize.fit(
+          theta <- estimatePopsizeFit(
             y = ystrap[wch$reg],
             X = Xstrap,
             family = family,

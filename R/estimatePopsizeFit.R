@@ -3,10 +3,10 @@
 #' @title Regression fitting in single source capture-recapture models
 #' @author Piotr Chlebicki, Maciej Beresewicz
 #'
-#' @description \code{estimatePopsize.fit} does for \code{estimatePopsize} what
+#' @description \code{estimatePopsizeFit} does for \code{estimatePopsize} what
 #' \code{glm.fit} does for \code{glm}. It is internally called in 
 #' \code{estimatePopsize}. Since \code{estimatePopsize} does much more than
-#' just regression fitting \code{estimatePopsize.fit} is much faster.
+#' just regression fitting \code{estimatePopsizeFit} is much faster.
 #'
 #' @param y vector of dependent variables.
 #' @param X model matrix, the vglm one.
@@ -125,7 +125,7 @@
 #' family = poisson()
 #' )$coefficients
 #' 
-#' res <- estimatePopsize.fit(
+#' res <- estimatePopsizeFit(
 #' y = farmsubmission$TOTAL_SUB, 
 #' X = X, 
 #' method = "IRLS", 
@@ -155,7 +155,7 @@
 #' 
 #' # Compare with optim call
 #' 
-#' res2 <- estimatePopsize.fit(
+#' res2 <- estimatePopsizeFit(
 #'   y = farmsubmission$TOTAL_SUB, 
 #'   X = X, 
 #'   method = "optim", 
@@ -187,7 +187,7 @@
 #' @seealso [stats::glm()] [estimatePopsize()] [controlMethod()] [stats::optim()] 
 # #' @importFrom maxLik maxLik
 #' @export
-estimatePopsize.fit <- function(y, X,
+estimatePopsizeFit <- function(y, X,
                                 family,
                                 control,
                                 method,

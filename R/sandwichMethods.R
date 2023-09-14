@@ -2,10 +2,10 @@
 
 # Same story as with bread
 #' @importFrom sandwich estfun
-#' @method estfun singleR
-#' @rdname vcovHC.singleR
+#' @method estfun singleRStaticCountData
+#' @rdname vcovHC.singleRStaticCountData
 #' @exportS3Method
-estfun.singleR <- function(x,...) {
+estfun.singleRStaticCountData <- function(x,...) {
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
   Y <- Y[x$which$reg]
   X <- stats::model.matrix(x, type = "vlm")
@@ -21,21 +21,21 @@ estfun.singleR <- function(x,...) {
 # this literally does the same as every other bread method, there's no need for
 # separate documentation just link it to vcovHC
 #' @importFrom sandwich bread
-#' @method bread singleR
-#' @rdname vcovHC.singleR
+#' @method bread singleRStaticCountData
+#' @rdname vcovHC.singleRStaticCountData
 #' @exportS3Method
-bread.singleR <- function(x,...) {
+bread.singleRStaticCountData <- function(x,...) {
   stats::vcov(x, ...) * as.vector(x$dfResidual + length(coef(x)))
 }
 
-#' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
+#' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleRStaticCountData class
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
-#' @description S3 method for \code{vcovHC} to handle \code{singleR} class objects. 
+#' @description S3 method for \code{vcovHC} to handle \code{singleRStaticCountData} class objects. 
 #' Works exactly like \code{vcov.default} the only difference being that this method handles vector generalised linear models.
 #' Updating the covariance matrix in variance/standard error estimation for population size estimator can be done via [singleRcapture::redoPopEstimation()]
 #'
-#' @param x a fitted \code{singleR} class object.
+#' @param x a fitted \code{singleRStaticCountData} class object.
 #' @param type a character string specifying the estimation type, same as in \code{sandwich::vcovHC.default}. HC3 is the default value.
 #' @param omega a vector or a function depending on the arguments residuals (i.e. the derivative of log-likelihood with respect to each linear predictor), diaghat (the diagonal of the corresponding hat matrix) and df (the residual degrees of freedom), same as in \code{sandwich::vcovHC.default}.
 #' @param sandwich logical. Should the sandwich estimator be computed? If set to FALSE only the meat matrix is returned. Same as in [sandwich::vcovHC()]
@@ -81,9 +81,9 @@ bread.singleR <- function(x,...) {
 #' # bread method
 #' all(vcov(mod1, "Fisher") * nrow(df2) == sandwich::bread(mod1, type = "Fisher"))
 #' @importFrom sandwich vcovHC
-#' @method vcovHC singleR
+#' @method vcovHC singleRStaticCountData
 #' @exportS3Method
-vcovHC.singleR <- function(x, 
+vcovHC.singleRStaticCountData <- function(x, 
                            type = c("HC3", "const", "HC", 
                                     "HC0", "HC1", "HC2", 
                                     "HC4", "HC4m", "HC5"), 

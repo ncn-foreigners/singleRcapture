@@ -643,7 +643,7 @@ singleRinternalMultiplyWeight <- function (X, W, ...) {
 # cholFroW <- function(W, prior) {
 #   if (NROW(W) != NROW(prior)) 
 #     stop(paste0(
-#       "Error in estimatePopsize.fit, working ",
+#       "Error in estimatePopsizeFit, working ",
 #       "weights and prior weights suggest different number of observations."
 #     ))
 #   L <- list()

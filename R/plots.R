@@ -1,9 +1,9 @@
 #' @title Diagnostic plots for regression and population size estimation.
 #' @author Piotr Chlebicki
 #'
-#' @description Simple diagnostic plots for \code{singleR} class objects.
+#' @description Simple diagnostic plots for \code{singleRStaticCountData} class objects.
 #'
-#' @param x object of \code{singleR} class.
+#' @param x object of \code{singleRStaticCountData} class.
 #' @param confIntStrata confidence interval type to use for strata plot.
 #' Currently supported values are \code{"normal"} and \code{"logNormal"}.
 #' @param plotType character parameter specifying type of plot to be made.
@@ -77,22 +77,22 @@
 #'   }
 #'   \item For \code{plotType = "hatplot"} 
 #'   \itemize{
-#'   \item \code{hatvalues.singleR}
+#'   \item \code{hatvalues.singleRStaticCountData}
 #'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
 #'   }
 #'   \item For \code{plotType = "strata"}
 #'   \itemize{
-#'   \item \code{stratifyPopsize.singleR}
+#'   \item \code{stratifyPopsize.singleRStaticCountData}
 #'   }
 #' }
 #' 
-#' @method plot singleR
+#' @method plot singleRStaticCountData
 #' @return No return value only the plot being made.
 #' @importFrom stats ppoints qqline qqnorm density dlnorm
 #' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows par
-#' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
+#' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleRStaticCountData()]
 #' @export
-plot.singleR <- function(x, 
+plot.singleRStaticCountData <- function(x, 
                          plotType = c("qq", "marginal", "fitresid",
                                       "bootHist", "rootogram", "dfpopContr",
                                       "dfpopBox", "scaleLoc", "cooks",
@@ -118,10 +118,10 @@ plot.singleR <- function(x,
     type <- "pearson"
   
   if (plotType == "fitresid") {
-    res <- residuals.singleR(x, type = "response")[, 1] # fitted vs residuals
+    res <- residuals.singleRStaticCountData(x, type = "response")[, 1] # fitted vs residuals
     # plot should have just normal response residuals
   } else {
-    res <- residuals.singleR(x, type = type)[, 1]
+    res <- residuals.singleRStaticCountData(x, type = type)[, 1]
   }
   switch(plotType,
   qq = {
@@ -299,7 +299,7 @@ plot.singleR <- function(x,
     }
   },
   cooks = {
-    A <- cooks.distance.singleR(x);
+    A <- cooks.distance.singleRStaticCountData(x);
     plot(A,
          main = "Cook's distance",
          ylab = "Cook's distance",
@@ -308,7 +308,7 @@ plot.singleR <- function(x,
          ...)
   },
   hatplot = {
-    A <- hatvalues.singleR(x, ...);
+    A <- hatvalues.singleRStaticCountData(x, ...);
     graphics::par(mfrow = c(parNum, 1));
     for (k in 1:parNum) {
       plot(A[, k],
