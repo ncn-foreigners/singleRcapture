@@ -229,6 +229,8 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     }
   )
   
+  ratioFunc <- function(x) {x+1}
+  
   structure(
     list(
       makeMinusLogLike = minusLogLike,
@@ -247,6 +249,7 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       etaNames  = c("lambda"),
       simulate  = simulate,
       getStart  = getStart,
+      ratioFunc = ratioFunc,
       extraInfo = c(
         mean       = "lambda",
         variance   = "lambda",

@@ -621,7 +621,7 @@ singleRinternalMergeFormulas <- function(ff) {
   out
 }
 
-# This is almost certainly an overkill but is supports arbitrary number of linear predictors
+# This is almost certainly an overkill but it supports arbitrary number of linear predictors
 singleRinternalMultiplyWeight <- function (X, W, ...) {
   hwm <- attr(X, "hwm")
   thick <- sqrt(ncol(W))

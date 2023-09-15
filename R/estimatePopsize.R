@@ -438,6 +438,7 @@ estimatePopsize.default <- function(formula,
                                       "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
                                       "zelterman", "chao"
                                     ),
+                                    ratioReg = FALSE,
                                     weights  = NULL,
                                     subset   = NULL,
                                     naAction = NULL,
@@ -479,289 +480,375 @@ estimatePopsize.default <- function(formula,
   
   returnElements <- list(y, x, modelFrame)
   
-  # adding control parameters that may possibly be missing
-  # since passing simple lists as control arguments is allowed
-  m1 <- controlPopVar
-  m1 <- m1[sapply(m1, is.null) == FALSE]
-  m2 <- controlPopVar(
-    fittingMethod = match.arg(method), 
-    bootstrapFitcontrol = controlMethod(
-      epsilon = 1e-3, 
-      maxiter = 20, 
-      optimMethod = "Nelder-Mead", 
-      silent = TRUE
+  if (!ratioReg) {
+    # adding control parameters that may possibly be missing
+    # since passing simple lists as control arguments is allowed
+    m1 <- controlPopVar
+    m1 <- m1[sapply(m1, is.null) == FALSE]
+    m2 <- controlPopVar(
+      fittingMethod = match.arg(method), 
+      bootstrapFitcontrol = controlMethod(
+        epsilon = 1e-3, 
+        maxiter = 20, 
+        optimMethod = "Nelder-Mead", 
+        silent = TRUE
+      )
     )
-  )
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  controlPopVar <- append(m1, m2)
-  
-  m1 <- controlMethod
-  m2 <- controlMethod(
-    optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
-                      grepl(x = family$family, pattern = "^ztoi")) 
-      "Nelder-Mead" else "L-BFGS-B",
-    maxiter = if (isTRUE(method == "IRLS")) 100
-              else 1000
-  )
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  controlMethod <- append(m1, m2)
-  
-  m1 <- controlModel
-  m2 <- controlModel()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  controlModel <- append(m1, m2)
-  
-  formulas <- list(formula)
-  if ("alpha" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$alphaFormula)
-  }
-  if ("omega" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$omegaFormula)
-  }
-  if ("pi" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$piFormula)
-  }
-  
-  combinedFromula <- singleRinternalMergeFormulas(formulas)
-  
-  modelFrame <- stats::model.frame(combinedFromula, 
-                                   data,  
-                                   ...)
-  variables  <- stats::model.matrix(combinedFromula, 
-                                    modelFrame, 
-                                    contrasts = contrasts, 
-                                    ...)
-  
-  terms     <- attr(modelFrame, "terms")
-  contrasts <- attr(variables, "contrasts")
-  observed  <- model.response(modelFrame)
-  
-  # It is both necessary and sufficient to check X_lm matrix to know whether
-  # X_vlm matrix is full rank
-  ## TODO:: Either start using Matrix package everywhere or use QR
-  ## in fitting
-  
-  if (NCOL(observed) > 1) 
-    stop("Single source capture-recapture models support only single dependent variable.")
-  
-  sizeObserved <- nrow(data) + controlPopVar$trcount
-
-  if (!is.null(weights)) {
-    priorWeights <- as.numeric(weights)
-  } else {
-    priorWeights <- rep(1, nrow(modelFrame))
-  }
-  weights <- 1
-  
-  if (!all(observed > 0)) {
-    stop("Error in function estimatePopsize, data contains zero-counts.")
-  }
-  ### TODO:: anihilate
-  wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
-                                                       observed = observed, 
-                                                       popVar = popVar)
-
-  controlPopVar$trcount <- controlPopVar$trcount + wch$trr
-  
-  Xvlm <- singleRinternalGetXvlmMatrix(
-    # this preserves terms attribute
-    X = modelFrame[wch$reg, , drop = FALSE],
-    formulas = formulas, 
-    parNames = family$etaNames
-  )
-  
-  if (missing(offset)) {
-    offset <- matrix(
-      0, nrow = NROW(modelFrame), 
-      ncol = length(family$etaNames)
+    m2 <- m2[names(m2) %in% names(m1) == FALSE]
+    controlPopVar <- append(m1, m2)
+    
+    m1 <- controlMethod
+    m2 <- controlMethod(
+      optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
+                        grepl(x = family$family, pattern = "^ztoi")) 
+        "Nelder-Mead" else "L-BFGS-B",
+      maxiter = if (isTRUE(method == "IRLS")) 100
+                else 1000
     )
-  } else if (!is.matrix(offset)) {
-    offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
-  }
-  colnames(offset) <- family$etaNames
+    m2 <- m2[names(m2) %in% names(m1) == FALSE]
+    controlMethod <- append(m1, m2)
+    
+    m1 <- controlModel
+    m2 <- controlModel()
+    m2 <- m2[names(m2) %in% names(m1) == FALSE]
+    controlModel <- append(m1, m2)
+    
+    formulas <- list(formula)
+    
+    if ("alpha" %in% family$etaNames) {
+      formulas <- append(x = formulas, controlModel$alphaFormula)
+    }
+    if ("omega" %in% family$etaNames) {
+      formulas <- append(x = formulas, controlModel$omegaFormula)
+    }
+    if ("pi" %in% family$etaNames) {
+      formulas <- append(x = formulas, controlModel$piFormula)
+    }
   
-  if (!is.null(controlMethod$coefStart) || !is.null(controlMethod$etaStart)) {
-    if (method == "IRLS") {
-      etaStart  <- controlMethod$etaStart
-      coefStart <- controlMethod$coefStart
-      if (is.null(etaStart)) {
-        etaStart <- matrix(Xvlm %*% coefStart, ncol = length(family$etaNames))
-      }
-    } else if (method == "optim") {
-      etaStart  <- controlMethod$etaStart
-      coefStart <- controlMethod$coefStart
-      if (is.null(coefStart)) {
-        eval(family$getStart)
+    combinedFromula <- singleRinternalMergeFormulas(formulas)
+    
+    modelFrame <- stats::model.frame(combinedFromula, 
+                                     data,  
+                                     ...)
+    variables  <- stats::model.matrix(combinedFromula, 
+                                      modelFrame, 
+                                      contrasts = contrasts, 
+                                      ...)
+    
+    terms     <- attr(modelFrame, "terms")
+    contrasts <- attr(variables, "contrasts")
+    observed  <- model.response(modelFrame)
+    
+    # It is both necessary and sufficient to check X_lm matrix to know whether
+    # X_vlm matrix is full rank
+    ## TODO:: Either start using Matrix package everywhere or use QR
+    ## in fitting
+    
+    if (NCOL(observed) > 1) 
+      stop("Single source capture-recapture models support only single dependent variable.")
+    
+    sizeObserved <- nrow(data) + controlPopVar$trcount
+  
+    if (!is.null(weights)) {
+      priorWeights <- as.numeric(weights)
+    } else {
+      priorWeights <- rep(1, nrow(modelFrame))
+    }
+    weights <- 1
+    
+    if (!all(observed > 0)) {
+      stop("Error in function estimatePopsize, data contains zero-counts.")
+    }
+    ### TODO:: anihilate
+    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
+                                                         observed = observed, 
+                                                         popVar = popVar)
+  
+    controlPopVar$trcount <- controlPopVar$trcount + wch$trr
+    
+    Xvlm <- singleRinternalGetXvlmMatrix(
+      # this preserves terms attribute
+      X = modelFrame[wch$reg, , drop = FALSE],
+      formulas = formulas, 
+      parNames = family$etaNames
+    )
+    
+    if (missing(offset)) {
+      offset <- matrix(
+        0, nrow = NROW(modelFrame), 
+        ncol = length(family$etaNames)
+      )
+    } else if (!is.matrix(offset)) {
+      offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
+    }
+    colnames(offset) <- family$etaNames
+    
+    if (!is.null(controlMethod$coefStart) || !is.null(controlMethod$etaStart)) {
+      if (method == "IRLS") {
+        etaStart  <- controlMethod$etaStart
+        coefStart <- controlMethod$coefStart
+        if (is.null(etaStart)) {
+          etaStart <- matrix(Xvlm %*% coefStart, ncol = length(family$etaNames))
+        }
+      } else if (method == "optim") {
+        etaStart  <- controlMethod$etaStart
+        coefStart <- controlMethod$coefStart
+        if (is.null(coefStart)) {
+          eval(family$getStart)
+        }
       }
     }
-  }
-  else {
-    eval(family$getStart)
-  }
+    else {
+      eval(family$getStart)
+    }
+    
+    
+    FITT <- estimatePopsizeFit(
+      y            = observed[wch$reg],
+      X            = Xvlm,
+      family       = family,
+      control      = controlMethod,
+      method       = method,
+      priorWeights = priorWeights[wch$reg],
+      coefStart    = coefStart,
+      etaStart     = etaStart,
+      offset       = offset[wch$reg, , drop = FALSE]
+    )
+    
+    coefficients        <- FITT$beta
+    names(coefficients) <- colnames(Xvlm)
+    iter                <- FITT$iter
+    dfReduced           <- nrow(Xvlm) - length(coefficients)
+    IRLSlog             <- FITT$logg
+    
+    
+    logLike <- family$makeMinusLogLike(
+      y      = observed[wch$reg], 
+      X      = Xvlm,
+      weight = priorWeights[wch$reg],
+      offset = offset[wch$reg, , drop = FALSE]
+    )
+    
+    grad <- family$makeMinusLogLike(
+      y      = observed[wch$reg], 
+      X      = Xvlm, 
+      weight = priorWeights[wch$reg], 
+      deriv  = 1,
+      offset = offset[wch$reg, , drop = FALSE]
+    )
+    
+    hessian <- family$makeMinusLogLike(
+      y      = observed[wch$reg], 
+      X      = Xvlm,
+      weight = priorWeights[wch$reg], 
+      deriv  = 2,
+      offset = offset[wch$reg, , drop = FALSE]
+    )
   
-  
-  FITT <- estimatePopsizeFit(
-    y            = observed[wch$reg],
-    X            = Xvlm,
-    family       = family,
-    control      = controlMethod,
-    method       = method,
-    priorWeights = priorWeights[wch$reg],
-    coefStart    = coefStart,
-    etaStart     = etaStart,
-    offset       = offset[wch$reg, , drop = FALSE]
-  )
-  
-  coefficients        <- FITT$beta
-  names(coefficients) <- colnames(Xvlm)
-  iter                <- FITT$iter
-  dfReduced           <- nrow(Xvlm) - length(coefficients)
-  IRLSlog             <- FITT$logg
-  
-  
-  logLike <- family$makeMinusLogLike(
-    y      = observed[wch$reg], 
-    X      = Xvlm,
-    weight = priorWeights[wch$reg],
-    offset = offset[wch$reg, , drop = FALSE]
-  )
-  
-  grad <- family$makeMinusLogLike(
-    y      = observed[wch$reg], 
-    X      = Xvlm, 
-    weight = priorWeights[wch$reg], 
-    deriv  = 1,
-    offset = offset[wch$reg, , drop = FALSE]
-  )
-  
-  hessian <- family$makeMinusLogLike(
-    y      = observed[wch$reg], 
-    X      = Xvlm,
-    weight = priorWeights[wch$reg], 
-    deriv  = 2,
-    offset = offset[wch$reg, , drop = FALSE]
-  )
-
-  eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
-                          ncol = length(family$etaNames)) + offset[wch$reg, , drop = FALSE]
-  colnames(eta) <- family$etaNames
-  rownames(eta) <- rownames(variables[wch$reg])
-  weights       <- FITT$weights
-  
-  if (family$family == "zelterman") {
-    eta <- matrix(as.matrix(variables) %*% coefficients, ncol = 1) + offset
+    eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
+                            ncol = length(family$etaNames)) + offset[wch$reg, , drop = FALSE]
     colnames(eta) <- family$etaNames
-    rownames(eta) <- rownames(variables)
-  }
-
-  fitt <- data.frame(
-    family$mu.eta(eta = eta),
-    family$mu.eta(eta = eta, type = "nontrunc")
-  )
-  colnames(fitt) <- c("truncated", "nontruncated")
-  
-  # (Real square) Matrix is negative define iff all eigen values have 
-  # negative sign. This is very fast. 
-  # We only use eigen values so only.values is set to true.
-  eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
-  if (!all(sign(eig$values) == -1)) {
-    warningMessage <- paste0(
-      "The (analytically computed) hessian of the score function ",
-      "is not negative define.\nNOTE: Second derivative test failing does not 
-      necessarily mean that the maximum of score function that was found 
-      numericaly is invalid since R^k is not a bounded space.\n",
-      "Additionally in one inflated and hurdle models second ",
-      "derivative test often fails even on valid arguments."
-    )
-    if (!isTRUE(controlMethod$silent)) warning(warningMessage)
-    #cat("The eigen values were: ", eig$values) 
-    # Add some option that will give much more 
-    # information everywhere including here.
-    if (controlPopVar$covType == "observedInform") {
-      if (!isTRUE(controlMethod$silent)) 
-        warning(paste0(
-          "Switching from observed information matrix to Fisher information",
-          " matrix because hessian of log-likelihood is not negative define."
-        ))
-      controlPopVar$covType <- "Fisher"
+    rownames(eta) <- rownames(variables[wch$reg])
+    weights       <- FITT$weights
+    
+    if (family$family == "zelterman") {
+      eta <- matrix(as.matrix(variables) %*% coefficients, ncol = 1) + offset
+      colnames(eta) <- family$etaNames
+      rownames(eta) <- rownames(variables)
     }
-  }
   
-  nullDeviance <- as.numeric(NULL)
-  LOG          <- -logLike(coefficients)
-  resRes       <- priorWeights * (observed[wch$reg] - fitt)
+    fitt <- data.frame(
+      family$mu.eta(eta = eta),
+      family$mu.eta(eta = eta, type = "nontrunc")
+    )
+    colnames(fitt) <- c("truncated", "nontruncated")
+    
+    # (Real square) Matrix is negative define iff all eigen values have 
+    # negative sign. This is very fast. 
+    # We only use eigen values so only.values is set to true.
+    eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
+    if (!all(sign(eig$values) == -1)) {
+      warningMessage <- paste0(
+        "The (analytically computed) hessian of the score function ",
+        "is not negative define.\nNOTE: Second derivative test failing does not 
+        necessarily mean that the maximum of score function that was found 
+        numericaly is invalid since R^k is not a bounded space.\n",
+        "Additionally in one inflated and hurdle models second ",
+        "derivative test often fails even on valid arguments."
+      )
+      if (!isTRUE(controlMethod$silent)) warning(warningMessage)
+      #cat("The eigen values were: ", eig$values) 
+      # Add some option that will give much more 
+      # information everywhere including here.
+      if (controlPopVar$covType == "observedInform") {
+        if (!isTRUE(controlMethod$silent)) 
+          warning(paste0(
+            "Switching from observed information matrix to Fisher information",
+            " matrix because hessian of log-likelihood is not negative define."
+          ))
+        controlPopVar$covType <- "Fisher"
+      }
+    }
+    
+    nullDeviance <- as.numeric(NULL)
+    LOG          <- -logLike(coefficients)
+    resRes       <- priorWeights * (observed[wch$reg] - fitt)
+    
+    if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
   
-  if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
-
-  deviance <- sum(family$devResids(
-    y   = observed[wch$reg], 
-    wt  = priorWeights[wch$reg],
-    eta = if (family$family == "zelterman") (eta + offset)[wch$reg, , drop = FALSE]
-          else eta + offset[wch$reg, , drop = FALSE]
-  ) ^ 2)
-  
-  if (popVar == "noEst") {
-    Pop <- NULL #TODO:: make sure methods are prepared for this
+    deviance <- sum(family$devResids(
+      y   = observed[wch$reg], 
+      wt  = priorWeights[wch$reg],
+      eta = if (family$family == "zelterman") (eta + offset)[wch$reg, , drop = FALSE]
+            else eta + offset[wch$reg, , drop = FALSE]
+    ) ^ 2)
+    
+    if (popVar == "noEst") {
+      Pop <- NULL #TODO:: make sure methods are prepared for this
+    } else {
+      POP <- singleRcaptureinternalpopulationEstimate(
+        y = observed[wch$est],
+        formulas = formulas,
+        X = variables[wch$est, , drop = FALSE],
+        grad = grad,
+        hessian = hessian,
+        popVar = popVar,
+        weights = priorWeights[wch$est],
+        eta = eta,
+        family = family,
+        beta = coefficients,
+        control = controlPopVar,
+        Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") 
+                 variables 
+               else 
+                 Xvlm,
+        W = if (method == "IRLS")
+              weights 
+            else 
+              family$Wfun(prior = priorWeights, eta = eta),
+        sizeObserved = sizeObserved,
+        modelFrame = modelFrame,
+        cov = NULL,
+        offset = offset
+      )
+    }
+    
+    structure(
+      list(
+        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+        X                = if(isTRUE(returnElements[[2]])) variables else NULL,
+        modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+        formula          = formulas,
+        call             = match.call(),
+        coefficients     = coefficients,
+        control          = list(controlModel  = controlModel,
+                                controlMethod = controlMethod),
+        nullDeviance     = nullDeviance,
+        model            = family,
+        deviance         = deviance,
+        priorWeights     = priorWeights,
+        weights          = weights,
+        residuals        = resRes,
+        logL             = LOG,
+        iter             = iter,
+        dfResidual       = dfReduced,
+        dfNull           = length(observed) - 1,
+        fittValues       = fitt,
+        populationSize   = POP,
+        linearPredictors = eta,
+        offset           = offset,
+        trcount          = controlPopVar$trcount,
+        sizeObserved     = sizeObserved,
+        terms            = terms,
+        contrasts        = contrasts,
+        naAction         = naAction,
+        which            = wch,
+        fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
+      ),
+      class = c("singleRStaticCountData", "singleR", "glm", "lm")
+    )
   } else {
-    POP <- singleRcaptureinternalpopulationEstimate(
-      y = observed[wch$est],
-      formulas = formulas,
-      X = variables[wch$est, , drop = FALSE],
-      grad = grad,
-      hessian = hessian,
-      popVar = popVar,
-      weights = priorWeights[wch$est],
-      eta = eta,
-      family = family,
-      beta = coefficients,
-      control = controlPopVar,
-      Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") 
-               variables 
-             else 
-               Xvlm,
-      W = if (method == "IRLS")
-            weights 
-          else 
-            family$Wfun(prior = priorWeights, eta = eta),
-      sizeObserved = sizeObserved,
-      modelFrame = modelFrame,
-      cov = NULL,
-      offset = offset
+    ff <- formula
+    if (length(ff) == 3) {ff[[3]] <- 1}
+    modelFrame <- stats::model.frame(ff, data, ...)
+    
+    observed <- modelFrame |>
+      model.response() |>
+      as.vector() # dropping names, won't be needed
+    
+    delete <- modelFrame |>
+      attr("names")
+    
+    ff <- log(r) ~ 1
+    ff[[3]] <- formula[[3]]
+    
+    counts <- table(observed)
+    
+    if (TRUE) {
+      r <- sapply(1:(max(observed)-1), function(x) {
+        family$ratioFunc(x) * counts[as.character(x+1)] / counts[as.character(x)]
+      }) |> as.vector()
+      
+      if (!is.null(weights)) {
+        priorWeights <- as.numeric(weights)
+      } else {
+        priorWeights <- rep(1, nrow(modelFrame))
+      }
+      
+      if (TRUE) {
+        weights <- (1/counts[1:(max(observed)-1)] + 1/counts[2:max(observed)]) ^ -1
+        #weights <- priorWeights * weights
+      } else {
+        # weighting outgh to be optional
+      }
+      
+      # maybe include data here
+      linearModel <- lm(ff, data = data.frame(
+                        r = r, x = 1:(max(observed) - 1)
+                        ), weights = weights, ...)
+      
+      fitRatio <- predict(linearModel, data.frame(x = 0:(max(observed)-1)))
+      fitRatio <- exp(fitRatio)
+      
+      # first est for N
+      N <- sum(counts) / (1 - 1 / sum(c(1, cumprod(fitRatio))))
+      # second est for N
+      N <- c(N, sum(counts) + family$ratioFunc(0)*counts["1"] / fitRatio[1])
+      names(N) <- c("ht", "reg")
+      f0 <- N - sum(counts)
+      
+      variation <- model.matrix(ff, model.frame(ff, data.frame(x = 0, r = 0)))
+      variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
+      variation <- variation + counts["1"] * (a(0) ^ 2) * 
+        exp(-predict(linearModel, data.frame(x = 0))) ^ 2
+      
+      sd <- sqrt(variation)
+      sc <- qnorm(p = 1 - .05 / 2)
+      
+      
+      confidenceInterval <- 
+        data.frame(lowerBound = pmax(N - sc * sd, sum(counts)), 
+                   upperBound = N + sc * sd)
+      print(N)
+      print(confidenceInterval)
+      
+    } else {
+      ### TODO
+      # put observed likelihood method here
+    }
+    
+    stop("abc")
+    
+    structure(
+      list(
+        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+        X                = if(isTRUE(returnElements[[2]])) variables else NULL,
+        modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+        formula          = formula,
+        call             = match.call(),
+        coefficients     = coefficients
+      ),
+      class = c("singleRRatioReg", "singleR", "glm", "lm")
     )
   }
-  
-  structure(
-    list(
-      y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
-      X                = if(isTRUE(returnElements[[2]])) variables else NULL,
-      modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
-      formula          = formulas,
-      call             = match.call(),
-      coefficients     = coefficients,
-      control          = list(controlModel = controlModel,
-                              controlMethod = controlMethod),
-      nullDeviance     = nullDeviance,
-      model            = family,
-      deviance         = deviance,
-      priorWeights     = priorWeights,
-      weights          = weights,
-      residuals        = resRes,
-      logL             = LOG,
-      iter             = iter,
-      dfResidual       = dfReduced,
-      dfNull           = length(observed) - 1,
-      fittValues       = fitt,
-      populationSize   = POP,
-      linearPredictors = eta,
-      offset           = offset,
-      trcount          = controlPopVar$trcount,
-      sizeObserved     = sizeObserved,
-      terms            = terms,
-      contrasts        = contrasts,
-      naAction         = naAction,
-      which            = wch,
-      fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
-    ),
-    class = c("singleRStaticCountData", "singleR", "glm", "lm")
-  )
 }
