@@ -14,6 +14,7 @@ estimatePopsize(formula, ...)
     "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
     "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
     "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
+  ratioReg = FALSE,
   weights = NULL,
   subset = NULL,
   naAction = NULL,
@@ -41,6 +42,8 @@ linear predictor. Only single response models are available.}
 data for the regression and population size estimation.}
 
 \item{model}{model for regression and population estimate full description in \code{\link[=singleRmodels]{singleRmodels()}}.}
+
+\item{ratioReg}{TODO}
 
 \item{weights}{optional object of a priori weights used in fitting the model.}
 

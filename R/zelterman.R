@@ -1,6 +1,5 @@
 #' @rdname singleRmodels
-#' @importFrom stats glm.fit
-#' @importFrom stats poisson
+#' @importFrom stats dbinom
 #' @export
 zelterman <- function(lambdaLink = "loghalf",
                       ...) {
@@ -40,21 +39,29 @@ zelterman <- function(lambdaLink = "loghalf",
     )
   }
   
-  Wfun <- function(prior, eta, ...) {
-    lambda <- lambdaLink(eta, inverse = TRUE)
+  Wfun <- function(prior, eta, y, ...) {
+    iddx <- y %in% 1:2
+    lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
     z <- (lambda / 2) / (1 + lambda / 2)
+    res <- iddx
+    res[iddx] <- -prior[iddx] * (
+      -2 / (lambda * (2 + lambda) ^ 2) *
+      lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] ^ 2)
     
-    matrix(data = -prior * ((1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
-                              lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2),
-           ncol = 1, dimnames = list(rownames(eta), c("lambda")))
+    matrix(res, ncol = 1, 
+           dimnames = list(rownames(eta), 
+                           c("lambda")))
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
-    lambda <- lambdaLink(eta, inverse = TRUE)
+    iddx <- y %in% 1:2
+    z <- y - 1
+    lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
     
-    #(y - (lambda / 2) / (1 + lambda / 2))  / weight
-    (y / lambda - 1 / (2 + lambda)) * 
-    lambdaLink(eta, inverse = TRUE, deriv = 1) / weight
+    res <- iddx
+    res[iddx] <- (((z[iddx] - 1) * lambda + 2 * z[iddx]) / 
+      (lambda * (2 + lambda))) * lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] / weight[iddx, ]
+    res
   }
   
   minusLogLike <- function(y, X, 
@@ -62,13 +69,16 @@ zelterman <- function(lambdaLink = "loghalf",
                            NbyK = FALSE, 
                            vectorDer = FALSE, 
                            deriv = 0,
-                           offset, 
+                           offset,
+                           eta, 
                            ...) {
     y <- as.numeric(y)
     z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
+    
+    iddx <- y %in% 1:2
     if (missing(offset)) {
       offset <- cbind(rep(0, NROW(X)))
     }
@@ -76,40 +86,51 @@ zelterman <- function(lambdaLink = "loghalf",
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
     deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
     
-    switch (deriv,
-            function(beta) {
-              eta <- as.matrix(X) %*% beta + offset
-              lambda <- lambdaLink(eta, inverse = TRUE)
-              -sum(weight * (z * log((lambda / 2) / (1 + lambda / 2)) + 
-                            (1 - z) * log(1 / (1 + lambda / 2))))
-            },
-            function(beta) {
-              eta <- as.matrix(X) %*% beta + offset
-              lambda <- lambdaLink(eta, inverse = TRUE)
-              G0 <- (z / lambda - 1 / (2 + lambda)) * weight * 
-                lambdaLink(eta, inverse = TRUE, deriv = 1)
-              #G0 <- (z - (lambda / 2) / (1 + lambda / 2)) * weight
-              if (NbyK) {
-                return(as.data.frame(X) * G0)
-              }
-              if (vectorDer) {
-                return(matrix(G0, ncol = 1))
-              }
-              t(X) %*% G0
-            },
-            function(beta) {
-              eta <- as.matrix(X) %*% beta + offset
-              lambda <- lambdaLink(eta, inverse = TRUE)
-              
-              G00 <- (1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
-                lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2 +
-                (z / lambda - 1 / (lambda + 2)) *
-                lambdaLink(eta, inverse = TRUE, deriv = 2)
-              
-              #G00 <- weight * (-lambda / 2 / (1 + lambda / 2) ^ 2)
-              
-              t(as.data.frame(X) * weight * G00) %*% as.matrix(X)
-            }
+    switch (
+      deriv,
+      function(beta, eta) {
+        if (missing(eta)) {
+          eta <- as.matrix(X) %*% beta + offset
+        }
+        lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
+        -sum(weight[iddx] * dbinom(size = 1, 
+                                   prob = ((lambda / 2) / (1 + lambda / 2)),
+                                   log  = TRUE,
+                                   x    = z[iddx]))
+      },
+      function(beta) {
+        eta <- as.matrix(X) %*% beta + offset
+        lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
+        G0 <- iddx
+        G0[iddx] <- ((z[iddx] - 1) * lambda + 2 * z[iddx]) / 
+          (lambda * (2 + lambda)) * weight[iddx] * 
+          lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx]
+        
+        #G0 <- (z - (lambda / 2) / (1 + lambda / 2)) * weight
+        if (NbyK) {
+          return(as.data.frame(X[iddx, , drop = FALSE]) * G0)
+        }
+        if (vectorDer) {
+          return(matrix(G0, ncol = 1))
+        }
+        
+        t(X) %*% G0
+      },
+      function(beta) {
+        eta <- as.matrix(X) %*% beta + offset
+        lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
+        
+        G00 <- iddx
+        G00[iddx] <- (-(4 * z[iddx] + 4 * z[iddx] * lambda + 
+          (z[iddx] - 1) * lambda ^ 2) / ((2 + lambda) ^ 2 * lambda ^ 2)) *
+          lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] ^ 2 +
+          ((z[iddx] - 1) * lambda + 2 * z[iddx]) / (lambda * (2 + lambda)) *
+          lambdaLink(eta, inverse = TRUE, deriv = 2)[iddx]
+        
+        #G00 <- weight * (-lambda / 2 / (1 + lambda / 2) ^ 2)
+        
+        t(as.data.frame(X) * weight * G00) %*% as.matrix(X)
+      }
     )
   }
   
@@ -121,7 +142,7 @@ zelterman <- function(lambdaLink = "loghalf",
     z <- y - 1
     lambda <- lambdaLink(eta, inverse = TRUE)
     
-    ((-1) ^ y) * sqrt(-2 * wt * (z * log(lambda / 2 / (1 + lambda / 2)) + (1 - z) * log(1 / (1 + lambda / 2))))
+    ((-1) ^ y) * sqrt((-2 * wt * (z * log(lambda / 2 / (1 + lambda / 2)) + (1 - z) * log(1 / (1 + lambda / 2)))) * (y %in% 1:2))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, ...) {
@@ -173,13 +194,12 @@ zelterman <- function(lambdaLink = "loghalf",
   getStart <- expression(
     if (method == "IRLS") {
       etaStart <- cbind(
-        .35 * (sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1)
+        (priorWeights * (observed == 2) + .5) / (priorWeights + 1)
       ) + offset
-      etaStart <- etaStart[(observed %in% 1:2), , drop = FALSE]
-      #stop("abc")
+      etaStart <- family$links[[1]](2 * (etaStart / (1 - etaStart)))
     } else if (method == "optim") {
-      init <- mean((sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1))
-      coefStart <- rep(family$links[[1]](init) / NCOL(variables), NCOL(variables))
+      init <- mean(((priorWeights * (observed == 2) + .5) / (priorWeights + 1))[observed %in% 1:2])
+      coefStart <- rep(family$links[[1]](2 * init / (1 - init)), NCOL(variables))
     }
   )
   

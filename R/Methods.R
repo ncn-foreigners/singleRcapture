@@ -61,13 +61,13 @@
 #' @seealso [redoPopEstimation()] [stats::summary.glm()]
 #' @exportS3Method 
 summary.singleRStaticCountData <- function(object, 
-                            test = c("t", "z"), 
-                            resType = "pearson", 
-                            correlation = FALSE, 
-                            confint = FALSE, 
-                            cov, 
-                            popSizeEst, 
-                            ...) {
+                                           test = c("t", "z"), 
+                                           resType = "pearson", 
+                                           correlation = FALSE, 
+                                           confint = FALSE, 
+                                           cov, 
+                                           popSizeEst, 
+                                           ...) {
   if (resType == "all") {stop("Can't use 'resType = all' in summary.singleRStaticCountData method, if you wish to obtain all aviable types of residuals call residuals.singleRStaticCountData method directly.")}
   dfResidual <- object$dfResidual
   if (missing(test)) {if (dfResidual > 30) test <- "z" else test <- "t"}
@@ -233,8 +233,6 @@ predict.singleRStaticCountData <- function(object,
     
     eta <- object$linearPredictors
     
-    wch <- object$which
-    
     res <- switch (type,
       response = as.data.frame(
         lapply(1:length(family(object)$etaNames), FUN = function(x) {
@@ -247,9 +245,10 @@ predict.singleRStaticCountData <- function(object,
       mean     = fitted(object, "all"),
       popSize  = popSizeEst(object, ...),
       contr    = family(object)$pointEst(
-        pw     = weights[wch$est],
-        eta    = eta[wch$est, , drop = FALSE],
-        contr  = TRUE
+        pw     = weights,
+        eta    = eta,
+        contr  = TRUE,
+        y      = model.response(model.frame(object))
       )
     )
   } else {
@@ -270,15 +269,6 @@ predict.singleRStaticCountData <- function(object,
       )
     ) + object$offset
     
-    wch <- singleRcaptureinternalDataCleanupSpecialCases(
-      family = family(object), 
-      observed = model.response(mf), 
-      popVar = "analytic"
-    )
-    
-    if (!any(wch$reg)) {
-      wch$reg <- wch$est <- rep(TRUE, NROW(mf))
-    }
 
     res <- switch (type,
       response = as.data.frame(
@@ -300,9 +290,10 @@ predict.singleRStaticCountData <- function(object,
         ...
       ),
       contr = family(object)$pointEst(
-        pw    = weights[wch$est],
-        eta   = eta[wch$est, , drop = FALSE],
-        contr = TRUE
+        pw    = weights,
+        eta   = eta,
+        contr = TRUE,
+        y     = model.response(mf) 
       )
     )
   }
@@ -552,13 +543,13 @@ vcov.singleRStaticCountData <- function(object,
   res <- switch(
     type,
     "observedInform" = solve(
-      -object$model$makeMinusLogLike(y = object$y[object$which$reg], X = X,
-      weight = object$priorWeights[object$which$reg], deriv = 2, 
-      offset = object$offset[object$which$reg, , drop = FALSE])(object$coefficients),
+      -object$model$makeMinusLogLike(y = object$y, X = X,
+      weight = object$priorWeights, deriv = 2, 
+      offset = object$offset)(object$coefficients),
       ...
     ),
     "Fisher" = {
-      if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights[object$which$reg], eta = object$linearPredictors)};
+      if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights, eta = object$linearPredictors, y = as.numeric(model.response(model.frame(object))))};
       if (isTRUE(object$control$controlMethod$checkDiagWeights)) {
         W[, (1:length(family(object)$etaNames)) ^ 2] <- ifelse(
           W[, (1:length(family(object)$etaNames)) ^ 2] < object$control$controlMethod$weightsEpsilon, 
@@ -623,7 +614,7 @@ dfpopsize <- function(model, ...) {
 hatvalues.singleRStaticCountData <- function(model, ...) {
   X <- model.frame.singleRStaticCountData(model, ...)
   X <- singleRinternalGetXvlmMatrix(
-    X = X[model$which$reg, , drop = FALSE], 
+    X = X, 
     formulas = model$formula, 
     parNames = model$model$etaNames
   )
@@ -631,13 +622,11 @@ hatvalues.singleRStaticCountData <- function(model, ...) {
     W <- model$weights
   } else {
     W <- model$model$Wfun(
-      prior = model$priorWeights[model$which$reg], 
-      eta = if (model$model$family == "zelterman") 
-        model$linearPredictors[model$which$reg, ] 
-      else 
-        model$linearPredictors
+      prior = model$priorWeights, 
+      eta   = model$linearPredictors
     )
   }
+  
   mlt <- singleRinternalMultiplyWeight(X = X, W = W)
   hatvalues <- diag(X %*% solve(mlt %*% X) %*% mlt)
   hatvalues <- matrix(
@@ -667,16 +656,12 @@ dfbeta.singleRStaticCountData <- function(model,
   # formula method removed since it doesn't give good results will reimplement if we find better formula
   X <- model.frame.singleRStaticCountData(model, ...)
   y <- if (is.null(model$y)) stats::model.response(X) else model$y
-  X <- X[model$which$reg, , drop = FALSE]
-  y <- y[model$which$reg]
+  X <- X
+  y <- y
   cf <- coef(model)
-  pw <- model$priorWeights[model$which$reg]
-  offset <- model$offset[model$which$reg, , drop = FALSE]
-  if (family(model)$family == "zelterman") {
-    eta <- model$linearPredictors[model$which$reg, , drop = FALSE]
-  } else {
-    eta <- model$linearPredictors
-  }
+  pw <- model$priorWeights
+  offset <- model$offset
+  eta <- model$linearPredictors
   
   if (cores > 1) {
     cl <- parallel::makeCluster(cores)
@@ -758,11 +743,8 @@ residuals.singleRStaticCountData <- function(object,
   type <- match.arg(type)
   res <- object$residuals
   wts <- object$priorWeights
-  mu <- object$fitt.values
+  #mu <- object$fitt.values
   y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
-  
-  if (!(all(object$which$reg == object$which$est)) && type == "all") 
-    stop("type = all is not aviable for some models")
   
   if (type == "pearsonSTD" && length(object$model$etaNames) > 1)
     stop(paste0("Standardized pearson residuals not yet",
@@ -771,93 +753,28 @@ residuals.singleRStaticCountData <- function(object,
   rs <- switch(
     type,
     working = as.data.frame(
-      object$model$funcZ(
-        eta = if (object$model$family == "zelterman") 
-                object$linearPredictors[object$which$reg, ] 
-              else 
-                object$linearPredictors, 
-        weight = object$weights, 
-        y = y[object$which$reg]
-      ), 
-      col.names = paste0("working:", 
-                         object$model$etaNames)
+      object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y), 
+      col.names = paste0("working:", object$model$etaNames)
     ),
     response = res,
     pearson = data.frame(
-      "pearson" = (if (object$model$family == "zelterman") 
-                    res$truncated[object$which$reg] 
-                   else 
-                     res$truncated) / sqrt(object$model$variance(
-                       eta = if (object$model$family == "zelterman") 
-                                object$linearPredictors[object$which$reg, ] 
-                             else 
-                               object$linearPredictors, 
-                       type = "trunc"
-                     ))
+      "pearson" = res$truncated / sqrt(object$model$variance(eta = object$linearPredictors, type = "trunc"))
     ),
-    pearsonSTD = data.frame(
-      "pearsonSTD" = (if (object$model$family == "zelterman") 
-                        res$truncated[object$which$reg] 
-                      else 
-                        res$truncated) / sqrt((1 - hatvalues(object)) * 
-                        object$model$variance(
-                          eta = if (object$model$family == "zelterman") 
-                                  object$linearPredictors[object$which$reg, ] 
-                                else 
-                                  object$linearPredictors, 
-                          type = "trunc"
-                        ))
-    ),
+    pearsonSTD = data.frame("pearsonSTD" = (res$truncated) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linearPredictors, type = "trunc"))),
     deviance = data.frame(
-      "deviance" = object$model$devResids(
-        y = y[object$which$reg], 
-        eta = object$linearPredictors, 
-        wt = wts[object$which$reg]
-      )
+      "deviance" = object$model$devResids(y = y, eta = object$linearPredictors, wt = wts)
     ),
     all = {colnames(res) <- c("truncatedResponse", 
                               "nontruncatedResponse");
       data.frame(
-        as.data.frame(object$model$funcZ(eta = if (object$model$family == "zelterman") 
-                                            object$linearPredictors[object$which$reg, , drop = FALSE] 
-                                        else 
-                                          object$linearPredictors,
-                                        weight = object$weights, 
-                                        y = y[object$which$reg]), 
-                      col.names = paste0("working:", 
-                                         object$model$etaNames)),
+        as.data.frame(object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y),
+                      col.names = paste0("working:", object$model$etaNames)),
         res,
-        "pearson" = as.numeric((if (object$model$family == "zelterman") 
-                                  res$truncated[object$which$reg] 
-                                else 
-                                  res$truncated) / sqrt(
-                                    object$model$variance(
-                                      eta = if (object$model$family == "zelterman") 
-                                              object$linearPredictors[object$which$reg, , drop = FALSE] 
-                                            else 
-                                              object$linearPredictors, 
-                                      type = "trunc")
-                                  )),
+        "pearson" = as.numeric(res$truncated / sqrt(object$model$variance(eta = object$linearPredictors, type = "trunc"))),
         "pearsonSTD" = if (length(object$model$etaNames) == 1) as.numeric(
-          (if (object$model$family == "zelterman") 
-            res$truncated[object$which$reg] 
-           else 
-             res$truncated) / sqrt((1 - hatvalues(object)) * 
-                            object$model$variance(
-                              eta = if (object$model$family == "zelterman") 
-                                object$linearPredictors[object$which$reg, , drop = FALSE] 
-                              else 
-                                object$linearPredictors, 
-                              type = "trunc"
-                            ))
+          res$truncated / sqrt((1 - hatvalues(object)) * object$model$variance(object$linearPredictors, type = "trunc"))
         ) else NA,
-        "deviance" = as.numeric(
-          object$model$devResids(
-            y = y[object$which$reg], 
-            eta = object$linearPredictors, 
-            wt = wts[object$which$reg]
-          )
-        ),
+        "deviance" = as.numeric(object$model$devResids(y = y, eta = object$linearPredictors, wt = wts)),
         row.names = rownames(object$linearPredictors)
     )}
   )
@@ -912,7 +829,7 @@ AIC.singleRStaticCountData <- function(object, ...) {
 #' @importFrom stats BIC
 #' @exportS3Method 
 BIC.singleRStaticCountData <- function(object, ...) {
-  length(object$coefficients) * log(sum(object$which$reg)) - 2 * object$logL
+  length(object$coefficients) * log(nobs(object, ...)) - 2 * object$logL
 }
 #' @method extractAIC singleRStaticCountData
 #' @importFrom stats extractAIC
@@ -973,29 +890,12 @@ model.matrix.singleRStaticCountData <- function(object, type = c("lm", "vlm"), .
   switch (type,
     lm = {
       X <- model.frame(object);
-      wch <- singleRcaptureinternalDataCleanupSpecialCases(
-        family = family(object), 
-        observed = model.response(X), 
-        popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar
-      );
-      if (!any(wch$reg)) {
-        wch$reg <- wch$est <- rep(TRUE, NROW(X))
-      };
-      X <- model.matrix(object$terms, X);
-      X[wch$reg, , drop = FALSE]
+      X <- model.matrix(object$terms, X)
     },
     vlm = {
       X <- model.frame(object, ...);
-      wch <- singleRcaptureinternalDataCleanupSpecialCases(
-        family = family(object), 
-        observed = model.response(X), 
-        popVar = if (is.null(object$call$popVar)) "analytic" else object$call$popVar
-      );
-      if (!any(wch$reg)) {
-        wch$reg <- wch$est <- rep(TRUE, NROW(X))
-      };
       singleRinternalGetXvlmMatrix(
-        X = X[wch$reg, , drop = FALSE], 
+        X = X, 
         formulas = object$formula, 
         parNames = object$model$etaNames
       );
@@ -1028,7 +928,6 @@ redoPopEstimation.singleRStaticCountData <- function(object,
   if (missing(newdata)) {
     Xvlm <- model.matrix(object, "vlm")
     
-    wch <- object$which
     pw <- if (missing(weights))
       object$priorWeights
     else weights
@@ -1067,13 +966,7 @@ redoPopEstimation.singleRStaticCountData <- function(object,
     
     Y <- model.response(MM)
     
-    wch <- singleRcaptureinternalDataCleanupSpecialCases(
-      family = family(object), 
-      observed = Y, 
-      popVar = "analytic"
-    )
-    
-    nn <- length(Y[wch$est]) + wch$trr
+    nn <- length(Y)
     
     pw <- if (missing(weights))
       rep(1, nn)
@@ -1096,25 +989,25 @@ redoPopEstimation.singleRStaticCountData <- function(object,
   }
   
   singleRcaptureinternalpopulationEstimate(
-    y = Y[wch$est],
+    y = Y,
     formulas = object$formula,
-    X = X[wch$est, , drop = FALSE],
+    X = X,
     grad = object$model$makeMinusLogLike(
-      y = Y[wch$reg],
-      X = Xvlm[rep(wch$reg, length(family(object)$etaNames)), , drop = FALSE],
-      weight = pw[wch$reg], 
+      y = Y,
+      X = Xvlm,
+      weight = pw, 
       deriv = 1
     ),
     hessian = object$model$makeMinusLogLike(
-      y = Y[wch$reg],
-      X = Xvlm[rep(wch$reg, length(family(object)$etaNames)), , drop = FALSE], 
-      weight = pw[wch$reg], 
+      y = Y,
+      X = Xvlm, 
+      weight = pw, 
       deriv = 2
     ),
     popVar = if (missing(popVar)) 
       "analytic" 
     else popVar,
-    weights = pw[wch$est],
+    weights = pw,
     eta = etaNew,
     family = family(object),
     beta = if (missing(coef))
@@ -1130,11 +1023,11 @@ redoPopEstimation.singleRStaticCountData <- function(object,
     W = if (isTRUE(object$call$method == "IRLS")) 
       object$weights 
     else 
-      family(object)$Wfun(prior = pw[wch$reg], eta = etaNew),
+      family(object)$Wfun(prior = pw, eta = etaNew),
     sizeObserved = nn,
     modelFrame = MM,
     cov = cov,
-    offset = offset[wch$est, , drop = FALSE]
+    offset = offset
   )
 }
 #' @method dfpopsize singleRStaticCountData
@@ -1146,21 +1039,13 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop =
   
   dfb <- if (is.null(dfbeta)) dfbeta(model, ...) else dfbeta
   
-  if (model$model$family == "zelterman") {
-    dfbnew <- matrix(0, ncol = ncol(dfb), nrow = NROW(model$priorWeights))
-    rownames(dfbnew) <- as.character(1:NROW(dfbnew))
-    dfbnew[model$which$reg, ] <- dfb
-    dfb <- dfbnew
-  }
-  
   X <- model.frame(model, ...)
-  X <- X[model$which$est, , drop = FALSE]
   
   N <- model$populationSize$pointEstimate
   range <- 1:NROW(dfb)
   
   res <- vector("numeric", length = NROW(dfb))
-  pw <- model$priorWeights[model$which$est]
+  pw <- model$priorWeights
   
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
@@ -1176,16 +1061,6 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop =
       ),
       pw = pw[-k]
     ) + model$trcount
-  }
-  
-  if(isTRUE(observedPop) & (grepl("zot", model$model$family) | model$model$family == "chao")) {
-    res1 <- vector(mode = "numeric", length = model$sizeObserved)
-    names(res1) <- 1:model$sizeObserved
-    res1[model$which$est] <- N - res
-    res1[!model$which$est] <- 1
-    
-  } else {
-    res1 <- N - res
   }
   
   res1
@@ -1315,60 +1190,26 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   sc <- qnorm(p = 1 - alpha / 2)
   if (length(sc) != length(stratas)) sc <- rep(sc, length.out = length(stratas))
   
-  if (grepl(object$model$family, pattern = "(^zot|chao|zelterman)")) {
-    Xvlm <- model.matrix(object$formula[[1]], model.frame(object))
-    for (k in 1:length(stratas)) {
-      cond <- stratas[[k]]
-      trr <- sum(cond & !object$which$est)
-      obs[k] <- sum(cond)
-      if (obs[k] > 0) {
-        if (grepl(object$model$family, pattern = "(^zot|chao)")) 
-          cond1 <- cond[object$which$est] 
-        else 
-          cond1 <- cond
-        
-        
-        est[k] <- family$pointEst(pw = priorWeights[cond & object$which$est], 
-                                  eta = eta[cond1, , drop = FALSE]) + trr
-        stdErr[k] <- family$popVar(
-          pw = priorWeights[cond & object$which$est], 
-          eta = eta[cond1, , drop = FALSE], 
-          cov = cov, 
-          Xvlm = subset(Xvlm, 
-                        subset = cond & object$which$est)
-        ) ^ .5
-        cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
-        G <- exp(sc[k] * sqrt(log(1 + (stdErr[k] ^ 2) / ((est[k] - obs[k]) ^ 2))))
-        cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
-      } else {
-        est[k] <- 0
-        stdErr[k] <- 0
-        cnfStudent[k, ] <- c(0, 0)
-        cnfChao[k, ] <- c(0, 0)
-      }
-    }
-  } else {
-    for (k in 1:length(stratas)) {
-      cond <- stratas[[k]]
-      obs[k] <- sum(cond)
-      if (obs[k] > 0) {
-        est[k] <- family$pointEst(pw = priorWeights[cond], 
-                                  eta = eta[cond, , drop = FALSE])
-        stdErr[k] <- family$popVar(
-          pw = priorWeights[cond], 
-          eta = eta[cond, , drop = FALSE], 
-          cov = cov, 
-          Xvlm = subset(Xvlm, subset = rep(cond, length(family$etaNames)))
-        ) ^ .5
-        cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
-        G <- exp(sc[k] * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
-        cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
-      } else {
-        est[k] <- 0
-        stdErr[k] <- 0
-        cnfStudent[k, ] <- c(0, 0)
-        cnfChao[k, ] <- c(0, 0)
-      }
+  for (k in 1:length(stratas)) {
+    cond <- stratas[[k]]
+    obs[k] <- sum(cond)
+    if (obs[k] > 0) {
+      est[k] <- family$pointEst(pw = priorWeights[cond], 
+                                eta = eta[cond, , drop = FALSE])
+      stdErr[k] <- family$popVar(
+        pw = priorWeights[cond], 
+        eta = eta[cond, , drop = FALSE], 
+        cov = cov, 
+        Xvlm = subset(Xvlm, subset = rep(cond, length(family$etaNames)))
+      ) ^ .5
+      cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
+      G <- exp(sc[k] * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
+      cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
+    } else {
+      est[k] <- 0
+      stdErr[k] <- 0
+      cnfStudent[k, ] <- c(0, 0)
+      cnfChao[k, ] <- c(0, 0)
     }
   }
   
@@ -1507,8 +1348,8 @@ print.summarysingleRStaticCountData <- function(x,
     # optim does not allow for accessing information
     # on number of iterations performed only a number 
     # of calls for gradient and objective function
-    if (isTRUE(x$call$method == "IRLS")) "\nNumber of iterations: "
-    else "\nNumber of calls to log-likelihood function: " , x$iter[1], 
+    if (isTRUE(x$call$method == "optim")) "\nNumber of calls to log-likelihood function: "
+    else "\nNumber of iterations: " , x$iter[1], 
     "\n-----------------------",
     "\nPopulation size estimation results: ",
     "\nPoint estimate ", x$populationSize$pointEstimate, 

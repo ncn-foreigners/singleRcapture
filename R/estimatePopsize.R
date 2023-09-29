@@ -21,6 +21,7 @@ NULL
 #' data for the regression and population size estimation.
 #' @param formula formula for the model to be fitted, only applied to the "main" 
 #' linear predictor. Only single response models are available.
+#' @param ratioReg TODO
 #' @param model model for regression and population estimate full description in [singleRmodels()]. 
 #' @param weights optional object of a priori weights used in fitting the model.
 #' @param subset a logical vector indicating which observations should be used 
@@ -425,7 +426,7 @@ estimatePopsize <- function(formula,
   UseMethod("estimatePopsize")
 }
 #' @rdname estimatePopsize
-#' @importFrom stats model.frame model.matrix model.response
+#' @importFrom stats model.frame model.matrix model.response lm predict
 #' @export
 estimatePopsize.default <- function(formula,
                                     data,
@@ -501,7 +502,7 @@ estimatePopsize.default <- function(formula,
     m2 <- controlMethod(
       optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
                         grepl(x = family$family, pattern = "^ztoi")) 
-        "Nelder-Mead" else "L-BFGS-B",
+        "Nelder-Mead" else "BFGS",
       maxiter = if (isTRUE(method == "IRLS")) 100
                 else 1000
     )
@@ -559,16 +560,10 @@ estimatePopsize.default <- function(formula,
     if (!all(observed > 0)) {
       stop("Error in function estimatePopsize, data contains zero-counts.")
     }
-    ### TODO:: anihilate
-    wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
-                                                         observed = observed, 
-                                                         popVar = popVar)
-  
-    controlPopVar$trcount <- controlPopVar$trcount + wch$trr
-    
+    # wch was here and is now deleted
     Xvlm <- singleRinternalGetXvlmMatrix(
       # this preserves terms attribute
-      X = modelFrame[wch$reg, , drop = FALSE],
+      X = modelFrame,
       formulas = formulas, 
       parNames = family$etaNames
     )
@@ -581,6 +576,7 @@ estimatePopsize.default <- function(formula,
     } else if (!is.matrix(offset)) {
       offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
     }
+    
     colnames(offset) <- family$etaNames
     
     if (!is.null(controlMethod$coefStart) || !is.null(controlMethod$etaStart)) {
@@ -604,15 +600,15 @@ estimatePopsize.default <- function(formula,
     
     
     FITT <- estimatePopsizeFit(
-      y            = observed[wch$reg],
+      y            = observed,
       X            = Xvlm,
       family       = family,
       control      = controlMethod,
       method       = method,
-      priorWeights = priorWeights[wch$reg],
+      priorWeights = priorWeights,
       coefStart    = coefStart,
       etaStart     = etaStart,
-      offset       = offset[wch$reg, , drop = FALSE]
+      offset       = offset
     )
     
     coefficients        <- FITT$beta
@@ -623,32 +619,32 @@ estimatePopsize.default <- function(formula,
     
     
     logLike <- family$makeMinusLogLike(
-      y      = observed[wch$reg], 
+      y      = observed, 
       X      = Xvlm,
-      weight = priorWeights[wch$reg],
-      offset = offset[wch$reg, , drop = FALSE]
+      weight = priorWeights,
+      offset = offset
     )
     
     grad <- family$makeMinusLogLike(
-      y      = observed[wch$reg], 
+      y      = observed, 
       X      = Xvlm, 
-      weight = priorWeights[wch$reg], 
+      weight = priorWeights, 
       deriv  = 1,
-      offset = offset[wch$reg, , drop = FALSE]
+      offset = offset
     )
     
     hessian <- family$makeMinusLogLike(
-      y      = observed[wch$reg], 
+      y      = observed,
       X      = Xvlm,
-      weight = priorWeights[wch$reg], 
+      weight = priorWeights,
       deriv  = 2,
-      offset = offset[wch$reg, , drop = FALSE]
+      offset = offset
     )
   
     eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
-                            ncol = length(family$etaNames)) + offset[wch$reg, , drop = FALSE]
+                            ncol = length(family$etaNames)) + offset
     colnames(eta) <- family$etaNames
-    rownames(eta) <- rownames(variables[wch$reg])
+    rownames(eta) <- rownames(variables)
     weights       <- FITT$weights
     
     if (family$family == "zelterman") {
@@ -692,28 +688,25 @@ estimatePopsize.default <- function(formula,
     
     nullDeviance <- as.numeric(NULL)
     LOG          <- -logLike(coefficients)
-    resRes       <- priorWeights * (observed[wch$reg] - fitt)
+    resRes       <- priorWeights * (observed - fitt)
     
     if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
   
-    deviance <- sum(family$devResids(
-      y   = observed[wch$reg], 
-      wt  = priorWeights[wch$reg],
-      eta = if (family$family == "zelterman") (eta + offset)[wch$reg, , drop = FALSE]
-            else eta + offset[wch$reg, , drop = FALSE]
-    ) ^ 2)
+    deviance <- sum(family$devResids(y   = observed, 
+                                     wt  = priorWeights,
+                                     eta = eta + offset) ^ 2)
     
     if (popVar == "noEst") {
       Pop <- NULL #TODO:: make sure methods are prepared for this
     } else {
       POP <- singleRcaptureinternalpopulationEstimate(
-        y = observed[wch$est],
+        y = observed,
         formulas = formulas,
-        X = variables[wch$est, , drop = FALSE],
+        X = variables,
         grad = grad,
         hessian = hessian,
         popVar = popVar,
-        weights = priorWeights[wch$est],
+        weights = priorWeights,
         eta = eta,
         family = family,
         beta = coefficients,
@@ -762,12 +755,12 @@ estimatePopsize.default <- function(formula,
         terms            = terms,
         contrasts        = contrasts,
         naAction         = naAction,
-        which            = wch,
         fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
       ),
       class = c("singleRStaticCountData", "singleR", "glm", "lm")
     )
   } else {
+    stop("Ratio regression is not yet implemented")
     ff <- formula
     if (length(ff) == 3) {ff[[3]] <- 1}
     modelFrame <- stats::model.frame(ff, data, ...)
@@ -817,8 +810,12 @@ estimatePopsize.default <- function(formula,
       names(N) <- c("ht", "reg")
       f0 <- N - sum(counts)
       
+      # TODO:: idk if this applies to HT estimate
       variation <- model.matrix(ff, model.frame(ff, data.frame(x = 0, r = 0)))
       variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
+      ## TODO -- this is an approximation
+      # we're assuming var(counts["1"]) ~~ counts["1"]
+      # this can be made better
       variation <- variation + counts["1"] * (a(0) ^ 2) * 
         exp(-predict(linearModel, data.frame(x = 0))) ^ 2
       

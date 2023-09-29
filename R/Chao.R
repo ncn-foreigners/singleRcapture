@@ -1,6 +1,5 @@
 #' @rdname singleRmodels
-#' @importFrom stats glm.fit
-#' @importFrom stats poisson
+#' @importFrom stats dbinom
 #' @export
 chao <- function(lambdaLink = "loghalf",
                  ...) {
@@ -40,73 +39,91 @@ chao <- function(lambdaLink = "loghalf",
     )
   }
   
-  Wfun <- function(prior, eta, ...) {
-    lambda <- lambdaLink(eta, inverse = TRUE)
+  Wfun <- function(prior, eta, y, ...) {
+    iddx <- y %in% 1:2
+    lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
     z <- (lambda / 2) / (1 + lambda / 2)
+    res <- iddx
+    res[iddx] <- -prior[iddx] * (
+      -2 / (lambda * (2 + lambda) ^ 2) *
+        lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] ^ 2)
     
-    matrix(data = -prior * (1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
-    lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2,
-    ncol = 1, dimnames = list(rownames(eta), c("lambda")))
+    matrix(res, ncol = 1, 
+           dimnames = list(rownames(eta), 
+                           c("lambda")))
   }
   
   funcZ <- function(eta, weight, y, mu, ...) {
-    lambda <- lambdaLink(eta, inverse = TRUE)
+    iddx <- y %in% 1:2
+    z <- y - 1
+    lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
     
-    #(y - (lambda / 2) / (1 + lambda / 2))  / weight
-    (y / lambda - 1 / (2 + lambda)) * 
-    lambdaLink(eta, inverse = TRUE, deriv = 1) / weight
+    res <- iddx
+    res[iddx] <- (((z[iddx] - 1) * lambda + 2 * z[iddx]) / 
+                    (lambda * (2 + lambda))) * lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] / weight[iddx, ]
+    res
   }
 
   minusLogLike <- function(y, X, 
-                           weight    = 1, 
-                           NbyK      = FALSE, 
+                           weight = 1, 
+                           NbyK = FALSE, 
                            vectorDer = FALSE, 
-                           deriv     = 0,
-                           offset, 
+                           deriv = 0,
+                           offset,
+                           eta, 
                            ...) {
     y <- as.numeric(y)
-    if (missing(offset)) {
-      offset <- cbind(rep(0, NROW(X)))
-    }
     z <- y - 1
     if (is.null(weight)) {
       weight <- 1
     }
     
+    iddx <- y %in% 1:2
+    if (missing(offset)) {
+      offset <- cbind(rep(0, NROW(X)))
+    }
+    
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
     deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
-
+    
     switch (deriv,
-      function(beta) {
-        eta <- as.matrix(X) %*% beta + offset
-        lambda <- lambdaLink(eta, inverse = TRUE)
-        -sum(weight * (z * log((lambda / 2) / (1 + lambda / 2)) + 
-                      (1 - z) * log(1 / (1 + lambda / 2))))
+      function(beta, eta) {
+        if (missing(eta)) {
+          eta <- as.matrix(X) %*% beta + offset
+        }
+        lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
+        -sum(weight[iddx] * dbinom(size = 1, 
+                                   prob = ((lambda / 2) / (1 + lambda / 2)),
+                                   log  = TRUE,
+                                   x    = z[iddx]))
       },
       function(beta) {
         eta <- as.matrix(X) %*% beta + offset
-        lambda <- lambdaLink(eta, inverse = TRUE)
-        G0 <- (z / lambda - 1 / (2 + lambda)) * weight * 
-        lambdaLink(eta, inverse = TRUE, deriv = 1)
-        #G0 <- (z - (lambda / 2) / (1 + lambda / 2)) * weight
+        lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
+        G0 <- iddx
+        G0[iddx] <- ((z[iddx] - 1) * lambda + 2 * z[iddx]) / 
+          (lambda * (2 + lambda)) * weight[iddx] * 
+          lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx]
+        
         if (NbyK) {
-          return(as.data.frame(X) * G0)
+          return(as.data.frame(X[iddx, , drop = FALSE]) * G0)
         }
         if (vectorDer) {
           return(matrix(G0, ncol = 1))
         }
+        
         t(X) %*% G0
       },
       function(beta) {
         eta <- as.matrix(X) %*% beta + offset
-        lambda <- lambdaLink(eta, inverse = TRUE)
+        lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
         
-        G00 <- (1 / (lambda + 2) ^ 2 - z / lambda ^ 2) *
-         lambdaLink(eta, inverse = TRUE, deriv = 1) ^ 2 +
-         (z / lambda - 1 / (lambda + 2)) *
-         lambdaLink(eta, inverse = TRUE, deriv = 2)
-        
-        #G00 <- weight * (-lambda / 2 / (1 + lambda / 2) ^ 2)
+        G00 <- iddx
+        G00[iddx] <- (-(4 * z[iddx] + 4 * z[iddx] * lambda + 
+                          (z[iddx] - 1) * lambda ^ 2) / ((2 + lambda) ^ 2 * lambda ^ 2)) *
+          lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] ^ 2 +
+          ((z[iddx] - 1) * lambda + 2 * z[iddx]) / (lambda * (2 + lambda)) *
+          lambdaLink(eta, inverse = TRUE, deriv = 2)[iddx]
         
         t(as.data.frame(X) * weight * G00) %*% as.matrix(X)
       }
@@ -121,29 +138,30 @@ chao <- function(lambdaLink = "loghalf",
     z <- y - 1
     lambda <- lambdaLink(eta, inverse = TRUE)
     
-    ((-1) ^ y) * sqrt(-2 * wt * (z * log(lambda / 2 / (1 + lambda / 2)) + (1 - z) * log(1 / (1 + lambda / 2))))
+    ((-1) ^ y) * sqrt((-2 * wt * (z * log(lambda / 2 / (1 + lambda / 2)) + (1 - z) * log(1 / (1 + lambda / 2)))) * (y %in% 1:2))
   }
 
-  pointEst <- function (pw, eta, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, y, ...) {
     lambda <- lambdaLink(eta, inverse = TRUE)
-    N <- ((1 + 1 / (lambda + (lambda ^ 2) / 2)) * pw)
+    N <- ((1 + (y %in% 1:2) / (lambda + (lambda ^ 2) / 2)) * pw)
     if(!contr) {
       N <- sum(N)
     }
     N
   }
 
-  popVar <- function (pw, eta, cov, Xvlm, ...) {
+  popVar <- function (pw, eta, cov, Xvlm, y, ...) {
+    iddx <- y %in% 1:2
     lambda <- lambdaLink(eta, inverse = TRUE)
     Xvlm <- as.matrix(Xvlm)
     prob <- lambda * exp(-lambda) + (lambda ^ 2) * exp(-lambda) / 2
 
     f1 <- t((-lambdaLink(eta[,1], inverse = TRUE, deriv = 1) * pw * 
-      as.numeric((lambda+1)/(lambda^2/2+lambda)^2)) %*% Xvlm)
+      as.numeric((lambda+1)/(lambda^2/2+lambda)^2))[iddx] %*% Xvlm[iddx, , drop = FALSE])
     
     f1 <- t(f1) %*% as.matrix(cov) %*% f1
 
-    f2 <- sum(pw * (1 - prob) * ((1 + exp(-lambda) / prob) ^ 2))
+    f2 <- sum((pw * (1 - prob) * ((1 + exp(-lambda) / prob) ^ 2))[iddx])
 
     f1 + f2
   }
@@ -174,13 +192,17 @@ chao <- function(lambdaLink = "loghalf",
   getStart <- expression(
     if (method == "IRLS") {
       etaStart <- cbind(
-        .35 * (sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1)
+        (priorWeights * (observed == 2) + .5) / (priorWeights + 1)
       ) + offset
-      etaStart <- etaStart[(observed %in% 1:2), , drop = FALSE]
+      etaStart <- family$links[[1]](2 * (etaStart / (1 - etaStart)))
       #stop("abc")
     } else if (method == "optim") {
-      init <- mean((sum((observed %in% 1:2) * priorWeights) * (observed == 1) + .5) / (sum((observed %in% 1:2) * priorWeights) + 1))
-      coefStart <- rep(family$links[[1]](init) / NCOL(variables), NCOL(variables))
+      init <- mean(((priorWeights * (observed == 2) + .5) / (priorWeights + 1))[observed %in% 1:2])
+      coefStart <- rep(family$links[[1]](2 * init / (1 - init)), NCOL(variables))
+      # coefStart <- (lm.wfit(y = as.vector(observed[observed %in% 1:2]),
+      #                      x = variables[observed %in% 1:2, ,drop = FALSE],
+      #                      w = priorWeights[observed %in% 1:2],
+      #                      offset = as.numeric(offset[observed %in% 1:2, 1, drop = FALSE]))$coefficients + coefStart) / 2
     }
   )
   

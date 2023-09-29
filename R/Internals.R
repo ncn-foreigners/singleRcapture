@@ -3,7 +3,7 @@
 #' @importFrom stats var
 #' @importFrom stats quantile
 #' @importFrom stats qnorm
-singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
+singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some of those are not needed
                                                      beta, weights,
                                                      hessian, family,
                                                      eta, popVar,
@@ -21,7 +21,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
   
   if (popVar == "analytic") {
     strappedStatistic <- "No bootstrap performed"
-    N <- family$pointEst(pw = weights, eta = eta) + trcount
+    N <- family$pointEst(pw = weights, eta = eta, y = y) + trcount
     if (is.null(cov)) {
       
       cov <- switch(control$covType, # Change covariance here by adding more cases
@@ -49,7 +49,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       eta = eta, 
       pw = weights,
       cov = cov,
-      Xvlm = if (family$family == "zelterman") X else Xvlm
+      Xvlm = if (family$family == "zelterman") X else Xvlm,
+      y = y
     ))
     
     if (!is.finite(variation))
@@ -200,22 +201,19 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         "\nConsider lowering stepsize control parameter if fitting fails.\n")
   }
   
-  mu.eta   <- family$mu.eta
-  validmu  <- family$validmu
-  variance <- family$variance
-  famName  <- family$family
-  Zfun     <- family$funcZ
-  Wfun     <- family$Wfun
-  prior    <- as.numeric(weights)
+  mu.eta    <- family$mu.eta
+  validmu   <- family$validmu
+  variance  <- family$variance
+  famName   <- family$family
+  Zfun      <- family$funcZ
+  Wfun      <- family$Wfun
+  prior     <- as.numeric(weights)
+  dependent <- as.numeric(dependent)
   
   iter <- 1
   step <- NULL
   betaPrev <- NULL
   beta <- rep(0, NCOL(covariates))
-  
-  if (famName %in% c("chao", "zelterman")) {
-    dependent <- dependent - 1
-  }
   
   logLike <- family$makeMinusLogLike(
     y      = dependent, 
@@ -288,8 +286,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (!validmu(mu)) {
       mu <- mu.eta(eta = eta, ...)
       stop(paste0(
-        "Fit error infinite values reached consider another model,",
-        "mu is too close to zero/infinity.\n"
+        "Fit error infinite values reached consider another model, mu is too close to zero/infinity.\n"
       ))
     }
 
@@ -311,9 +308,9 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       },
       error = function (e) {
         stop(
-          "Working weight matrixes at iteration:",
+          "Working weight matrixes at iteration: ",
           iter,
-          "could not have been computed.", sep = " "
+          " could not have been computed."
         )
       }
     )
@@ -343,6 +340,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         FALSE
       },
       error = function (e) {
+        print(e)
         TRUE
       }
     )
@@ -353,7 +351,6 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
         iter, "\nMost likely working weight matrixes could not have been inverted."
       ), call. = FALSE)
     }
-    
     XbyW     <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)
     # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
@@ -497,8 +494,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
   
   mu <- mu.eta(eta = eta, ...)
   if (!validmu(mu)) {
-    stop("Fit error infinite values reached consider another model,
-          mu is too close to zero/infinity")
+    stop("Fit error infinite values reached consider another model, mu is too close to zero/infinity")
   }
 
   list(coefficients = beta, iter = iter, weights = W, logg = logg)

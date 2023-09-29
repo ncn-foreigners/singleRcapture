@@ -295,7 +295,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     dig <-  compdigamma(y = y, alpha = alpha)
     
-    G0 <- z * ((alpha * lambda+1) ^ (1 / alpha + 1) + (-alpha - 1) *
+    G0 <- z * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) *
     lambda - 1) / (((alpha * lambda + 1) ^ (1 / alpha + 1) +
     (-alpha - 1) * lambda - 1) * omega + lambda) -
     (1 - z) / (1 - omega)
@@ -306,7 +306,8 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) *
     (omega * lambda * alpha + omega) - omega * lambda * alpha + 
     (1 - omega) * lambda - omega) * ((lambda * alpha + 1) ^ (1 / alpha) - 1)) +
-    (1 - z) * ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+    
+      (1 - z) * ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     ((lambda * alpha + 1) ^ (1 / alpha) * (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha))) +
     log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) /
     (lambda * alpha + 1) + y / alpha + dig)

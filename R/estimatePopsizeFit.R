@@ -235,6 +235,7 @@ estimatePopsizeFit <- function(y, X,
       weight = priorWeights,
       offset = offset
     )
+    
     grad <- family$makeMinusLogLike(
       y = y, X = X, 
       weight = priorWeights, 
