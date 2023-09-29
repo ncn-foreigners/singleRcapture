@@ -4,6 +4,7 @@
 #' @description Simple diagnostic plots for \code{singleRStaticCountData} class objects.
 #'
 #' @param x object of \code{singleRStaticCountData} class.
+#' @param dfpop TODO
 #' @param confIntStrata confidence interval type to use for strata plot.
 #' Currently supported values are \code{"normal"} and \code{"logNormal"}.
 #' @param plotType character parameter specifying type of plot to be made.
@@ -99,6 +100,7 @@ plot.singleRStaticCountData <- function(x,
                                       "hatplot", "strata"),
                          confIntStrata = c("normal", "logNormal"),
                          histKernels = TRUE,
+                         dfpop,
                          ...) {
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
@@ -214,11 +216,10 @@ plot.singleRStaticCountData <- function(x,
            lty = 2)
   },
   dfpopContr = {
-    dfpop <- dfpopsize(x, 
-    observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
-    # TODO:: implement a function to get a contribution
+    if (missing(dfpop)) dfpop <- dfpopsize(x, ...);
+    # TODO:: use predict method here
     contr <- x$model$pointEst(
-      pw = x$priorWeights[x$which$est],
+      pw = x$priorWeights,
       eta = x$linearPredictors, 
       contr = TRUE
     );
@@ -230,7 +231,7 @@ plot.singleRStaticCountData <- function(x,
     abline(a = 0, b = 1, col = "red")
   },
   dfpopBox = {
-    dfpop <- dfpopsize(x, observedPop = FALSE,...);
+    if (missing(dfpop)) dfpop <- dfpopsize(x, ...);
     graphics::boxplot(
       dfpop, 
       ylab = "Deletion effect",

@@ -10,6 +10,7 @@
     "dfpopBox", "scaleLoc", "cooks", "hatplot", "strata"),
   confIntStrata = c("normal", "logNormal"),
   histKernels = TRUE,
+  dfpop,
   ...
 )
 }

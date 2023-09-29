@@ -170,7 +170,7 @@ expect_true(
 expect_true(
   max(abs(
     c(BIC(Model), BIC(Model1), BIC(Model2), BIC(Model3), BIC(Model4), BIC(Model5)) -
-      c(1757.213, 1811.443, 1170.3, 1177.094, 34625.2, 19509.67)
+      c(1757.213, 1811.443, 1170.3, 1177.094, 34625.2, 19512.66)
   )) < 1
 )
 
@@ -655,11 +655,11 @@ expect_true(
 )
 
 expect_true(
-  all(dim(model.matrix(Model2)) == c(1828, 7))
+  all(dim(model.matrix(Model2)) == c(1880, 7))
 )
 
 expect_true(
-  all(dim(model.matrix(Model3)) == c(1828, 8))
+  all(dim(model.matrix(Model3)) == c(1880, 8))
 )
 
 expect_true(
@@ -667,7 +667,7 @@ expect_true(
 )
 
 expect_true(
-  all(dim(model.matrix(Model5)) == c(sum(farmsubmission$TOTAL_SUB > 1), 4))
+  all(dim(model.matrix(Model5)) == c(12036, 4))
 )
 
 expect_true(
@@ -764,7 +764,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model, "dfpopBox")
+  plot(Model, "dfpopBox", dfpop = dfp)
 )
 
 expect_silent(

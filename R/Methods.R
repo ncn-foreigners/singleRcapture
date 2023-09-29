@@ -1046,6 +1046,7 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop =
   
   res <- vector("numeric", length = NROW(dfb))
   pw <- model$priorWeights
+  y <- model.response(model.frame(model))
   
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
@@ -1059,11 +1060,12 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop =
         ) %*% cf, 
         ncol = length(model$model$etaNames)
       ),
+      y = y[-k],
       pw = pw[-k]
     ) + model$trcount
   }
   
-  res1
+  N - res
 }
 #' @method stratifyPopsize singleRStaticCountData
 #' @rdname stratifyPopsize

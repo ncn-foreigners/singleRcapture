@@ -7,10 +7,11 @@
 #' @exportS3Method
 estfun.singleRStaticCountData <- function(x,...) {
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
-  Y <- Y[x$which$reg]
   X <- stats::model.matrix(x, type = "vlm")
+  
   beta <- stats::coef(x)
   wts <- stats::weights(x)
+  
   if (is.null(wts)) wts <- rep(1, length(Y))
   res <- x$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
   colnames(res) <- names(beta)
@@ -96,10 +97,11 @@ vcovHC.singleRStaticCountData <- function(x,
   X <- model.matrix(x, "vlm")
   n <- nrow(X)
   k <- ncol(X)
+  
   df <- n - k
   hat <- as.vector(hatvalues(x, ...))
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
-  Y <- Y[x$which$reg] # only choose units which appear in regression
+  
   res <- as.vector(x$model$makeMinusLogLike(y = Y, X = X, vectorDer = TRUE, der = 1)(beta))
   if (is.null(omega)) {
     if (type == "HC") 
