@@ -58,6 +58,8 @@ Currently supported values are \code{"normal"} and \code{"logNormal"}.}
 \item{histKernels}{logical value indicating whether to add density lines
 to histogram.}
 
+\item{dfpop}{TODO}
+
 \item{...}{additional optional arguments passed to the following functions:
 \itemize{
 \item For \code{plotType = "bootHist"}

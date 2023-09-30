@@ -71,11 +71,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
     )))
   } else if (grepl("bootstrap", popVar, fixed = TRUE)) {
     
-    N <- family$pointEst(
-      pw = if (family$family == "chao") weights[y %in% 1:2] 
-      else if (grepl(pattern = "^zot", x = family$family)) weights[y > 1] 
-      else weights,
-      eta = eta) + trcount
+    N <- family$pointEst(pw = weights, eta = eta, y = y)
     
     if (control$cores > 1) {
       funBoot <- switch(
@@ -84,6 +80,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
         "semiparametric" = semparBootMultiCore,
         "nonparametric" = noparBootMultiCore
       )
+      
       strappedStatistic <- funBoot(
         family = family, formulas = formulas,
         y = y, X = X, hwm = hwm,
@@ -102,6 +99,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
         "semiparametric" = semparBoot,
         "nonparametric" = noparBoot
       )
+      
       strappedStatistic <- funBoot(
         family = family, formulas = formulas,
         y = y, X = X, hwm = hwm,
