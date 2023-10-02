@@ -310,7 +310,6 @@ NULL
 #'  \item{\code{populationSize} -- A list containing information of population size estimate.}
 #'  \item{\code{modelFrame} -- Model frame if specified at call.}
 #'  \item{\code{linearPredictors} -- Vector of fitted linear predictors.}
-#'  \item{\code{trcount} -- Number of truncated observations.}
 #'  \item{\code{sizeObserved} -- Number of observations in original model frame.}
 #'  \item{\code{terms} -- terms attribute of model frame used.}
 #'  \item{\code{contrasts} -- contrasts specified in function call.}
@@ -514,6 +513,7 @@ estimatePopsize.default <- function(formula,
     m2 <- m2[names(m2) %in% names(m1) == FALSE]
     controlModel <- append(m1, m2)
     
+    #this may be changed for formula to be a list later
     formulas <- list(formula)
     
     if ("alpha" %in% family$etaNames) {
@@ -547,8 +547,6 @@ estimatePopsize.default <- function(formula,
     
     if (NCOL(observed) > 1) 
       stop("Single source capture-recapture models support only single dependent variable.")
-    
-    sizeObserved <- nrow(data) + controlPopVar$trcount
   
     if (!is.null(weights)) {
       priorWeights <- as.numeric(weights)
@@ -556,6 +554,12 @@ estimatePopsize.default <- function(formula,
       priorWeights <- rep(1, nrow(modelFrame))
     }
     weights <- 1
+    
+    if (controlModel$weightsAsCounts) {
+      sizeObserved <- sum(priorWeights)
+    } else {
+      sizeObserved <- nrow(data)
+    }
     
     if (!all(observed > 0)) {
       stop("Error in function estimatePopsize, data contains zero-counts.")
@@ -569,10 +573,7 @@ estimatePopsize.default <- function(formula,
     )
     
     if (missing(offset)) {
-      offset <- matrix(
-        0, nrow = NROW(modelFrame), 
-        ncol = length(family$etaNames)
-      )
+      offset <- matrix(0, nrow = NROW(modelFrame), ncol = length(family$etaNames))
     } else if (!is.matrix(offset)) {
       offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
     }
@@ -643,6 +644,7 @@ estimatePopsize.default <- function(formula,
   
     eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
                             ncol = length(family$etaNames)) + offset
+    
     colnames(eta) <- family$etaNames
     rownames(eta) <- rownames(variables)
     weights       <- FITT$weights
@@ -711,10 +713,7 @@ estimatePopsize.default <- function(formula,
         family = family,
         beta = coefficients,
         control = controlPopVar,
-        Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") 
-                 variables 
-               else 
-                 Xvlm,
+        Xvlm = Xvlm,
         W = if (method == "IRLS")
               weights 
             else 
@@ -750,7 +749,6 @@ estimatePopsize.default <- function(formula,
         populationSize   = POP,
         linearPredictors = eta,
         offset           = offset,
-        trcount          = controlPopVar$trcount,
         sizeObserved     = sizeObserved,
         terms            = terms,
         contrasts        = contrasts,

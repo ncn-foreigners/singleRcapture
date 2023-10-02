@@ -51,13 +51,13 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     matrix(-prior * G11, ncol = 1, dimnames = list(rownames(eta), c("lambda")))
   }
   
-  funcZ <- function(eta, weight, y, mu, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     iddx <- y > 1
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)[iddx]
     
     res <- iddx
     res[iddx] <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] *
-    (lambda - y[iddx] + 2) / (lambda ^ 2 + lambda) / weight[iddx, ]
+    (lambda - y[iddx] + 2) / (lambda ^ 2 + lambda) * prior[iddx] / weight[iddx, ]
     res
   }
   
@@ -193,7 +193,7 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
       ) + offset
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed))
+        family$links[[1]](weighted.mean(observed, priorWeights))
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

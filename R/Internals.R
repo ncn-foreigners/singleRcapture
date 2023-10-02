@@ -15,13 +15,12 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
   #if (popVar == "noEst") {return(NULL)} moved to main function to avoid copying function parameters
   hwm <- attr(Xvlm, "hwm")
   siglevel <- control$alpha
-  trcount <- control$trcount
   numboot <- control$B
   sc <- qnorm(p = 1 - siglevel / 2)
   
   if (popVar == "analytic") {
     strappedStatistic <- "No bootstrap performed"
-    N <- family$pointEst(pw = weights, eta = eta, y = y) + trcount
+    N <- family$pointEst(pw = weights, eta = eta, y = y)
     if (is.null(cov)) {
       
       cov <- switch(control$covType, # Change covariance here by adding more cases
@@ -84,8 +83,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
       strappedStatistic <- funBoot(
         family = family, formulas = formulas,
         y = y, X = X, hwm = hwm,
-        beta = beta, weights = weights,
-        trcount = trcount, numboot = numboot,
+        beta = beta, weights = weights, numboot = numboot,
         eta = eta, cores = control$cores,
         method = control$fittingMethod,
         controlBootstrapMethod = control$bootstrapFitcontrol,
@@ -103,8 +101,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
       strappedStatistic <- funBoot(
         family = family, formulas = formulas,
         y = y, X = X, hwm = hwm,
-        beta = beta, weights = weights,
-        trcount = trcount, numboot = numboot,
+        beta = beta, weights = weights, numboot = numboot,
         eta = eta, trace = control$traceBootstrapSize,
         visT = control$bootstrapVisualTrace,
         method = control$fittingMethod,
@@ -334,7 +331,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     
     err <- tryCatch(
       expr = {
-        z <- eta + Zfun(eta = eta, weight = W, y = dependent) - offset
+        z <- eta + Zfun(eta = eta, weight = W, y = dependent, prior = prior) - offset
         FALSE
       },
       error = function (e) {
@@ -362,6 +359,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     betaPrev <- beta
     stepPrev <- step
     step     <- solve(A,B)
+    #step <- coef(lm.wfit(x = covariates, y = z, w = W[,1]))
     
     if (!is.null(betaPrev)) {
       step <- step - betaPrev
@@ -558,36 +556,6 @@ singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL
   }
   attr(Xvlm, "hwm") <- hwm
   Xvlm
-}
-# Chosing data for estimation/regression
-singleRcaptureinternalDataCleanupSpecialCases <- function (family, observed, popVar) {
-  if (grepl("zot", family$family)) {
-    trr <- sum(observed == 1)
-    wch1 <- wch2 <- (observed > 1)
-    if (popVar != "analytic") {
-      # in bootstrap we need all
-      wch2 <- rep(TRUE, length(observed))
-    }
-  } else if (family$family == "chao") {
-    trr <- sum(observed > 2)
-    wch1 <- wch2 <- (observed %in% c(1, 2))
-    if (popVar != "analytic") {
-      # in bootstrap we need all
-      wch2 <- rep(TRUE, length(observed))
-    }
-  } else if (family$family == "zelterman") {
-    # In zelterman model regression is indeed based only on 1 and 2 counts
-    # but estimation is based on ALL counts
-    wch1 <- (observed %in% c(1, 2))
-    wch2 <- rep(TRUE, length(observed))
-    trr <- 0
-  } else {
-    trr <- 0
-    wch1 <- wch2 <- rep(TRUE, length(observed))
-  }
-  list(reg = as.logical(wch1), # which rows for regression
-       est = as.logical(wch2), # which rows for estimation
-       trr = trr)  # add to trcount
 }
 #' @importFrom stats reformulate
 singleRinternalMergeFormulas <- function(ff) {

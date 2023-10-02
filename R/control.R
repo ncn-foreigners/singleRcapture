@@ -163,11 +163,11 @@ controlMethod <- function(epsilon             = 1e-8,
 #' the formula also for now all variables from additional formulas should also be
 #' included in the "main" formula.
 #' 
-#' @param weightsAsCounts for now does nothing. The plan is to have this indicate whether
-#' \code{prior.weights} are to be treated as counts for sub populations and adjust all
+#' @param weightsAsCounts boolean value indicating whether to treat \code{weights}
+#' argument as number of occurrences for each row in the \code{data} and adjust
 #' necessary methods and functionalities, like adjustments in bootstrap or
 #' decreasing weights in \code{dfbeta} instead or deleting rows from data, 
-#' to accommodate this form of data.
+#' to accommodate this form of model specification.
 #' @param omegaFormula formula for inflation parameter in one inflated zero 
 #' truncated and zero truncated one inflated models.
 #' @param alphaFormula formula for dispersion parameter in negative binomial
@@ -198,8 +198,6 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' respective standard error and variance estimation.
 #'
 #' @param alpha significance level, 0.05 used by default.
-#' @param trcount truncated count - a number to be added to point estimator 
-#' and both sides of confidence intervals.
 #' @param cores For bootstrap only, number of processor cores to be used,
 #' any number greater than 1 activates code designed with \code{doParallel}, 
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel
@@ -237,7 +235,6 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @seealso [singleRcapture::estimatePopsize()] [singleRcapture::controlModel()] [singleRcapture::controlMethod()]
 #' @export
 controlPopVar <- function(alpha = .05,
-                          trcount = 0,
                           bootType = c("parametric",
                                        "semiparametric",
                                        "nonparametric"),
@@ -270,9 +267,6 @@ controlPopVar <- function(alpha = .05,
   if ((!isTRUE(covType %in% c("observedInform", "Fisher")) && !missing(covType)) || isTRUE(length(covType) > 1))
     stop("Argument covType should be a character with value either observedInform or Fisher.")
   
-  if (!isTRUE(is.infinite(trcount)) && !missing(trcount) || isTRUE(length(trcount) > 1))
-    stop("Argument trcount should be a proper numeric value (of length 1).")
-  
   
   if (!missing(bootType) && !isTRUE(bootType %in% c("parametric",
                                                     "semiparametric",
@@ -296,7 +290,6 @@ controlPopVar <- function(alpha = .05,
     bootType             = bootType,
     confType             = confType,
     covType              = covType,
-    trcount              = trcount,
     cores                = cores,
     alpha                = alpha,
     B                    = B,

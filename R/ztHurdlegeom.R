@@ -93,16 +93,18 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     )
   }
   
-  funcZ <- function(eta, weight, y, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- as.numeric(y == 1)
+    weight <- weight / prior
     
     G1 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
       (1 - z) * ((y - 2) / lambda - (y - 1) / (lambda + 1))
     
     G0 <- piLink(eta[, 1], inverse = TRUE, deriv = 1) *  
       (z / PI - (1 - z) / (1 - PI))
+    
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -297,12 +299,12 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     if (method == "IRLS") {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
-        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+        family$links[[2]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed)),
-        family$links[[2]](mean(observed == 1) + .01)
+        family$links[[1]](weighted.mean(observed, priorWeights)),
+        family$links[[2]](weighted.mean(observed == 1, priorWeights) + .01)
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

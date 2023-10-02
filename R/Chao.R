@@ -53,14 +53,14 @@ chao <- function(lambdaLink = "loghalf",
                            c("lambda")))
   }
   
-  funcZ <- function(eta, weight, y, mu, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     iddx <- y %in% 1:2
     z <- y - 1
     lambda <- lambdaLink(eta, inverse = TRUE)[iddx]
     
     res <- iddx
-    res[iddx] <- (((z[iddx] - 1) * lambda + 2 * z[iddx]) / 
-                    (lambda * (2 + lambda))) * lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] / weight[iddx, ]
+    res[iddx] <- prior[iddx] * (((z[iddx] - 1) * lambda + 2 * z[iddx]) / 
+    (lambda * (2 + lambda))) * lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] / weight[iddx, ]
     res
   }
 

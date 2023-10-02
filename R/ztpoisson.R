@@ -1,5 +1,6 @@
 #' @rdname singleRmodels
 #' @importFrom lamW lambertW0
+#' @importFrom stats weighted.mean
 #' @export
 ztpoisson <- function(lambdaLink = c("log", "neglog"),
                       ...) {
@@ -48,14 +49,14 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     exp(lambda) / (exp(lambda) - 1) - Ey / lambda ^ 2) *
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
-    matrix(-prior * G11, ncol = 1, 
+    matrix(-G11 * prior, ncol = 1, 
            dimnames = list(rownames(eta), c("lambda")))
   }
   
   funcZ <- function(eta, weight, y, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    ((y / lambda - 1 / (1-exp(-lambda))) * 
+    prior * ((y / lambda - 1 / (1 - exp(-lambda))) * 
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight)
   }
 
@@ -162,7 +163,7 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
     ### and rounding may cause warnings
     
     ### TLDR:: pmin must be here not because mathematical error, 
-    ### rather because of a rouding error
+    ### rather because of a rounding error
     sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * pmin(0, logL - logSat))
   }
 
@@ -217,9 +218,10 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12))
       ) + offset
+      #etaStart <- etaStart
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed))
+        family$links[[1]](weighted.mean(observed, priorWeights))
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

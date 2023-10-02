@@ -1,10 +1,28 @@
+# singleRcapture 0.2.1
+
+* Fixed bugs in `IRLS` fitting when providing `weights` argument when calling
+  `estimatePopsize`
+* The `weightsAsCounts` option in `controlModel` now works properly, 
+  `dfbeta` and `dfpopsize` decrease weight of selected row in a model matrix 
+  insteadof deleting it when this is set to `TRUE`
+* `simulate` method now works for both family object (like `ztpoisson()`) and
+  for objects returned by `estimatePopsize`
+* Introduced `singleRStaticCountData` sub class for `singleRclass` and made
+  `estimatePopsize` a method so that a new package `singleRcaptureExtra` 
+  (under development) can make all necessary calculations for pop size estimation
+  when providing object fitted by `countreg::zerotrunc` or `VGAM::vglm`/`VGAM::vgam`
+* Some bugfixes for multicore bootstrap
+* Code was refactored to make further development/maintenance for the package
+  much easier
+
 # singleRcapture 0.2.0.1
 
 * Added `offset` argument to `estimatePopsize`
 * Added options for parallel computing in `bootstrap` and in `dfbeta`
 * Added deviance for all negative binomial based models. 
-  (NOTE: I believe that they are very slow for now and may change after I verify
-  one theoretical results that will speed these computations)
+  (NOTE: They are very slow for now and I believe it may change after I verify
+  one theoretical results that will lead to significant speed increase for 
+  these computations)
 * Overhaul of starting points (new methods and added linear predictors start in `IRLS`)
 * Code for weights in `IRLS` fitting was speed up
 * Minor bugfixes
