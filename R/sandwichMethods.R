@@ -13,7 +13,7 @@ estfun.singleRStaticCountData <- function(x,...) {
   wts <- stats::weights(x)
   
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- x$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
+  res <- x$model$makeMinusLogLike(y = Y, X = X, weight = x$priorWeights, NbyK = TRUE, deriv = 1)(beta)
   colnames(res) <- names(beta)
   rownames(res) <- rownames(X)
   res
@@ -26,7 +26,7 @@ estfun.singleRStaticCountData <- function(x,...) {
 #' @rdname vcovHC.singleRStaticCountData
 #' @exportS3Method
 bread.singleRStaticCountData <- function(x,...) {
-  stats::vcov(x, ...) * as.vector(x$dfResidual + length(coef(x)))
+  stats::vcov(x, ...) * nobs(x)
 }
 
 #' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleRStaticCountData class
@@ -91,18 +91,23 @@ vcovHC.singleRStaticCountData <- function(x,
                            omega = NULL, 
                            sandwich = TRUE, 
                            ...) {
+  ## TODO:: check for weightsAsPopcounts
   type <- match.arg(type)
   estfun <- estfun(x, ...)
   beta <- x$coefficients
   X <- model.matrix(x, "vlm")
-  n <- nrow(X)
-  k <- ncol(X)
+  n <- nobs(x)
+  k <- NCOL(X)
   
-  df <- n - k
+  df <- x$dfResidual
   hat <- as.vector(hatvalues(x, ...))
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
   
-  res <- as.vector(x$model$makeMinusLogLike(y = Y, X = X, vectorDer = TRUE, der = 1)(beta))
+  res <- as.vector(x$model$makeMinusLogLike(y = Y, 
+                                            X = X, 
+                                            weight = x$priorWeights, 
+                                            vectorDer = TRUE, 
+                                            der = 1)(beta))
   if (is.null(omega)) {
     if (type == "HC") 
       type <- "HC0"

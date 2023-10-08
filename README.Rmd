@@ -158,8 +158,29 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 stratifyPopsize(model, stratas = ~ gender / age)
 ```
 
-`singleRcapture` package also includes option to use common non standard 
-argument such as significance levels different from usual 5%:
+The package was designed with convenience in mind, for example it is possible
+to specify that weights provided on call are to be interpreted as number of 
+occurrences of units in each row:
+
+```{r}
+df <- netherlandsimmigrant[, c(1:3,5)]
+df$ww <- 0
+### this is dplyr::count without dependencies
+df <- aggregate(ww ~ ., df, FUN = length)
+summary(estimatePopsize(
+  formula = capture ~ nation + age + gender, 
+  data = df, 
+  model = ztpoisson, 
+  weights = df$ww,
+  controlModel = controlModel(weightsAsCounts = TRUE)
+))
+```
+
+Methods such as regression diagnostics will be adjusted (values of weights will
+be reduced instead of rows being removed etc.)
+
+We also included option to use common non standardargument such as 
+significance levels different from usual 5%:
 
 ```{r boot}
 set.seed(123)
@@ -214,8 +235,7 @@ to the user):
 plot(modelInflated2, 
      plotType = "bootHist", 
      labels = TRUE, 
-     ylim = c(0, 200),
-     histKernels = FALSE)
+     ylim = c(0, 200))
 ```
 
 and information criteria support the favour model:

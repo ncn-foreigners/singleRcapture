@@ -24,7 +24,7 @@ default \code{"z"} is used if there are more than 30 degrees of freedom
 and \code{"t"} is used in other cases.}
 
 \item{resType}{type of residuals to summarise any value that is allowed in
-\code{residuals.signleR} except for \code{"all"} is allowed. By default
+\code{residuals.singleRStaticCountData} except for \code{"all"} is allowed. By default
 pearson residuals are used.}
 
 \item{correlation}{logical value indicating whether correlation matrix should

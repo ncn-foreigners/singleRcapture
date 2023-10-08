@@ -615,7 +615,7 @@ estimatePopsize.default <- function(formula,
     coefficients        <- FITT$beta
     names(coefficients) <- colnames(Xvlm)
     iter                <- FITT$iter
-    dfReduced           <- nrow(Xvlm) - length(coefficients)
+    dfReduced           <- sizeObserved * length(family$etaNames) - length(coefficients)
     IRLSlog             <- FITT$logg
     
     

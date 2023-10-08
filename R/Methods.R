@@ -11,7 +11,7 @@
 #' default \code{"z"} is used if there are more than 30 degrees of freedom
 #' and \code{"t"} is used in other cases.
 #' @param resType type of residuals to summarise any value that is allowed in
-#' \code{residuals.signleR} except for \code{"all"} is allowed. By default 
+#' \code{residuals.singleRStaticCountData} except for \code{"all"} is allowed. By default 
 #' pearson residuals are used.
 #' @param correlation logical value indicating whether correlation matrix should
 #' be computed from covariance matrix by default \code{FALSE}.
@@ -669,7 +669,8 @@ dfbeta.singleRStaticCountData <- function(model,
     on.exit(parallel::stopCluster(cl))
     #parallel::clusterExport(cl, c("singleRinternalGetXvlmMatrix", "cf", "y", "X", "maxitNew", "model", "pw", "offset", "eta"), envir = environment())
     
-    res <- foreach::`%dopar%`(
+    if (isFALSE(model$control$controlModel$weightsAsCounts)) {
+      res <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
         ex = {
           c(cf - estimatePopsizeFit(
@@ -693,6 +694,54 @@ dfbeta.singleRStaticCountData <- function(model,
           )$beta)
         }
       )
+    } else {
+      stop("Multicore dfbeta with weightsAsCounts does not work yet")
+      res <- foreach::`%dopar%`(
+        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
+        ex = {
+          if (isFALSE(pw[k] - 1 > 0)) {
+            c(cf - estimatePopsizeFit(
+              control = controlMethod(
+                silent = TRUE,
+                maxiter = maxitNew + 1,
+                ...
+              ),
+              y = y[-k],
+              X = singleRinternalGetXvlmMatrix(
+                X        = X[-k, , drop = FALSE],
+                formulas = model$formula,
+                parNames = model$model$etaNames
+              ),
+              coefStart = cf,
+              etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+              family = model$model,
+              priorWeights = pw[-k],
+              method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+              offset = offset[-k, , drop = FALSE]
+            )$beta)
+          } else {
+            kk <- rep(0, length(pw))
+            kk[k] <- 1
+            
+            c(cf - estimatePopsizeFit(
+              control = controlMethod(
+                silent = TRUE,
+                maxiter = maxitNew + 1,
+                ...
+              ),
+              y = y,
+              X = model.matrix(model, "vlm"),
+              coefStart = cf,
+              etaStart  = eta + offset,
+              family = model$model,
+              priorWeights = pw - kk,
+              method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+              offset = offset
+            )$beta)
+          }
+        }
+      )
+    }
   } else {
     res <- matrix(nrow = nrow(X), ncol = length(cf))
     
@@ -700,25 +749,68 @@ dfbeta.singleRStaticCountData <- function(model,
       if (isTRUE(trace)) {
         cat("-----\nRemoving observation number: ", k, "\n", sep = "")
       }
-      res[k, ] <- cf - estimatePopsizeFit(
-        control = controlMethod(
-          silent = TRUE,
-          maxiter = maxitNew + 1,
-          ...
-        ),
-        y = y[-k],
-        X = singleRinternalGetXvlmMatrix(
-          X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
-          formulas = model$formula, 
-          parNames = model$model$etaNames
-        ),
-        coefStart = cf,
-        etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
-        family = model$model,
-        priorWeights = pw[-k],
-        method = if (is.null(model$call$method)) "IRLS" else model$call$method,
-        offset = offset[-k, , drop = FALSE]
-      )$beta
+      if (isFALSE(model$control$controlModel$weightsAsCounts)) {
+        res[k, ] <- cf - estimatePopsizeFit(
+          control = controlMethod(
+            silent = TRUE,
+            maxiter = maxitNew + 1,
+            ...
+          ),
+          y = y[-k],
+          X = singleRinternalGetXvlmMatrix(
+            X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
+            formulas = model$formula, 
+            parNames = model$model$etaNames
+          ),
+          coefStart = cf,
+          etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+          family = model$model,
+          priorWeights = pw[-k],
+          method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+          offset = offset[-k, , drop = FALSE]
+        )$beta
+      } else {
+        if (isFALSE(pw[k] - 1 > 0)) {
+          res[k, ] <- cf - estimatePopsizeFit(
+            control = controlMethod(
+              silent = TRUE,
+              maxiter = maxitNew + 1,
+              ...
+            ),
+            y = y[-k],
+            X = singleRinternalGetXvlmMatrix(
+              X        = X[rownames(X) != rownames(X)[k], , drop = FALSE],
+              formulas = model$formula, 
+              parNames = model$model$etaNames
+            ),
+            coefStart = cf,
+            etaStart  = eta[-k, , drop = FALSE] + offset[-k, , drop = FALSE],
+            family = model$model,
+            priorWeights = pw[-k],
+            method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+            offset = offset[-k, , drop = FALSE]
+          )$beta
+        } else {
+          kk <- rep(0, length(pw))
+          kk[k] <- 1
+          
+          res[k, ] <- cf - estimatePopsizeFit(
+            control = controlMethod(
+              silent = TRUE,
+              maxiter = maxitNew + 1,
+              ...
+            ),
+            y = y,
+            X = model.matrix(model, "vlm"),
+            coefStart = cf,
+            etaStart  = eta + offset,
+            family = model$model,
+            priorWeights = pw - kk,
+            method = if (is.null(model$call$method)) "IRLS" else model$call$method,
+            offset = offset
+          )$beta
+        }
+      }
     }
   }
   
@@ -731,15 +823,15 @@ dfbeta.singleRStaticCountData <- function(model,
 #' @rdname regDiagSingleR
 #' @exportS3Method
 residuals.singleRStaticCountData <- function(object,
-                              type = c(
-                                "pearson",
-                                "pearsonSTD",
-                                "response",
-                                "working",
-                                "deviance",
-                                "all"
-                              ),
-                              ...) {
+                                             type = c(
+                                               "pearson",
+                                               "pearsonSTD",
+                                               "response",
+                                               "working",
+                                               "deviance",
+                                               "all"
+                                             ),
+                                             ...) {
   type <- match.arg(type)
   res <- object$residuals
   wts <- object$priorWeights
@@ -753,21 +845,21 @@ residuals.singleRStaticCountData <- function(object,
   rs <- switch(
     type,
     working = as.data.frame(
-      object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y), 
+      object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y, prior = wts), 
       col.names = paste0("working:", object$model$etaNames)
     ),
     response = res,
     pearson = data.frame(
       "pearson" = res$truncated / sqrt(object$model$variance(eta = object$linearPredictors, type = "trunc"))
     ),
-    pearsonSTD = data.frame("pearsonSTD" = (res$truncated) / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linearPredictors, type = "trunc"))),
+    pearsonSTD = data.frame("pearsonSTD" = res$truncated / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linearPredictors, type = "trunc"))),
     deviance = data.frame(
       "deviance" = object$model$devResids(y = y, eta = object$linearPredictors, wt = wts)
     ),
     all = {colnames(res) <- c("truncatedResponse", 
                               "nontruncatedResponse");
       data.frame(
-        as.data.frame(object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y),
+        as.data.frame(object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y, prior = wts),
                       col.names = paste0("working:", object$model$etaNames)),
         res,
         "pearson" = as.numeric(res$truncated / sqrt(object$model$variance(eta = object$linearPredictors, type = "trunc"))),
@@ -789,7 +881,7 @@ cooks.distance.singleRStaticCountData <- function(model, ...) {
   if (length(model$model$etaNames) > 1) 
     stop("Cooks distance is only implemented for single parameter families.")
   
-  res <- residuals(model, type = "pearsonSTD")^2
+  res <- residuals(model, type = "pearsonSTD") ^ 2
   res <- res[, 1]
   
   ht <- hatvalues(model)
@@ -798,7 +890,7 @@ cooks.distance.singleRStaticCountData <- function(model, ...) {
   res
 }
 
-# There is no need for doccumenting the following methods:
+# There is no need for documenting the following methods:
 
 #' @method family singleRStaticCountData
 #' @importFrom stats family
@@ -906,14 +998,15 @@ model.matrix.singleRStaticCountData <- function(object, type = c("lm", "vlm"), .
 #' @rdname redoPopEstimation
 #' @exportS3Method
 redoPopEstimation.singleRStaticCountData <- function(object, 
-                                      newdata, 
-                                      cov, 
-                                      weights,
-                                      coef,
-                                      control,
-                                      popVar,
-                                      offset,
-                                      ...) {
+                                                     newdata, 
+                                                     cov, 
+                                                     weights,
+                                                     coef,
+                                                     control,
+                                                     popVar,
+                                                     offset,
+                                                     ...) {
+  ### TODO:: check for weightsAsPopCount
   if (missing(cov)) {
     cov <- vcov
   }
@@ -1033,7 +1126,7 @@ redoPopEstimation.singleRStaticCountData <- function(object,
 #' @method dfpopsize singleRStaticCountData
 #' @rdname regDiagSingleR
 #' @exportS3Method 
-dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop = FALSE, ...) {
+dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, ...) {
   if (isTRUE(model$call$popVar == "bootstrap")) 
     warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
   
@@ -1051,18 +1144,32 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop =
   for (k in range) {
     cf <- model$coefficients - dfb[k, ]
     
-    res[k] <- model$model$pointEst(
-      eta = matrix(
-        singleRinternalGetXvlmMatrix(
-          X = X[rownames(X) != rownames(X)[k], , drop = FALSE], 
-          formulas = model$formula, 
-          parNames = model$model$etaNames
-        ) %*% cf, 
-        ncol = length(model$model$etaNames)
-      ),
-      y = y[-k],
-      pw = pw[-k]
-    ) + model$trcount
+    if (isTRUE(model$control$controlModel$weightsAsCounts == FALSE)) {
+      res[k] <- model$model$pointEst(
+        eta = matrix(
+          singleRinternalGetXvlmMatrix(
+            X = X[rownames(X) != rownames(X)[k], , drop = FALSE], 
+            formulas = model$formula, 
+            parNames = model$model$etaNames
+          ) %*% cf, 
+          ncol = length(model$model$etaNames)
+        ),
+        y = y[-k],
+        pw = pw[-k]
+      )
+    } else {
+      # Here additional conditional is not needed since if weights are zero nothing breaks
+      kk <- rep(0, length(pw))
+      kk[k] <- 1
+      res[k] <- model$model$pointEst(
+        eta = matrix(
+          model.matrix(model, "vlm") %*% cf, 
+          ncol = length(model$model$etaNames)
+        ),
+        y = y,
+        pw = pw - kk
+      )
+    }
   }
   
   N - res
@@ -1073,11 +1180,12 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, observedPop =
 #' @importFrom stats contrasts
 #' @exportS3Method
 stratifyPopsize.singleRStaticCountData <- function(object, 
-                                    stratas,
-                                    alpha, 
-                                    newdata, 
-                                    cov = NULL,
-                                    ...) {
+                                                   stratas,
+                                                   alpha, 
+                                                   newdata, 
+                                                   cov = NULL,
+                                                   ...) {
+  ## TODO:: New data doesn't work yet
   
   # if stratas is unspecified get all levels of factors in modelFrame
   if (missing(stratas)) {
@@ -1175,7 +1283,7 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   }
   
   # get necessary model info AFTER possible error in function
-  family <- family(object = object, ...)
+  family <- family(object = object)
   priorWeights <- object$priorWeights
   eta <- object$linearPredictors
   Xvlm <- model.matrix(object, "vlm")
@@ -1194,7 +1302,13 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   
   for (k in 1:length(stratas)) {
     cond <- stratas[[k]]
-    obs[k] <- sum(cond)
+    
+    if (isTRUE(object$control$controlModel$weightsAsCounts)) {
+      obs[k] <- sum(priorWeights[cond])
+    } else {
+      obs[k] <- sum(cond)
+    }
+    
     if (obs[k] > 0) {
       est[k] <- family$pointEst(pw = priorWeights[cond], 
                                 eta = eta[cond, , drop = FALSE])
@@ -1257,9 +1371,9 @@ print.popSizeEstResults <- function(x, ...) {
 #' @importFrom stats printCoefmat
 #' @exportS3Method 
 print.summarysingleRStaticCountData <- function(x, 
-                                 signif.stars = getOption("show.signif.stars"), 
-                                 digits = max(3L, getOption("digits") - 3L), 
-                                 ...) {
+                                                signif.stars = getOption("show.signif.stars"), 
+                                                digits = max(3L, getOption("digits") - 3L), 
+                                                ...) {
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
       "\n\n", sep = "")
   
@@ -1517,11 +1631,27 @@ df.residual.singleRStaticCountData <- function(object, ...) {
 #' @export
 simulate.singleRStaticCountData <- function(object, nsim = 1, seed = NULL, ...) {
   n <- nobs(object)
+  eta <- object$linearPredictors
+  
+  # Replicate each row in eta priorWeights number of times
+  if (isTRUE(object$control$controlModel$weightsAsCounts)) {
+    eta <- matrix(
+      unlist(sapply(1:NROW(eta), function(x) {
+        rep(eta[x,], object$priorWeights[x])
+      })),
+      ncol = NCOL(eta),
+      byrow = TRUE,
+      dimnames = list(
+        1:n, colnames(eta)
+      )
+    )
+  }
+  
   val <- simulate(
     object    = family(object), 
     seed      = seed, 
     nsim      = n * nsim, 
-    eta       = object$linearPredictors, 
+    eta       = eta, 
     truncated = TRUE
   )
 

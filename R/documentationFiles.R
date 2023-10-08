@@ -257,19 +257,13 @@ NULL
 #' 
 #'
 #' @description List of some regression diagnostics implemented for
-#' \code{singleR} class. Functions that either require no changes from 
+#' \code{singleRStaticCountData} class. Functions that either require no changes from 
 #' \code{glm} class or are not relevant to context of \code{singleRcapture}
 #' are omitted.
 #' 
-#' @param model,object object of \code{singleR} class.
+#' @param model,object object of \code{singleRStaticCountData} class.
 #' @param dfbeta if \code{dfbeta} was already obtained it is possible to pass 
 #' them into function so that they need not be computed for the second time.
-#' @param observedPop logical. For \code{singleR} class object if set to 
-#' \code{TRUE} indicates that 1 will be returned for units which do not
-#' take part in population size estimation (e.g. 1's in zero one truncated
-#' models or units with count => 3 for \code{zelterman} of basic \code{chao}
-#' model) if set to \code{FALSE} (default) these units will not be included
-#' in results.
 #' @param cores Number of processor cores to be used,
 #' any number greater than 1 activates code designed with \code{doParallel}, 
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel 
@@ -280,9 +274,9 @@ NULL
 #' points \mjseqn{\hat{\boldsymbol{\beta}}} on data 
 #' specified at call for \code{model} after the removal of k'th row. By default 1.
 #' @param ... arguments passed to other methods. 
-#' Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no 
-#' \code{dfbeta} argument was provided and \code{controlMethod} is called in
-#' \code{dfbeta} method.
+#' Notably \code{dfpopsize.singleRStaticCountData} calls 
+#' \code{dfbeta.singleRStaticCountData} if no \code{dfbeta} argument was 
+#' provided and \code{controlMethod} is called in \code{dfbeta} method.
 #' 
 #' @details 
 #' 
@@ -298,8 +292,8 @@ NULL
 #' linear predictor and works exactly like the method for \code{glm} class.
 #' 
 #' 
-#' \code{residuals.singleR} (can be abbreviated to \code{resid}) works like 
-#' \code{residuals.glm} with the exception that:
+#' \code{residuals.singleRStaticCountData} (can be abbreviated to \code{resid})
+#'  works like \code{residuals.glm} with the exception that:
 #' \itemize{
 #' \item \code{"pearson"} -- returns non standardised residuals.
 #' \item \code{"pearsonSTD"} -- is currently defined only for single predictors
@@ -315,14 +309,14 @@ NULL
 #' }
 #' 
 #' 
-#' \code{hatvalues.singleR} is method for \code{singleR} class for extracting 
-#' diagonal elements of projection matrix. 
+#' \code{hatvalues.singleRStaticCountData} is method for \code{singleRStaticCountData} 
+#' class for extracting diagonal elements of projection matrix. 
 #' 
-#' Since \code{singleRcapture} supports 
-#' not only regular glm's but also vglm's the \code{hatvalues} returns a matrix 
-#' with number of columns corresponding to number of linear predictors in a model, 
-#' where kth column corresponds to elements of the diagonal of projection 
-#' matrix associated with kth linear predictor. For glm's  
+#' Since \code{singleRcapture} supports not only regular glm's but also vglm's the 
+#' \code{hatvalues} returns a matrix with number of columns corresponding to number 
+#' of linear predictors in a model, where kth column corresponds to elements of 
+#' the diagonal of projection matrix associated with kth linear predictor. 
+#' For glm's  
 #' \mjsdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
 #' \left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}
 #' \boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}
@@ -373,12 +367,13 @@ NULL
 #' regression parameters after the removal of k'th row from the data.
 #' \item \code{cooks.distance} -- A matrix with a single columns with
 #' values of cooks distance for every unit in \code{model.matrix}
-#' \item \code{residuals.singleR} -- A \code{data.frame} with chosen residuals.
+#' \item \code{residuals.singleRStaticCountData} -- A \code{data.frame} 
+#' with chosen residuals.
 #' }
 #' 
 #' @examples
 #' \donttest{
-#' # For singleR class
+#' # For singleRStaticCountData class
 #' # Get simple model
 #' Model <- estimatePopsize(
 #'   formula = capture ~ nation + age + gender, 

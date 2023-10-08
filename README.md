@@ -256,8 +256,72 @@ stratifyPopsize(model, stratas = ~ gender / age)
 #> 6   gendermale:age>40yrs      0.05
 ```
 
-`singleRcapture` package also includes option to use common non standard
-argument such as significance levels different from usual 5%:
+The package was designed with convenience in mind, for example it is
+possible to specify that weights provided on call are to be interpreted
+as number of occurrences of units in each row:
+
+``` r
+df <- netherlandsimmigrant[, c(1:3,5)]
+df$ww <- 0
+### this is dplyr::count without dependencies
+df <- aggregate(ww ~ ., df, FUN = length)
+summary(estimatePopsize(
+  formula = capture ~ nation + age + gender, 
+  data = df, 
+  model = ztpoisson, 
+  weights = df$ww,
+  controlModel = controlModel(weightsAsCounts = TRUE)
+))
+#> 
+#> Call:
+#> estimatePopsize.default(formula = capture ~ nation + age + gender, 
+#>     data = df, model = ztpoisson, weights = df$ww, controlModel = controlModel(weightsAsCounts = TRUE))
+#> 
+#> Pearson Residuals:
+#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#> -317.6467   -2.4060    3.7702    0.0803   13.4920  183.2108 
+#> 
+#> Coefficients:
+#> -----------------------
+#> For linear predictors associated with: lambda 
+#>                      Estimate Std. Error z value  P(>|z|)    
+#> (Intercept)           -1.3411     0.2149  -6.241 4.35e-10 ***
+#> nationAsia            -1.0926     0.3016  -3.622 0.000292 ***
+#> nationNorth Africa     0.1900     0.1940   0.979 0.327398    
+#> nationRest of Africa  -0.9106     0.3008  -3.027 0.002468 ** 
+#> nationSurinam         -2.3364     1.0136  -2.305 0.021159 *  
+#> nationTurkey          -1.6754     0.6028  -2.779 0.005445 ** 
+#> age>40yrs             -0.9746     0.4082  -2.387 0.016972 *  
+#> gendermale             0.3972     0.1630   2.436 0.014832 *  
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> AIC: 1712.901
+#> BIC: 1757.213
+#> Residual deviance: 1128.553
+#> 
+#> Log-likelihood: -848.4504 on 1872 Degrees of freedom 
+#> Number of iterations: 8
+#> -----------------------
+#> Population size estimation results: 
+#> Point estimate 12690.35
+#> Observed proportion: 14.8% (N obs = 1880)
+#> Std. Error 2808.169
+#> 95% CI for the population size:
+#>           lowerBound upperBound
+#> normal      7186.444   18194.26
+#> logNormal   8431.275   19718.32
+#> 95% CI for the share of observed population:
+#>           lowerBound upperBound
+#> normal     10.332927   26.16037
+#> logNormal   9.534281   22.29793
+```
+
+Methods such as regression diagnostics will be adjusted (values of
+weights will be reduced instead of rows being removed etc.)
+
+We also included option to use common non standardargument such as
+significance levels different from usual 5%:
 
 ``` r
 set.seed(123)
@@ -371,11 +435,10 @@ the user):
 plot(modelInflated2, 
      plotType = "bootHist", 
      labels = TRUE, 
-     ylim = c(0, 200),
-     histKernels = FALSE)
+     ylim = c(0, 200))
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="75%" />
 
 and information criteria support the favour model:
 

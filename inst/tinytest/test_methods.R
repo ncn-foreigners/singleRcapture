@@ -80,6 +80,53 @@ expect_silent(
   )
 )
 
+df <- netherlandsimmigrant[, c(1:3,5)]
+df$ww <- 0
+### this is dplyr::count but slower and without dependencies
+df <- aggregate(ww ~ ., df, FUN = length)
+
+expect_silent(
+  Model6 <- estimatePopsize(
+    formula = capture ~ nation + age + gender, 
+    data = df, 
+    model = ztpoisson, 
+    method = "IRLS",
+    weights = df$ww,
+    controlMethod = controlMethod(silent = TRUE),
+    controlModel = controlModel(weightsAsCounts = TRUE)
+  )
+)
+
+expect_equal(
+  nobs(Model6),
+  nobs(Model)
+)
+
+expect_equal(
+  Model$populationSize$pointEstimate,
+  Model6$populationSize$pointEstimate
+)
+
+expect_equal(
+  Model$populationSize$confidenceInterval,
+  Model6$populationSize$confidenceInterval
+)
+
+expect_equal(
+  Model$populationSize$variance,
+  Model6$populationSize$variance
+)
+
+expect_equal(
+  Model$coefficients,
+  Model6$coefficients
+)
+
+expect_equal(
+  Model$logL,
+  Model6$logL
+)
+
 # dfbetas and dfpopsize
 # 4 takes too long
 expect_silent(
@@ -100,6 +147,10 @@ expect_silent(
 
 expect_silent(
   dfb5 <- dfbeta(Model5)
+)
+
+expect_silent(
+  dfb6 <- dfbeta(Model6)
 )
 
 expect_silent(
@@ -124,6 +175,10 @@ expect_silent(
 
 expect_silent(
   dfp <- dfpopsize(Model, dfbeta = dfb)
+)
+
+expect_silent(
+  dfp6 <- dfpopsize(Model6, dfbeta = dfb6)
 )
 
 expect_equal(
@@ -158,6 +213,17 @@ expect_silent(
   dfpopsize(Model5, dfbeta = dfb5)
 )
 
+expect_equal(
+  c(unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+    unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+    unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+    unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+    unique(dfp[netherlandsimmigrant$capture == 4 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1]),
+  dfp6[1:7]
+)
+
 # Extractors
 
 expect_true(
@@ -178,6 +244,10 @@ expect_silent(
   c(extractAIC(Model), extractAIC(Model1), extractAIC(Model2), 
     extractAIC(Model3), extractAIC(Model4), extractAIC(Model5))
 )
+
+expect_equal(AIC(Model), AIC(Model6))
+expect_equal(BIC(Model), BIC(Model6))
+expect_equal(extractAIC(Model), extractAIC(Model6))
 
 # Sandwich
 

@@ -106,7 +106,6 @@ with type \code{list} containing:\cr
 \item{\code{populationSize} -- A list containing information of population size estimate.}
 \item{\code{modelFrame} -- Model frame if specified at call.}
 \item{\code{linearPredictors} -- Vector of fitted linear predictors.}
-\item{\code{trcount} -- Number of truncated observations.}
 \item{\code{sizeObserved} -- Number of observations in original model frame.}
 \item{\code{terms} -- terms attribute of model frame used.}
 \item{\code{contrasts} -- contrasts specified in function call.}

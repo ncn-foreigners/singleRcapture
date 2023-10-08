@@ -53,7 +53,7 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
            dimnames = list(rownames(eta), c("lambda")))
   }
   
-  funcZ <- function(eta, weight, y, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
     prior * ((y / lambda - 1 / (1 - exp(-lambda))) * 

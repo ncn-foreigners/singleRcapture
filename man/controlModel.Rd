@@ -12,11 +12,11 @@ controlModel(
 )
 }
 \arguments{
-\item{weightsAsCounts}{for now does nothing. The plan is to have this indicate whether
-\code{prior.weights} are to be treated as counts for sub populations and adjust all
+\item{weightsAsCounts}{boolean value indicating whether to treat \code{weights}
+argument as number of occurrences for each row in the \code{data} and adjust
 necessary methods and functionalities, like adjustments in bootstrap or
 decreasing weights in \code{dfbeta} instead or deleting rows from data,
-to accommodate this form of data.}
+to accommodate this form of model specification.}
 
 \item{omegaFormula}{formula for inflation parameter in one inflated zero
 truncated and zero truncated one inflated models.}
