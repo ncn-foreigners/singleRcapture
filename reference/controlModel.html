@@ -20,7 +20,7 @@ included in the "main" formula.'><!-- mathjax --><script src="https://cdnjs.clou
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,11 +77,11 @@ included in the "main" formula.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>weightsAsCounts</dt>
-<dd><p>for now does nothing. The plan is to have this indicate whether
-<code>prior.weights</code> are to be treated as counts for sub populations and adjust all
+<dd><p>boolean value indicating whether to treat <code>weights</code>
+argument as number of occurrences for each row in the <code>data</code> and adjust
 necessary methods and functionalities, like adjustments in bootstrap or
 decreasing weights in <code>dfbeta</code> instead or deleting rows from data,
-to accommodate this form of data.</p></dd>
+to accommodate this form of model specification.</p></dd>
 
 
 <dt>omegaFormula</dt>

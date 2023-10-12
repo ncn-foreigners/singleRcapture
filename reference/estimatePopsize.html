@@ -28,7 +28,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise."
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,13 +78,17 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise.<
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">estimatePopsize</span><span class="op">(</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">estimatePopsize</span><span class="op">(</span><span class="va">formula</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for default</span></span>
+<span><span class="fu">estimatePopsize</span><span class="op">(</span></span>
 <span>  <span class="va">formula</span>,</span>
 <span>  <span class="va">data</span>,</span>
 <span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ztpoisson"</span>, <span class="st">"ztnegbin"</span>, <span class="st">"ztgeom"</span>, <span class="st">"zotpoisson"</span>, <span class="st">"ztoipoisson"</span>,</span>
 <span>    <span class="st">"oiztpoisson"</span>, <span class="st">"ztHurdlepoisson"</span>, <span class="st">"Hurdleztpoisson"</span>, <span class="st">"zotnegbin"</span>, <span class="st">"ztoinegbin"</span>,</span>
 <span>    <span class="st">"oiztnegbin"</span>, <span class="st">"ztHurdlenegbin"</span>, <span class="st">"Hurdleztnegbin"</span>, <span class="st">"zotgeom"</span>, <span class="st">"ztoigeom"</span>, <span class="st">"oiztgeom"</span>,</span>
 <span>    <span class="st">"ztHurdlegeom"</span>, <span class="st">"ztHurdlegeom"</span>, <span class="st">"zelterman"</span>, <span class="st">"chao"</span><span class="op">)</span>,</span>
+<span>  ratioReg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subset <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  naAction <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -109,6 +113,11 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise.<
 linear predictor. Only single response models are available.</p></dd>
 
 
+<dt>...</dt>
+<dd><p>additional optional arguments passed to other methods eg.
+<code>estimatePopsizeFit</code>.</p></dd>
+
+
 <dt>data</dt>
 <dd><p>data frame or object coercible to data.frame class containing
 data for the regression and population size estimation.</p></dd>
@@ -118,8 +127,13 @@ data for the regression and population size estimation.</p></dd>
 <dd><p>model for regression and population estimate full description in <code><a href="singleRmodels.html">singleRmodels()</a></code>.</p></dd>
 
 
+<dt>ratioReg</dt>
+<dd><p>Not yet implemented</p></dd>
+
+
 <dt>weights</dt>
-<dd><p>optional object of a priori weights used in fitting the model.</p></dd>
+<dd><p>optional object of prior weights used in fitting the model.
+Can be used to specify number of occurrences of rows in data see <code><a href="controlModel.html">controlModel()</a></code></p></dd>
 
 
 <dt>subset</dt>
@@ -177,17 +191,12 @@ dependent vector and model matrix as a part of output.</p></dd>
 number of distribution parameters providing offset values to each of
 linear predictors.</p></dd>
 
-
-<dt>...</dt>
-<dd><p>additional optional arguments passed to other methods eg.
-<code>estimatePopsize.fit</code>.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>Returns an object of class <code>c("singleR", "glm", "lm")</code></p>
+<p>Returns an object of class <code>c("singleRStaticCountData", "singleR", "glm", "lm")</code></p>
 
 
 <p>with type <code>list</code> containing:<br></p>
@@ -212,7 +221,6 @@ linear predictors.</p></dd>
 <li><p><code>populationSize</code> -- A list containing information of population size estimate.</p></li>
 <li><p><code>modelFrame</code> -- Model frame if specified at call.</p></li>
 <li><p><code>linearPredictors</code> -- Vector of fitted linear predictors.</p></li>
-<li><p><code>trcount</code> -- Number of truncated observations.</p></li>
 <li><p><code>sizeObserved</code> -- Number of observations in original model frame.</p></li>
 <li><p><code>terms</code> -- terms attribute of model frame used.</p></li>
 <li><p><code>contrasts</code> -- contrasts specified in function call.</p></li>
@@ -222,10 +230,10 @@ linear predictors.</p></dd>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The generalized linear model is characterised by equation
+    <p>The generalized linear model is characterized by equation
 \[\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}\]
 where <em></em>\(\boldsymbol{X}\) is the (lm) model matrix.
-The vector generalized linear model is similarly characterised by equations
+The vector generalized linear model is similarly characterized by equations
 \[\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}\]
 where <em></em>\(\boldsymbol{X}_{k}\) is a (lm) model
 matrix constructed from appropriate formula
@@ -249,7 +257,7 @@ is constructed as a block matrix:</p>
 <p>this differs from convention in <code>VGAM</code> package (if we only consider our
 special cases of vglm models) but this is just a convention and does not
 affect the model, this convention is taken because it makes fitting with
-IRLS (explanation of algorithm in <code><a href="estimatePopsize.fit.html">estimatePopsize.fit()</a></code>) algorithm easier.
+IRLS (explanation of algorithm in <code><a href="estimatePopsizeFit.html">estimatePopsizeFit()</a></code>) algorithm easier.
 (If <code>constraints</code> matrixes in <code>vglm</code> match the ones we implicitly
 use the <code>vglm</code> model matrix differs with respect to order of
 <code>kronecker</code> multiplication of <code>X</code> and <code>constraints</code>.)
@@ -258,7 +266,7 @@ In this package we use observed likelihood to fit regression models.</p>
 \[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} = 
 \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
 <p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator variables,
-with value 1 if k'th unit was observed at least once and 0 otherwise.
+with value 1 if kth unit was observed at least once and 0 otherwise.
 The <em></em>\(\mathbb{P}(Y_{k}&gt;0)\) are estimated by maximum likelihood.</p>
 <p>The following assumptions are usually present when using
 the method of estimation described above:</p><ol><li><p>The specified regression model is correct. This entails linear
@@ -319,11 +327,11 @@ sample size it is likely to underestimate variance.</p>
 \dots,
 \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}\]
 where <em></em>\(\boldsymbol{f}_{n}\) denotes observed
-marginal frequency of units being observed exactly n times, round the
-quantities above to nearest integer if necessary.</p></li>
+marginal frequency of units being observed exactly n times.</p></li>
 <li><p>Draw <em></em>\(\hat{N}\) units from the distribution above
 (if <em></em>\(\hat{N}\) is not an integer than draw
-<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)).</p></li>
+<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)),
+where <em></em>\(\lfloor\cdot\rfloor\) is the floor function.</p></li>
 <li><p>Truncated units with <em></em>\(y=0\).</p></li>
 <li><p>If there are covariates draw them from original data with replacement from
 uniform distribution. For example if unit drawn to new data has
@@ -336,18 +344,20 @@ to compute <em></em>\(\hat{N}_{new}\).</p></li>
 <li><p>Repeat 2-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code>.</p></li>
-</ol><p>This procedure is known in literature as <code>"semiparametric"</code> bootstrap
+</ol><p>To do step 1 in procedure above it is convenient to first draw binary vector of length
+<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\) with probability
+<em></em>\(1-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}\), sum elements in that vector to
+determine the sample size and then draw sample of this size uniformly from the data.</p>
+<p>This procedure is known in literature as <code>"semiparametric"</code> bootstrap
 it is necessary to assume that the have a correct estimate
 <em></em>\(\hat{N}\) in order to use this type of bootstrap.</p>
 <p>Lastly there is <code>"paramteric"</code> bootstrap where we assume that the
 probabilistic model used to obtain <em></em>\(\hat{N}\) is correct the
-bootstrap procedure may then be described as:</p><ol><li><p>Draw <em></em>\(\hat{N}\) covariate information vectors with
-replacement from data according to probability distribution
-\[\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}\]
-where <em></em>\(M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)\),
-<em></em>\(N_{k}\) is the contribution of kth unit i.e.
-<em></em>\(\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\) and
-<em></em>\(\lfloor\cdot\rfloor\) is the floor function.</p></li>
+bootstrap procedure may then be described as:</p><ol><li><p>Draw <em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)
+covariate information vectors with replacement from data according to
+probability distribution that is proportional to: <em></em>\(N_{k}\),
+where <em></em>\(N_{k}\) is the contribution of kth unit i.e.
+<em></em>\(\dfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\).</p></li>
 <li><p>Determine <em></em>\(\boldsymbol{\eta}\) matrix using estimate
 <em></em>\(\hat{\boldsymbol{\beta}}\).</p></li>
 <li><p>Generate <em></em>\(\boldsymbol{y}\) (dependent variable)
@@ -370,8 +380,8 @@ to address this issue.</p>
 (in analytic case) either by assuming that it follows a normal distribution
 or that variable <em></em>\(\ln(N-\hat{N})\)
 follows a normal distribution.</p>
-<p>These estimates may be found using either <code>summary.singleR</code>
-method or <code>popSizeEst.singleR</code> function. They're labelled as
+<p>These estimates may be found using either <code>summary.singleRStaticCountData</code>
+method or <code>popSizeEst.singleRStaticCountData</code> function. They're labelled as
 <code>normal</code> and <code>logNormal</code> respectively.</p>
     </div>
     <div class="section level2">
@@ -412,27 +422,27 @@ doi: 10.1007/s10260-021-00556-8</p>
 models with continuous covariates 2003 Statistics &amp; probability letters 65.2 pp 121-125</p>
 <p>Norris, James L and Pollock, Kenneth H Including model uncertainty in estimating variances
 in multiple capture studies 1996 in Environmental and Ecological Statistics 3.3 pp 235-244</p>
-<p>Vector generalised linear models:</p>
+<p>Vector generalized linear models:</p>
 <p>Yee, T. W. (2015). Vector Generalized Linear and Additive Models:
 With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code> -- For more information on generalised linear models.</p>
+    <div class="dont-index"><p><code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code> -- For more information on generalized linear models.</p>
 <p><code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> -- For more information on <code>optim</code> function used in
 <code>optim</code> method of fitting regression.</p>
 <p><code><a href="controlMethod.html">controlMethod()</a></code> -- For control parameters related to regression.</p>
 <p><code><a href="controlPopVar.html">controlPopVar()</a></code> -- For control parameters related to population size estimation.</p>
 <p><code><a href="controlModel.html">controlModel()</a></code> -- For control parameters related to model specification.</p>
-<p><code><a href="estimatePopsize.fit.html">estimatePopsize.fit()</a></code> -- For more information on fitting procedure in
+<p><code><a href="estimatePopsizeFit.html">estimatePopsizeFit()</a></code> -- For more information on fitting procedure in
 <code>esitmate_popsize</code>.</p>
 <p><code><a href="popSizeEst.html">popSizeEst()</a></code> <code><a href="redoPopEstimation.html">redoPopEstimation()</a></code> -- For extracting population size
 estimation results are applying post-hoc procedures.</p>
-<p><code><a href="summary.singleR.html">summary.singleR()</a></code> -- For summarising important information about the
+<p><code><a href="summary.singleRStaticCountData.html">summary.singleRStaticCountData()</a></code> -- For summarizing important information about the
 model and population size estimation results.</p>
 <p><code><a href="marginalFreq.html">marginalFreq()</a></code> -- For information on marginal frequencies and comparison
 between observed and fitted quantities.</p>
-<p><code><a href="https://rdrr.io/pkg/VGAM/man/vglm.html" class="external-link">VGAM::vglm()</a></code> -- For more information on vector generalised linear models.</p>
+<p><code><a href="https://rdrr.io/pkg/VGAM/man/vglm.html" class="external-link">VGAM::vglm()</a></code> -- For more information on vector generalized linear models.</p>
 <p><code><a href="singleRmodels.html">singleRmodels()</a></code> -- For description of various models.</p></div>
     </div>
     <div class="section level2">
@@ -456,8 +466,8 @@ between observed and fitted quantities.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = capture ~ gender + age + nation, data = netherlandsimmigrant, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztpoisson)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize.default(formula = capture ~ gender + age + nation, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data = netherlandsimmigrant, model = ztpoisson)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
@@ -483,7 +493,7 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 1128.553</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -848.4504 on 1872 Degrees of freedom </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Number of calls to log-likelihood function: 8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of iterations: 8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Population size estimation results: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 12690.35</span>
@@ -560,7 +570,7 @@ between observed and fitted quantities.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">modelSingleRcapture</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize.default(formula = TOTAL_SUB ~ ., data = farmsubmission, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztnegbin, method = "IRLS")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
@@ -708,7 +718,7 @@ between observed and fitted quantities.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">pseudoHurdleModel</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = capture ~ nation + age, data = netherlandsimmigrant, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize.default(formula = capture ~ nation + age, data = netherlandsimmigrant, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     model = Hurdleztgeom, method = "IRLS", controlMethod = controlMethod(verbose = 5), </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     controlModel = controlModel(piFormula = ~gender))</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -797,7 +807,7 @@ between observed and fitted quantities.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">Model</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = TOTAL_SUB ~ ., data = farmsubmission, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize.default(formula = TOTAL_SUB ~ ., data = farmsubmission, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     model = oiztgeom(omegaLink = "cloglog"), method = "IRLS", </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     controlMethod = controlMethod(stepsize = 0.15, momentumFactor = 1.8, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         epsilon = 1e-12, silent = TRUE), controlModel = controlModel(omegaFormula = ~.))</span>

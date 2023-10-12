@@ -14,7 +14,7 @@ reduction) to population size estimation and standard error estimation."><!-- ma
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@ reduction) to population size estimation and standard error estimation.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for singleR</span></span>
+<span><span class="co"># S3 method for singleRStaticCountData</span></span>
 <span><span class="fu">redoPopEstimation</span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
 <span>  <span class="va">newdata</span>,</span>
@@ -69,6 +69,7 @@ reduction) to population size estimation and standard error estimation.</p>
 <span>  <span class="va">control</span>,</span>
 <span>  <span class="va">popVar</span>,</span>
 <span>  <span class="va">offset</span>,</span>
+<span>  <span class="va">weightsAsCounts</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -84,7 +85,7 @@ reduction) to population size estimation and standard error estimation.</p>
 
 
 <dt>...</dt>
-<dd><p>additional optional arguments, currently not used in <code>singleR</code> class method.</p></dd>
+<dd><p>additional optional arguments, currently not used in <code>singleRStaticCountData</code> class method.</p></dd>
 
 
 <dt>cov</dt>
@@ -111,7 +112,12 @@ If missing set to <code>"analytic"</code>.</p></dd>
 
 
 <dt>offset</dt>
-<dd><p>TODO</p></dd>
+<dd><p>offset argument for new data</p></dd>
+
+
+<dt>weightsAsCounts</dt>
+<dd><p>for <code>singleRStaticCountData</code> method used to specify
+whether weights should be treated as number of occurences for rows in data</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -139,8 +145,8 @@ population size estimation results.</p>
 <span class="r-in"><span>popSizeEst <span class="op">=</span> <span class="fu">redoPopEstimation</span><span class="op">(</span><span class="va">Model</span>, cov <span class="op">=</span> <span class="va">cov</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = capture ~ nation + gender, data = netherlandsimmigrant, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztpoisson, method = "IRLS")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize.default(formula = capture ~ nation + gender, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data = netherlandsimmigrant, model = ztpoisson, method = "IRLS")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
@@ -183,8 +189,8 @@ population size estimation results.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">Model</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize(formula = capture ~ nation + gender, data = netherlandsimmigrant, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztpoisson, method = "IRLS")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> estimatePopsize.default(formula = capture ~ nation + gender, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data = netherlandsimmigrant, model = ztpoisson, method = "IRLS")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>

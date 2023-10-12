@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,12 +45,30 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.1" id="singlercapture-021">singleRcapture 0.2.1<a class="anchor" aria-label="anchor" href="#singlercapture-021"></a></h2>
+<ul><li>Fixed bugs in <code>IRLS</code> fitting when providing <code>weights</code> argument when calling <code>estimatePopsize</code>
+</li>
+<li>The <code>weightsAsCounts</code> option in <code>controlModel</code> now works properly, <code>dfbeta</code> and <code>dfpopsize</code> decrease weight of selected row in a model matrix instead of deleting it when this is set to <code>TRUE</code>
+</li>
+<li>
+<code>simulate</code> method now works for both family object (like <code><a href="../reference/singleRmodels.html">ztpoisson()</a></code>) and for objects returned by <code>estimatePopsize</code>
+</li>
+<li>Introduced <code>singleRStaticCountData</code> sub class for <code>singleRclass</code> and made <code>estimatePopsize</code> a method so that a new package <code>singleRcaptureExtra</code> (under development) can make all necessary calculations for pop size estimation when providing object fitted by <code>countreg::zerotrunc</code> or <code><a href="https://rdrr.io/pkg/VGAM/man/vglm.html" class="external-link">VGAM::vglm</a></code>/<code><a href="https://rdrr.io/pkg/VGAM/man/vgam.html" class="external-link">VGAM::vgam</a></code>
+</li>
+<li>Some bugfixes for multicore bootstrap</li>
+<li>Code was re-factored to make further development/maintenance for the package much easier</li>
+<li>Update will be uploaded to <code>CRAN</code>
+</li>
+<li>
+<code>semiparametric</code> bootstrap now has a much faster sampling algorithm (that does the same job)</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0.1" id="singlercapture-0201">singleRcapture 0.2.0.1<a class="anchor" aria-label="anchor" href="#singlercapture-0201"></a></h2>
 <ul><li>Added <code>offset</code> argument to <code>estimatePopsize</code>
 </li>
 <li>Added options for parallel computing in <code>bootstrap</code> and in <code>dfbeta</code>
 </li>
-<li>Added deviance for all negative binomial based models. (NOTE: I believe that they are very slow for now and may change after I verify one theoretical results that will speed these computations)</li>
+<li>Added deviance for all negative binomial based models. (NOTE: They are very slow for now and I believe it may change after I verify one theoretical results that will lead to significant speed increase for these computations)</li>
 <li>Overhaul of starting points (new methods and added linear predictors start in <code>IRLS</code>)</li>
 <li>Code for weights in <code>IRLS</code> fitting was speed up</li>
 <li>Minor bugfixes</li>
@@ -81,7 +99,7 @@
 <ul><li>features
 <ul><li>Added <code>ztoinegbin</code>, <code>oiztnegbin</code> and <code>ztHurdlenegbin</code> models</li>
 <li>Added an optional arguments to all family-functions to specify a link function for distribution parameters</li>
-<li>Updated and standardised documentation</li>
+<li>Updated and standardized documentation</li>
 <li>Added more warnings</li>
 <li>Added some more methods for <code>singleR</code> class in some commonly used <code>glm</code> functions, in particular <code>texreg::screenreg</code> should work well now</li>
 </ul></li>
