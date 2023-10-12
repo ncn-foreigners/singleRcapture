@@ -1,23 +1,23 @@
 # test simulate
-# set.seed(123)
-# expect_equivalent(
-#   {N <- 10000
-#    gender <- rbinom(N, 1, 0.2)
-#    eta <- -1 + 0.5*gender
-#    disp <- 1
-#    counts <- rnbinom(N, mu = exp(eta), size = disp)
-#    df <- data.frame(gender, eta, counts)
-#    df2 <- subset(df, counts > 0)
-#    mod1 <-  estimatePopsize(formula = counts ~ 1 + gender, 
-#                              data = df2,
-#                              model = "ztnegbin", 
-#                              method = "optim",
-#                              pop.var = "analytic")
-#    mid1_sim <- simulate(mod1, 10)
-#    dim(mid1_sim)
-#   },
-#   c(2920, 10)
-# )
+set.seed(123)
+expect_equivalent(
+  {N <- 10000
+   gender <- rbinom(N, 1, 0.2)
+   eta <- -1 + 0.5*gender
+   counts <- rnbinom(N, mu = exp(eta), size = 1)
+   df <- data.frame(gender, eta, counts)
+   df2 <- subset(df, counts > 0)
+   mod1 <-  estimatePopsize(
+     formula = counts ~ 1 + gender,
+     data = df2,
+     model = "ztnegbin",
+     method = "optim"
+   )
+   mid1_sim <- simulate(mod1, 10)
+   dim(mid1_sim)
+  },
+  c(2920, 10)
+)
 
 expect_silent(
   Model <- estimatePopsize(
@@ -80,6 +80,53 @@ expect_silent(
   )
 )
 
+df <- netherlandsimmigrant[, c(1:3,5)]
+df$ww <- 0
+### this is dplyr::count but slower and without dependencies
+df <- aggregate(ww ~ ., df, FUN = length)
+
+expect_silent(
+  Model6 <- estimatePopsize(
+    formula = capture ~ nation + age + gender, 
+    data = df, 
+    model = ztpoisson, 
+    method = "IRLS",
+    weights = df$ww,
+    controlMethod = controlMethod(silent = TRUE),
+    controlModel = controlModel(weightsAsCounts = TRUE)
+  )
+)
+
+expect_equal(
+  nobs(Model6),
+  nobs(Model)
+)
+
+expect_equal(
+  Model$populationSize$pointEstimate,
+  Model6$populationSize$pointEstimate
+)
+
+expect_equal(
+  Model$populationSize$confidenceInterval,
+  Model6$populationSize$confidenceInterval
+)
+
+expect_equal(
+  Model$populationSize$variance,
+  Model6$populationSize$variance
+)
+
+expect_equal(
+  Model$coefficients,
+  Model6$coefficients
+)
+
+expect_equal(
+  Model$logL,
+  Model6$logL
+)
+
 # dfbetas and dfpopsize
 # 4 takes too long
 expect_silent(
@@ -100,6 +147,10 @@ expect_silent(
 
 expect_silent(
   dfb5 <- dfbeta(Model5)
+)
+
+expect_silent(
+  dfb6 <- dfbeta(Model6)
 )
 
 expect_silent(
@@ -124,6 +175,10 @@ expect_silent(
 
 expect_silent(
   dfp <- dfpopsize(Model, dfbeta = dfb)
+)
+
+expect_silent(
+  dfp6 <- dfpopsize(Model6, dfbeta = dfb6)
 )
 
 expect_equal(
@@ -158,6 +213,17 @@ expect_silent(
   dfpopsize(Model5, dfbeta = dfb5)
 )
 
+expect_equal(
+  c(unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 4 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1]),
+  dfp6[1:7]
+)
+
 # Extractors
 
 expect_true(
@@ -170,7 +236,7 @@ expect_true(
 expect_true(
   max(abs(
     c(BIC(Model), BIC(Model1), BIC(Model2), BIC(Model3), BIC(Model4), BIC(Model5)) -
-      c(1757.213, 1811.443, 1170.3, 1177.094, 34625.2, 19509.67)
+      c(1757.213, 1811.443, 1170.3, 1177.094, 34625.2, 19512.66)
   )) < 1
 )
 
@@ -178,6 +244,10 @@ expect_silent(
   c(extractAIC(Model), extractAIC(Model1), extractAIC(Model2), 
     extractAIC(Model3), extractAIC(Model4), extractAIC(Model5))
 )
+
+expect_equal(AIC(Model), AIC(Model6))
+expect_equal(BIC(Model), BIC(Model6))
+expect_equal(extractAIC(Model), extractAIC(Model6))
 
 # Sandwich
 
@@ -655,11 +725,11 @@ expect_true(
 )
 
 expect_true(
-  all(dim(model.matrix(Model2)) == c(1828, 7))
+  all(dim(model.matrix(Model2)) == c(1880, 7))
 )
 
 expect_true(
-  all(dim(model.matrix(Model3)) == c(1828, 8))
+  all(dim(model.matrix(Model3)) == c(1880, 8))
 )
 
 expect_true(
@@ -667,7 +737,7 @@ expect_true(
 )
 
 expect_true(
-  all(dim(model.matrix(Model5)) == c(sum(farmsubmission$TOTAL_SUB > 1), 4))
+  all(dim(model.matrix(Model5)) == c(12036, 4))
 )
 
 expect_true(
@@ -764,7 +834,7 @@ expect_silent(
 )
 
 expect_silent(
-  plot(Model, "dfpopBox")
+  plot(Model, "dfpopBox", dfpop = dfp)
 )
 
 expect_silent(

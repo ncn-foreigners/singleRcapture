@@ -116,9 +116,10 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     )
   }
   
-  funcZ <- function(eta, weight, y, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    weight <- weight / prior
     
     z <- ifelse(y == 1, y, 0)
     
@@ -173,9 +174,9 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
 
-        -sum(z * (log(1 - lambda * exp(-lambda)) + log(PI)) +
+        -sum((z * (log(1 - lambda * exp(-lambda)) + log(PI)) +
         (1 - z) * (log(1 - PI) + y * log(lambda) - lambda - lgamma(y + 1)) -
-        log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)))
+        log(1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))) * weight)
       },
       function(beta) {
         eta    <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
@@ -402,15 +403,12 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     if (method == "IRLS") {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
-        family$links[[2]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+        family$links[[2]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
-      # print(summary(etaStart))
-      # print(summary(cbind(exp(etaStart[,1]), family$links[[2]](etaStart[,2], inverse = TRUE))))
-      # stop("abc")
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed)),
-        family$links[[2]](mean(observed == 1) + .01)
+        family$links[[1]](weighted.mean(observed, priorWeights)),
+        family$links[[2]](weighted.mean(observed == 1, priorWeights) + .01)
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

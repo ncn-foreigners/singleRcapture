@@ -2,16 +2,16 @@
 % Please edit documentation in R/Methods.R
 \name{stratifyPopsize}
 \alias{stratifyPopsize}
-\alias{stratifyPopsize.singleR}
+\alias{stratifyPopsize.singleRStaticCountData}
 \title{Estimate size of sub populations.}
 \usage{
-stratifyPopsize(object, stratas, alpha, newdata, ...)
+stratifyPopsize(object, stratas, alpha, ...)
 
-\method{stratifyPopsize}{singleR}(object, stratas, alpha, newdata, cov = NULL, ...)
+\method{stratifyPopsize}{singleRStaticCountData}(object, stratas, alpha, cov = NULL, ...)
 }
 \arguments{
 \item{object}{an object on which the population size estimates should be based
-in \code{singleRcapture} package this is a fitter \code{singleR} class object.}
+in \code{singleRcapture} package this is a fitter \code{singleRStaticCountData} class object.}
 
 \item{stratas}{a specification of sub populations either by:
 \itemize{
@@ -20,11 +20,11 @@ the object .
 \item Logical vector with number of entries equal to number of rows in the dataset.
 \item A (named) list where each element is a logical vector, names of the list
 will be used to specify names variable in returned object.
-\item Vector of names of explanatory variables. For \code{singleR} method
+\item Vector of names of explanatory variables. For \code{singleRStaticCountData} method
 for this function this specification of \code{stratas} parameter will
 result in every level of explanatory variable having its own sub population
 for each variable specified.
-\item If no value was provided the \code{singleR} method for this function
+\item If no value was provided the \code{singleRStaticCountData} method for this function
 will itself create sub populations based on levels of factor variables
 in \code{model.frame}.
 }}
@@ -32,20 +32,16 @@ in \code{model.frame}.
 \item{alpha}{significance level for confidence intervals --
 Either a single numeric value or a vector of length equal to number of
 sub populations specified in \code{stratas}.
-If missing it is set to \code{.05} in \code{singleR} method.}
-
-\item{newdata}{a new data frame for which sizes of sub populations are to
-be estimated. If none provided \code{stratifyPopsize} acts on
-\code{model.frame} from \code{object}.}
+If missing it is set to \code{.05} in \code{singleRStaticCountData} method.}
 
 \item{...}{a vector of arguments to be passed to other functions.
-For \code{singleR} method for this functions arguments in \code{...} are
+For \code{singleRStaticCountData} method for this functions arguments in \code{...} are
 passed to either \code{cov} if argument provided was a function or
 \code{vcov} if \code{cov} argument was missing at call.
 
 \loadmathjax}
 
-\item{cov}{for \code{singleR} method an estimate of variance-covariance matrix
+\item{cov}{for \code{singleRStaticCountData} method an estimate of variance-covariance matrix
 for estimate of regression parameters. It is possible to pass a function
 such as for example \code{sandwich::vcovHC} which will be called as:
 \code{foo(object, ...)} and a user may specify additional arguments of a
@@ -62,7 +58,7 @@ based on a capture-recapture model for the whole population.
 }
 \details{
 In single source capture-recapture models the most frequently used
-estimate for population size is Horwitz-Thompson type estimate:
+estimate for population size is Horvitz-Thompson type estimate:
 
 \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
 \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
@@ -84,5 +80,5 @@ estimate of population size for the whole population follow the same relation
 as the one described above.
 }
 \seealso{
-\code{\link[=vcov.singleR]{vcov.singleR()}} \code{\link[=estimatePopsize]{estimatePopsize()}}
+\code{\link[=vcov.singleRStaticCountData]{vcov.singleRStaticCountData()}} \code{\link[=estimatePopsize]{estimatePopsize()}}
 }

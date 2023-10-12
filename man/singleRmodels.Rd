@@ -216,7 +216,7 @@ vector given linear predictors.
 }
 }
 \description{
-Package \code{singleRcapture} utilises various family type
+Package \code{singleRcapture} utilizes various family type
 functions that specify variable parts of population size estimation,
 regression, diagnostics and other necessary information that depends
 on the model. These functions are used as \code{model} argument in
@@ -261,7 +261,7 @@ modifying the "base" distribution are unbiased if assumptions
 made by respective models are not violated.
 
 The \strong{zero truncated} models corresponding to "base" distributions are
-characterised by relation:
+characterized by relation:
 \mjsdeqn{\mathbb{P}(Y=y|Y>0)=\left\lbrace
 \begin{array}{cc}
 \frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)} & \text{when }y\neq 0 \cr
@@ -300,7 +300,7 @@ which corresponds to:
 (1 - \omega) \mathbb{P}_{old}(Y=y) & \text{when: } y > 1
 \end{array}\right.
 }
-before zero truncation. Models that utilise this
+before zero truncation. Models that utilize this
 approach are commonly referred to as \emph{zero truncated one inflated models}.
 Another way of accommodating one inflation in SSCR is by putting inflation
 parameter on base distribution as:
@@ -319,7 +319,7 @@ which then becomes:
 }
 after truncation.
 It was shown by Böhning in 2022 paper that these approaches are equivalent
-in terms of maximising likelihoods if we do not put formula on
+in terms of maximizing likelihoods if we do not put formula on
 \mjseqn{\omega}. They can however lead to different
 population size estimates.
 
@@ -339,14 +339,14 @@ expressed, respectively by:
 }
 
 \strong{Zero one truncated} models ignore one counts instead of accommodating
-one inflation by utilising the identity
+one inflation by utilizing the identity
 \mjsdeqn{
 \ell_{\text{ztoi}}=\boldsymbol{f}_{1}\ln{\frac{\boldsymbol{f}_{1}}{N_{obs}}}
 +(N_{obs}-\boldsymbol{f}_{1})\ln{\left(1-\frac{\boldsymbol{f}_{1}}{N_{obs}}
 \right)} + \ell_{\text{zot}}
 }
 where \mjseqn{\ell_{\text{zot}}} is the log likelihood
-of zero one truncated distribution characterised by probability mass function:
+of zero one truncated distribution characterized by probability mass function:
 \mjsdeqn{\mathbb{P}(Y=y|Y>1)=\left\lbrace
 \begin{array}{cc}
 \frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)-\mathbb{P}(Y=1)} & \text{when }y > 1 \cr

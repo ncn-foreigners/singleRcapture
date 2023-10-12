@@ -1,22 +1,23 @@
 #' @title Diagnostic plots for regression and population size estimation.
 #' @author Piotr Chlebicki
 #'
-#' @description Simple diagnostic plots for \code{singleR} class objects.
+#' @description Simple diagnostic plots for \code{singleRStaticCountData} class objects.
 #'
-#' @param x object of \code{singleR} class.
+#' @param x object of \code{singleRStaticCountData} class.
+#' @param dfpop TODO
 #' @param confIntStrata confidence interval type to use for strata plot.
 #' Currently supported values are \code{"normal"} and \code{"logNormal"}.
 #' @param plotType character parameter specifying type of plot to be made.
 #' The following list presents and briefly explains possible type of plots:
 #' \itemize{
 #'   \item \code{qq} -- The quantile-quantile plot for pearson residuals 
-#'   (or standardised pearson residuals if these are available for the model) i.e. 
+#'   (or standardized pearson residuals if these are available for the model) i.e. 
 #'   empirical quantiles from residuals are plotted against theoretical quantiles 
 #'   from standard distribution.
 #'   \item \code{marginal} -- A plot made by \code{matplot} with fitted and 
 #'   observed marginal frequencies with labels.
 #'   \item \code{fitresid} -- Plot of fitted linear predictors against 
-#'   (standardised) pearson residuals.
+#'   (standardized) pearson residuals.
 #'   \item \code{bootHist} -- Simple histogram for statistics obtained from 
 #'   bootstrapping (if one was performed and the statistics were saved).
 #'   \item \code{rootogram} -- Rootogram, for full explanation see: 
@@ -34,11 +35,11 @@
 #'   idea about the distribution of the "influence" of each unit on
 #'   population size estimate.
 #'   \item \code{scaleLoc} -- The scale - location plot i.e. square root of 
-#'   absolute values of (standardised) pearson residuals against linear predictors
+#'   absolute values of (standardized) pearson residuals against linear predictors
 #'   for each column of linear predictors.
 #'   \item \code{cooks} -- Plot of cooks distance for detecting influential observations.
 #'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
-#'   \item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
+#'   \item \code{strata} -- Plot of confidence intervals and point estimates for stratas provided in \code{...} argument
 #' }
 #' @param histKernels logical value indicating whether to add density lines
 #' to histogram.
@@ -77,29 +78,31 @@
 #'   }
 #'   \item For \code{plotType = "hatplot"} 
 #'   \itemize{
-#'   \item \code{hatvalues.singleR}
+#'   \item \code{hatvalues.singleRStaticCountData}
 #'   \item \code{plot.default} -- with \code{x, xlab, ylab, main} parameters fixed.
 #'   }
 #'   \item For \code{plotType = "strata"}
 #'   \itemize{
-#'   \item \code{stratifyPopsize.singleR}
+#'   \item \code{stratifyPopsize.singleRStaticCountData}
 #'   }
 #' }
 #' 
-#' @method plot singleR
+#' @method plot singleRStaticCountData
 #' @return No return value only the plot being made.
 #' @importFrom stats ppoints qqline qqnorm density dlnorm
 #' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows par
-#' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleR()]
+#' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleRStaticCountData()]
 #' @export
-plot.singleR <- function(x, 
+plot.singleRStaticCountData <- function(x, 
                          plotType = c("qq", "marginal", "fitresid",
                                       "bootHist", "rootogram", "dfpopContr",
                                       "dfpopBox", "scaleLoc", "cooks",
                                       "hatplot", "strata"),
                          confIntStrata = c("normal", "logNormal"),
                          histKernels = TRUE,
+                         dfpop,
                          ...) {
+  if (missing(plotType)) stop("Argument plotType must be provided needed")
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldpar))
@@ -118,10 +121,10 @@ plot.singleR <- function(x,
     type <- "pearson"
   
   if (plotType == "fitresid") {
-    res <- residuals.singleR(x, type = "response")[, 1] # fitted vs residuals
+    res <- residuals.singleRStaticCountData(x, type = "response")[, 1] # fitted vs residuals
     # plot should have just normal response residuals
   } else {
-    res <- residuals.singleR(x, type = type)[, 1]
+    res <- residuals.singleRStaticCountData(x, type = type)[, 1]
   }
   switch(plotType,
   qq = {
@@ -214,11 +217,10 @@ plot.singleR <- function(x,
            lty = 2)
   },
   dfpopContr = {
-    dfpop <- dfpopsize(x, 
-    observedPop = if (x$model$family == "zelterman") TRUE else FALSE, ...);
-    # TODO:: implement a function to get a contribution
+    if (missing(dfpop)) dfpop <- dfpopsize(x, ...);
+    # TODO:: use predict method here
     contr <- x$model$pointEst(
-      pw = x$priorWeights[x$which$est],
+      pw = x$priorWeights,
       eta = x$linearPredictors, 
       contr = TRUE
     );
@@ -230,7 +232,7 @@ plot.singleR <- function(x,
     abline(a = 0, b = 1, col = "red")
   },
   dfpopBox = {
-    dfpop <- dfpopsize(x, observedPop = FALSE,...);
+    if (missing(dfpop)) dfpop <- dfpopsize(x, ...);
     graphics::boxplot(
       dfpop, 
       ylab = "Deletion effect",
@@ -299,7 +301,7 @@ plot.singleR <- function(x,
     }
   },
   cooks = {
-    A <- cooks.distance.singleR(x);
+    A <- cooks.distance.singleRStaticCountData(x);
     plot(A,
          main = "Cook's distance",
          ylab = "Cook's distance",
@@ -308,7 +310,7 @@ plot.singleR <- function(x,
          ...)
   },
   hatplot = {
-    A <- hatvalues.singleR(x, ...);
+    A <- hatvalues.singleRStaticCountData(x, ...);
     graphics::par(mfrow = c(parNum, 1));
     for (k in 1:parNum) {
       plot(A[, k],

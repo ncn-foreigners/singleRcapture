@@ -2,15 +2,19 @@
 % Please edit documentation in R/estimatePopsize.R
 \name{estimatePopsize}
 \alias{estimatePopsize}
+\alias{estimatePopsize.default}
 \title{Single source capture-recapture models}
 \usage{
-estimatePopsize(
+estimatePopsize(formula, ...)
+
+\method{estimatePopsize}{default}(
   formula,
   data,
   model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
     "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
     "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
     "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
+  ratioReg = FALSE,
   weights = NULL,
   subset = NULL,
   naAction = NULL,
@@ -31,12 +35,18 @@ estimatePopsize(
 \item{formula}{formula for the model to be fitted, only applied to the "main"
 linear predictor. Only single response models are available.}
 
+\item{...}{additional optional arguments passed to other methods eg.
+\code{estimatePopsizeFit}.}
+
 \item{data}{data frame or object coercible to data.frame class containing
 data for the regression and population size estimation.}
 
 \item{model}{model for regression and population estimate full description in \code{\link[=singleRmodels]{singleRmodels()}}.}
 
-\item{weights}{optional object of a priori weights used in fitting the model.}
+\item{ratioReg}{Not yet implemented}
+
+\item{weights}{optional object of prior weights used in fitting the model.
+Can be used to specify number of occurrences of rows in data see \code{\link[=controlModel]{controlModel()}}}
 
 \item{subset}{a logical vector indicating which observations should be used
 in regression and population size estimation. It will be evaluated on \code{data} argument provided on call.}
@@ -73,12 +83,9 @@ dependent vector and model matrix as a part of output.}
 \item{offset}{a matrix of offset values with number of columns matching the
 number of distribution parameters providing offset values to each of
 linear predictors.}
-
-\item{...}{additional optional arguments passed to other methods eg.
-\code{estimatePopsize.fit}.}
 }
 \value{
-Returns an object of class \code{c("singleR", "glm", "lm")}
+Returns an object of class \code{c("singleRStaticCountData", "singleR", "glm", "lm")}
 with type \code{list} containing:\cr
 \itemize{
 \item{\code{y} -- Vector of dependent variable if specified at function call.}
@@ -100,7 +107,6 @@ with type \code{list} containing:\cr
 \item{\code{populationSize} -- A list containing information of population size estimate.}
 \item{\code{modelFrame} -- Model frame if specified at call.}
 \item{\code{linearPredictors} -- Vector of fitted linear predictors.}
-\item{\code{trcount} -- Number of truncated observations.}
 \item{\code{sizeObserved} -- Number of observations in original model frame.}
 \item{\code{terms} -- terms attribute of model frame used.}
 \item{\code{contrasts} -- contrasts specified in function call.}
@@ -124,10 +130,10 @@ where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator
 variables, with value 1 if kth unit was observed at least once and 0 otherwise.
 }
 \details{
-The generalized linear model is characterised by equation
+The generalized linear model is characterized by equation
 \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
 where \mjseqn{\boldsymbol{X}} is the (lm) model matrix.
-The vector generalized linear model is similarly characterised by equations
+The vector generalized linear model is similarly characterized by equations
 \mjsdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}
 where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model
 matrix constructed from appropriate formula
@@ -156,7 +162,7 @@ is constructed as a block matrix:
 this differs from convention in \code{VGAM} package (if we only consider our
 special cases of vglm models) but this is just a convention and does not
 affect the model, this convention is taken because it makes fitting with
-IRLS (explanation of algorithm in \code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}}) algorithm easier.
+IRLS (explanation of algorithm in \code{\link[=estimatePopsizeFit]{estimatePopsizeFit()}}) algorithm easier.
 (If \code{constraints} matrixes in \code{vglm} match the ones we implicitly
 use the \code{vglm} model matrix differs with respect to order of
 \code{kronecker} multiplication of \code{X} and \code{constraints}.)
@@ -167,7 +173,7 @@ As mentioned above usually the population size estimation is done via:
 \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 
 where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables,
-with value 1 if k'th unit was observed at least once and 0 otherwise.
+with value 1 if kth unit was observed at least once and 0 otherwise.
 The \mjseqn{\mathbb{P}(Y_{k}>0)} are estimated by maximum likelihood.
 
 The following assumptions are usually present when using
@@ -244,11 +250,11 @@ A more sophisticated bootstrap procedure may be described as follows:
 \dots,
 \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}
 where \mjseqn{\boldsymbol{f}_{n}} denotes observed
-marginal frequency of units being observed exactly n times, round the
-quantities above to nearest integer if necessary.
+marginal frequency of units being observed exactly n times.
 \item Draw \mjseqn{\hat{N}} units from the distribution above
 (if \mjseqn{\hat{N}} is not an integer than draw
-\mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
+\mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}),
+where \mjseqn{\lfloor\cdot\rfloor} is the floor function.
 \item Truncated units with \mjseqn{y=0}.
 \item If there are covariates draw them from original data with replacement from
 uniform distribution. For example if unit drawn to new data has
@@ -263,6 +269,11 @@ to compute \mjseqn{\hat{N}_{new}}.
 specified in \code{\link[=controlPopVar]{controlPopVar()}}.
 }
 
+To do step 1 in procedure above it is convenient to first draw binary vector of length
+\mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)} with probability
+\mjseqn{1-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}}, sum elements in that vector to
+determine the sample size and then draw sample of this size uniformly from the data.
+
 This procedure is known in literature as \code{"semiparametric"} bootstrap
 it is necessary to assume that the have a correct estimate
 \mjseqn{\hat{N}} in order to use this type of bootstrap.
@@ -271,13 +282,11 @@ Lastly there is \code{"paramteric"} bootstrap where we assume that the
 probabilistic model used to obtain \mjseqn{\hat{N}} is correct the
 bootstrap procedure may then be described as:
 \enumerate{
-\item Draw \mjseqn{\hat{N}} covariate information vectors with
-replacement from data according to probability distribution
-\mjsdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}
-where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)},
-\mjseqn{N_{k}} is the contribution of kth unit i.e.
-\mjseqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}} and
-\mjseqn{\lfloor\cdot\rfloor} is the floor function.
+\item Draw \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}
+covariate information vectors with replacement from data according to
+probability distribution that is proportional to: \mjseqn{N_{k}},
+where \mjseqn{N_{k}} is the contribution of kth unit i.e.
+\mjseqn{\dfrac{1}{\mathbb{P}(Y_{k}>0)}}.
 \item Determine \mjseqn{\boldsymbol{\eta}} matrix using estimate
 \mjseqn{\hat{\boldsymbol{\beta}}}.
 \item Generate \mjseqn{\boldsymbol{y}} (dependent variable)
@@ -304,8 +313,8 @@ Lastly confidence intervals for \mjseqn{\hat{N}} are computed
 or that variable \mjseqn{\ln(N-\hat{N})}
 follows a normal distribution.
 
-These estimates may be found using either \code{summary.singleR}
-method or \code{popSizeEst.singleR} function. They're labelled as
+These estimates may be found using either \code{summary.singleRStaticCountData}
+method or \code{popSizeEst.singleRStaticCountData} function. They're labelled as
 \code{normal} and \code{logNormal} respectively.
 }
 \examples{
@@ -432,13 +441,13 @@ models with continuous covariates 2003 Statistics & probability letters 65.2 pp 
 Norris, James L and Pollock, Kenneth H Including model uncertainty in estimating variances
 in multiple capture studies 1996 in Environmental and Ecological Statistics 3.3 pp 235-244
 
-Vector generalised linear models:
+Vector generalized linear models:
 
 Yee, T. W. (2015). Vector Generalized Linear and Additive Models:
 With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 }
 \seealso{
-\code{\link[stats:glm]{stats::glm()}} -- For more information on generalised linear models.
+\code{\link[stats:glm]{stats::glm()}} -- For more information on generalized linear models.
 
 \code{\link[stats:optim]{stats::optim()}} -- For more information on \code{optim} function used in
 \code{optim} method of fitting regression.
@@ -449,19 +458,19 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 
 \code{\link[=controlModel]{controlModel()}} -- For control parameters related to model specification.
 
-\code{\link[=estimatePopsize.fit]{estimatePopsize.fit()}} -- For more information on fitting procedure in
+\code{\link[=estimatePopsizeFit]{estimatePopsizeFit()}} -- For more information on fitting procedure in
 \code{esitmate_popsize}.
 
 \code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=redoPopEstimation]{redoPopEstimation()}} -- For extracting population size
 estimation results are applying post-hoc procedures.
 
-\code{\link[=summary.singleR]{summary.singleR()}} -- For summarising important information about the
+\code{\link[=summary.singleRStaticCountData]{summary.singleRStaticCountData()}} -- For summarizing important information about the
 model and population size estimation results.
 
 \code{\link[=marginalFreq]{marginalFreq()}} -- For information on marginal frequencies and comparison
 between observed and fitted quantities.
 
-\code{\link[VGAM:vglm]{VGAM::vglm()}} -- For more information on vector generalised linear models.
+\code{\link[VGAM:vglm]{VGAM::vglm()}} -- For more information on vector generalized linear models.
 
 \code{\link[=singleRmodels]{singleRmodels()}} -- For description of various models.
 }

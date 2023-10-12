@@ -21,8 +21,10 @@ NULL
 #' data for the regression and population size estimation.
 #' @param formula formula for the model to be fitted, only applied to the "main" 
 #' linear predictor. Only single response models are available.
+#' @param ratioReg Not yet implemented
 #' @param model model for regression and population estimate full description in [singleRmodels()]. 
-#' @param weights optional object of a priori weights used in fitting the model.
+#' @param weights optional object of prior weights used in fitting the model. 
+#' Can be used to specify number of occurrences of rows in data see [controlModel()]
 #' @param subset a logical vector indicating which observations should be used 
 #' in regression and population size estimation. It will be evaluated on \code{data} argument provided on call.
 #' @param naAction Not yet implemented.
@@ -50,12 +52,12 @@ NULL
 #' number of distribution parameters providing offset values to each of 
 #' linear predictors.
 #' @param ... additional optional arguments passed to other methods eg. 
-#' \code{estimatePopsize.fit}.
+#' \code{estimatePopsizeFit}.
 #' 
-#' @details The generalized linear model is characterised by equation
+#' @details The generalized linear model is characterized by equation
 #' \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
 #' where \mjseqn{\boldsymbol{X}} is the (lm) model matrix. 
-#' The vector generalized linear model is similarly characterised by equations
+#' The vector generalized linear model is similarly characterized by equations
 #' \mjsdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}
 #' where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model 
 #' matrix constructed from appropriate formula 
@@ -84,7 +86,7 @@ NULL
 #' this differs from convention in \code{VGAM} package (if we only consider our 
 #' special cases of vglm models) but this is just a convention and does not 
 #' affect the model, this convention is taken because it makes fitting with 
-#' IRLS (explanation of algorithm in [estimatePopsize.fit()]) algorithm easier.
+#' IRLS (explanation of algorithm in [estimatePopsizeFit()]) algorithm easier.
 #' (If \code{constraints} matrixes in \code{vglm} match the ones we implicitly
 #' use the \code{vglm} model matrix differs with respect to order of 
 #' \code{kronecker} multiplication of \code{X} and \code{constraints}.)
@@ -95,7 +97,7 @@ NULL
 #' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 #'
 #' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, 
-#' with value 1 if k'th unit was observed at least once and 0 otherwise.
+#' with value 1 if kth unit was observed at least once and 0 otherwise.
 #' The \mjseqn{\mathbb{P}(Y_{k}>0)} are estimated by maximum likelihood.
 #' 
 #' The following assumptions are usually present when using 
@@ -169,11 +171,11 @@ NULL
 #' \dots,
 #' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}
 #' where \mjseqn{\boldsymbol{f}_{n}} denotes observed 
-#' marginal frequency of units being observed exactly n times, round the 
-#' quantities above to nearest integer if necessary.
+#' marginal frequency of units being observed exactly n times.
 #' 2. Draw \mjseqn{\hat{N}} units from the distribution above 
 #' (if \mjseqn{\hat{N}} is not an integer than draw 
-#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
+#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}),
+#' where \mjseqn{\lfloor\cdot\rfloor} is the floor function.
 #' 3. Truncated units with \mjseqn{y=0}.
 #' 4. If there are covariates draw them from original data with replacement from 
 #' uniform distribution. For example if unit drawn to new data has 
@@ -187,6 +189,11 @@ NULL
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
+#' To do step 1 in procedure above it is convenient to first draw binary vector of length
+#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)} with probability 
+#' \mjseqn{1-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}}, sum elements in that vector to
+#' determine the sample size and then draw sample of this size uniformly from the data.
+#' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
 #' it is necessary to assume that the have a correct estimate 
 #' \mjseqn{\hat{N}} in order to use this type of bootstrap.
@@ -195,13 +202,11 @@ NULL
 #' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
 #' bootstrap procedure may then be described as:
 #' 
-#' 1. Draw \mjseqn{\hat{N}} covariate information vectors with 
-#' replacement from data according to probability distribution 
-#' \mjsdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}
-#' where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)},
-#' \mjseqn{N_{k}} is the contribution of kth unit i.e. 
-#' \mjseqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}} and
-#' \mjseqn{\lfloor\cdot\rfloor} is the floor function.
+#' 1. Draw \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)} 
+#' covariate information vectors with replacement from data according to 
+#' probability distribution that is proportional to: \mjseqn{N_{k}},
+#' where \mjseqn{N_{k}} is the contribution of kth unit i.e. 
+#' \mjseqn{\dfrac{1}{\mathbb{P}(Y_{k}>0)}}.
 #' 2. Determine \mjseqn{\boldsymbol{\eta}} matrix using estimate 
 #' \mjseqn{\hat{\boldsymbol{\beta}}}.
 #' 3. Generate \mjseqn{\boldsymbol{y}} (dependent variable) 
@@ -227,8 +232,8 @@ NULL
 #' or that variable \mjseqn{\ln(N-\hat{N})}
 #' follows a normal distribution. 
 #' 
-#' These estimates may be found using either \code{summary.singleR}
-#' method or \code{popSizeEst.singleR} function. They're labelled as 
+#' These estimates may be found using either \code{summary.singleRStaticCountData}
+#' method or \code{popSizeEst.singleRStaticCountData} function. They're labelled as 
 #' \code{normal} and \code{logNormal} respectively.
 #'
 #' @references General single source capture recapture literature:
@@ -281,13 +286,13 @@ NULL
 #' Norris, James L and Pollock, Kenneth H Including model uncertainty in estimating variances 
 #' in multiple capture studies 1996 in Environmental and Ecological Statistics 3.3 pp 235-244
 #' 
-#' Vector generalised linear models: 
+#' Vector generalized linear models: 
 #' 
 #' 
 #' Yee, T. W. (2015). Vector Generalized Linear and Additive Models: 
 #' With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 #'
-#' @returns Returns an object of class \code{c("singleR", "glm", "lm")}
+#' @returns Returns an object of class \code{c("singleRStaticCountData", "singleR", "glm", "lm")}
 #' with type \code{list} containing:\cr
 #' \itemize{
 #'  \item{\code{y} -- Vector of dependent variable if specified at function call.}
@@ -309,7 +314,6 @@ NULL
 #'  \item{\code{populationSize} -- A list containing information of population size estimate.}
 #'  \item{\code{modelFrame} -- Model frame if specified at call.}
 #'  \item{\code{linearPredictors} -- Vector of fitted linear predictors.}
-#'  \item{\code{trcount} -- Number of truncated observations.}
 #'  \item{\code{sizeObserved} -- Number of observations in original model frame.}
 #'  \item{\code{terms} -- terms attribute of model frame used.}
 #'  \item{\code{contrasts} -- contrasts specified in function call.}
@@ -319,7 +323,7 @@ NULL
 #' }
 #' 
 #' @seealso 
-#' [stats::glm()] -- For more information on generalised linear models.
+#' [stats::glm()] -- For more information on generalized linear models.
 #' 
 #' [stats::optim()] -- For more information on \code{optim} function used in 
 #' \code{optim} method of fitting regression.
@@ -330,19 +334,19 @@ NULL
 #' 
 #' [controlModel()] -- For control parameters related to model specification.
 #' 
-#' [estimatePopsize.fit()] -- For more information on fitting procedure in
+#' [estimatePopsizeFit()] -- For more information on fitting procedure in
 #' \code{esitmate_popsize}.
 #' 
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
 #' estimation results are applying post-hoc procedures.
 #' 
-#' [summary.singleR()] -- For summarising important information about the
+#' [summary.singleRStaticCountData()] -- For summarizing important information about the
 #' model and population size estimation results.
 #' 
 #' [marginalFreq()] -- For information on marginal frequencies and comparison
 #' between observed and fitted quantities.
 #' 
-#' [VGAM::vglm()] -- For more information on vector generalised linear models.
+#' [VGAM::vglm()] -- For more information on vector generalized linear models.
 #' 
 #' [singleRmodels()] -- For description of various models.
 
@@ -419,36 +423,43 @@ NULL
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 #' summary(Model)
 #' }
-#' @importFrom stats model.frame model.matrix model.response
 #' @export
-estimatePopsize <- function(formula,
-                            data,
-                            model = c(
-                              "ztpoisson", "ztnegbin", "ztgeom",
-                              "zotpoisson", "ztoipoisson", "oiztpoisson",
-                              "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
-                              "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
-                              "Hurdleztnegbin", "zotgeom", "ztoigeom",
-                              "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
-                              "zelterman", "chao"
-                            ),
-                            weights  = NULL,
-                            subset   = NULL,
-                            naAction = NULL,
-                            method   = c("optim", 
-                                         "IRLS"),
-                            popVar   = c("analytic",
-                                         "bootstrap",
-                                         "noEst"),
-                            controlMethod = NULL,
-                            controlModel  = NULL,
-                            controlPopVar = NULL,
-                            modelFrame    = TRUE,
-                            x             = FALSE,
-                            y             = TRUE,
-                            contrasts     = NULL,
-                            offset,
-                             ...) {
+estimatePopsize <- function(formula, 
+                            ...) {
+  UseMethod("estimatePopsize")
+}
+#' @rdname estimatePopsize
+#' @importFrom stats model.frame model.matrix model.response lm predict
+#' @export
+estimatePopsize.default <- function(formula,
+                                    data,
+                                    model = c(
+                                      "ztpoisson", "ztnegbin", "ztgeom",
+                                      "zotpoisson", "ztoipoisson", "oiztpoisson",
+                                      "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
+                                      "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
+                                      "Hurdleztnegbin", "zotgeom", "ztoigeom",
+                                      "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
+                                      "zelterman", "chao"
+                                    ),
+                                    ratioReg = FALSE,
+                                    weights  = NULL,
+                                    subset   = NULL,
+                                    naAction = NULL,
+                                    method   = c("optim", 
+                                                 "IRLS"),
+                                    popVar   = c("analytic",
+                                                 "bootstrap",
+                                                 "noEst"),
+                                    controlMethod = NULL,
+                                    controlModel  = NULL,
+                                    controlPopVar = NULL,
+                                    modelFrame    = TRUE,
+                                    x             = FALSE,
+                                    y             = TRUE,
+                                    contrasts     = NULL,
+                                    offset,
+                                    ...) {
   if (missing(method)) method <- "IRLS"
   if (missing(popVar)) popVar <- "analytic"
   
@@ -473,289 +484,371 @@ estimatePopsize <- function(formula,
   
   returnElements <- list(y, x, modelFrame)
   
-  # adding control parameters that may possibly be missing
-  # since passing simple lists as control arguments is allowed
-  m1 <- controlPopVar
-  m1 <- m1[sapply(m1, is.null) == FALSE]
-  m2 <- controlPopVar(
-    fittingMethod = match.arg(method), 
-    bootstrapFitcontrol = controlMethod(
-      epsilon = 1e-3, 
-      maxiter = 20, 
-      optimMethod = "Nelder-Mead", 
-      silent = TRUE
+  if (!ratioReg) {
+    # adding control parameters that may possibly be missing
+    # since passing simple lists as control arguments is allowed
+    m1 <- controlPopVar
+    m1 <- m1[sapply(m1, is.null) == FALSE]
+    m2 <- controlPopVar(
+      fittingMethod = match.arg(method), 
+      bootstrapFitcontrol = controlMethod(
+        epsilon = 1e-3, 
+        maxiter = 20, 
+        optimMethod = "Nelder-Mead", 
+        silent = TRUE
+      )
     )
-  )
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  controlPopVar <- append(m1, m2)
-  
-  m1 <- controlMethod
-  m2 <- controlMethod(
-    optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
-                      grepl(x = family$family, pattern = "^ztoi")) 
-      "Nelder-Mead" else "L-BFGS-B",
-    maxiter = if (isTRUE(method == "IRLS")) 100
-              else 1000
-  )
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  controlMethod <- append(m1, m2)
-  
-  m1 <- controlModel
-  m2 <- controlModel()
-  m2 <- m2[names(m2) %in% names(m1) == FALSE]
-  controlModel <- append(m1, m2)
-  
-  formulas <- list(formula)
-  if ("alpha" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$alphaFormula)
-  }
-  if ("omega" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$omegaFormula)
-  }
-  if ("pi" %in% family$etaNames) {
-    formulas <- append(x = formulas, controlModel$piFormula)
-  }
-  
-  combinedFromula <- singleRinternalMergeFormulas(formulas)
-  
-  modelFrame <- stats::model.frame(combinedFromula, 
-                                   data,  
-                                   ...)
-  variables  <- stats::model.matrix(combinedFromula, 
-                                    modelFrame, 
-                                    contrasts = contrasts, 
-                                    ...)
-  
-  terms     <- attr(modelFrame, "terms")
-  contrasts <- attr(variables, "contrasts")
-  observed  <- model.response(modelFrame)
-  
-  # It is both necessary and sufficient to check X_lm matrix to know whether
-  # X_vlm matrix is full rank
-  ## TODO:: Either start using Matrix package everywhere or use QR
-  ## in fitting
-  
-  if (NCOL(observed) > 1) 
-    stop("Single source capture-recapture models support only single dependent variable.")
-  
-  sizeObserved <- nrow(data) + controlPopVar$trcount
-
-  if (!is.null(weights)) {
-    priorWeights <- as.numeric(weights)
-  } else {
-    priorWeights <- rep(1, nrow(modelFrame))
-  }
-  weights <- 1
-  
-  if (!all(observed > 0)) {
-    stop("Error in function estimatePopsize, data contains zero-counts.")
-  }
-  ### TODO:: anihilate
-  wch <- singleRcaptureinternalDataCleanupSpecialCases(family = family, 
-                                                       observed = observed, 
-                                                       popVar = popVar)
-
-  controlPopVar$trcount <- controlPopVar$trcount + wch$trr
-  
-  Xvlm <- singleRinternalGetXvlmMatrix(
-    # this preserves terms attribute
-    X = modelFrame[wch$reg, , drop = FALSE],
-    formulas = formulas, 
-    parNames = family$etaNames
-  )
-  
-  if (missing(offset)) {
-    offset <- matrix(
-      0, nrow = NROW(modelFrame), 
-      ncol = length(family$etaNames)
+    m2 <- m2[names(m2) %in% names(m1) == FALSE]
+    controlPopVar <- append(m1, m2)
+    
+    m1 <- controlMethod
+    m2 <- controlMethod(
+      optimMethod = if (grepl(x = family$family, pattern = "negbin") || 
+                        grepl(x = family$family, pattern = "^ztoi")) 
+        "Nelder-Mead" else "BFGS",
+      maxiter = if (isTRUE(method == "IRLS")) 100
+                else 1000
     )
-  } else if (!is.matrix(offset)) {
-    offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
-  }
-  colnames(offset) <- family$etaNames
+    m2 <- m2[names(m2) %in% names(m1) == FALSE]
+    controlMethod <- append(m1, m2)
+    
+    m1 <- controlModel
+    m2 <- controlModel()
+    m2 <- m2[names(m2) %in% names(m1) == FALSE]
+    controlModel <- append(m1, m2)
+    
+    #this may be changed for formula to be a list later
+    formulas <- list(formula)
+    
+    if ("alpha" %in% family$etaNames) {
+      formulas <- append(x = formulas, controlModel$alphaFormula)
+    }
+    if ("omega" %in% family$etaNames) {
+      formulas <- append(x = formulas, controlModel$omegaFormula)
+    }
+    if ("pi" %in% family$etaNames) {
+      formulas <- append(x = formulas, controlModel$piFormula)
+    }
   
-  if (!is.null(controlMethod$coefStart) || !is.null(controlMethod$etaStart)) {
-    if (method == "IRLS") {
-      etaStart  <- controlMethod$etaStart
-      coefStart <- controlMethod$coefStart
-      if (is.null(etaStart)) {
-        etaStart <- matrix(Xvlm %*% coefStart, ncol = length(family$etaNames))
-      }
-    } else if (method == "optim") {
-      etaStart  <- controlMethod$etaStart
-      coefStart <- controlMethod$coefStart
-      if (is.null(coefStart)) {
-        eval(family$getStart)
+    combinedFromula <- singleRinternalMergeFormulas(formulas)
+    
+    modelFrame <- stats::model.frame(combinedFromula, 
+                                     data,  
+                                     ...)
+    variables  <- stats::model.matrix(combinedFromula, 
+                                      modelFrame, 
+                                      contrasts = contrasts, 
+                                      ...)
+    
+    terms     <- attr(modelFrame, "terms")
+    contrasts <- attr(variables, "contrasts")
+    observed  <- model.response(modelFrame)
+    
+    # It is both necessary and sufficient to check X_lm matrix to know whether
+    # X_vlm matrix is full rank
+    ## TODO:: Either start using Matrix package everywhere or use QR
+    ## in fitting
+    
+    if (NCOL(observed) > 1) 
+      stop("Single source capture-recapture models support only single dependent variable.")
+  
+    if (!is.null(weights)) {
+      priorWeights <- as.numeric(weights)
+    } else {
+      priorWeights <- rep(1, nrow(modelFrame))
+    }
+    weights <- 1
+    
+    if (controlModel$weightsAsCounts) {
+      sizeObserved <- sum(priorWeights)
+    } else {
+      sizeObserved <- nrow(data)
+    }
+    
+    if (!all(observed > 0)) {
+      stop("Error in function estimatePopsize, data contains zero-counts.")
+    }
+    # wch was here and is now deleted
+    Xvlm <- singleRinternalGetXvlmMatrix(
+      # this preserves terms attribute
+      X = modelFrame,
+      formulas = formulas, 
+      parNames = family$etaNames
+    )
+    
+    if (missing(offset)) {
+      offset <- matrix(0, nrow = NROW(modelFrame), ncol = length(family$etaNames))
+    } else if (!is.matrix(offset)) {
+      offset <- matrix(offset, nrow = NROW(modelFrame), ncol = length(family$etaNames))
+    }
+    
+    colnames(offset) <- family$etaNames
+    
+    if (!is.null(controlMethod$coefStart) || !is.null(controlMethod$etaStart)) {
+      if (method == "IRLS") {
+        etaStart  <- controlMethod$etaStart
+        coefStart <- controlMethod$coefStart
+        if (is.null(etaStart)) {
+          etaStart <- matrix(Xvlm %*% coefStart, ncol = length(family$etaNames))
+        }
+      } else if (method == "optim") {
+        etaStart  <- controlMethod$etaStart
+        coefStart <- controlMethod$coefStart
+        if (is.null(coefStart)) {
+          eval(family$getStart)
+        }
       }
     }
-  }
-  else {
-    eval(family$getStart)
-  }
-  
-  
-  FITT <- estimatePopsize.fit(
-    y            = observed[wch$reg],
-    X            = Xvlm,
-    family       = family,
-    control      = controlMethod,
-    method       = method,
-    priorWeights = priorWeights[wch$reg],
-    coefStart    = coefStart,
-    etaStart     = etaStart,
-    offset       = offset[wch$reg, , drop = FALSE]
-  )
-  
-  coefficients        <- FITT$beta
-  names(coefficients) <- colnames(Xvlm)
-  iter                <- FITT$iter
-  dfReduced           <- nrow(Xvlm) - length(coefficients)
-  IRLSlog             <- FITT$logg
-  
-  
-  logLike <- family$makeMinusLogLike(
-    y      = observed[wch$reg], 
-    X      = Xvlm,
-    weight = priorWeights[wch$reg],
-    offset = offset[wch$reg, , drop = FALSE]
-  )
-  
-  grad <- family$makeMinusLogLike(
-    y      = observed[wch$reg], 
-    X      = Xvlm, 
-    weight = priorWeights[wch$reg], 
-    deriv  = 1,
-    offset = offset[wch$reg, , drop = FALSE]
-  )
-  
-  hessian <- family$makeMinusLogLike(
-    y      = observed[wch$reg], 
-    X      = Xvlm,
-    weight = priorWeights[wch$reg], 
-    deriv  = 2,
-    offset = offset[wch$reg, , drop = FALSE]
-  )
-
-  eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
-                          ncol = length(family$etaNames)) + offset[wch$reg, , drop = FALSE]
-  colnames(eta) <- family$etaNames
-  rownames(eta) <- rownames(variables[wch$reg])
-  weights       <- FITT$weights
-  
-  if (family$family == "zelterman") {
-    eta <- matrix(as.matrix(variables) %*% coefficients, ncol = 1) + offset
-    colnames(eta) <- family$etaNames
-    rownames(eta) <- rownames(variables)
-  }
-
-  fitt <- data.frame(
-    family$mu.eta(eta = eta),
-    family$mu.eta(eta = eta, type = "nontrunc")
-  )
-  colnames(fitt) <- c("truncated", "nontruncated")
-  
-  # (Real square) Matrix is negative define iff all eigen values have 
-  # negative sign. This is very fast. 
-  # We only use eigen values so only.values is set to true.
-  eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
-  if (!all(sign(eig$values) == -1)) {
-    warningMessage <- paste0(
-      "The (analytically computed) hessian of the score function ",
-      "is not negative define.\nNOTE: Second derivative test failing does not 
-      necessarily mean that the maximum of score function that was found 
-      numericaly is invalid since R^k is not a bounded space.\n",
-      "Additionally in one inflated and hurdle models second ",
-      "derivative test often fails even on valid arguments."
-    )
-    if (!isTRUE(controlMethod$silent)) warning(warningMessage)
-    #cat("The eigen values were: ", eig$values) 
-    # Add some option that will give much more 
-    # information everywhere including here.
-    if (controlPopVar$covType == "observedInform") {
-      if (!isTRUE(controlMethod$silent)) 
-        warning(paste0(
-          "Switching from observed information matrix to Fisher information",
-          " matrix because hessian of log-likelihood is not negative define."
-        ))
-      controlPopVar$covType <- "Fisher"
+    else {
+      eval(family$getStart)
     }
-  }
-  
-  nullDeviance <- as.numeric(NULL)
-  LOG          <- -logLike(coefficients)
-  resRes       <- priorWeights * (observed[wch$reg] - fitt)
-  
-  if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
-
-  deviance <- sum(family$devResids(
-    y   = observed[wch$reg], 
-    wt  = priorWeights[wch$reg],
-    eta = if (family$family == "zelterman") (eta + offset)[wch$reg, , drop = FALSE]
-          else eta + offset[wch$reg, , drop = FALSE]
-  ) ^ 2)
-  
-  if (popVar == "noEst") {
-    Pop <- NULL #TODO:: make sure methods are prepared for this
-  } else {
-    POP <- singleRcaptureinternalpopulationEstimate(
-      y = observed[wch$est],
-      formulas = formulas,
-      X = variables[wch$est, , drop = FALSE],
-      grad = grad,
-      hessian = hessian,
-      popVar = popVar,
-      weights = priorWeights[wch$est],
-      eta = eta,
-      family = family,
-      beta = coefficients,
-      control = controlPopVar,
-      Xvlm = if (family$family %in% c("zelterman", "chao") && popVar == "bootstrap") 
-               variables 
-             else 
-               Xvlm,
-      W = if (method == "IRLS")
-            weights 
-          else 
-            family$Wfun(prior = priorWeights, eta = eta),
-      sizeObserved = sizeObserved,
-      modelFrame = modelFrame,
-      cov = NULL,
+    
+    
+    FITT <- estimatePopsizeFit(
+      y            = observed,
+      X            = Xvlm,
+      family       = family,
+      control      = controlMethod,
+      method       = method,
+      priorWeights = priorWeights,
+      coefStart    = coefStart,
+      etaStart     = etaStart,
+      offset       = offset
+    )
+    
+    coefficients        <- FITT$beta
+    names(coefficients) <- colnames(Xvlm)
+    iter                <- FITT$iter
+    dfReduced           <- sizeObserved * length(family$etaNames) - length(coefficients)
+    IRLSlog             <- FITT$logg
+    
+    
+    logLike <- family$makeMinusLogLike(
+      y      = observed, 
+      X      = Xvlm,
+      weight = priorWeights,
       offset = offset
     )
-  }
+    
+    grad <- family$makeMinusLogLike(
+      y      = observed, 
+      X      = Xvlm, 
+      weight = priorWeights, 
+      deriv  = 1,
+      offset = offset
+    )
+    
+    hessian <- family$makeMinusLogLike(
+      y      = observed,
+      X      = Xvlm,
+      weight = priorWeights,
+      deriv  = 2,
+      offset = offset
+    )
   
-  structure(
-    list(
-      y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
-      X                = if(isTRUE(returnElements[[2]])) variables else NULL,
-      modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
-      formula          = formulas,
-      call             = match.call(),
-      coefficients     = coefficients,
-      control          = list(controlModel = controlModel,
-                              controlMethod = controlMethod),
-      nullDeviance     = nullDeviance,
-      model            = family,
-      deviance         = deviance,
-      priorWeights     = priorWeights,
-      weights          = weights,
-      residuals        = resRes,
-      logL             = LOG,
-      iter             = iter,
-      dfResidual       = dfReduced,
-      dfNull           = length(observed) - 1,
-      fittValues       = fitt,
-      populationSize   = POP,
-      linearPredictors = eta,
-      offset           = offset,
-      trcount          = controlPopVar$trcount,
-      sizeObserved     = sizeObserved,
-      terms            = terms,
-      contrasts        = contrasts,
-      naAction         = naAction,
-      which            = wch,
-      fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
-    ),
-    class = c("singleR", "glm", "lm")
-  )
+    eta           <- matrix(as.matrix(Xvlm) %*% coefficients, 
+                            ncol = length(family$etaNames)) + offset
+    
+    colnames(eta) <- family$etaNames
+    rownames(eta) <- rownames(variables)
+    weights       <- FITT$weights
+    
+    if (family$family == "zelterman") {
+      eta <- matrix(as.matrix(variables) %*% coefficients, ncol = 1) + offset
+      colnames(eta) <- family$etaNames
+      rownames(eta) <- rownames(variables)
+    }
+  
+    fitt <- data.frame(
+      family$mu.eta(eta = eta),
+      family$mu.eta(eta = eta, type = "nontrunc")
+    )
+    colnames(fitt) <- c("truncated", "nontruncated")
+    
+    # (Real square) Matrix is negative define iff all eigen values have 
+    # negative sign. This is very fast. 
+    # We only use eigen values so only.values is set to true.
+    eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
+    if (!all(sign(eig$values) == -1)) {
+      warningMessage <- paste0(
+        "The (analytically computed) hessian of the score function ",
+        "is not negative define.\nNOTE: Second derivative test failing does not 
+        necessarily mean that the maximum of score function that was found 
+        numericaly is invalid since R^k is not a bounded space.\n",
+        "Additionally in one inflated and hurdle models second ",
+        "derivative test often fails even on valid arguments."
+      )
+      if (!isTRUE(controlMethod$silent)) warning(warningMessage)
+      #cat("The eigen values were: ", eig$values) 
+      # Add some option that will give much more 
+      # information everywhere including here.
+      if (controlPopVar$covType == "observedInform") {
+        if (!isTRUE(controlMethod$silent)) 
+          warning(paste0(
+            "Switching from observed information matrix to Fisher information",
+            " matrix because hessian of log-likelihood is not negative define."
+          ))
+        controlPopVar$covType <- "Fisher"
+      }
+    }
+    
+    nullDeviance <- as.numeric(NULL)
+    LOG          <- -logLike(coefficients)
+    resRes       <- priorWeights * (observed - fitt)
+    
+    if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
+  
+    deviance <- sum(family$devResids(y   = observed, 
+                                     wt  = priorWeights,
+                                     eta = eta + offset) ^ 2)
+    
+    if (popVar == "noEst") {
+      Pop <- NULL #TODO:: make sure methods are prepared for this
+    } else {
+      POP <- singleRcaptureinternalpopulationEstimate(
+        y = observed,
+        formulas = formulas,
+        X = variables,
+        grad = grad,
+        hessian = hessian,
+        popVar = popVar,
+        weights = priorWeights,
+        eta = eta,
+        family = family,
+        beta = coefficients,
+        control = controlPopVar,
+        Xvlm = Xvlm,
+        W = if (method == "IRLS")
+              weights 
+            else 
+              family$Wfun(prior = priorWeights, eta = eta),
+        sizeObserved = sizeObserved,
+        modelFrame = modelFrame,
+        cov = NULL,
+        offset = offset,
+        weightsFlag = controlModel$weightsAsCounts
+      )
+    }
+    
+    structure(
+      list(
+        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+        X                = if(isTRUE(returnElements[[2]])) variables else NULL,
+        modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+        formula          = formulas,
+        call             = match.call(),
+        coefficients     = coefficients,
+        control          = list(controlModel  = controlModel,
+                                controlMethod = controlMethod),
+        nullDeviance     = nullDeviance,
+        model            = family,
+        deviance         = deviance,
+        priorWeights     = priorWeights,
+        weights          = weights,
+        residuals        = resRes,
+        logL             = LOG,
+        iter             = iter,
+        dfResidual       = dfReduced,
+        dfNull           = length(observed) - 1,
+        fittValues       = fitt,
+        populationSize   = POP,
+        linearPredictors = eta,
+        offset           = offset,
+        sizeObserved     = sizeObserved,
+        terms            = terms,
+        contrasts        = contrasts,
+        naAction         = naAction,
+        fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
+      ),
+      class = c("singleRStaticCountData", "singleR", "glm", "lm")
+    )
+  } else {
+    stop("Ratio regression is not yet implemented")
+    ff <- formula
+    # TODO make this inherit from family
+    a <- function(x) {x+1}
+    if (length(ff) == 3) {ff[[3]] <- 1}
+    modelFrame <- stats::model.frame(ff, data, ...)
+    
+    observed <- modelFrame |>
+      model.response() |>
+      as.vector() # dropping names, won't be needed
+    
+    delete <- modelFrame |>
+      attr("names")
+    
+    ff <- log(r) ~ 1
+    ff[[3]] <- formula[[3]]
+    
+    counts <- table(observed)
+    
+    if (TRUE) {
+      r <- sapply(1:(max(observed)-1), function(x) {
+        family$ratioFunc(x) * counts[as.character(x+1)] / counts[as.character(x)]
+      }) |> as.vector()
+      
+      if (!is.null(weights)) {
+        priorWeights <- as.numeric(weights)
+      } else {
+        priorWeights <- rep(1, nrow(modelFrame))
+      }
+      
+      if (TRUE) {
+        weights <- (1/counts[1:(max(observed)-1)] + 1/counts[2:max(observed)]) ^ -1
+        #weights <- priorWeights * weights
+      } else {
+        # weighting outgh to be optional
+      }
+      
+      # maybe include data here
+      linearModel <- lm(ff, data = data.frame(
+                        r = r, x = 1:(max(observed) - 1)
+                        ), weights = weights, ...)
+      
+      fitRatio <- predict(linearModel, data.frame(x = 0:(max(observed)-1)))
+      fitRatio <- exp(fitRatio)
+      
+      # first est for N
+      N <- sum(counts) / (1 - 1 / sum(c(1, cumprod(fitRatio))))
+      # second est for N
+      N <- c(N, sum(counts) + family$ratioFunc(0)*counts["1"] / fitRatio[1])
+      names(N) <- c("ht", "reg")
+      f0 <- N - sum(counts)
+      
+      # TODO:: idk if this applies to HT estimate
+      variation <- model.matrix(ff, model.frame(ff, data.frame(x = 0, r = 0)))
+      variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
+      ## TODO -- this is an approximation
+      # we're assuming var(counts["1"]) ~~ counts["1"]
+      # this can be made better
+      variation <- variation + counts["1"] * (a(0) ^ 2) * 
+        exp(-predict(linearModel, data.frame(x = 0))) ^ 2
+      
+      sd <- sqrt(variation)
+      sc <- qnorm(p = 1 - .05 / 2)
+      
+      
+      confidenceInterval <- 
+        data.frame(lowerBound = pmax(N - sc * sd, sum(counts)), 
+                   upperBound = N + sc * sd)
+      print(N)
+      print(confidenceInterval)
+      
+    } else {
+      ### TODO
+      # put observed likelihood method here
+    }
+    
+    structure(
+      list(
+        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+        X                = if(isTRUE(returnElements[[2]])) variables else NULL,
+        modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+        formula          = formula,
+        call             = match.call(),
+        coefficients     = coefficients
+      ),
+      class = c("singleRRatioReg", "singleR", "glm", "lm")
+    )
+  }
 }

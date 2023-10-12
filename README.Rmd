@@ -30,7 +30,7 @@ Single source models are distinct from other capture-recapture models because
 we cannot estimate the population size based on how many units were observed
 in two or three sources which is the standard approach.
 
-Instead in single source models we utilise count data regression models on positive
+Instead in single source models we utilize count data regression models on positive
 distributions (i.e. on counts greater than 0) where the dependent variable
 is the number of times a particular unit was observed in source data.
 
@@ -42,25 +42,31 @@ Currently we've implemented most of the frequentist approaches used in literatur
 - Zero truncated Poisson, geometric and negative binomial regression.
 - Zero truncated one inflated and one inflated zero truncated Poisson and geometric models. (Negative binomial is currently in development.)
 - Zero one truncated Poisson geometric and negative binomial models.
-- Generalised Chao and Zelterman's models based on logistic regression.
+- Generalized Chao and Zelterman's models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and non parametric.
-- And a wide range of additional functionalities associated with (vector) generalised linear models relevant to the topic.
+- And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
 
 ## Installation
 
-You can install the development version of singleRcapture from [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
+You can install the current version of singleRcapture from main branch [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
 
 ```{r, eval=FALSE}
 # install.packages("devtools")
 remotes::install_github("ncn-foreigners/singleRcapture")
 ```
 
-or install the current stable version from [CRAN](https://cran.r-project.org/package=singleRcapture) with:
+or install the stable version from [CRAN](https://cran.r-project.org/package=singleRcapture) with:
 
 ```{r, eval=FALSE}
 install.packages(singleRcapture)
 ```
 
+or development version from [development branch on GitHub](https://github.com/ncn-foreigners/singleRcapture/tree/development) with:
+
+```{r, eval=FALSE}
+# install.packages("devtools")
+remotes::install_github("github.com/ncn-foreigners/singleRcapture/tree/development")
+```
 
 ### Examples
 
@@ -88,7 +94,7 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 ```
 
 We implemented a method for `plot` function to visualise the model fit and other
-usefull diagnostic information. One of which is `rootogram`, a type of plot
+useful diagnostic information. One of which is `rootogram`, a type of plot
 that compares fitted and observed marginal frequencies:
 
 ```{r plot, fig.show="hold", out.width="75%"}
@@ -107,7 +113,7 @@ The possible values for `plotType` argument are:
 - `scaleLoc` - scale-location plot.
 - `cooks` - plot of `cooks.values` for distributions for which it is defined.
 - `hatplot` - plot of `hatvalues`.
-- `strata` - plot of confidence intervals for selected su populations.
+- `strata` - plot of confidence intervals for selected such populations.
 
 a user can also pass arguments to specify additional information such as plot 
 title, subtitle etc. similar to calling `plot` on some data. For more info
@@ -158,8 +164,29 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 stratifyPopsize(model, stratas = ~ gender / age)
 ```
 
-`singleRcapture` package also includes option to use common non standard 
-argument such as significance levels different from usual 5%:
+The package was designed with convenience in mind, for example it is possible
+to specify that weights provided on call are to be interpreted as number of 
+occurrences of units in each row:
+
+```{r}
+df <- netherlandsimmigrant[, c(1:3,5)]
+df$ww <- 0
+### this is dplyr::count without dependencies
+df <- aggregate(ww ~ ., df, FUN = length)
+summary(estimatePopsize(
+  formula = capture ~ nation + age + gender, 
+  data = df, 
+  model = ztpoisson, 
+  weights = df$ww,
+  controlModel = controlModel(weightsAsCounts = TRUE)
+))
+```
+
+Methods such as regression diagnostics will be adjusted (values of weights will
+be reduced instead of rows being removed etc.)
+
+We also included option to use common non standardargument such as 
+significance levels different from usual 5%:
 
 ```{r boot}
 set.seed(123)
@@ -214,11 +241,10 @@ to the user):
 plot(modelInflated2, 
      plotType = "bootHist", 
      labels = TRUE, 
-     ylim = c(0, 200),
-     histKernels = FALSE)
+     ylim = c(0, 200))
 ```
 
-and information criteria support the favour model:
+and information criteria support the second model:
 
 ```{r,echo=FALSE}
 cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),

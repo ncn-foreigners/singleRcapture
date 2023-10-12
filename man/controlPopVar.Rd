@@ -6,7 +6,6 @@
 \usage{
 controlPopVar(
   alpha = 0.05,
-  trcount = 0,
   bootType = c("parametric", "semiparametric", "nonparametric"),
   B = 500,
   confType = c("percentilic", "normal", "basic"),
@@ -22,9 +21,6 @@ controlPopVar(
 }
 \arguments{
 \item{alpha}{significance level, 0.05 used by default.}
-
-\item{trcount}{truncated count - a number to be added to point estimator
-and both sides of confidence intervals.}
 
 \item{bootType}{bootstrap type. Default is \code{"parametric"},
 other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.}

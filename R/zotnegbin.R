@@ -106,18 +106,20 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     res
   }
   
-  Wfun <- function(prior, eta, ...) {
-    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    Ey <- mu.eta(eta = eta)
-    prob <- 1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
-    lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)
+  Wfun <- function(prior, eta, y, ...) {
+    iddx <- y > 1
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)[iddx]
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)[iddx]
+    Ey <- mu.eta(eta = eta)[iddx]
     
-    Etrig <- compExpect(eta)
+    prob <- (1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
+    lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha))[iddx]
+    
+    Etrig <- compExpect(eta[iddx, , drop = FALSE])
     
     # 2nd log(alpha) derivative
-    
-    G00 <- Etrig + (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+    G00 <- iddx
+    G00[iddx] <- Etrig + (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
     (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 / 
     (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) ^ 2 -
@@ -134,10 +136,11 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
     (lambda ^ 2 * (-1 / alpha - Ey)) / (lambda * alpha + 1) ^ 2 - Ey / alpha ^ 2
     
-    G00 <- G00 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
+    G00[iddx] <- G00[iddx] * alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx] ^ 2
     
     # mixed derivative
-    G01 <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
+    G01 <- iddx
+    G01[iddx] <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
     (2 * alpha ^ 2 + 2 * alpha) * lambda ^ 2 + (alpha + 1) * lambda) * 
     log(alpha * lambda + 1) + (alpha * lambda + 1) ^ (1 / alpha) * 
     ((alpha ^ 4 - alpha ^ 3 - alpha ^ 2) * lambda ^ 3 + 
@@ -150,11 +153,12 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     ((2 * alpha ^ 3 + 2 * alpha ^ 2) * Ey - 2 * alpha ^ 2) * lambda + alpha ^ 2 * Ey) /
     (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
     
-    G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
-                  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+    G01[iddx] <- G01[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] *
+      alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx]
     
     # second beta derivative
-    G11 <- ((alpha * lambda + 1) ^ (2 / alpha) * 
+    G11 <- iddx
+    G11[iddx] <- ((alpha * lambda + 1) ^ (2 / alpha) * 
     (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * Ey) * lambda ^ 3 +
     (alpha - 5 * alpha ^ 2 * Ey) * lambda ^ 2 - 4 * alpha * Ey * lambda - Ey) + 
     (alpha * lambda + 1) ^ (1 / alpha) * ((alpha - alpha ^ 3) * lambda ^ 4 +
@@ -167,7 +171,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * 
     ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
     
-    G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
+    G11[iddx] <- G11[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] ^ 2
     
     matrix(
       -c(G11 * prior, # lambda predictor derivative without X matrix,
@@ -181,26 +185,30 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     )
   }
   
-  funcZ <- function(eta, weight, y, ...) {
-    lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+  funcZ <- function(eta, weight, y, prior, ...) {
+    iddx <- y > 1
+    lambda <- lambdaLink(eta[, 1], inverse = TRUE)[iddx]
+    alpha  <-  alphaLink(eta[, 2], inverse = TRUE)[iddx]
+    weight[iddx, ] <- weight[iddx, ] / prior[iddx]
     
-    G0 <- y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2 +
+    G0 <- iddx
+    G0[iddx] <- y[iddx] / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y[iddx])) / alpha ^ 2 +
     ((log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     (lambda * alpha + 1) ^ (1 / alpha) + lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
     (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
     (1 - 1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1)) +
-    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1)
+    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y[iddx])) / (lambda * alpha + 1)
     
-    G0 <- G0 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+    G0[iddx] <- G0[iddx] * alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx]
     
-    G1 <- y / lambda - ((1 / alpha + 1) * alpha * lambda * 
+    G1 <- iddx
+    G1[iddx] <- y[iddx] / lambda - ((1 / alpha + 1) * alpha * lambda * 
     (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
     (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
     lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) -
-    (alpha * (y + 1 / alpha)) / (alpha * lambda + 1)
+    (alpha * (y[iddx] + 1 / alpha)) / (alpha * lambda + 1)
     
-    G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+    G1[iddx] <- G1[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx]
     
     weight <- lapply(X = 1:nrow(weight), FUN = function (x) {
       matrix(as.numeric(weight[x, ]), ncol = 2)
@@ -210,8 +218,12 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
       #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) # more stable
-      xx %*% uMatrix[x, ]
+      if (iddx[x]) {
+        xx <- solve(weight[[x]]) # more stable
+        xx %*% uMatrix[x, ]
+      } else {
+        uMatrix[x, ]
+      }
     })
     pseudoResid <- t(pseudoResid)
     dimnames(pseudoResid) <- dimnames(eta)
@@ -232,6 +244,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       offset <- cbind(rep(0, NROW(X) / 2), rep(0, NROW(X) / 2))
     }
     y <- as.numeric(y)
+    iddx <- y > 1
     X <- as.matrix(X)
 
     if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
@@ -243,7 +256,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
 
-        -sum(weight * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
+        -sum(weight * iddx * (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
         lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) +
         y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
         lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))
@@ -251,23 +264,25 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       },
       function(beta) {
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
-        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)[iddx]
+        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)[iddx]
         
-        G0 <- y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2  +
-        log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1) -
+        G0 <- iddx
+        G0[iddx] <- y[iddx] / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y[iddx])) / alpha ^ 2  +
+        log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y[iddx])) / (lambda * alpha + 1) -
         (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
         (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
         (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
         (-(lambda * alpha + 1) ^ (-1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1)
         
-        G0 <- G0 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight
+        G0[iddx] <- G0[iddx] * alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx] * weight[iddx]
         
-        G1 <- y / lambda  + (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1) -
+        G1 <- iddx
+        G1[iddx] <- y[iddx] / lambda  + (alpha * (-y[iddx] - 1 / alpha)) / (alpha * lambda + 1) -
         ((1 / alpha + 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
         (-(alpha * lambda + 1) ^ (-1 / alpha) - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1)
         
-        G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight
+        G1[iddx] <- G1[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] * weight[iddx]
         
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
@@ -283,28 +298,32 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       function(beta) {
         lambdaPredNumber <- attr(X, "hwm")[1]
         eta <- matrix(as.matrix(X) %*% beta, ncol = 2) + offset
-        lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+        lambda <- lambdaLink(eta[, 1], inverse = TRUE)[iddx]
+        alpha  <-  alphaLink(eta[, 2], inverse = TRUE)[iddx]
+        
         res <- matrix(nrow = length(beta), ncol = length(beta), 
                       dimnames = list(names(beta), names(beta)))
         
-        G0 <- y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2 -
+        G0 <- iddx
+        G0[iddx] <- y[iddx] / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y[iddx])) / alpha ^ 2 -
         (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
         (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
         (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
         (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) +
-        log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1)
+        log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y[iddx])) / (lambda * alpha + 1)
         
-        G1 <- y / lambda + ((-1 / alpha-1) * alpha * lambda * 
+        G1 <- iddx
+        G1[iddx] <- y[iddx] / lambda + ((-1 / alpha-1) * alpha * lambda * 
         (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
         (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
         lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) + 
-        (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1)
+        (alpha * (-y[iddx] - 1 / alpha)) / (alpha * lambda + 1)
         
         # 2nd log(alpha) derivative
         
-        G00 <- (2 * digamma(1 / alpha + y)) / alpha ^ 3 - (2 * digamma(1 / alpha)) / alpha ^ 3 +
-        trigamma(1 / alpha + y) / alpha ^ 4 - trigamma(1 / alpha) / alpha ^ 4 + 
+        G00 <- iddx
+        G00[iddx] <- (2 * digamma(1 / alpha + y[iddx])) / alpha ^ 3 - (2 * digamma(1 / alpha)) / alpha ^ 3 +
+        trigamma(1 / alpha + y[iddx]) / alpha ^ 4 - trigamma(1 / alpha) / alpha ^ 4 + 
         (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
         (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
         (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 / 
@@ -320,44 +339,46 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) / 
         (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) -
         (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
-        (lambda ^ 2 * (-1 / alpha - y)) / (lambda * alpha + 1) ^ 2 - y / alpha ^ 2
+        (lambda ^ 2 * (-1 / alpha - y[iddx])) / (lambda * alpha + 1) ^ 2 - y[iddx] / alpha ^ 2
           
-        G00 <- G00 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
-               G0  * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
+        G00[iddx] <- G00[iddx] * alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx] ^ 2 +
+                     G0[iddx]  * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)[iddx]
         
         # mixed derivative
-        G01 <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
+        G01 <- iddx
+        G01[iddx] <- -((alpha * lambda + 1) ^ (1 / alpha) * ((alpha ^ 3 + alpha ^ 2) * lambda ^ 3 +
         (2 * alpha ^ 2 + 2 * alpha) * lambda ^ 2 + (alpha + 1) * lambda) * 
         log(alpha * lambda + 1) + (alpha * lambda + 1) ^ (1 / alpha) * 
         ((alpha ^ 4 - alpha ^ 3 - alpha ^ 2) * lambda ^ 3 + 
-        ((-2 * alpha ^ 4 - 2 * alpha ^ 3) * y + 4 * alpha ^ 3 - alpha ^ 2 - alpha) * lambda ^ 2 + 
-        ((-4 * alpha ^ 3 - 2 * alpha ^ 2) * y + 3 * alpha ^ 2) * lambda - 2 * alpha ^ 2 * y) +
+        ((-2 * alpha ^ 4 - 2 * alpha ^ 3) * y[iddx] + 4 * alpha ^ 3 - alpha ^ 2 - alpha) * lambda ^ 2 + 
+        ((-4 * alpha ^ 3 - 2 * alpha ^ 2) * y[iddx] + 3 * alpha ^ 2) * lambda - 2 * alpha ^ 2 * y[iddx]) +
         (alpha * lambda + 1) ^ (2 / alpha) * (-alpha ^ 4 * lambda ^ 3 + 
-        (alpha ^ 4 * y - 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * y - alpha ^ 2) * lambda + alpha ^ 2 * y) +
-        ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * y - 2 * alpha ^ 3 - alpha ^ 2) * lambda ^ 2 +
-        ((2 * alpha ^ 3 + 2 * alpha ^ 2) * y - 2 * alpha ^ 2) * lambda + alpha ^ 2 * y) /
+        (alpha ^ 4 * y[iddx] - 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * y[iddx] - alpha ^ 2) * lambda + alpha ^ 2 * y[iddx]) +
+        ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * y[iddx] - 2 * alpha ^ 3 - alpha ^ 2) * lambda ^ 2 +
+        ((2 * alpha ^ 3 + 2 * alpha ^ 2) * y[iddx] - 2 * alpha ^ 2) * lambda + alpha ^ 2 * y[iddx]) /
         (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
         
         
-        G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
-               alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+        G01[iddx] <- G01[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] *
+                                  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx]
         
         # second beta derivative
-        G11 <- ((alpha * lambda + 1) ^ (2 / alpha) * 
-        (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * y) * lambda ^ 3 +
-        (alpha - 5 * alpha ^ 2 * y) * lambda ^ 2 - 4 * alpha * y * lambda - y) + 
+        G11 <- iddx
+        G11[iddx] <- ((alpha * lambda + 1) ^ (2 / alpha) * 
+        (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * y[iddx]) * lambda ^ 3 +
+        (alpha - 5 * alpha ^ 2 * y[iddx]) * lambda ^ 2 - 4 * alpha * y[iddx] * lambda - y[iddx]) + 
         (alpha * lambda + 1) ^ (1 / alpha) * ((alpha - alpha ^ 3) * lambda ^ 4 +
-        ((4 * alpha ^ 3 + 4 * alpha ^ 2) * y - 4 * alpha ^ 2 - alpha + 1) * lambda ^ 3 +
-        ((10 * alpha ^ 2 + 6 * alpha) * y - 3 * alpha - 1) * lambda ^ 2 + 
-        (8 * alpha + 2) * y * lambda + 2 * y) + 
-        ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * y + 2 * alpha ^ 2 + 2 * alpha) * lambda ^ 3 +
-        ((-5 * alpha ^ 2 - 6 * alpha - 1) * y + 2 * alpha + 1) * lambda ^ 2 + 
-        (-4 * alpha - 2) * y * lambda - y) / 
+        ((4 * alpha ^ 3 + 4 * alpha ^ 2) * y[iddx] - 4 * alpha ^ 2 - alpha + 1) * lambda ^ 3 +
+        ((10 * alpha ^ 2 + 6 * alpha) * y[iddx] - 3 * alpha - 1) * lambda ^ 2 + 
+        (8 * alpha + 2) * y[iddx] * lambda + 2 * y[iddx]) + 
+        ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * y[iddx] + 2 * alpha ^ 2 + 2 * alpha) * lambda ^ 3 +
+        ((-5 * alpha ^ 2 - 6 * alpha - 1) * y[iddx] + 2 * alpha + 1) * lambda ^ 2 + 
+        (-4 * alpha - 2) * y[iddx] * lambda - y[iddx]) / 
         (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * 
         ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
         
-        G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 +
-               G1  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
+        G11[iddx] <- G11[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] ^ 2 +
+                     G1[iddx]  * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)[iddx]
         
         
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]) * weight * G00) %*% X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]
@@ -375,6 +396,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
 
   devResids <- function (y, eta, wt, ...) {
+    iddx <- y > 1
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     mu <- mu.eta(eta = eta)
@@ -382,9 +404,9 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     logLikFit <- (
       lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) +
       y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha))
-    )
+    )[iddx]
 
-    yUnq <- unique(y)
+    yUnq <- unique(y[iddx])
 
     if (any(yUnq > 77)) {
       warning("Curently numerical deviance is unreliable for counts greater than 78.")
@@ -441,14 +463,16 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     suppressWarnings(logLikIdeal <- sapply(yUnq, FUN = fff))
     names(logLikIdeal) <- yUnq
     
-    logLikIdeal <- sapply(y, FUN = function(x) {
+    logLikIdeal <- sapply(y[iddx], FUN = function(x) {
       logLikIdeal[names(logLikIdeal) == x]
     })
-    diff <- logLikIdeal - logLikFit
+    
+    diff <- iddx
+    diff[iddx] <- logLikIdeal - logLikFit
 
     if (any(logLikFit > 0)) {
       warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
-      diff[logLikFit > 0]   <- 0
+      diff[iddx][logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
     }
@@ -458,12 +482,14 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     sign(y - mu) * sqrt(2 * wt * diff)
   }
 
-  pointEst <- function (pw, eta, contr = FALSE, ...) {
+  pointEst <- function (pw, eta, contr = FALSE, y, ...) {
+    iddx <- y > 1
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    N <- pw * (1 - lambda * ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) / 
+    
+    N <- pw * (iddx * (1 - lambda * ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) / 
     (1 - (1 + lambda * alpha) ^ (- 1 / alpha) - lambda * 
-    ((1 + lambda * alpha) ^ (-1 - 1 / alpha)))
+    ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) + (1 - iddx))
     
     if(!contr) {
       N <- sum(N)
@@ -471,9 +497,11 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     N
   }
 
-  popVar <- function (pw, eta, cov, Xvlm, ...) {
+  popVar <- function (pw, eta, cov, Xvlm, y, ...) {
+    iddx <- y > 1
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    
     prob <- 1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
       lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)
     
@@ -483,11 +511,11 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
     as.numeric(-((alpha*lambda+1)^(1/alpha+1)-1)/((alpha*lambda+1)^(1/alpha+1)+(-alpha-1)*lambda-1)^2)
     
-    bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
+    bigTheta <- t(c(bigTheta2, bigTheta1)[rep(iddx, 2)] %*% Xvlm[rep(iddx, 2), , drop = FALSE])
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <-  sum(pw * ((1 - prob) / (prob ^ 2)) * 
-    (1 - lambda * ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) ^ 2)
+    f2 <-  sum((pw * ((1 - prob) / (prob ^ 2)) * 
+    (1 - lambda * ((1 + lambda * alpha) ^ (-1 - 1 / alpha))) ^ 2)[iddx])
     
     f1 + f2
   }
@@ -522,16 +550,15 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   getStart <- expression(
     if (method == "IRLS") {
       # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
-      init <- log(abs((observed / mean(observed) - 1) / observed) + .1)
+      init <- log(abs((observed / weighted.mean(observed, priorWeights) - 1) / observed) + .1)
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
         family$links[[2]](ifelse(init < -.5, .1, init + .55))
       ) + offset
-      etaStart <- etaStart[(observed > 1), , drop = FALSE]
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed)),
-        family$links[[2]](abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1)
+        family$links[[1]](weighted.mean(observed, priorWeights)),
+        family$links[[2]](abs((cov.wt(cbind(observed, observed), wt = priorWeights, method = "ML")$cov[1,1] / weighted.mean(observed, priorWeights) - 1) / weighted.mean(observed, priorWeights)) + .1)
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

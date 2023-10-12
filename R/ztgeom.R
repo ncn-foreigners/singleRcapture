@@ -43,15 +43,15 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
     matrix( # returning as matrix to keep type consistency
-      1 / (lambda * (lambda + 1)) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2,
+      prior / (lambda * (lambda + 1)) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2,
       ncol = 1, dimnames = list(rownames(eta), c("lambda"))
     )
   }
   
-  funcZ <- function(eta, weight, y, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    ((y - 1) / lambda - y / (1 + lambda)) * 
+    prior * ((y - 1) / lambda - y / (1 + lambda)) * 
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) / weight
   }
   
@@ -169,9 +169,10 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12))
       ) + offset
+      #etaStart <- etaStart * priorWeights / sum(priorWeights)
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed))
+        family$links[[1]](weighted.mean(observed, priorWeights))
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

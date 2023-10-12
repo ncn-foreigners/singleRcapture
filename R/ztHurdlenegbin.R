@@ -239,11 +239,12 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     )
   }
   
-  funcZ <- function(eta, weight, y, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
     z <- as.numeric(y == 1)
+    weight <- weight / prior
     
     dig <- compdigamma(y = y, alpha = alpha)
     
@@ -667,19 +668,18 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   getStart <- expression(
     if (method == "IRLS") {
-      # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
-      init <- log(abs((observed / mean(observed) - 1) / observed) + .1)
+      init <- log(abs((observed / weighted.mean(observed, priorWeights) - 1) / observed) + .1)
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
         family$links[[2]](ifelse(init < -.5, .1, init + .55)),
         #(sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
-        family$links[[3]](mean(observed == 1) * (.5 + .5 * (observed == 1)) + .01)
+        family$links[[3]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed)),
-        family$links[[2]](abs((var(observed) / mean(observed) - 1) / mean(observed)) + .1),
-        family$links[[3]](mean(observed == 1) + .01)
+        family$links[[1]](weighted.mean(observed, priorWeights)),
+        family$links[[2]](abs((cov.wt(cbind(observed, observed), wt = priorWeights, method = "ML")$cov[1,1] / weighted.mean(observed, priorWeights) - 1) / weighted.mean(observed, priorWeights)) + .1),
+        family$links[[3]](weighted.mean(observed == 1, priorWeights) + .01)
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

@@ -2,37 +2,37 @@
 % Please edit documentation in R/Methods.R, R/documentationFiles.R
 \name{dfpopsize}
 \alias{dfpopsize}
-\alias{hatvalues.singleR}
-\alias{dfbeta.singleR}
-\alias{residuals.singleR}
-\alias{cooks.distance.singleR}
-\alias{dfpopsize.singleR}
+\alias{hatvalues.singleRStaticCountData}
+\alias{dfbeta.singleRStaticCountData}
+\alias{residuals.singleRStaticCountData}
+\alias{cooks.distance.singleRStaticCountData}
+\alias{dfpopsize.singleRStaticCountData}
 \alias{regDiagSingleR}
 \title{Regression diagnostics in \code{singleRcapture}}
 \usage{
 dfpopsize(model, ...)
 
-\method{hatvalues}{singleR}(model, ...)
+\method{hatvalues}{singleRStaticCountData}(model, ...)
 
-\method{dfbeta}{singleR}(model, maxitNew = 1, trace = FALSE, cores = 1, ...)
+\method{dfbeta}{singleRStaticCountData}(model, maxitNew = 1, trace = FALSE, cores = 1, ...)
 
-\method{residuals}{singleR}(
+\method{residuals}{singleRStaticCountData}(
   object,
   type = c("pearson", "pearsonSTD", "response", "working", "deviance", "all"),
   ...
 )
 
-\method{cooks.distance}{singleR}(model, ...)
+\method{cooks.distance}{singleRStaticCountData}(model, ...)
 
-\method{dfpopsize}{singleR}(model, dfbeta = NULL, observedPop = FALSE, ...)
+\method{dfpopsize}{singleRStaticCountData}(model, dfbeta = NULL, ...)
 }
 \arguments{
-\item{model, object}{object of \code{singleR} class.}
+\item{model, object}{object of \code{singleRStaticCountData} class.}
 
 \item{...}{arguments passed to other methods.
-Notably \code{dfpopsize.singleR} calls \code{dfbeta.singleR} if no
-\code{dfbeta} argument was provided and \code{controlMethod} is called in
-\code{dfbeta} method.}
+Notably \code{dfpopsize.singleRStaticCountData} calls
+\code{dfbeta.singleRStaticCountData} if no \code{dfbeta} argument was
+provided and \code{controlMethod} is called in \code{dfbeta} method.}
 
 \item{maxitNew}{maximal number of iterations for regressions with starting
 points \mjseqn{\hat{\boldsymbol{\beta}}} on data
@@ -49,13 +49,6 @@ computing makes tracing impossible so \code{trace} parameter is ignored in this 
 
 \item{dfbeta}{if \code{dfbeta} was already obtained it is possible to pass
 them into function so that they need not be computed for the second time.}
-
-\item{observedPop}{logical. For \code{singleR} class object if set to
-\code{TRUE} indicates that 1 will be returned for units which do not
-take part in population size estimation (e.g. 1's in zero one truncated
-models or units with count => 3 for \code{zelterman} of basic \code{chao}
-model) if set to \code{FALSE} (default) these units will not be included
-in results.}
 }
 \value{
 \itemize{
@@ -73,12 +66,13 @@ where \mjseqn{\hat{\boldsymbol{\beta}}_{-k}} is a vector of estimates for
 regression parameters after the removal of k'th row from the data.
 \item \code{cooks.distance} -- A matrix with a single columns with
 values of cooks distance for every unit in \code{model.matrix}
-\item \code{residuals.singleR} -- A \code{data.frame} with chosen residuals.
+\item \code{residuals.singleRStaticCountData} -- A \code{data.frame}
+with chosen residuals.
 }
 }
 \description{
 List of some regression diagnostics implemented for
-\code{singleR} class. Functions that either require no changes from
+\code{singleRStaticCountData} class. Functions that either require no changes from
 \code{glm} class or are not relevant to context of \code{singleRcapture}
 are omitted.
 }
@@ -90,15 +84,15 @@ fits a regression after removing a specific row from the data and returns the
 difference between regression coefficients estimated on full data set and
 data set obtained after deletion of that row, and repeats procedure once
 for every unit present in the data.\code{dfpopsize} does the same for
-population size estimation utilising coefficients computed by \code{dfbeta}.
+population size estimation utilizing coefficients computed by \code{dfbeta}.
 
 \code{cooks.distance} is implemented (for now) only for models with a single
 linear predictor and works exactly like the method for \code{glm} class.
 
-\code{residuals.singleR} (can be abbreviated to \code{resid}) works like
-\code{residuals.glm} with the exception that:
+\code{residuals.singleRStaticCountData} (can be abbreviated to \code{resid})
+works like \code{residuals.glm} with the exception that:
 \itemize{
-\item \code{"pearson"} -- returns non standardised residuals.
+\item \code{"pearson"} -- returns non standardized residuals.
 \item \code{"pearsonSTD"} -- is currently defined only for single predictors
 models but will be extended to all models in a near future, but for families
 with more than one distribution parameter it will be a multivariate residual.
@@ -111,14 +105,14 @@ predictor is present.
 \item \code{"all"} -- returns all available residual types.
 }
 
-\code{hatvalues.singleR} is method for \code{singleR} class for extracting
-diagonal elements of projection matrix.
+\code{hatvalues.singleRStaticCountData} is method for \code{singleRStaticCountData}
+class for extracting diagonal elements of projection matrix.
 
-Since \code{singleRcapture} supports
-not only regular glm's but also vglm's the \code{hatvalues} returns a matrix
-with number of columns corresponding to number of linear predictors in a model,
-where kth column corresponds to elements of the diagonal of projection
-matrix associated with kth linear predictor. For glm's
+Since \code{singleRcapture} supports not only regular glm's but also vglm's the
+\code{hatvalues} returns a matrix with number of columns corresponding to number
+of linear predictors in a model, where kth column corresponds to elements of
+the diagonal of projection matrix associated with kth linear predictor.
+For glm's
 \mjsdeqn{\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
 \left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}
 \boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}}
@@ -153,7 +147,7 @@ call to \code{estimatePopsize}.
 }
 \examples{
 \donttest{
-# For singleR class
+# For singleRStaticCountData class
 # Get simple model
 Model <- estimatePopsize(
   formula = capture ~ nation + age + gender, 

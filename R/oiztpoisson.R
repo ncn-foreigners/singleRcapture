@@ -113,10 +113,11 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     )
   }
   
-  funcZ <- function(eta, weight, y, ...) {
+  funcZ <- function(eta, weight, y, prior, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- ifelse(y == 1, y, 0)
+    weight <- weight / prior
     
     G1 <- (z  * (exp(lambda) * omega + 1 - omega) / 
     (exp(lambda) * omega + lambda - omega * lambda) + 
@@ -384,12 +385,12 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     if (method == "IRLS") {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
-        (sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
+        (sizeObserved * priorWeights * (observed == 1) + .5) / (sizeObserved * priorWeights * sum(observed == 1) + 1)
       ) + offset
     } else if (method == "optim") {
       init <- c(
-        family$links[[1]](mean(observed)),
-        family$links[[2]](mean(observed == 1) + .01)
+        family$links[[1]](weighted.mean(observed, priorWeights)),
+        family$links[[2]](weighted.mean(observed == 1, priorWeights) + .01)
       )
       if (attr(terms, "intercept")) {
         coefStart <- c(init[1], rep(0, attr(Xvlm, "hwm")[1] - 1))

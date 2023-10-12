@@ -1,41 +1,59 @@
 # ALL CODE IN THIS FILE WAS DEVELOPED BASED ON CODE IN sandwich PACKAGE
 
-# Same story as with bread
+## TODO:: Add offset to all those
 #' @importFrom sandwich estfun
-#' @method estfun singleR
-#' @rdname vcovHC.singleR
+#' @method estfun singleRStaticCountData
+#' @rdname vcovHC.singleRStaticCountData
 #' @exportS3Method
-estfun.singleR <- function(x,...) {
+estfun.singleRStaticCountData <- function(x,...) {
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
-  Y <- Y[x$which$reg]
   X <- stats::model.matrix(x, type = "vlm")
+  
   beta <- stats::coef(x)
-  wts <- stats::weights(x)
+  wts <- x$priorWeights
+  
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- x$model$makeMinusLogLike(y = Y, X = X, NbyK = TRUE, deriv = 1)(beta)
-  colnames(res) <- names(beta)
-  rownames(res) <- rownames(X)
+  
+  if (x$control$controlModel$weightsAsCounts) {
+    ## TODO:: find a better fix
+    nums <- rep(1:length(Y), wts)
+    Y <- Y[nums]
+    X <- X[rep(nums, length(x$model$etaNames)), , drop = FALSE]
+    res <- x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = 1, 
+      NbyK = TRUE, 
+      der = 1
+    )(beta)
+    
+    colnames(res) <- names(beta)
+  } else {
+    res <- x$model$makeMinusLogLike(y = Y, X = X, weight = x$priorWeights, NbyK = TRUE, deriv = 1)(beta)
+    
+    colnames(res) <- names(beta)
+    rownames(res) <- rownames(X)
+  }
+  
   res
 }
 
-# this literally does the same as every other bread method, there's no need for
-# separate documentation just link it to vcovHC
 #' @importFrom sandwich bread
-#' @method bread singleR
-#' @rdname vcovHC.singleR
+#' @method bread singleRStaticCountData
+#' @rdname vcovHC.singleRStaticCountData
 #' @exportS3Method
-bread.singleR <- function(x,...) {
-  stats::vcov(x, ...) * as.vector(x$dfResidual + length(coef(x)))
+bread.singleRStaticCountData <- function(x,...) {
+  stats::vcov(x, ...) * nobs(x)
 }
 
-#' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleR class
+#' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleRStaticCountData class
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
-#' @description S3 method for \code{vcovHC} to handle \code{singleR} class objects. 
+#' @description S3 method for \code{vcovHC} to handle \code{singleRStaticCountData} class objects. 
 #' Works exactly like \code{vcov.default} the only difference being that this method handles vector generalised linear models.
 #' Updating the covariance matrix in variance/standard error estimation for population size estimator can be done via [singleRcapture::redoPopEstimation()]
 #'
-#' @param x a fitted \code{singleR} class object.
+#' @param x a fitted \code{singleRStaticCountData} class object.
 #' @param type a character string specifying the estimation type, same as in \code{sandwich::vcovHC.default}. HC3 is the default value.
 #' @param omega a vector or a function depending on the arguments residuals (i.e. the derivative of log-likelihood with respect to each linear predictor), diaghat (the diagonal of the corresponding hat matrix) and df (the residual degrees of freedom), same as in \code{sandwich::vcovHC.default}.
 #' @param sandwich logical. Should the sandwich estimator be computed? If set to FALSE only the meat matrix is returned. Same as in [sandwich::vcovHC()]
@@ -81,9 +99,9 @@ bread.singleR <- function(x,...) {
 #' # bread method
 #' all(vcov(mod1, "Fisher") * nrow(df2) == sandwich::bread(mod1, type = "Fisher"))
 #' @importFrom sandwich vcovHC
-#' @method vcovHC singleR
+#' @method vcovHC singleRStaticCountData
 #' @exportS3Method
-vcovHC.singleR <- function(x, 
+vcovHC.singleRStaticCountData <- function(x, 
                            type = c("HC3", "const", "HC", 
                                     "HC0", "HC1", "HC2", 
                                     "HC4", "HC4m", "HC5"), 
@@ -94,13 +112,37 @@ vcovHC.singleR <- function(x,
   estfun <- estfun(x, ...)
   beta <- x$coefficients
   X <- model.matrix(x, "vlm")
-  n <- nrow(X)
-  k <- ncol(X)
-  df <- n - k
+  n <- nobs(x)
+  k <- NCOL(X)
+  
+  df <- x$dfResidual
   hat <- as.vector(hatvalues(x, ...))
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
-  Y <- Y[x$which$reg] # only choose units which appear in regression
-  res <- as.vector(x$model$makeMinusLogLike(y = Y, X = X, vectorDer = TRUE, der = 1)(beta))
+  
+  if (x$control$controlModel$weightsAsCounts) {
+    ## TODO:: find a better fix
+    nums <- rep(1:length(Y), x$priorWeights)
+    Y <- Y[nums]
+    X <- X[rep(nums, length(x$model$etaNames)), , drop = FALSE]
+    res <- as.vector(x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = 1, 
+      vectorDer = TRUE, 
+      der = 1
+    )(beta))
+    
+    hat <- (hat / x$priorWeights)[nums]
+  } else {
+    res <- as.vector(x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = x$priorWeights, 
+      vectorDer = TRUE, 
+      der = 1
+    )(beta))
+  }
+
   if (is.null(omega)) {
     if (type == "HC") 
       type <- "HC0"
@@ -145,6 +187,7 @@ vcovHC.singleR <- function(x,
     omega <- omega(res, hat, df)
   rval <- sqrt(omega) * X
   rval <- crossprod(rval)/n
+  
   if (sandwich) 
     rval <- sandwich(x, meat. = rval, ...)
   rval
