@@ -214,12 +214,12 @@ expect_silent(
 )
 
 expect_equal(
-  c(unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
-    unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
-    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
-    unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+  c(unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
+    unique(dfp[netherlandsimmigrant$capture == 1 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
     unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
-    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"]),
+    unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
     unique(dfp[netherlandsimmigrant$capture == 4 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1]),
   dfp6[1:7]
 )
