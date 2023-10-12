@@ -50,7 +50,7 @@ specified in \code{verbose}, by default set to \code{1}.}
 \item{coefStart, etaStart}{initial parameters for regression coefficients
 or linear predictors if \code{NULL}. For \code{IRLS} fitting only \code{etaStart}
 is needed so if \code{coefStart} is provided it will be converted to \code{etaStart},
-for \code{optim} fitting \code{coefStart} is neccesary and argument \code{etaStart}
+for \code{optim} fitting \code{coefStart} is necessary and argument \code{etaStart}
 will be ignored.}
 
 \item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used  \code{"Nelder-Mead"} is the default .}
@@ -69,7 +69,7 @@ be most effective at correcting it.}
 elements of working weights matrixes in \code{IRLS} are sufficiently positive
 so that these matrixes are positive defined. By default \code{TRUE}.}
 
-\item{weightsEpsilon}{small number to ensure positivity of weights matrixes.
+\item{weightsEpsilon}{small number to ensure positive definedness of weights matrixes.
 Only matters if \code{checkDiagWeights} is set to \code{TRUE}.
 By default \code{1e-8}.}
 

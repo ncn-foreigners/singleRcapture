@@ -64,7 +64,7 @@ Thomas W. Yee later extended this algorithm to vector generalised linear models
 and in more general terms it can roughly be described as
 (this is Yee's description after changing some conventions):
 \enumerate{
-\item Initialise with:
+\item Initialize with:
 \itemize{
 \item \code{converged <- FALSE}
 \item \code{iter <- 1}

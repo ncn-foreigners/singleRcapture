@@ -84,7 +84,7 @@ fits a regression after removing a specific row from the data and returns the
 difference between regression coefficients estimated on full data set and
 data set obtained after deletion of that row, and repeats procedure once
 for every unit present in the data.\code{dfpopsize} does the same for
-population size estimation utilising coefficients computed by \code{dfbeta}.
+population size estimation utilizing coefficients computed by \code{dfbeta}.
 
 \code{cooks.distance} is implemented (for now) only for models with a single
 linear predictor and works exactly like the method for \code{glm} class.
@@ -92,7 +92,7 @@ linear predictor and works exactly like the method for \code{glm} class.
 \code{residuals.singleRStaticCountData} (can be abbreviated to \code{resid})
 works like \code{residuals.glm} with the exception that:
 \itemize{
-\item \code{"pearson"} -- returns non standardised residuals.
+\item \code{"pearson"} -- returns non standardized residuals.
 \item \code{"pearsonSTD"} -- is currently defined only for single predictors
 models but will be extended to all models in a near future, but for families
 with more than one distribution parameter it will be a multivariate residual.

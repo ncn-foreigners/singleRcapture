@@ -24,7 +24,7 @@ A \code{vcov} method for \code{singleRStaticCountData} class.
 \details{
 Returns a estimated covariance matrix for model coefficients
 calculated from analytic hessian or Fisher information matrix usually
-utilising asymptotic effectiveness of maximum likelihood estimates.
+utilizing asymptotic effectiveness of maximum likelihood estimates.
 Covariance type is taken from control parameter that have been provided
 on call that created \code{object} if arguments \code{type} was not specified.
 }

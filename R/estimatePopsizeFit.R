@@ -34,7 +34,7 @@
 #' and in more general terms it can roughly be described as 
 #' (this is Yee's description after changing some conventions):
 #' 
-#' 1. Initialise with:
+#' 1. Initialize with:
 #' \itemize{
 #' \item \code{converged <- FALSE}
 #' \item \code{iter <- 1}

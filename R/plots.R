@@ -11,13 +11,13 @@
 #' The following list presents and briefly explains possible type of plots:
 #' \itemize{
 #'   \item \code{qq} -- The quantile-quantile plot for pearson residuals 
-#'   (or standardised pearson residuals if these are available for the model) i.e. 
+#'   (or standardized pearson residuals if these are available for the model) i.e. 
 #'   empirical quantiles from residuals are plotted against theoretical quantiles 
 #'   from standard distribution.
 #'   \item \code{marginal} -- A plot made by \code{matplot} with fitted and 
 #'   observed marginal frequencies with labels.
 #'   \item \code{fitresid} -- Plot of fitted linear predictors against 
-#'   (standardised) pearson residuals.
+#'   (standardized) pearson residuals.
 #'   \item \code{bootHist} -- Simple histogram for statistics obtained from 
 #'   bootstrapping (if one was performed and the statistics were saved).
 #'   \item \code{rootogram} -- Rootogram, for full explanation see: 
@@ -35,11 +35,11 @@
 #'   idea about the distribution of the "influence" of each unit on
 #'   population size estimate.
 #'   \item \code{scaleLoc} -- The scale - location plot i.e. square root of 
-#'   absolute values of (standardised) pearson residuals against linear predictors
+#'   absolute values of (standardized) pearson residuals against linear predictors
 #'   for each column of linear predictors.
 #'   \item \code{cooks} -- Plot of cooks distance for detecting influential observations.
 #'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
-#'   \item \code{strata} -- Plot of confidence invervals and point estimates for stratas provided in \code{...} argument
+#'   \item \code{strata} -- Plot of confidence intervals and point estimates for stratas provided in \code{...} argument
 #' }
 #' @param histKernels logical value indicating whether to add density lines
 #' to histogram.
@@ -102,6 +102,7 @@ plot.singleRStaticCountData <- function(x,
                          histKernels = TRUE,
                          dfpop,
                          ...) {
+  if (missing(plotType)) stop("Argument plotType must be provided needed")
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldpar))

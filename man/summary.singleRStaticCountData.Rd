@@ -23,7 +23,7 @@ and \code{"z"} for normal approximation of students t distribution, by
 default \code{"z"} is used if there are more than 30 degrees of freedom
 and \code{"t"} is used in other cases.}
 
-\item{resType}{type of residuals to summarise any value that is allowed in
+\item{resType}{type of residuals to summarize any value that is allowed in
 \code{residuals.singleRStaticCountData} except for \code{"all"} is allowed. By default
 pearson residuals are used.}
 
@@ -57,8 +57,8 @@ An object of \code{summarysingleRStaticCountData} class containing:
 \itemize{
 \item \code{call} -- A call which created \code{object}.
 \item \code{coefficients} -- A dataframe with estimated regression coefficients
-and their summary statistics such as standard error wald test statistic and
-p value for wald test.
+and their summary statistics such as standard error Wald test statistic and
+p value for Wald test.
 \item \code{residuals} -- A vector of residuals of type specified at call.
 \item \code{aic} -- Akaike's information criterion.
 \item \code{bic} -- Bayesian (Schwarz's) information criterion.

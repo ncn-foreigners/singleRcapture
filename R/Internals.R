@@ -11,7 +11,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
                                                      Xvlm, W, formulas,
                                                      sizeObserved,
                                                      modelFrame, 
-                                                     cov, offset) {
+                                                     cov, offset,
+                                                     weightsFlag) {
   #if (popVar == "noEst") {return(NULL)} moved to main function to avoid copying function parameters
   hwm <- attr(Xvlm, "hwm")
   siglevel <- control$alpha
@@ -88,7 +89,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
         method = control$fittingMethod,
         controlBootstrapMethod = control$bootstrapFitcontrol,
         N = N, Xvlm = Xvlm, modelFrame = modelFrame,
-        offset = offset
+        offset = offset, weightsFlag = weightsFlag
       )
     } else {
       funBoot <- switch(
@@ -107,7 +108,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
         method = control$fittingMethod,
         controlBootstrapMethod = control$bootstrapFitcontrol,
         N = N, Xvlm = Xvlm, modelFrame = modelFrame,
-        offset = offset
+        offset = offset, weightsFlag = weightsFlag
       )
     }
 
@@ -328,23 +329,16 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       )
     }
     
-    
-    err <- tryCatch(
-      expr = {
-        z <- eta + Zfun(eta = eta, weight = W, y = dependent, prior = prior) - offset
-        FALSE
-      },
-      error = function (e) {
-        print(e)
-        TRUE
-      }
+    z <- NULL
+    try(
+      expr = {z <- eta + Zfun(eta = eta, weight = W, y = dependent, prior = prior) - offset}
     )
     
-    if (isTRUE(err)) {
-      stop(paste0(
-        "Pseudo residuals of IRLS algorithm could not have been computed at iteration: ",
-        iter, "\nMost likely working weight matrixes could not have been inverted."
-      ), call. = FALSE)
+    if (is.null(z)) {
+      # stop(paste0(
+      #   "Pseudo residuals of IRLS algorithm could not have been computed at iteration: ",
+      #   iter, "\nMost likely working weight matrixes could not have been inverted."
+      # ), call. = FALSE)
     }
     XbyW     <- singleRinternalMultiplyWeight(X = covariates, W = W)
     # A <- t(Xvlm) %*% WW %*% (Xvlm)

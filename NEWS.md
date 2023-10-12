@@ -4,7 +4,7 @@
   `estimatePopsize`
 * The `weightsAsCounts` option in `controlModel` now works properly, 
   `dfbeta` and `dfpopsize` decrease weight of selected row in a model matrix 
-  insteadof deleting it when this is set to `TRUE`
+  instead of deleting it when this is set to `TRUE`
 * `simulate` method now works for both family object (like `ztpoisson()`) and
   for objects returned by `estimatePopsize`
 * Introduced `singleRStaticCountData` sub class for `singleRclass` and made
@@ -12,8 +12,10 @@
   (under development) can make all necessary calculations for pop size estimation
   when providing object fitted by `countreg::zerotrunc` or `VGAM::vglm`/`VGAM::vgam`
 * Some bugfixes for multicore bootstrap
-* Code was refactored to make further development/maintenance for the package
+* Code was re-factored to make further development/maintenance for the package
   much easier
+* Update will be uploaded to `CRAN`
+* `semiparametric` bootstrap now has a much faster sampling algorithm (that does the same job)
 
 # singleRcapture 0.2.0.1
 
@@ -55,7 +57,7 @@
   * Added `ztoinegbin`, `oiztnegbin` and `ztHurdlenegbin` models
   * Added an optional arguments to all family-functions to specify a link 
   function for distribution parameters
-  * Updated and standardised documentation
+  * Updated and standardized documentation
   * Added more warnings
   * Added some more methods for `singleR` class in some commonly used `glm` 
   functions, in particular `texreg::screenreg` should work well now

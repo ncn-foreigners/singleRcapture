@@ -21,9 +21,10 @@ NULL
 #' data for the regression and population size estimation.
 #' @param formula formula for the model to be fitted, only applied to the "main" 
 #' linear predictor. Only single response models are available.
-#' @param ratioReg TODO
+#' @param ratioReg Not yet implemented
 #' @param model model for regression and population estimate full description in [singleRmodels()]. 
-#' @param weights optional object of a priori weights used in fitting the model.
+#' @param weights optional object of prior weights used in fitting the model. 
+#' Can be used to specify number of occurrences of rows in data see [controlModel()]
 #' @param subset a logical vector indicating which observations should be used 
 #' in regression and population size estimation. It will be evaluated on \code{data} argument provided on call.
 #' @param naAction Not yet implemented.
@@ -53,10 +54,10 @@ NULL
 #' @param ... additional optional arguments passed to other methods eg. 
 #' \code{estimatePopsizeFit}.
 #' 
-#' @details The generalized linear model is characterised by equation
+#' @details The generalized linear model is characterized by equation
 #' \mjsdeqn{\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}}
 #' where \mjseqn{\boldsymbol{X}} is the (lm) model matrix. 
-#' The vector generalized linear model is similarly characterised by equations
+#' The vector generalized linear model is similarly characterized by equations
 #' \mjsdeqn{\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}}
 #' where \mjseqn{\boldsymbol{X}_{k}} is a (lm) model 
 #' matrix constructed from appropriate formula 
@@ -96,7 +97,7 @@ NULL
 #' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
 #'
 #' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, 
-#' with value 1 if k'th unit was observed at least once and 0 otherwise.
+#' with value 1 if kth unit was observed at least once and 0 otherwise.
 #' The \mjseqn{\mathbb{P}(Y_{k}>0)} are estimated by maximum likelihood.
 #' 
 #' The following assumptions are usually present when using 
@@ -170,11 +171,11 @@ NULL
 #' \dots,
 #' \frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}}
 #' where \mjseqn{\boldsymbol{f}_{n}} denotes observed 
-#' marginal frequency of units being observed exactly n times, round the 
-#' quantities above to nearest integer if necessary.
+#' marginal frequency of units being observed exactly n times.
 #' 2. Draw \mjseqn{\hat{N}} units from the distribution above 
 #' (if \mjseqn{\hat{N}} is not an integer than draw 
-#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}).
+#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)}),
+#' where \mjseqn{\lfloor\cdot\rfloor} is the floor function.
 #' 3. Truncated units with \mjseqn{y=0}.
 #' 4. If there are covariates draw them from original data with replacement from 
 #' uniform distribution. For example if unit drawn to new data has 
@@ -188,6 +189,11 @@ NULL
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
+#' To do step 1 in procedure above it is convenient to first draw binary vector of length
+#' \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)} with probability 
+#' \mjseqn{1-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}}, sum elements in that vector to
+#' determine the sample size and then draw sample of this size uniformly from the data.
+#' 
 #' This procedure is known in literature as \code{"semiparametric"} bootstrap
 #' it is necessary to assume that the have a correct estimate 
 #' \mjseqn{\hat{N}} in order to use this type of bootstrap.
@@ -196,13 +202,11 @@ NULL
 #' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
 #' bootstrap procedure may then be described as:
 #' 
-#' 1. Draw \mjseqn{\hat{N}} covariate information vectors with 
-#' replacement from data according to probability distribution 
-#' \mjsdeqn{\frac{\lfloor N_{k}\rfloor + M_{k}}{\lfloor\hat{N}\rfloor}}
-#' where \mjseqn{M_{k}\sim b(N_{k}-\lfloor N_{k}\rfloor)},
-#' \mjseqn{N_{k}} is the contribution of kth unit i.e. 
-#' \mjseqn{\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}} and
-#' \mjseqn{\lfloor\cdot\rfloor} is the floor function.
+#' 1. Draw \mjseqn{\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)} 
+#' covariate information vectors with replacement from data according to 
+#' probability distribution that is proportional to: \mjseqn{N_{k}},
+#' where \mjseqn{N_{k}} is the contribution of kth unit i.e. 
+#' \mjseqn{\dfrac{1}{\mathbb{P}(Y_{k}>0)}}.
 #' 2. Determine \mjseqn{\boldsymbol{\eta}} matrix using estimate 
 #' \mjseqn{\hat{\boldsymbol{\beta}}}.
 #' 3. Generate \mjseqn{\boldsymbol{y}} (dependent variable) 
@@ -282,7 +286,7 @@ NULL
 #' Norris, James L and Pollock, Kenneth H Including model uncertainty in estimating variances 
 #' in multiple capture studies 1996 in Environmental and Ecological Statistics 3.3 pp 235-244
 #' 
-#' Vector generalised linear models: 
+#' Vector generalized linear models: 
 #' 
 #' 
 #' Yee, T. W. (2015). Vector Generalized Linear and Additive Models: 
@@ -319,7 +323,7 @@ NULL
 #' }
 #' 
 #' @seealso 
-#' [stats::glm()] -- For more information on generalised linear models.
+#' [stats::glm()] -- For more information on generalized linear models.
 #' 
 #' [stats::optim()] -- For more information on \code{optim} function used in 
 #' \code{optim} method of fitting regression.
@@ -336,13 +340,13 @@ NULL
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
 #' estimation results are applying post-hoc procedures.
 #' 
-#' [summary.singleRStaticCountData()] -- For summarising important information about the
+#' [summary.singleRStaticCountData()] -- For summarizing important information about the
 #' model and population size estimation results.
 #' 
 #' [marginalFreq()] -- For information on marginal frequencies and comparison
 #' between observed and fitted quantities.
 #' 
-#' [VGAM::vglm()] -- For more information on vector generalised linear models.
+#' [VGAM::vglm()] -- For more information on vector generalized linear models.
 #' 
 #' [singleRmodels()] -- For description of various models.
 
@@ -721,7 +725,8 @@ estimatePopsize.default <- function(formula,
         sizeObserved = sizeObserved,
         modelFrame = modelFrame,
         cov = NULL,
-        offset = offset
+        offset = offset,
+        weightsFlag = controlModel$weightsAsCounts
       )
     }
     
@@ -760,6 +765,8 @@ estimatePopsize.default <- function(formula,
   } else {
     stop("Ratio regression is not yet implemented")
     ff <- formula
+    # TODO make this inherit from family
+    a <- function(x) {x+1}
     if (length(ff) == 3) {ff[[3]] <- 1}
     modelFrame <- stats::model.frame(ff, data, ...)
     
@@ -831,8 +838,6 @@ estimatePopsize.default <- function(formula,
       ### TODO
       # put observed likelihood method here
     }
-    
-    stop("abc")
     
     structure(
       list(

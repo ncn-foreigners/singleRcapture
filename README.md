@@ -23,7 +23,7 @@ Single source models are distinct from other capture-recapture models
 because we cannot estimate the population size based on how many units
 were observed in two or three sources which is the standard approach.
 
-Instead in single source models we utilise count data regression models
+Instead in single source models we utilize count data regression models
 on positive distributions (i.e. on counts greater than 0) where the
 dependent variable is the number of times a particular unit was observed
 in source data.
@@ -39,15 +39,15 @@ literature such as:
 - Zero truncated one inflated and one inflated zero truncated Poisson
   and geometric models. (Negative binomial is currently in development.)
 - Zero one truncated Poisson geometric and negative binomial models.
-- Generalised Chao and Zelterman’s models based on logistic regression.
+- Generalized Chao and Zelterman’s models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and non
   parametric.
 - And a wide range of additional functionalities associated with
-  (vector) generalised linear models relevant to the topic.
+  (vector) generalized linear models relevant to the topic.
 
 ## Installation
 
-You can install the development version of singleRcapture from
+You can install the current version of singleRcapture from main branch
 [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
 
 ``` r
@@ -55,11 +55,20 @@ You can install the development version of singleRcapture from
 remotes::install_github("ncn-foreigners/singleRcapture")
 ```
 
-or install the current stable version from
+or install the stable version from
 [CRAN](https://cran.r-project.org/package=singleRcapture) with:
 
 ``` r
 install.packages(singleRcapture)
+```
+
+or development version from [development branch on
+GitHub](https://github.com/ncn-foreigners/singleRcapture/tree/development)
+with:
+
+``` r
+# install.packages("devtools")
+remotes::install_github("github.com/ncn-foreigners/singleRcapture/tree/development")
 ```
 
 ### Examples
@@ -131,7 +140,7 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 ```
 
 We implemented a method for `plot` function to visualise the model fit
-and other usefull diagnostic information. One of which is `rootogram`, a
+and other useful diagnostic information. One of which is `rootogram`, a
 type of plot that compares fitted and observed marginal frequencies:
 
 ``` r
@@ -157,7 +166,7 @@ The possible values for `plotType` argument are:
 - `cooks` - plot of `cooks.values` for distributions for which it is
   defined.
 - `hatplot` - plot of `hatvalues`.
-- `strata` - plot of confidence intervals for selected su populations.
+- `strata` - plot of confidence intervals for selected such populations.
 
 a user can also pass arguments to specify additional information such as
 plot title, subtitle etc. similar to calling `plot` on some data. For
@@ -195,7 +204,7 @@ approximately the same effect:
 plot(model, plotType = "dfpopContr")
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="75%" />
 
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
@@ -419,10 +428,10 @@ modelInflated2 <- estimatePopsize(
 #> information matrix because hessian of log-likelihood is not negative define.
 popSizeEst(modelInflated2)
 #> Point estimate: 5496.374
-#> Variance: 1440064
+#> Variance: 1217985
 #> 99% confidence intervals:
 #> lowerBound upperBound 
-#>   4259.711  10877.646
+#>   4002.763  10231.717
 ```
 
 the results are significantly different (the warning issued concerns the
@@ -438,9 +447,9 @@ plot(modelInflated2,
      ylim = c(0, 200))
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" />
 
-and information criteria support the favour model:
+and information criteria support the second model:
 
     #>  First model: AIC = 1736.854 BIC = 1759.01
     #> Second model: AIC = 1734.803 BIC = 1756.959

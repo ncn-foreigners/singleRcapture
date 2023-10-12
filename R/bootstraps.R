@@ -3,9 +3,12 @@
 noparBoot <- function(family, formulas, y, X, modelFrame,
                       beta, weights, trcount, numboot,
                       eta, trace, visT, controlBootstrapMethod = NULL,
-                      method, N, offset, ...) {
+                      method, N, offset, weightsFlag, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
+  if (isTRUE(weightsFlag)) {
+    n <- sum(weights)
+  }
   famName <- family$family
   
   if (length(weights) == 1) {
@@ -25,15 +28,59 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     )
   }
   
+  #terms <- terms(modelFrame)
+  
   while (k <= numboot) {
     # TODO:: since modelframe is needed maybe revisit it and save some memory on response
-    strap        <- sample.int(replace = TRUE, n = n)
-    
-    ystrap       <- as.numeric(y[strap])
-    weightsStrap <- as.numeric(weights[strap])
-    #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
-    offsetStrap  <- offset[strap, , drop = FALSE]
-    Xstrap       <- modelFrame[strap, , drop = FALSE]
+    if (FALSE) {
+      # maybe add this as an option??
+      # in tests this is slower than "normal" option 
+      # but idk maybe if data is large enough it will be faster??
+      # the problem here is that aggregate is slow and I don't want to
+      # add another dependency in dplyr/data.table just to make it faster
+      strap        <- sample(x = 1:length(y), 
+                             size = n, 
+                             prob = weights / n, 
+                             replace = TRUE)
+      
+      ystrap       <- as.numeric(y[strap])
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+      
+      # get data into right format
+      XXX <- data.frame(Xstrap, offsetStrap, ystrap, singleRcaptureInternalColnameFreq = 0)
+      XXX <- aggregate(singleRcaptureInternalColnameFreq ~ ., data = XXX, length)
+      
+      weightsStrap <- XXX$singleRcaptureInternalColnameFreq
+      ystrap <- XXX[,NCOL(XXX)-1, drop = TRUE]
+      offsetStrap <- XXX[,(NCOL(Xstrap)+1):(NCOL(XXX) - 2), drop = FALSE]
+      offsetStrap <- as.matrix(offsetStrap)
+      
+      Xstrap <- XXX[, 1:NCOL(Xstrap), drop = FALSE]
+      attr(Xstrap, "terms") <- terms
+      # free memmory
+      XXX <- NULL
+    } else if (isTRUE(weightsFlag)) {
+      strap        <- sample(x = 1:length(y), 
+                             size = n, 
+                             prob = weights / n, 
+                             replace = TRUE)
+      
+      ystrap       <- as.numeric(y[strap])
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+      
+      weightsStrap <- rep(1, length(ystrap))
+      
+    } else {
+      strap        <- sample.int(replace = TRUE, n = n)
+      
+      ystrap       <- as.numeric(y[strap])
+      weightsStrap <- as.numeric(weights[strap])
+      #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+    }
     
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
@@ -43,7 +90,6 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
     Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
                                            formulas = formulas, 
                                            family$etaNames)
-    
     theta <- NULL
     try(
       theta <- estimatePopsizeFit(
@@ -89,8 +135,11 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
 noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
                                 beta, weights, trcount, numboot,
                                 eta, cores, controlBootstrapMethod = NULL,
-                                method, N, offset, ...) {
+                                method, N, offset, weightsFlag, ...) {
   n <- length(y)
+  if (isTRUE(weightsFlag)) {
+    n <- sum(weights)
+  }
   famName <- family$family
   
   if (length(weights) == 1) {
@@ -106,17 +155,31 @@ noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
   ### when compared to non paralelized version
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
+    #obj = foreach::foreach(k = 1:numboot, .export = "singleRcaptureinternalIRLSmultipar"),
     ex = {
       theta <- NULL
       while (is.null(theta)) {
         # TODO:: since modelframe is needed maybe revisit it and save some memory on response
-        strap        <- sample.int(replace = TRUE, n = n)
-        
-        ystrap       <- as.numeric(y[strap])
-        weightsStrap <- as.numeric(weights[strap])
-        #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
-        offsetStrap  <- offset[strap, , drop = FALSE]
-        Xstrap       <- modelFrame[strap, , drop = FALSE]
+        if (isTRUE(weightsFlag)) {
+          strap        <- sample(x = 1:length(y), 
+                                 size = n, 
+                                 prob = weights / n, 
+                                 replace = TRUE)
+          
+          ystrap       <- as.numeric(y[strap])
+          offsetStrap  <- offset[strap, , drop = FALSE]
+          Xstrap       <- modelFrame[strap, , drop = FALSE]
+          
+          weightsStrap <- rep(1, length(ystrap))
+          
+        } else {
+          strap        <- sample.int(replace = TRUE, n = n)
+          
+          ystrap       <- as.numeric(y[strap])
+          weightsStrap <- as.numeric(weights[strap])
+          offsetStrap  <- offset[strap, , drop = FALSE]
+          Xstrap       <- modelFrame[strap, , drop = FALSE]
+        }
         
         if (!is.data.frame(Xstrap)) {
           Xstrap <- as.data.frame(Xstrap)
@@ -154,9 +217,12 @@ noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
 semparBoot <- function(family, formulas, y, X, beta,
                        weights, trcount, numboot, eta,
                        trace, visT, controlBootstrapMethod = NULL,
-                       method, N, modelFrame, offset, ...) {
+                       method, N, modelFrame, offset, weightsFlag, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
+  if (isTRUE(weightsFlag)) {
+    n <- sum(weights)
+  }
   famName <- family$family
   
   if (length(weights) == 1) {
@@ -177,34 +243,32 @@ semparBoot <- function(family, formulas, y, X, beta,
   
   N <- round(sum(N))
   
-  yTab <- table(y)
-  yTab <- c("0" = N - sum(yTab), yTab) / N
-  prob <- 0:max(as.numeric(names(yTab)))
-  names(prob) <- prob
-  prob[names(yTab)] <- yTab
-  prob[!(names(prob) %in% names(yTab))] <- 0
-  yTab <- table(y)
-  getX <- function(val, num) {
-    sample(which(y == names(strap)[j]), size = num, replace = TRUE)
-  }
-
   k <- 1
   while (k <= numboot) {
-    strap1 <- stats::rmultinom(n = 1, size = N, prob = prob)
-    strap <- as.numeric(strap1)
-    names(strap) <- rownames(strap1)
-    strap <- strap[as.numeric(names(strap)) != 0]
-    rows <- NULL
-    for (j in 1:length(strap)) {
-      rows <- c(rows, getX(val = names(strap)[j], num = strap[j]))
+    # get info of how much units will be sampled
+    strap <- sum(rbinom(size = 1, n = N, prob = n / N))
+    # the rest are sampled uniformly form population
+    if (isTRUE(weightsFlag)) {
+      strap        <- sample(x = 1:length(y), 
+                             size = strap, 
+                             prob = weights / n, 
+                             replace = TRUE)
+      
+      ystrap       <- as.numeric(y[strap])
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+      
+      weightsStrap <- rep(1, length(ystrap))
+      
+    } else {
+      strap <- sample.int(n = n, size = strap, replace = TRUE)
+      
+      ystrap       <- y[as.numeric(strap)]
+      weightsStrap <- weights[as.numeric(strap)]
+      #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+      offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
     }
-    strap <- rows
-    
-    ystrap       <- y[as.numeric(strap)]
-    weightsStrap <- weights[as.numeric(strap)]
-    #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
-    offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
-    Xstrap       <- modelFrame[strap, , drop = FALSE]
     
     if (!is.data.frame(Xstrap)) {
       Xstrap <- as.data.frame(Xstrap)
@@ -260,8 +324,11 @@ semparBoot <- function(family, formulas, y, X, beta,
 semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
                                beta, weights, trcount, numboot,
                                eta, cores, controlBootstrapMethod = NULL,
-                               method, N, offset, ...) {
+                               method, N, offset, weightsFlag, ...) {
   n <- length(y)
+  if (isTRUE(weightsFlag)) {
+    n <- sum(weights)
+  }
   famName <- family$family
   
   if (length(weights) == 1) {
@@ -270,43 +337,39 @@ semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
   
   N <- round(sum(N))
   
-  yTab <- table(y)
-  yTab <- c("0" = N - sum(yTab), yTab) / N
-  prob <- 0:max(as.numeric(names(yTab)))
-  names(prob) <- prob
-  prob[names(yTab)] <- yTab
-  prob[!(names(prob) %in% names(yTab))] <- 0
-  yTab <- table(y)
-  getX <- function(val, num) {
-    sample(which(y == names(strap)[j]), size = num, replace = TRUE)
-  }
-  
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   
-  ### TODO:: This gives a different results for family = "chao" and "zelterman"
-  ### when compared to non paralelized version
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
     ex = {
       theta <- NULL
       while (is.null(theta)) {
-        strap1 <- stats::rmultinom(n = 1, size = N, prob = prob)
-        strap <- as.numeric(strap1)
-        names(strap) <- rownames(strap1)
-        strap <- strap[as.numeric(names(strap)) != 0]
-        rows <- NULL
-        for (j in 1:length(strap)) {
-          rows <- c(rows, getX(val = names(strap)[j], num = strap[j]))
+        # get info of how much units will be sampled
+        strap <- sum(rbinom(size = 1, n = N, prob = n / N))
+        # the rest are sampled uniformly form population
+        if (isTRUE(weightsFlag)) {
+          strap        <- sample(x = 1:length(y), 
+                                 size = strap, 
+                                 prob = weights / n, 
+                                 replace = TRUE)
+          
+          ystrap       <- as.numeric(y[strap])
+          offsetStrap  <- offset[strap, , drop = FALSE]
+          Xstrap       <- modelFrame[strap, , drop = FALSE]
+          
+          weightsStrap <- rep(1, length(ystrap))
+          
+        } else {
+          strap <- sample.int(n = n, size = strap, replace = TRUE)
+          
+          ystrap       <- y[as.numeric(strap)]
+          weightsStrap <- weights[as.numeric(strap)]
+          #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
+          offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
+          Xstrap       <- modelFrame[strap, , drop = FALSE]
         }
-        strap <- rows
-        
-        ystrap       <- y[as.numeric(strap)]
-        weightsStrap <- weights[as.numeric(strap)]
-        #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
-        offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
-        Xstrap       <- modelFrame[strap, , drop = FALSE]
         
         if (!is.data.frame(Xstrap)) {
           Xstrap <- as.data.frame(Xstrap)
@@ -344,32 +407,26 @@ semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
 }
 #' @importFrom graphics points
 #' @importFrom stats rbinom
-parBoot <- function(family,
-                    formulas,
-                    y, X,
-                    beta,
-                    weights,
-                    trcount,
-                    numboot,
-                    eta,
-                    trace,
-                    visT,
-                    controlBootstrapMethod = NULL,
-                    method,
-                    modelFrame,
-                    offset,
-                    ...) {
+parBoot <- function(family, formulas, y, X, beta, weights,
+                    trcount, numboot, eta, trace, visT,
+                    controlBootstrapMethod = NULL, method,
+                    modelFrame, offset, weightsFlag, ...) {
   strappedStatistic <- vector("numeric", length = numboot)
   n <- length(y)
+  if (isTRUE(weightsFlag)) {
+    n <- sum(weights)
+  }
   if (length(weights) == 1) {
     weights <- rep(1, length(y))
   }
   
   if (family$family %in% c("chao", "zelterman")) {
-    message(paste("Probability model will be taken as given by poisson distribution",
-                  "since zelterman and chao models are based on mixture of poisson",
-                  "distribution semi-parametric bootstrap may be a better choice.", 
-                  sep = "\n"))
+    message(paste(
+      "Probability model will be taken as given by poisson distribution",
+      "since zelterman and chao models are based on mixture of poisson",
+      "distribution semi-parametric bootstrap may be a better choice.", 
+      sep = "\n"
+    ))
   }
   
   
@@ -396,35 +453,65 @@ parBoot <- function(family,
   k <- 1
   while (k <= numboot) {
     nn <- floor(N) + stats::rbinom(n = 1, size = 1, prob = N - floor(N))
-    strap <- sample.int(replace = TRUE, n = n, size = nn, prob = prob)
+    if (isTRUE(weightsFlag)) {
+      strap <- sample.int(replace = TRUE, n = length(y), size = nn, prob = prob)
+      
+      weightsStrap <- as.numeric(weights[strap])
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      #etaStrap     <- eta[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+      
+      colnames(Xstrap) <- colnames(modelFrame)
+      
+      Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
+                                             formulas = formulas, 
+                                             family$etaNames)
+      
+      ystrap <- family$simulate(
+        n = nn,
+        eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
+        lower = -1, upper = Inf
+      )
+      offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+      
+      strap <- rep(ystrap > 0, length(family$etaNames))
+      hwm <- attr(Xstrap, "hwm")
+      
+      Xstrap <- Xstrap[strap, , drop = FALSE]
+      ystrap <- ystrap[ystrap > 0]
+      
+      weightsStrap <- rep(1, length(ystrap))
+    } else {
+      strap <- sample.int(replace = TRUE, n = length(y), size = nn, prob = prob)
+      
+      weightsStrap <- as.numeric(weights[strap])
+      offsetStrap  <- offset[strap, , drop = FALSE]
+      #etaStrap     <- eta[strap, , drop = FALSE]
+      Xstrap       <- modelFrame[strap, , drop = FALSE]
+      
+      colnames(Xstrap) <- colnames(modelFrame)
+      
+      Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
+                                             formulas = formulas, 
+                                             family$etaNames)
+      
+      ystrap <- family$simulate(
+        n = nn,
+        eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
+        lower = -1, upper = Inf
+      )
+      
+      weightsStrap <- weightsStrap[ystrap > 0]
+      #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
+      offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+      
+      strap <- rep(ystrap > 0, length(family$etaNames))
+      hwm <- attr(Xstrap, "hwm")
+      
+      Xstrap <- Xstrap[strap, , drop = FALSE]
+      ystrap <- ystrap[ystrap > 0]
+    }
     
-    weightsStrap <- as.numeric(weights[strap])
-    offsetStrap  <- offset[strap, , drop = FALSE]
-    #etaStrap     <- eta[strap, , drop = FALSE]
-    Xstrap       <- modelFrame[strap, , drop = FALSE]
-    
-    colnames(Xstrap) <- colnames(modelFrame)
-    
-    Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
-                                           formulas = formulas, 
-                                           family$etaNames)
-
-    ystrap <- family$simulate(
-      n = nn,
-      eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
-      lower = -1, upper = Inf
-    )
-    
-    weightsStrap <- weightsStrap[ystrap > 0]
-    #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
-    offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
-    
-    strap <- rep(ystrap > 0, length(family$etaNames))
-    hwm <- attr(Xstrap, "hwm")
-    
-    Xstrap <- Xstrap[strap, , drop = FALSE]
-    ystrap <- ystrap[ystrap > 0]
-
     if (isTRUE(trace)) cat("Iteration number:", k, 
                            "sample size:", length(ystrap), sep = " ")
     
@@ -476,8 +563,12 @@ parBoot <- function(family,
 parBootMultiCore <- function(family, formulas, y, X, modelFrame,
                              beta, weights, trcount, numboot,
                              eta, cores, controlBootstrapMethod = NULL,
-                             method, N, offset, ...) {
+                             method, N, offset, weightsFlag, ...) {
   n <- length(y)
+  if (isTRUE(weightsFlag)) {
+    n <- sum(weights)
+  }
+  
   if (length(weights) == 1) {
     weights <- rep(1, length(y))
   }
@@ -511,34 +602,65 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
       theta <- NULL
       while (is.null(theta)) {
         nn <- floor(N) + stats::rbinom(n = 1, size = 1, prob = N - floor(N))
-        strap <- sample.int(replace = TRUE, n = n, size = nn, prob = prob)
+        if (isTRUE(weightsFlag)) {
+          strap <- sample.int(replace = TRUE, n = length(y), size = nn, prob = prob)
+          
+          weightsStrap <- as.numeric(weights[strap])
+          offsetStrap  <- offset[strap, , drop = FALSE]
+          #etaStrap     <- eta[strap, , drop = FALSE]
+          Xstrap       <- modelFrame[strap, , drop = FALSE]
+          
+          colnames(Xstrap) <- colnames(modelFrame)
+          
+          Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
+                                                 formulas = formulas, 
+                                                 family$etaNames)
+          
+          ystrap <- family$simulate(
+            n = nn,
+            eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
+            lower = -1, upper = Inf
+          )
+          offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+          
+          strap <- rep(ystrap > 0, length(family$etaNames))
+          hwm <- attr(Xstrap, "hwm")
+          
+          Xstrap <- Xstrap[strap, , drop = FALSE]
+          ystrap <- ystrap[ystrap > 0]
+          
+          weightsStrap <- rep(1, length(ystrap))
+        } else {
+          strap <- sample.int(replace = TRUE, n = length(y), size = nn, prob = prob)
+          
+          weightsStrap <- as.numeric(weights[strap])
+          offsetStrap  <- offset[strap, , drop = FALSE]
+          #etaStrap     <- eta[strap, , drop = FALSE]
+          Xstrap       <- modelFrame[strap, , drop = FALSE]
+          
+          colnames(Xstrap) <- colnames(modelFrame)
+          
+          Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
+                                                 formulas = formulas, 
+                                                 family$etaNames)
+          
+          ystrap <- family$simulate(
+            n = nn,
+            eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
+            lower = -1, upper = Inf
+          )
+          
+          weightsStrap <- weightsStrap[ystrap > 0]
+          #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
+          offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
+          
+          strap <- rep(ystrap > 0, length(family$etaNames))
+          hwm <- attr(Xstrap, "hwm")
+          
+          Xstrap <- Xstrap[strap, , drop = FALSE]
+          ystrap <- ystrap[ystrap > 0]
+        }
         
-        weightsStrap <- as.numeric(weights[strap])
-        offsetStrap  <- offset[strap, , drop = FALSE]
-        #etaStrap     <- eta[strap, , drop = FALSE]
-        Xstrap       <- modelFrame[strap, , drop = FALSE]
-        
-        colnames(Xstrap) <- colnames(modelFrame)
-        
-        Xstrap <- singleRinternalGetXvlmMatrix(X = Xstrap, 
-                                               formulas = formulas, 
-                                               family$etaNames)
-        
-        ystrap <- family$simulate(
-          n = nn,
-          eta = matrix(Xstrap %*% beta, ncol = length(family$etaNames)),
-          lower = -1, upper = Inf
-        )
-        
-        weightsStrap <- weightsStrap[ystrap > 0]
-        #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
-        offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
-        
-        strap <- rep(ystrap > 0, length(family$etaNames))
-        hwm <- attr(Xstrap, "hwm")
-        
-        Xstrap <- Xstrap[strap, , drop = FALSE]
-        ystrap <- ystrap[ystrap > 0]
         attr(Xstrap, "hwm") <- hwm
         
         try(

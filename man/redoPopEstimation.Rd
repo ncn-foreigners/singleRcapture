@@ -16,6 +16,7 @@ redoPopEstimation(object, newdata, ...)
   control,
   popVar,
   offset,
+  weightsAsCounts,
   ...
 )
 }
@@ -39,7 +40,10 @@ If missing set to controls provided on call to \code{object}.}
 \item{popVar}{similar to \code{popVar} in \code{\link[=estimatePopsize]{estimatePopsize()}}.
 If missing set to \code{"analytic"}.}
 
-\item{offset}{TODO}
+\item{offset}{offset argument for new data}
+
+\item{weightsAsCounts}{for \code{singleRStaticCountData} method used to specify
+whether weights should be treated as number of occurences for rows in data}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated

@@ -5,9 +5,9 @@
 \alias{stratifyPopsize.singleRStaticCountData}
 \title{Estimate size of sub populations.}
 \usage{
-stratifyPopsize(object, stratas, alpha, newdata, ...)
+stratifyPopsize(object, stratas, alpha, ...)
 
-\method{stratifyPopsize}{singleRStaticCountData}(object, stratas, alpha, newdata, cov = NULL, ...)
+\method{stratifyPopsize}{singleRStaticCountData}(object, stratas, alpha, cov = NULL, ...)
 }
 \arguments{
 \item{object}{an object on which the population size estimates should be based
@@ -34,10 +34,6 @@ Either a single numeric value or a vector of length equal to number of
 sub populations specified in \code{stratas}.
 If missing it is set to \code{.05} in \code{singleRStaticCountData} method.}
 
-\item{newdata}{a new data frame for which sizes of sub populations are to
-be estimated. If none provided \code{stratifyPopsize} acts on
-\code{model.frame} from \code{object}.}
-
 \item{...}{a vector of arguments to be passed to other functions.
 For \code{singleRStaticCountData} method for this functions arguments in \code{...} are
 passed to either \code{cov} if argument provided was a function or
@@ -62,7 +58,7 @@ based on a capture-recapture model for the whole population.
 }
 \details{
 In single source capture-recapture models the most frequently used
-estimate for population size is Horwitz-Thompson type estimate:
+estimate for population size is Horvitz-Thompson type estimate:
 
 \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
 \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}

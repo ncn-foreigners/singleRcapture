@@ -1,6 +1,6 @@
 # ALL CODE IN THIS FILE WAS DEVELOPED BASED ON CODE IN sandwich PACKAGE
 
-# Same story as with bread
+## TODO:: Add offset to all those
 #' @importFrom sandwich estfun
 #' @method estfun singleRStaticCountData
 #' @rdname vcovHC.singleRStaticCountData
@@ -10,17 +10,34 @@ estfun.singleRStaticCountData <- function(x,...) {
   X <- stats::model.matrix(x, type = "vlm")
   
   beta <- stats::coef(x)
-  wts <- stats::weights(x)
+  wts <- x$priorWeights
   
   if (is.null(wts)) wts <- rep(1, length(Y))
-  res <- x$model$makeMinusLogLike(y = Y, X = X, weight = x$priorWeights, NbyK = TRUE, deriv = 1)(beta)
-  colnames(res) <- names(beta)
-  rownames(res) <- rownames(X)
+  
+  if (x$control$controlModel$weightsAsCounts) {
+    ## TODO:: find a better fix
+    nums <- rep(1:length(Y), wts)
+    Y <- Y[nums]
+    X <- X[rep(nums, length(x$model$etaNames)), , drop = FALSE]
+    res <- x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = 1, 
+      NbyK = TRUE, 
+      der = 1
+    )(beta)
+    
+    colnames(res) <- names(beta)
+  } else {
+    res <- x$model$makeMinusLogLike(y = Y, X = X, weight = x$priorWeights, NbyK = TRUE, deriv = 1)(beta)
+    
+    colnames(res) <- names(beta)
+    rownames(res) <- rownames(X)
+  }
+  
   res
 }
 
-# this literally does the same as every other bread method, there's no need for
-# separate documentation just link it to vcovHC
 #' @importFrom sandwich bread
 #' @method bread singleRStaticCountData
 #' @rdname vcovHC.singleRStaticCountData
@@ -91,7 +108,6 @@ vcovHC.singleRStaticCountData <- function(x,
                            omega = NULL, 
                            sandwich = TRUE, 
                            ...) {
-  ## TODO:: check for weightsAsPopcounts
   type <- match.arg(type)
   estfun <- estfun(x, ...)
   beta <- x$coefficients
@@ -103,11 +119,30 @@ vcovHC.singleRStaticCountData <- function(x,
   hat <- as.vector(hatvalues(x, ...))
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
   
-  res <- as.vector(x$model$makeMinusLogLike(y = Y, 
-                                            X = X, 
-                                            weight = x$priorWeights, 
-                                            vectorDer = TRUE, 
-                                            der = 1)(beta))
+  if (x$control$controlModel$weightsAsCounts) {
+    ## TODO:: find a better fix
+    nums <- rep(1:length(Y), x$priorWeights)
+    Y <- Y[nums]
+    X <- X[rep(nums, length(x$model$etaNames)), , drop = FALSE]
+    res <- as.vector(x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = 1, 
+      vectorDer = TRUE, 
+      der = 1
+    )(beta))
+    
+    hat <- (hat / x$priorWeights)[nums]
+  } else {
+    res <- as.vector(x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = x$priorWeights, 
+      vectorDer = TRUE, 
+      der = 1
+    )(beta))
+  }
+
   if (is.null(omega)) {
     if (type == "HC") 
       type <- "HC0"
@@ -152,6 +187,7 @@ vcovHC.singleRStaticCountData <- function(x,
     omega <- omega(res, hat, df)
   rval <- sqrt(omega) * X
   rval <- crossprod(rval)/n
+  
   if (sandwich) 
     rval <- sandwich(x, meat. = rval, ...)
   rval

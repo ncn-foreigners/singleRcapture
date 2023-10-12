@@ -28,7 +28,7 @@
 #' @param coefStart,etaStart initial parameters for regression coefficients
 #' or linear predictors if \code{NULL}. For \code{IRLS} fitting only \code{etaStart}
 #' is needed so if \code{coefStart} is provided it will be converted to \code{etaStart},
-#' for \code{optim} fitting \code{coefStart} is neccesary and argument \code{etaStart}
+#' for \code{optim} fitting \code{coefStart} is necessary and argument \code{etaStart}
 #' will be ignored.
 #' @param silent logical, indicating whether warnings in \code{IRLS} method should be suppressed.
 #' @param optimPass optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
@@ -41,7 +41,7 @@
 #' @param checkDiagWeights logical value indicating whether to check if diagonal 
 #' elements of working weights matrixes in \code{IRLS} are sufficiently positive 
 #' so that these matrixes are positive defined. By default \code{TRUE}.
-#' @param weightsEpsilon small number to ensure positivity of weights matrixes. 
+#' @param weightsEpsilon small number to ensure positive definedness of weights matrixes. 
 #' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
 #' By default \code{1e-8}.
 #' @param momentumFactor experimental parameter in \code{IRLS} only allowing for 

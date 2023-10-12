@@ -10,7 +10,7 @@
 #' and \code{"z"} for normal approximation of students t distribution, by 
 #' default \code{"z"} is used if there are more than 30 degrees of freedom
 #' and \code{"t"} is used in other cases.
-#' @param resType type of residuals to summarise any value that is allowed in
+#' @param resType type of residuals to summarize any value that is allowed in
 #' \code{residuals.singleRStaticCountData} except for \code{"all"} is allowed. By default 
 #' pearson residuals are used.
 #' @param correlation logical value indicating whether correlation matrix should
@@ -38,8 +38,8 @@
 #' \itemize{
 #' \item \code{call} -- A call which created \code{object}.
 #' \item \code{coefficients} -- A dataframe with estimated regression coefficients
-#' and their summary statistics such as standard error wald test statistic and
-#' p value for wald test.
+#' and their summary statistics such as standard error Wald test statistic and
+#' p value for Wald test.
 #' \item \code{residuals} -- A vector of residuals of type specified at call.
 #' \item \code{aic} -- Akaike's information criterion.
 #' \item \code{bic} -- Bayesian (Schwarz's) information criterion.
@@ -399,7 +399,9 @@ predict.singleRStaticCountData <- function(object,
 #' If missing set to controls provided on call to \code{object}.
 #' @param popVar similar to \code{popVar} in [estimatePopsize()].
 #' If missing set to \code{"analytic"}.
-#' @param offset TODO
+#' @param offset offset argument for new data
+#' @param weightsAsCounts for \code{singleRStaticCountData} method used to specify
+#' whether weights should be treated as number of occurences for rows in data
 #' @param ... additional optional arguments, currently not used in \code{singleRStaticCountData} class method.
 #'
 #' @return An object of class \code{popSizeEstResults} containing updated 
@@ -449,9 +451,6 @@ popSizeEst <- function(object, ...) {
 #'
 #' @param object an object on which the population size estimates should be based
 #' in \code{singleRcapture} package this is a fitter \code{singleRStaticCountData} class object.
-#' @param newdata a new data frame for which sizes of sub populations are to
-#' be estimated. If none provided \code{stratifyPopsize} acts on 
-#' \code{model.frame} from \code{object}.
 #' @param stratas a specification of sub populations either by:
 #' \itemize{
 #' \item formula -- a formula to be applied to \code{model.frame} extracted from
@@ -484,7 +483,7 @@ popSizeEst <- function(object, ...) {
 #' 
 #' \loadmathjax
 #' @details In single source capture-recapture models the most frequently used
-#' estimate for population size is Horwitz-Thompson type estimate:
+#' estimate for population size is Horvitz-Thompson type estimate:
 #' 
 #' \mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} = 
 #' \sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
@@ -510,7 +509,7 @@ popSizeEst <- function(object, ...) {
 #' @return A \code{data.frame} object with row names being the names of specified 
 #' sub populations either provided or inferred.
 #' @export
-stratifyPopsize <- function(object, stratas, alpha, newdata, ...) {
+stratifyPopsize <- function(object, stratas, alpha, ...) {
   UseMethod("stratifyPopsize")
 }
 
@@ -525,7 +524,7 @@ stratifyPopsize <- function(object, stratas, alpha, newdata, ...) {
 #' 
 #' @details  Returns a estimated covariance matrix for model coefficients
 #' calculated from analytic hessian or Fisher information matrix usually 
-#' utilising asymptotic effectiveness of maximum likelihood estimates.
+#' utilizing asymptotic effectiveness of maximum likelihood estimates.
 #' Covariance type is taken from control parameter that have been provided
 #' on call that created \code{object} if arguments \code{type} was not specified.
 #' 
@@ -695,7 +694,6 @@ dfbeta.singleRStaticCountData <- function(model,
         }
       )
     } else {
-      stop("Multicore dfbeta with weightsAsCounts does not work yet")
       res <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
         ex = {
@@ -1005,8 +1003,9 @@ redoPopEstimation.singleRStaticCountData <- function(object,
                                                      control,
                                                      popVar,
                                                      offset,
+                                                     weightsAsCounts,
                                                      ...) {
-  ### TODO:: check for weightsAsPopCount
+  ### weightsAsPopCount works
   if (missing(cov)) {
     cov <- vcov
   }
@@ -1120,7 +1119,8 @@ redoPopEstimation.singleRStaticCountData <- function(object,
     sizeObserved = nn,
     modelFrame = MM,
     cov = cov,
-    offset = offset
+    offset = offset,
+    weightsFlag = if (missing(weightsAsCounts)) object$control$controlModel$weightsAsCounts else weightsAsCounts
   )
 }
 #' @method dfpopsize singleRStaticCountData
@@ -1182,7 +1182,6 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, ...) {
 stratifyPopsize.singleRStaticCountData <- function(object, 
                                                    stratas,
                                                    alpha, 
-                                                   newdata, 
                                                    cov = NULL,
                                                    ...) {
   ## TODO:: New data doesn't work yet
@@ -1287,6 +1286,9 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   priorWeights <- object$priorWeights
   eta <- object$linearPredictors
   Xvlm <- model.matrix(object, "vlm")
+  # this is now needed
+  y <- if (is.null(object$y)) model.response(model.frame(object)) else object$y
+  flagWeighting <- object$control$controlModel$weightsAsCounts
   
   # get covariance matrix
   if (is.function(cov)) cov <- cov(object, ...)
@@ -1310,15 +1312,20 @@ stratifyPopsize.singleRStaticCountData <- function(object,
     }
     
     if (obs[k] > 0) {
-      est[k] <- family$pointEst(pw = priorWeights[cond], 
-                                eta = eta[cond, , drop = FALSE])
+      est[k] <- family$pointEst(pw  = priorWeights[cond], 
+                                eta = eta[cond, , drop = FALSE],
+                                y   = y[cond])
+      
       stdErr[k] <- family$popVar(
         pw = priorWeights[cond], 
         eta = eta[cond, , drop = FALSE], 
         cov = cov, 
-        Xvlm = subset(Xvlm, subset = rep(cond, length(family$etaNames)))
+        Xvlm = subset(Xvlm, subset = rep(cond, length(family$etaNames))),
+        y   = y[cond]
       ) ^ .5
+      
       cnfStudent[k, ] <- est[k] + c(-sc[k] * stdErr[k], sc[k] * stdErr[k])
+      
       G <- exp(sc[k] * sqrt(log(1 + (stdErr[k]^2) / ((est[k] - obs[k]) ^ 2))))
       cnfChao[k, ] <- obs[k] + c((est[k] - obs[k]) / G, (est[k] - obs[k]) * G)
     } else {
