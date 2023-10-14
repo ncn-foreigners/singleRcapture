@@ -1,5 +1,4 @@
 # cheking popsize estimation as in van der heijden et.al (2018)
-set.seed(123)
 
 expect_silent(
   opt <- estimatePopsize(
@@ -17,11 +16,23 @@ expect_silent(
 )
 
 expect_silent(
+  estimatePopsize(
+    formula = TOTAL_SUB ~ .,
+    model = "zotnegbin",
+    method = "optim",
+    data = farmsubmission,
+    controlMethod = controlMethod(
+      maxiter = 5000,
+      optimMethod = "Nelder-Mead",
+      silent = TRUE
+    )
+  )
+)
+
+expect_silent(
   irls <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     model = "ztpoisson",
-    method = "IRLS",
-    popVar = "analytic",
     data = farmsubmission,
     controlMethod = controlMethod(
       silent = TRUE
@@ -54,9 +65,7 @@ expect_equivalent(
 expect_silent(
   ch <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
-    model = "chao",
-    method = "IRLS",
-    popVar = "analytic",
+    model = chao(),
     data = farmsubmission,
     controlMethod = controlMethod(silent = TRUE)
   )
@@ -182,15 +191,15 @@ expect_error(
   )
 )
 
+set.seed(123)
 expect_silent(
   estimatePopsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
     model = "zotpoisson",
     popVar = "bootstrap",
-    method = "IRLS",
     controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),# testing silent
-    controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
+    controlPopVar = controlPopVar(B = 4, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
   )
 )
 
@@ -198,16 +207,13 @@ expect_silent(
   estimatePopsize(
     formula = TOTAL_SUB ~ .,
     data = farmsubmission,
-    model = "ztoigeom",
+    model = "ztoigeom", 
+    method = "optim",
     popVar = "bootstrap",
-    method = "IRLS",
     controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),
     controlPopVar = controlPopVar(
-      B = 10, 
-      bootstrapFitcontrol = controlMethod(
-        silent = TRUE, 
-        epsilon = .Machine$double.eps
-      )
+      B = 6,
+      bootType = "semiparametric"
     )
   )
 )
@@ -220,7 +226,10 @@ expect_silent(
     popVar = "bootstrap",
     method = "IRLS",
     controlMethod = controlMethod(silent = TRUE),
-    controlPopVar = controlPopVar(B = 10, bootstrapFitcontrol = controlMethod(silent = TRUE, epsilon = .Machine$double.eps))
+    controlPopVar = controlPopVar(
+      B = 6,
+      bootType = "nonparametric"
+    )
   )
 )
 
@@ -232,7 +241,7 @@ expect_silent(
     popVar = "bootstrap",
     method = "IRLS",
     controlPopVar = controlPopVar(
-      B = 10, 
+      B = 4, 
       bootstrapFitcontrol = controlMethod(
         silent = TRUE, 
         epsilon = .Machine$double.eps)

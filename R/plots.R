@@ -94,14 +94,14 @@
 #' @seealso [estimatePopsize()] [dfpopsize()] [marginalFreq()] [stats::plot.lm()] [stats::cooks.distance()] [hatvalues.singleRStaticCountData()]
 #' @export
 plot.singleRStaticCountData <- function(x, 
-                         plotType = c("qq", "marginal", "fitresid",
-                                      "bootHist", "rootogram", "dfpopContr",
-                                      "dfpopBox", "scaleLoc", "cooks",
-                                      "hatplot", "strata"),
-                         confIntStrata = c("normal", "logNormal"),
-                         histKernels = TRUE,
-                         dfpop,
-                         ...) {
+                                        plotType = c("qq", "marginal", "fitresid",
+                                                     "bootHist", "rootogram", "dfpopContr",
+                                                     "dfpopBox", "scaleLoc", "cooks",
+                                                     "hatplot", "strata"),
+                                        confIntStrata = c("normal", "logNormal"),
+                                        histKernels = TRUE,
+                                        dfpop,
+                                        ...) {
   if (missing(plotType)) stop("Argument plotType must be provided needed")
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
@@ -121,10 +121,10 @@ plot.singleRStaticCountData <- function(x,
     type <- "pearson"
   
   if (plotType == "fitresid") {
-    res <- residuals.singleRStaticCountData(x, type = "response")[, 1] # fitted vs residuals
+    res <- residuals(x, type = "response")[, 1] # fitted vs residuals
     # plot should have just normal response residuals
   } else {
-    res <- residuals.singleRStaticCountData(x, type = type)[, 1]
+    res <- residuals(x, type = type)[, 1]
   }
   switch(plotType,
   qq = {

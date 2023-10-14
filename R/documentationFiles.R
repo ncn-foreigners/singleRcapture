@@ -381,15 +381,15 @@ NULL
 #'   model = ztpoisson, 
 #'   method = "IRLS"
 #' )
-#' # Get df beta
+#' # Get dfbeta
 #' dfb <- dfbeta(Model)
-#' # The results
+#' # The dfpopsize results are obtained via (It is also possible to not provide 
+#' # dfbeta then they will be computed manually):
 #' res <- dfpopsize(Model, dfbeta = dfb)
 #' summary(res)
 #' plot(res)
-#' # It is also possible to not provide dfbeta then they will be
-#' # computed manually
-#' summary(dfpopsize(Model))
+#' # see vaious types of residuals:
+#' head(resid(Model, "all"))
 #' }
 #' @name regDiagSingleR
 NULL
