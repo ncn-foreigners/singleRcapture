@@ -225,20 +225,32 @@ call to <code>estimatePopsize</code>.</p>
 <span class="r-in"><span>  model <span class="op">=</span> <span class="va">ztpoisson</span>, </span></span>
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"IRLS"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># Get df beta</span></span></span>
+<span class="r-in"><span><span class="co"># Get dfbeta</span></span></span>
 <span class="r-in"><span><span class="va">dfb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">dfbeta</a></span><span class="op">(</span><span class="va">Model</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># The results</span></span></span>
+<span class="r-in"><span><span class="co"># The dfpopsize results are obtained via (It is also possible to not provide </span></span></span>
+<span class="r-in"><span><span class="co"># dfbeta then they will be computed manually):</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">dfpopsize</span><span class="op">(</span><span class="va">Model</span>, dfbeta <span class="op">=</span> <span class="va">dfb</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -4236.412     2.664     2.664     5.448    17.284   117.448 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="regDiagSingleR-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="co"># It is also possible to not provide dfbeta then they will be</span></span></span>
-<span class="r-in"><span><span class="co"># computed manually</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu">dfpopsize</span><span class="op">(</span><span class="va">Model</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -4236.412     2.664     2.664     5.448    17.284   117.448 </span>
+<span class="r-in"><span><span class="co"># see vaious types of residuals:</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">Model</span>, <span class="st">"all"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       lambda truncatedResponse nontruncatedResponse    pearson pearsonSTD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.9328875       -0.25364898            0.5294668 -0.4864422 -0.4867283</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.9328875       -0.25364898            0.5294668 -0.4864422 -0.4867283</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.9328875       -0.25364898            0.5294668 -0.4864422 -0.4867283</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -0.9791760       -0.06666172            0.8695135 -0.2554869 -0.2559964</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 -0.9791760       -0.06666172            0.8695135 -0.2554869 -0.2559964</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  2.7449807        0.74635102            1.5294668  1.4313347  1.4321768</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     deviance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.6992491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.6992491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.6992491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -0.3631875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 -0.3631875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  1.0619767</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
