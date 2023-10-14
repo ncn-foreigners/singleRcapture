@@ -491,4 +491,3 @@ expect_equivalent(
   as.numeric(table(simulate(Model6, seed = 123)[,1])),
   c(1619, 232, 28, 1)
 )
-
