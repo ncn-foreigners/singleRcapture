@@ -1,4 +1,4 @@
-# cheking popsize estimation as in van der heijden et.al (2018)
+# cheking popsize estimation as in articles on which the package is based
 
 expect_silent(
   opt <- estimatePopsize(

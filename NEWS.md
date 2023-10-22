@@ -1,3 +1,7 @@
+# singleRcapture 0.2.1.1
+
+* Bugfix for tests failing with `noLongDouble`
+
 # singleRcapture 0.2.1
 
 * Fixed bugs in `IRLS` fitting when providing `weights` argument when calling

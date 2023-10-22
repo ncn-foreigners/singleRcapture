@@ -1,3 +1,6 @@
+
+eps <- if (capabilities("long.double")) sqrt(.Machine$double.eps) else 0.01
+
 # test simulate
 set.seed(123)
 expect_equivalent(
@@ -16,7 +19,8 @@ expect_equivalent(
    mid1_sim <- simulate(mod1, 10)
    dim(mid1_sim)
   },
-  c(2920, 10)
+  c(2920, 10),
+  tolerance = eps
 )
 
 expect_silent(
@@ -68,32 +72,38 @@ expect_silent(
 
 expect_equal(
   nobs(Model6),
-  nobs(Model)
+  nobs(Model),
+  tolerance = eps
 )
 
 expect_equal(
   Model$populationSize$pointEstimate,
-  Model6$populationSize$pointEstimate
+  Model6$populationSize$pointEstimate,
+  tolerance = eps
 )
 
 expect_equal(
   Model$populationSize$confidenceInterval,
-  Model6$populationSize$confidenceInterval
+  Model6$populationSize$confidenceInterval,
+  tolerance = eps
 )
 
 expect_equal(
   Model$populationSize$variance,
-  Model6$populationSize$variance
+  Model6$populationSize$variance,
+  tolerance = eps
 )
 
 expect_equal(
   Model$coefficients,
-  Model6$coefficients
+  Model6$coefficients,
+  tolerance = eps
 )
 
 expect_equal(
   Model$logL,
-  Model6$logL
+  Model6$logL,
+  tolerance = eps
 )
 
 # dfbetas and dfpopsize
@@ -162,7 +172,8 @@ expect_equal(
     unique(dfp[netherlandsimmigrant$capture == 2 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
     unique(dfp[netherlandsimmigrant$capture == 3 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1],
     unique(dfp[netherlandsimmigrant$capture == 4 & netherlandsimmigrant$gender == "male"   & netherlandsimmigrant$nation == "American and Australia" & netherlandsimmigrant$age == "<40yrs"])[1]),
-  dfp6[1:7]
+  dfp6[1:7],
+  tolerance = eps
 )
 
 # Extractors
@@ -185,9 +196,12 @@ expect_silent(
   c(extractAIC(Model), extractAIC(Model1), extractAIC(Model2))
 )
 
-expect_equal(AIC(Model), AIC(Model6))
-expect_equal(BIC(Model), BIC(Model6))
-expect_equal(extractAIC(Model), extractAIC(Model6))
+expect_equal(AIC(Model), AIC(Model6),
+             tolerance = eps)
+expect_equal(BIC(Model), BIC(Model6),
+             tolerance = eps)
+expect_equal(extractAIC(Model), extractAIC(Model6),
+             tolerance = eps)
 
 # Sandwich
 
@@ -195,43 +209,44 @@ require(sandwich)
 
 expect_equivalent(
   vcovHC(Model),
-  vcovHC(Model6)
+  vcovHC(Model6),
+  tolerance = eps
 )
 
 expect_equivalent(
   vcov(Model, type = "observedInform"),
   vcov(Model, type = "Fisher"),
-  tolerance = .0001
+  tolerance = max(.0001, eps)
 )
 
 expect_equivalent(
   vcov(Model1, type = "observedInform"),
   vcov(Model1, type = "Fisher"),
-  tolerance = .0001
+  tolerance = max(.0001, eps)
 )
 
 expect_equivalent(
   vcov(Model2, type = "observedInform"),
   vcov(Model2, type = "Fisher"),
-  tolerance = .00001
+  tolerance = max(.00001, eps)
 )
 
 expect_equivalent(
   bread(Model, type = "observedInform"),
   bread(Model, type = "Fisher"),
-  tolerance = .0001
+  tolerance = max(.0001, eps)
 )
 
 expect_equivalent(
   bread(Model1, type = "observedInform"),
   bread(Model1, type = "Fisher"),
-  tolerance = .0001
+  tolerance = max(.0001, eps)
 )
 
 expect_equivalent(
   bread(Model2, type = "observedInform"),
   bread(Model2, type = "Fisher"),
-  tolerance = .00001
+  tolerance = max(.00001, eps)
 )
 
 expect_silent(
@@ -424,17 +439,20 @@ expect_silent(
 
 expect_equivalent(
   predict(Model, type = "response", se.fit = TRUE),
-  predict(Model6, type = "response", se.fit = TRUE, newdata = model.frame(Model)[,-1])
+  predict(Model6, type = "response", se.fit = TRUE, newdata = model.frame(Model)[,-1]),
+  tolerance = eps
 )
 
 expect_equivalent(
   predict(Model, type = "link", se.fit = TRUE),
-  predict(Model6, type = "link", se.fit = TRUE, newdata = netherlandsimmigrant[,-4])
+  predict(Model6, type = "link", se.fit = TRUE, newdata = netherlandsimmigrant[,-4]),
+  tolerance = eps
 )
 
 expect_equivalent(
   predict(Model, type = "mean", se.fit = TRUE),
-  predict(Model6, type = "mean", se.fit = TRUE, newdata = netherlandsimmigrant[,-4])
+  predict(Model6, type = "mean", se.fit = TRUE, newdata = netherlandsimmigrant[,-4]),
+  tolerance = eps
 )
 
 expect_silent(
@@ -443,7 +461,8 @@ expect_silent(
 
 expect_equal(
   logLik(Model),
-  logLik(Model6)
+  logLik(Model6),
+  tolerance = eps
 )
 
 expect_silent(
@@ -467,7 +486,8 @@ expect_equal(
 
 expect_equal(
   stratifyPopsize(Model),
-  stratifyPopsize(Model6)
+  stratifyPopsize(Model6),
+  tolerance = eps
 )
 
 expect_error(
@@ -489,5 +509,6 @@ expect_equal(
 
 expect_equivalent(
   as.numeric(table(simulate(Model6, seed = 123)[,1])),
-  c(1619, 232, 28, 1)
+  c(1619, 232, 28, 1),
+  tolerance = eps
 )
