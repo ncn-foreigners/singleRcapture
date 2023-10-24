@@ -264,7 +264,6 @@ estimatePopsizeFit <- function(y, X,
       }
     }
     
-    
     giveError <- tryCatch(
       expr = {
         FITT <- stats::optim(
@@ -279,9 +278,6 @@ estimatePopsizeFit <- function(y, X,
       },
       error = function (e) {
         list(1, e)
-      },
-      warning = function (w) {
-        list(2, w)
       }
     )
 
@@ -291,11 +287,6 @@ estimatePopsizeFit <- function(y, X,
         giveError[[2]]$message,
         " consider fitting with 'IRLS' or changing controlMethod argument."
       ))
-    }
-    
-    if (!isTRUE(control$silent) && (giveError[[1]] == 2)) {
-      warning("stats::optim returned with the following warning: ",
-              giveError[[2]]$message)
     }
     
     if (FITT$convergence != 0 && !isTRUE(control$silent)) {

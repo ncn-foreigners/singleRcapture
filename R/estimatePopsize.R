@@ -368,26 +368,20 @@ NULL
 #' # see documentation for summary.singleRmargin
 #' summary(marginalFreq(model), df = 1, "group")
 #' 
-#' modelSingleRcapture <- estimatePopsize(
+#' # We currently support 2 methods of numerical fitting
+#' # (generalized) IRLS algorithm and via stats::optim
+#' # the latter one is faster when fitting negative binomial models 
+#' # (and only then) due to IRLS having to numerically compute
+#' # (expected) information matrixes, optim is also less reliable when
+#' # using alphaFormula argument in controlModel
+#' modelNegBin <- estimatePopsize(
 #'     formula = TOTAL_SUB ~ ., 
 #'     data = farmsubmission, 
 #'     model = ztnegbin, 
-#'     method = "IRLS"
+#'     method = "optim"
 #' )
-#' # comparison with VGAM package, VGAM uses slightly different parametrisation
-#' # so we use negloglink instead of loglink for size parameter
-#' # i.e 1 / dispersion parameter
-#' if (require(VGAM)) {
-#'   modelVGAM <- vglm(
-#'      formula = TOTAL_SUB ~ ., 
-#'      family = posnegbinomial(lsize = negloglink()), 
-#'      data = farmsubmission
-#'   )
-#'   summary(modelVGAM)
-#' }
-#' # Results are comparable
-#' summary(modelSingleRcapture)
-#' summary(marginalFreq(modelSingleRcapture))
+#' summary(modelNegBin)
+#' summary(marginalFreq(modelNegBin))
 #' 
 #' # More advanced call that specifies additional formula and shows
 #' # in depth information about fitting procedure
@@ -408,17 +402,17 @@ NULL
 #' # A advanced input with additional information for fitting procedure and
 #' # additional formula specification and different link for inflation parameter.
 #' Model <- estimatePopsize(
-#'    formula = TOTAL_SUB ~ ., 
-#'    data = farmsubmission, 
-#'    model = oiztgeom(omegaLink = "cloglog"), 
-#'    method = "IRLS", 
-#'    controlMethod = controlMethod(
-#'       stepsize = .15, 
-#'       momentumFactor = 1.8,
-#'       epsilon = 1e-12, 
-#'       silent = TRUE
-#'    ),
-#'    controlModel = controlModel(omegaFormula = ~ .)
+#'  formula = TOTAL_SUB ~ ., 
+#'  data = farmsubmission, 
+#'  model = oiztgeom(omegaLink = "cloglog"), 
+#'  method = "IRLS", 
+#'  controlMethod = controlMethod(
+#'    stepsize = .85, 
+#'    momentumFactor = 1.2,
+#'    epsilon = 1e-10, 
+#'    silent = TRUE
+#'  ),
+#'  controlModel = controlModel(omegaFormula = ~ C_TYPE + log_size)
 #' )
 #' summary(marginalFreq(Model), df = 18 - length(Model$coefficients))
 #' summary(Model)

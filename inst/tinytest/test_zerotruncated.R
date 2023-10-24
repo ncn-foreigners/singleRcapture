@@ -1,5 +1,7 @@
 # testing for zero truncated models
 
+eps <- if (capabilities("long.double")) sqrt(.Machine$double.eps) else 0.01
+
 set.seed(123)
 
 N <- 1000
@@ -65,7 +67,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = eps
 )
 
 expect_equivalent(
@@ -130,7 +133,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = eps
 )
 
 expect_equivalent(
@@ -307,7 +311,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = eps
 )
 
 expect_equivalent(
@@ -505,7 +510,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = eps
 )
 
 expect_equivalent(
@@ -568,7 +574,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = eps
 )
 
 expect_equivalent(
@@ -636,7 +643,8 @@ expect_silent(
 
 expect_equivalent(
   as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
-  stra$Observed
+  stra$Observed,
+  tolerance = eps
 )
 
 expect_equivalent(

@@ -1,3 +1,7 @@
+# singleRcapture 0.2.1.1
+
+* Bugfix for tests failing with `noLongDouble`
+
 # singleRcapture 0.2.1
 
 * Fixed bugs in `IRLS` fitting when providing `weights` argument when calling
@@ -16,6 +20,11 @@
   much easier
 * Update will be uploaded to `CRAN`
 * `semiparametric` bootstrap now has a much faster sampling algorithm (that does the same job)
+
+Unit tests:
+* Reduced computational burden of unit tests
+* Multicore tests will only be performed after `TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER`
+  is set to `"true"` via `Sys.setenv` and `_R_CHECK_LIMIT_CORES_` to `false`
 
 # singleRcapture 0.2.0.1
 

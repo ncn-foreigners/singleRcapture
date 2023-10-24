@@ -12,6 +12,7 @@ coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/
 status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
 [![CRAN
 downloads](http://cranlogs.r-pkg.org/badges/grand-total/singleRcapture?color=blue)](https://cran.r-project.org/package=singleRcapture)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8436043.svg)](https://doi.org/10.5281/zenodo.8436043)
 <!-- badges: end -->
 
 Capture-recapture type experiments are used to estimate the total
@@ -444,7 +445,8 @@ the user):
 plot(modelInflated2, 
      plotType = "bootHist", 
      labels = TRUE, 
-     ylim = c(0, 200))
+     ylim = c(0, 175),
+     breaks = 15)
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" />

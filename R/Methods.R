@@ -196,15 +196,15 @@ summary.singleRStaticCountData <- function(object,
 #' @seealso [redoPopEstimation()] [stats::summary.glm()] [estimatePopsize()]
 #' @exportS3Method
 predict.singleRStaticCountData <- function(object,
-                            newdata,
-                            type = c("response", "link", 
-                                     "mean", "popSize", 
-                                     "contr"),
-                            se.fit = FALSE,
-                            na.action = NULL,
-                            weights,
-                            cov,
-                            ...) {
+                                           newdata,
+                                           type = c("response", "link", 
+                                                    "mean", "popSize", 
+                                                    "contr"),
+                                           se.fit = FALSE,
+                                           na.action = NULL,
+                                           weights,
+                                           cov,
+                                           ...) {
   type <- match.arg(type)
   if (missing(weights)) {
     if (missing(newdata)) {
@@ -267,8 +267,7 @@ predict.singleRStaticCountData <- function(object,
         rownames(Xvlm),
         family(object)$etaNames
       )
-    ) + object$offset
-    
+    )
 
     res <- switch (type,
       response = as.data.frame(
@@ -622,7 +621,9 @@ hatvalues.singleRStaticCountData <- function(model, ...) {
   } else {
     W <- model$model$Wfun(
       prior = model$priorWeights, 
-      eta   = model$linearPredictors
+      eta   = model$linearPredictors,
+      y     = if (is.null(model$y)) model.response(model.frame(model)) 
+      else model$y
     )
   }
   
@@ -1065,7 +1066,7 @@ redoPopEstimation.singleRStaticCountData <- function(object,
     else weights
     
     offset <- if (missing(offset))
-      matrix(0, nrow = length(pw), ncol = length(family(object))$etaNames)
+      matrix(0, nrow = length(pw), ncol = length(family(object)$etaNames))
     else offset
     
     coef <- if (missing(coef)) stats::coef(object)
@@ -1108,14 +1109,11 @@ redoPopEstimation.singleRStaticCountData <- function(object,
     control = if (missing(control))
       object$populationSize$control
     else control,
-    Xvlm = if (family(object)$family %in% c("zelterman", "chao") && popVar == "bootstrap") 
-      X 
-    else 
-      Xvlm,
-    W = if (isTRUE(object$call$method == "IRLS")) 
+    Xvlm = Xvlm,
+    W = if (isTRUE(object$call$method == "IRLS") & missing(newdata)) 
       object$weights 
     else 
-      family(object)$Wfun(prior = pw, eta = etaNew),
+      family(object)$Wfun(prior = pw, eta = etaNew, y = Y),
     sizeObserved = nn,
     modelFrame = MM,
     cov = cov,

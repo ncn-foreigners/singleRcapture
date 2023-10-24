@@ -29,7 +29,7 @@ NULL
 #' 
 #' @details Most of these functions are based on some "base" distribution with
 #' support \mjseqn{\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace} that describe
-#' distribution of \mjseqn{Y}{Y}{} before truncation. Currently they include:
+#' distribution of \mjseqn{Y} before truncation. Currently they include:
 #' \mjsdeqn{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 #' \begin{array}{cc}
 #' \frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{Poisson distribution}  \cr
@@ -381,15 +381,15 @@ NULL
 #'   model = ztpoisson, 
 #'   method = "IRLS"
 #' )
-#' # Get df beta
+#' # Get dfbeta
 #' dfb <- dfbeta(Model)
-#' # The results
+#' # The dfpopsize results are obtained via (It is also possible to not provide 
+#' # dfbeta then they will be computed manually):
 #' res <- dfpopsize(Model, dfbeta = dfb)
 #' summary(res)
 #' plot(res)
-#' # It is also possible to not provide dfbeta then they will be
-#' # computed manually
-#' summary(dfpopsize(Model))
+#' # see vaious types of residuals:
+#' head(resid(Model, "all"))
 #' }
 #' @name regDiagSingleR
 NULL

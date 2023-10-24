@@ -227,7 +227,7 @@ on the model. These functions are used as \code{model} argument in
 
 Most of these functions are based on some "base" distribution with
 support \mjseqn{\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace} that describe
-distribution of \mjseqn{Y}{Y}{} before truncation. Currently they include:
+distribution of \mjseqn{Y} before truncation. Currently they include:
 \mjsdeqn{\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
 \begin{array}{cc}
 \frac{\lambda^{y}e^{-\lambda}}{y!}    & \text{Poisson distribution}  \cr

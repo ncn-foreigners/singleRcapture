@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER: "true"
+      _R_CHECK_LIMIT_CORES_: "false"
 
     steps:
       - uses: actions/checkout@v3
