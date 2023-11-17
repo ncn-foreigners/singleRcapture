@@ -439,7 +439,7 @@ expect_silent(
 
 expect_equivalent(
   predict(Model, type = "response", se.fit = TRUE),
-  predict(Model6, type = "response", se.fit = TRUE, newdata = model.frame(Model)[,-1]),
+  predict(Model6, type = "response", se.fit = TRUE, newdata = model.frame(Model)),
   tolerance = eps
 )
 
