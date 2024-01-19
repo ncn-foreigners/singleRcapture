@@ -40,7 +40,7 @@ Variance-covariance matrix estimation corrected for heteroscedasticity of regres
 }
 \description{
 S3 method for \code{vcovHC} to handle \code{singleRStaticCountData} class objects.
-Works exactly like \code{vcov.default} the only difference being that this method handles vector generalised linear models.
+Works exactly like \code{vcovHC.default} the only difference being that this method handles vector generalised linear models.
 Updating the covariance matrix in variance/standard error estimation for population size estimator can be done via \code{\link[=redoPopEstimation]{redoPopEstimation()}}
 }
 \examples{

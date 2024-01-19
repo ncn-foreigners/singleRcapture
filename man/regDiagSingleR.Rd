@@ -38,7 +38,8 @@ provided and \code{controlMethod} is called in \code{dfbeta} method.}
 points \mjseqn{\hat{\boldsymbol{\beta}}} on data
 specified at call for \code{model} after the removal of k'th row. By default 1.}
 
-\item{trace}{logical value specifying whether to tracking results.}
+\item{trace}{logical value specifying whether to tracking results when
+\code{cores > 1} it will result in a progress bar being created.}
 
 \item{cores}{Number of processor cores to be used,
 any number greater than 1 activates code designed with \code{doParallel},

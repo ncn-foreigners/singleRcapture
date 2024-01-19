@@ -645,7 +645,7 @@ hatvalues.singleRStaticCountData <- function(model, ...) {
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @rdname regDiagSingleR
 #' @exportS3Method 
 dfbeta.singleRStaticCountData <- function(model,
@@ -665,13 +665,17 @@ dfbeta.singleRStaticCountData <- function(model,
   
   if (cores > 1) {
     cl <- parallel::makeCluster(cores)
-    doParallel::registerDoParallel(cl)
+    pb <- progress::progress_bar$new(total = NROW(X))
+    
+    opts <- if (trace) list(progress = \(n) pb$tick()) else NULL
+    doSNOW::registerDoSNOW(cl)
     on.exit(parallel::stopCluster(cl))
     #parallel::clusterExport(cl, c("singleRinternalGetXvlmMatrix", "cf", "y", "X", "maxitNew", "model", "pw", "offset", "eta"), envir = environment())
     
     if (isFALSE(model$control$controlModel$weightsAsCounts)) {
       res <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
+        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind,
+                               .options.snow = opts),
         ex = {
           c(cf - estimatePopsizeFit(
             control = controlMethod(
@@ -696,7 +700,8 @@ dfbeta.singleRStaticCountData <- function(model,
       )
     } else {
       res <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
+        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind,
+                               .options.snow = opts),
         ex = {
           if (isFALSE(pw[k] - 1 > 0)) {
             c(cf - estimatePopsizeFit(

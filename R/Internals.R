@@ -89,7 +89,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
         method = control$fittingMethod,
         controlBootstrapMethod = control$bootstrapFitcontrol,
         N = N, Xvlm = Xvlm, modelFrame = modelFrame,
-        offset = offset, weightsFlag = weightsFlag
+        offset = offset, weightsFlag = weightsFlag,
+        visT = control$bootstrapVisualTrace
       )
     } else {
       funBoot <- switch(

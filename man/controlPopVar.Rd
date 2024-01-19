@@ -38,7 +38,8 @@ statistics produced by bootstrap.}
 bootstrapped sample after truncation for semi- and fully parametric bootstraps.}
 
 \item{bootstrapVisualTrace}{boolean value indicating whether to plot bootstrap
-statistics in real time.}
+statistics in real time if \code{cores = 1} if \code{cores > 1} it instead
+indicates whether to make progress bar.}
 
 \item{fittingMethod}{method used for fitting models from bootstrap samples.}
 
@@ -59,7 +60,7 @@ where the ration involving gamma functions is computed by log gamma function.}
 \item{covType}{type of covariance matrix for regression parameters by default
 observed information matrix.}
 
-\item{cores}{For bootstrap only, number of processor cores to be used,
+\item{cores}{for bootstrap only, number of processor cores to be used,
 any number greater than 1 activates code designed with \code{doParallel},
 \code{foreach} and \code{parallel} packages. Note that for now using parallel
 computing makes tracing impossible so \code{traceBootstrapSize} and

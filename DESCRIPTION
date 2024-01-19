@@ -28,7 +28,8 @@ Imports:
     lamW,
     mathjaxr,
     sandwich,
-    doParallel,
+    doSNOW,
+    progress,
     foreach,
     parallel
 Suggests: 
