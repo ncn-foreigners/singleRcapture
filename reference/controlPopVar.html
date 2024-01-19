@@ -103,7 +103,8 @@ bootstrapped sample after truncation for semi- and fully parametric bootstraps.<
 
 <dt>bootstrapVisualTrace</dt>
 <dd><p>boolean value indicating whether to plot bootstrap
-statistics in real time.</p></dd>
+statistics in real time if <code>cores = 1</code> if <code>cores &gt; 1</code> it instead
+indicates whether to make progress bar.</p></dd>
 
 
 <dt>fittingMethod</dt>
@@ -134,7 +135,7 @@ observed information matrix.</p></dd>
 
 
 <dt>cores</dt>
-<dd><p>For bootstrap only, number of processor cores to be used,
+<dd><p>for bootstrap only, number of processor cores to be used,
 any number greater than 1 activates code designed with <code>doParallel</code>,
 <code>foreach</code> and <code>parallel</code> packages. Note that for now using parallel
 computing makes tracing impossible so <code>traceBootstrapSize</code> and
