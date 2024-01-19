@@ -492,12 +492,6 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
 # make Xvlm matrix
 #' @importFrom stats terms
 singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL) {
-  if (length(formulas[[1]]) == 3) {
-    #formulas[[1]][[2]] <- NULL
-  }
-  if (attr(attr(X, "terms"), "response") != 0) {
-    #X <- X[, colnames(X)[-attr(attr(X, "terms"), "response")], drop = FALSE]
-  }
   nPar <- length(parNames)
   Xses <- list()
   
@@ -506,13 +500,12 @@ singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL
     if (length(attr(terms(formulas[[k]], data = X), "term.labels")) != 0) {
       Xses[[k]] <- model.matrix(
         terms(formulas[[k]], data = X),
-        data = X[, colnames(X)]
+        data = X
       )
     } else {
       Xses[[k]] <- model.matrix(
         ~ 1,
-        X[, intersect(attr(terms(formulas[[k]], data = X), "term.labels"),
-                      colnames(X)), drop = FALSE]
+        X
       )
       if (attr(terms(formulas[[k]], data = X), "intercept") == 0)
         warning(paste0(
