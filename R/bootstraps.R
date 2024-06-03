@@ -131,11 +131,11 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
                                 beta, weights, trcount, numboot,
                                 eta, cores, controlBootstrapMethod = NULL,
-                                method, N, offset, weightsFlag, ...) {
+                                method, N, offset, weightsFlag, visT, ...) {
   n <- length(y)
   if (isTRUE(weightsFlag)) {
     n <- sum(weights)
@@ -147,14 +147,18 @@ noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
   }
   
   cl <- parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
+  pb <- progress::progress_bar$new(total = numboot)
+  
+  opts <- if (visT) list(progress = \(n) pb$tick()) else NULL
+  doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl))
   
   
   ### TODO:: This gives a different results for family = "chao" and "zelterman"
   ### when compared to non paralelized version
   strappedStatistic <- foreach::`%dopar%`(
-    obj = foreach::foreach(k = 1:numboot, .combine = c),
+    obj = foreach::foreach(k = 1:numboot, .combine = c,
+                           .options.snow = opts),
     #obj = foreach::foreach(k = 1:numboot, .export = "singleRcaptureinternalIRLSmultipar"),
     ex = {
       theta <- NULL
@@ -320,11 +324,11 @@ semparBoot <- function(family, formulas, y, X, beta,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
                                beta, weights, trcount, numboot,
                                eta, cores, controlBootstrapMethod = NULL,
-                               method, N, offset, weightsFlag, ...) {
+                               method, N, offset, weightsFlag, visT, ...) {
   n <- length(y)
   if (isTRUE(weightsFlag)) {
     n <- sum(weights)
@@ -338,11 +342,15 @@ semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
   N <- round(sum(N))
   
   cl <- parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
+  pb <- progress::progress_bar$new(total = numboot)
+  
+  opts <- if (visT) list(progress = \(n) pb$tick()) else NULL
+  doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl))
   
   strappedStatistic <- foreach::`%dopar%`(
-    obj = foreach::foreach(k = 1:numboot, .combine = c),
+    obj = foreach::foreach(k = 1:numboot, .combine = c,
+                           .options.snow = opts),
     ex = {
       theta <- NULL
       while (is.null(theta)) {
@@ -558,12 +566,12 @@ parBoot <- function(family, formulas, y, X, beta, weights,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom stats rbinom
 parBootMultiCore <- function(family, formulas, y, X, modelFrame,
                              beta, weights, trcount, numboot,
                              eta, cores, controlBootstrapMethod = NULL,
-                             method, N, offset, weightsFlag, ...) {
+                             method, N, offset, weightsFlag, visT, ...) {
   n <- length(y)
   if (isTRUE(weightsFlag)) {
     n <- sum(weights)
@@ -590,14 +598,18 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
   prob <- contr / N
   
   cl <- parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
+  pb <- progress::progress_bar$new(total = numboot)
+  
+  opts <- if (visT) list(progress = \(n) pb$tick()) else NULL
+  doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl))
   #doRNG::registerDoRNG()
   
   ### TODO:: This gives a different results for family = "chao" and "zelterman"
   ### when compared to non paralelized version
   strappedStatistic <- foreach::`%dopar%`(
-    obj = foreach::foreach(k = 1:numboot, .combine = c),
+    obj = foreach::foreach(k = 1:numboot, .combine = c,
+                           .options.snow = opts),
     ex = {
       theta <- NULL
       while (is.null(theta)) {

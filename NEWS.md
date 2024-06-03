@@ -1,3 +1,9 @@
+# singleRcapture 0.2.1.2
+
+* Bugfix for interaction terms in formula not being considered
+* Switched parallel backed to `doSNOW` form `doParallel`
+* Introduced progress bars to parallelized parts of code
+
 # singleRcapture 0.2.1.1
 
 * Bugfix for tests failing with `noLongDouble`

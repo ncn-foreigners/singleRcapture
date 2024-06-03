@@ -758,91 +758,91 @@ estimatePopsize.default <- function(formula,
     )
   } else {
     stop("Ratio regression is not yet implemented")
-    ff <- formula
-    # TODO make this inherit from family
-    a <- function(x) {x+1}
-    if (length(ff) == 3) {ff[[3]] <- 1}
-    modelFrame <- stats::model.frame(ff, data, ...)
-    
-    observed <- modelFrame |>
-      model.response() |>
-      as.vector() # dropping names, won't be needed
-    
-    delete <- modelFrame |>
-      attr("names")
-    
-    ff <- log(r) ~ 1
-    ff[[3]] <- formula[[3]]
-    
-    counts <- table(observed)
-    
-    if (TRUE) {
-      r <- sapply(1:(max(observed)-1), function(x) {
-        family$ratioFunc(x) * counts[as.character(x+1)] / counts[as.character(x)]
-      }) |> as.vector()
-      
-      if (!is.null(weights)) {
-        priorWeights <- as.numeric(weights)
-      } else {
-        priorWeights <- rep(1, nrow(modelFrame))
-      }
-      
-      if (TRUE) {
-        weights <- (1/counts[1:(max(observed)-1)] + 1/counts[2:max(observed)]) ^ -1
-        #weights <- priorWeights * weights
-      } else {
-        # weighting outgh to be optional
-      }
-      
-      # maybe include data here
-      linearModel <- lm(ff, data = data.frame(
-                        r = r, x = 1:(max(observed) - 1)
-                        ), weights = weights, ...)
-      
-      fitRatio <- predict(linearModel, data.frame(x = 0:(max(observed)-1)))
-      fitRatio <- exp(fitRatio)
-      
-      # first est for N
-      N <- sum(counts) / (1 - 1 / sum(c(1, cumprod(fitRatio))))
-      # second est for N
-      N <- c(N, sum(counts) + family$ratioFunc(0)*counts["1"] / fitRatio[1])
-      names(N) <- c("ht", "reg")
-      f0 <- N - sum(counts)
-      
-      # TODO:: idk if this applies to HT estimate
-      variation <- model.matrix(ff, model.frame(ff, data.frame(x = 0, r = 0)))
-      variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
-      ## TODO -- this is an approximation
-      # we're assuming var(counts["1"]) ~~ counts["1"]
-      # this can be made better
-      variation <- variation + counts["1"] * (a(0) ^ 2) * 
-        exp(-predict(linearModel, data.frame(x = 0))) ^ 2
-      
-      sd <- sqrt(variation)
-      sc <- qnorm(p = 1 - .05 / 2)
-      
-      
-      confidenceInterval <- 
-        data.frame(lowerBound = pmax(N - sc * sd, sum(counts)), 
-                   upperBound = N + sc * sd)
-      print(N)
-      print(confidenceInterval)
-      
-    } else {
-      ### TODO
-      # put observed likelihood method here
-    }
-    
-    structure(
-      list(
-        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
-        X                = if(isTRUE(returnElements[[2]])) variables else NULL,
-        modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
-        formula          = formula,
-        call             = match.call(),
-        coefficients     = coefficients
-      ),
-      class = c("singleRRatioReg", "singleR", "glm", "lm")
-    )
+    # ff <- formula
+    # # TODO make this inherit from family
+    # a <- function(x) {x+1}
+    # if (length(ff) == 3) {ff[[3]] <- 1}
+    # modelFrame <- stats::model.frame(ff, data, ...)
+    # 
+    # observed <- modelFrame |>
+    #   model.response() |>
+    #   as.vector() # dropping names, won't be needed
+    # 
+    # delete <- modelFrame |>
+    #   attr("names")
+    # 
+    # ff <- log(r) ~ 1
+    # ff[[3]] <- formula[[3]]
+    # 
+    # counts <- table(observed)
+    # 
+    # if (TRUE) {
+    #   r <- sapply(1:(max(observed)-1), function(x) {
+    #     family$ratioFunc(x) * counts[as.character(x+1)] / counts[as.character(x)]
+    #   }) |> as.vector()
+    #   
+    #   if (!is.null(weights)) {
+    #     priorWeights <- as.numeric(weights)
+    #   } else {
+    #     priorWeights <- rep(1, nrow(modelFrame))
+    #   }
+    #   
+    #   if (TRUE) {
+    #     weights <- (1/counts[1:(max(observed)-1)] + 1/counts[2:max(observed)]) ^ -1
+    #     #weights <- priorWeights * weights
+    #   } else {
+    #     # weighting outgh to be optional
+    #   }
+    #   
+    #   # maybe include data here
+    #   linearModel <- lm(ff, data = data.frame(
+    #                     r = r, x = 1:(max(observed) - 1)
+    #                     ), weights = weights, ...)
+    #   
+    #   fitRatio <- predict(linearModel, data.frame(x = 0:(max(observed)-1)))
+    #   fitRatio <- exp(fitRatio)
+    #   
+    #   # first est for N
+    #   N <- sum(counts) / (1 - 1 / sum(c(1, cumprod(fitRatio))))
+    #   # second est for N
+    #   N <- c(N, sum(counts) + family$ratioFunc(0)*counts["1"] / fitRatio[1])
+    #   names(N) <- c("ht", "reg")
+    #   f0 <- N - sum(counts)
+    #   
+    #   # TODO:: idk if this applies to HT estimate
+    #   variation <- model.matrix(ff, model.frame(ff, data.frame(x = 0, r = 0)))
+    #   variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
+    #   ## TODO -- this is an approximation
+    #   # we're assuming var(counts["1"]) ~~ counts["1"]
+    #   # this can be made better
+    #   variation <- variation + counts["1"] * (a(0) ^ 2) * 
+    #     exp(-predict(linearModel, data.frame(x = 0))) ^ 2
+    #   
+    #   sd <- sqrt(variation)
+    #   sc <- qnorm(p = 1 - .05 / 2)
+    #   
+    #   
+    #   confidenceInterval <- 
+    #     data.frame(lowerBound = pmax(N - sc * sd, sum(counts)), 
+    #                upperBound = N + sc * sd)
+    #   print(N)
+    #   print(confidenceInterval)
+    #   
+    # } else {
+    #   ### TODO
+    #   # put observed likelihood method here
+    # }
+    # 
+    # structure(
+    #   list(
+    #     y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+    #     X                = if(isTRUE(returnElements[[2]])) variables else NULL,
+    #     modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
+    #     formula          = formula,
+    #     call             = match.call(),
+    #     coefficients     = coefficients
+    #   ),
+    #   class = c("singleRRatioReg", "singleR", "glm", "lm")
+    # )
   }
 }

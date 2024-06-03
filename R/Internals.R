@@ -89,7 +89,8 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
         method = control$fittingMethod,
         controlBootstrapMethod = control$bootstrapFitcontrol,
         N = N, Xvlm = Xvlm, modelFrame = modelFrame,
-        offset = offset, weightsFlag = weightsFlag
+        offset = offset, weightsFlag = weightsFlag,
+        visT = control$bootstrapVisualTrace
       )
     } else {
       funBoot <- switch(
@@ -492,37 +493,20 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
 # make Xvlm matrix
 #' @importFrom stats terms
 singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL) {
-  # TODO:: functions in formulas don't work when on is ~ . add a speciak check for this dot
-  if (length(formulas[[1]]) == 3) {
-    formulas[[1]][[2]] <- NULL
-  }
-  if (attr(attr(X, "terms"), "response") != 0) {
-    X <- X[, colnames(X)[-attr(attr(X, "terms"), "response")], drop = FALSE]
-  }
   nPar <- length(parNames)
   Xses <- list()
   
   for (k in 1:nPar) {
     # TODO:: Add contrasts here
     if (length(attr(terms(formulas[[k]], data = X), "term.labels")) != 0) {
-      if (attr(terms(formulas[[k]], data = X), "intercept") == 0) {
-        Xses[[k]] <- model.matrix(
-          ~ . - 1,
-          data = X[, intersect(attr(terms(formulas[[k]], data = X), "term.labels"),
-                               colnames(X)), drop = FALSE]
-        )
-      } else {
-        Xses[[k]] <- model.matrix(
-          ~ .,
-          data = X[, intersect(attr(terms(formulas[[k]], data = X), "term.labels"),
-                               colnames(X)), drop = FALSE]
-        )
-      }
+      Xses[[k]] <- model.matrix(
+        terms(formulas[[k]], data = X),
+        data = X
+      )
     } else {
       Xses[[k]] <- model.matrix(
         ~ 1,
-        X[, intersect(attr(terms(formulas[[k]], data = X), "term.labels"),
-                      colnames(X)), drop = FALSE]
+        X
       )
       if (attr(terms(formulas[[k]], data = X), "intercept") == 0)
         warning(paste0(

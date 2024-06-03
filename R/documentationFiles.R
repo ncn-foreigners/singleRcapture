@@ -269,7 +269,8 @@ NULL
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel 
 #' computing makes tracing impossible so \code{trace} parameter is ignored in this case.
 #' @param type a type of residual to return.
-#' @param trace logical value specifying whether to tracking results.
+#' @param trace logical value specifying whether to tracking results when
+#' \code{cores > 1} it will result in a progress bar being created.
 #' @param maxitNew maximal number of iterations for regressions with starting 
 #' points \mjseqn{\hat{\boldsymbol{\beta}}} on data 
 #' specified at call for \code{model} after the removal of k'th row. By default 1.

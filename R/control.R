@@ -198,7 +198,7 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' respective standard error and variance estimation.
 #'
 #' @param alpha significance level, 0.05 used by default.
-#' @param cores For bootstrap only, number of processor cores to be used,
+#' @param cores for bootstrap only, number of processor cores to be used,
 #' any number greater than 1 activates code designed with \code{doParallel}, 
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel
 #' computing makes tracing impossible so \code{traceBootstrapSize} and 
@@ -214,7 +214,8 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @param traceBootstrapSize boolean value indicating whether to print size of 
 #' bootstrapped sample after truncation for semi- and fully parametric bootstraps.
 #' @param bootstrapVisualTrace boolean value indicating whether to plot bootstrap 
-#' statistics in real time.
+#' statistics in real time if \code{cores = 1} if \code{cores > 1} it instead
+#' indicates whether to make progress bar.
 #' @param fittingMethod method used for fitting models from bootstrap samples.
 #' @param bootstrapFitcontrol control parameters for each regression works exactly 
 #' like \code{controlMethod} but for fitting models from bootstrap samples.
