@@ -159,3 +159,17 @@ summary.singleRmargin <- function(object, df,
     class = "summarysingleRmargin"
   )
 }
+
+
+
+#' @method print summarysingleRmargin
+#' @exportS3Method 
+print.summarysingleRmargin <- function(x, ...) {
+  cat("Test for Goodness of fit of a regression model:\n",
+      "\n", sep = "")
+  print(x$Test)
+  cat("\n--------------------------------------------------------------",
+      "\nCells with fitted frequencies of < 5 have been", x$l5, 
+      "\nNames of cells used in calculating test(s) statistic:", names(x$y), 
+      "\n", sep = " ")
+}
