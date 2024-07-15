@@ -1,90 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/404.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/carcassubmission.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/confint.singleRStaticCountData.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlMethod.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlModel.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlPopVar.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsize.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsizeFit.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/farmsubmission.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/marginalFreq.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/netherlandsimmigrant.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/plot.singleRStaticCountData.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/popSizeEst.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/predict.singleRStaticCountData.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/redoPopEstimation.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/regDiagSingleR.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/simulate.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/stratifyPopsize.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRStaticCountData.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRmargin.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/vcov.singleRStaticCountData.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/singleRcapture/reference/vcovHC.singleRStaticCountData.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/404.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/LICENSE-text.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/LICENSE.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/authors.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/index.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/news/index.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/carcassubmission.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/confint.singleRStaticCountData.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlMethod.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlModel.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/controlPopVar.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsize.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsizeFit.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/farmsubmission.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/index.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/marginalFreq.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/netherlandsimmigrant.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/plot.singleRStaticCountData.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/popSizeEst.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/predict.singleRStaticCountData.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/redoPopEstimation.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/regDiagSingleR.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/simulate.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/stratifyPopsize.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRStaticCountData.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRmargin.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/vcov.singleRStaticCountData.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/singleRcapture/reference/vcovHC.singleRStaticCountData.html</loc></url>
 </urlset>
+
