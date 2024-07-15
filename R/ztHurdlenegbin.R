@@ -69,18 +69,16 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
             (1 - PI) * ((alpha * lambda + 1) ^ (2 / alpha) * (alpha ^ 2 * lambda ^ 2 + 2 * alpha * lambda + 1) +
             (alpha * lambda + 1) ^ (1 / alpha) * ((-alpha ^ 2 - 2 * alpha - 1) * lambda ^ 2 - 2 * alpha * lambda - 2) + 1) /
             ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2,
-            (1 - PI) *lambda ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) * 
+            (1 - PI) * lambda ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) * 
             (lambda * alpha ^ 2 + (lambda + 1) * alpha + 1) * log(lambda * alpha + 1) +
             (lambda * alpha + 1) ^ (1 / alpha) * ((1 - 2 * lambda) * alpha ^ 2 - lambda * alpha) - alpha ^ 2) /
-            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) - lambda * alpha - lambda - 1) ^ 2)
-            (-PI * lambda + lambda + PI) * exp(-lambda) + (1 - PI) * (1 - exp(-lambda)),
-            (1 - lambda) * (1 - exp(-lambda)),
+            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) - lambda * alpha - lambda - 1) ^ 2),
             1 - (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
             (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
             lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
           ) * c(
             lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
-              alphaLink(eta[,2], inverse = TRUE, deriv = 1),
+             alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
                 piLink(eta[, 3], inverse = TRUE, deriv = 1)
           ), ncol = 3)
         }

@@ -499,9 +499,19 @@ singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL
   for (k in 1:nPar) {
     # TODO:: Add contrasts here
     if (length(attr(terms(formulas[[k]], data = X), "term.labels")) != 0) {
-      Xses[[k]] <- model.matrix(
-        terms(formulas[[k]], data = X),
-        data = X
+      Xses[[k]] <- tryCatch(
+        expr = {model.matrix(
+          terms(formulas[[k]], data = X),
+          data = X
+        )},
+        error = function (e) {
+          ff <- formulas[[k]]
+          ff[[2]] <- NULL
+          model.matrix(
+            terms(ff, data = X),
+            data = X
+          )
+        }
       )
     } else {
       Xses[[k]] <- model.matrix(

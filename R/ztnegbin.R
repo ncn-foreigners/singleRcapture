@@ -53,7 +53,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2)
             ) * c(
               lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
-              alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
+               alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
             ), ncol = 2)
           }
       )
