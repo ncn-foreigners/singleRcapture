@@ -75,13 +75,15 @@ p value for Wald test.
 }
 }
 \description{
-A \code{summary} method for \code{singleRStaticCountData} class, works
-analogically to \code{summary.glm} but includes population size estimation
-results. If any additional statistics, such as confidence intervals for
-coefficients or coefficient correlation, are specified they will be printed.
+A \code{summary} method for \code{singleRStaticCountData} class
 }
 \details{
 \loadmathjax
+
+Works
+analogically to \code{summary.glm} but includes population size estimation
+results. If any additional statistics, such as confidence intervals for
+coefficients or coefficient correlation, are specified they will be printed.
 }
 \seealso{
 \code{\link[=redoPopEstimation]{redoPopEstimation()}} \code{\link[stats:summary.glm]{stats::summary.glm()}}

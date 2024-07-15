@@ -43,7 +43,7 @@ If missing set to \code{"analytic"}.}
 \item{offset}{offset argument for new data}
 
 \item{weightsAsCounts}{for \code{singleRStaticCountData} method used to specify
-whether weights should be treated as number of occurences for rows in data}
+whether weights should be treated as number of occurrences for rows in data}
 }
 \value{
 An object of class \code{popSizeEstResults} containing updated
@@ -56,6 +56,8 @@ reduction) to population size estimation and standard error estimation.
 }
 \details{
 \loadmathjax
+
+Any non specified arguments will be inferred from the \code{object}
 }
 \examples{
 # Create simple model

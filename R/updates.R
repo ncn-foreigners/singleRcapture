@@ -17,8 +17,12 @@
 #' If missing set to \code{"analytic"}.
 #' @param offset offset argument for new data
 #' @param weightsAsCounts for \code{singleRStaticCountData} method used to specify
-#' whether weights should be treated as number of occurences for rows in data
+#' whether weights should be treated as number of occurrences for rows in data
 #' @param ... additional optional arguments, currently not used in \code{singleRStaticCountData} class method.
+#'
+#' @details
+#' Any non specified arguments will be inferred from the \code{object}
+#' 
 #'
 #' @return An object of class \code{popSizeEstResults} containing updated 
 #' population size estimation results.

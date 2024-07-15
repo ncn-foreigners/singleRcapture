@@ -1,7 +1,11 @@
 #' \loadmathjax
 #' @title Summary statistics for model of singleRStaticCountData class.
 #' 
-#' @description A \code{summary} method for \code{singleRStaticCountData} class, works 
+#' @description
+#' A \code{summary} method for \code{singleRStaticCountData} class
+#' 
+#' 
+#' @details Works 
 #' analogically to \code{summary.glm} but includes population size estimation 
 #' results. If any additional statistics, such as confidence intervals for
 #' coefficients or coefficient correlation, are specified they will be printed.
