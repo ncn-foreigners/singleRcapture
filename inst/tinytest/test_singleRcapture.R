@@ -16,7 +16,7 @@ expect_silent(
 )
 
 expect_silent(
-  estimatePopsize(
+  dd <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     model = "zotnegbin",
     method = "optim",
@@ -26,6 +26,13 @@ expect_silent(
       optimMethod = "Nelder-Mead",
       silent = TRUE
     )
+  )
+)
+
+expect_silent(
+  predict(
+    dd,
+    type = "mean"
   )
 )
 
@@ -71,6 +78,13 @@ expect_silent(
   )
 )
 
+expect_silent(
+  predict(
+    ch,
+    type = "mean"
+  )
+)
+
 expect_equivalent(
   ch$populationSize$pointEstimate,
   21657,
@@ -94,6 +108,13 @@ expect_silent(
     popVar = "analytic",
     method = "IRLS",
     controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_silent(
+  predict(
+    zl,
+    type = "mean"
   )
 )
 
@@ -260,7 +281,7 @@ expect_error(
 if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
   set.seed(123)
   expect_silent(
-    estimatePopsize(
+    xx <- estimatePopsize(
       formula = TOTAL_SUB ~ .,
       data = farmsubmission,
       model = "zotpoisson",
@@ -278,7 +299,14 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
   )
   
   expect_silent(
-    estimatePopsize(
+    predict(
+      xx,
+      type = "mean"
+    )
+  )
+  
+  expect_silent(
+    xx <- estimatePopsize(
       formula = capture ~ gender,
       data = netherlandsimmigrant,
       model = "zotgeom",
@@ -290,6 +318,13 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
         cores = 2L, bootstrapFitcontrol = controlMethod(),
         bootType = "nonparametric"
       )
+    )
+  )
+  
+  expect_silent(
+    predict(
+      xx,
+      type = "mean"
     )
   )
   
