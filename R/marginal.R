@@ -120,42 +120,76 @@ summary.singleRmargin <- function(object, df,
                                              "group", 
                                              "no"), 
                                   ...) {
-  if (missing(dropl5)) {dropl5 <- "drop"}
+  if (!is.character(dropl5) | length(dropl5) > 1) {
+    warning("The argument dropl5 should be a 1 length character vector")
+    dropl5 <- dropl5[1]
+  }
+  
   y <- object$y
+  
+  if (missing(dropl5) | !is.character(dropl5)) {dropl5 <- "no"}
   if (grepl("zot", object$name) & (1 %in% names(y))) {y <- y[-1]}
-  A <- object$table[names(y)]
+  
   if ((missing(df)) && (object$df < 1)) {
     warning("Degrees of freedom may be inacurate.")
     df <- 1
   } else if (missing(df)) {
     df <- object$df
   }
-  if(dropl5 == "group") {
-    l <- (A < 5)
-    if(!all(l == FALSE)) {
-      y <- c(y[!l], sum(y[l]))
-      A <- c(A[!l], sum(A[l]))
+  
+  A <- object$table[names(y)]
+  
+  switch (dropl5,
+    "group" = {
+      l <- (A < 5)
+      if(!all(l == FALSE)) {
+        y <- c(y[!l], sum(y[l]))
+        A <- c(A[!l], sum(A[l]))
+      }
+    },
+    "drop" = {
+      l <- (A < 5)
+      y <- y[!l]
+      A <- A[!l]
     }
-  } else if(dropl5 == "drop") {
-    l <- (A < 5)
-    y <- y[!l]
-    A <- A[!l]
-  }
+  )
   
   X2 <- sum(((A - y) ^ 2) / A)
   G <- 2 * sum(y * log(y / A))
+  
   pval <- stats::pchisq(q = c(X2, G), df = df, lower.tail = FALSE)
-  vect <- data.frame(round(c(X2, G), digits = 2),
-                     rep(df, 2), signif(pval, digits = 2))
+  
+  vect <- data.frame(
+    round(c(X2, G), digits = 2),
+    rep(df, 2), signif(pval, digits = 2)
+  )
   rownames(vect) <- c("Chi-squared test", "G-test")
   colnames(vect) <- c("Test statistics", "df", "P(>X^2)")
+  
   structure(
     list(Test = vect,
          l5 = switch(dropl5,
-                     drop = "dropped",
-                     group = "grouped",
-                     no = "preserved"),
+           "drop"  = "dropped",
+           "group" = "grouped",
+           "no"    = "preserved"
+         ),
          y = y),
     class = "summarysingleRmargin"
   )
+}
+
+
+#' @method print summarysingleRmargin
+#' @exportS3Method 
+print.summarysingleRmargin <- function(x, ...) {
+  cat("Test for Goodness of fit of a regression model:\n",
+      "\n", sep = "")
+  
+  print(x$Test)
+  
+  cat("\n--------------------------------------------------------------",
+      "\nCells with fitted frequencies of < 5 have been", x$l5, 
+      "\nNames of cells used in calculating test(s) statistic:", names(x$y), 
+      "\n", sep = " ")
+  invisible()
 }

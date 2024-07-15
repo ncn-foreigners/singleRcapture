@@ -1,8 +1,8 @@
 # singleRcapture 0.2.1.2
 
 * Bugfix for interaction terms in formula not being considered
-* Switched parallel backed to `doSNOW` form `doParallel`
-* Introduced progress bars to parallelized parts of code
+* Small changes in summary for marginal count distributions
+
 
 # singleRcapture 0.2.1.1
 
