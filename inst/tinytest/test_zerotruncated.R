@@ -27,14 +27,14 @@ fn <- ztpoisson(
 y <- testTruncated$ztpoisson1
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS"
@@ -62,11 +62,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = eps
 )
@@ -83,6 +83,89 @@ expect_true(
   all(AA$Test$`P(>X^2)` > .01)
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    newdata = testTruncated[, paste0("x", 1:3)],
+    se.fit = TRUE
+  )[, 2] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    newdata = testTruncated[, paste0("x", 1:3)],
+    se.fit = TRUE
+  )[,2]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    newdata = testTruncated[, paste0("x", 1:3)],
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr",
+    newdata = testTruncated[, paste0("x", 1:3)]
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    newdata = testTruncated[, paste0("x", 1:3)],
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 2] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,2]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # different link
 
 fn <- ztpoisson(
@@ -93,14 +176,14 @@ fn <- ztpoisson(
 y <- testTruncated$ztpoisson2
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS"
@@ -128,11 +211,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = eps
 )
@@ -149,10 +232,49 @@ expect_true(
   all(AA$Test$`P(>X^2)` > .01)
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 2] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,2]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 ## bootstrap
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
@@ -191,7 +313,7 @@ expect_true(
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
@@ -229,8 +351,47 @@ expect_true(
   shapiro.test(pop$boot)$p.value > .05
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 2] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,2]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
@@ -271,14 +432,14 @@ fn <- ztgeom(
 y <- testTruncated$ztgeom1
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS"
@@ -306,11 +467,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = eps
 )
@@ -327,6 +488,45 @@ expect_true(
   all(AA$Test$`P(>X^2)` > .03)
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 2] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,2]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # different link
 
 fn <- ztgeom(
@@ -337,14 +537,14 @@ fn <- ztgeom(
 y <- testTruncated$ztgeom2
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS"
@@ -372,11 +572,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = .1
 )
@@ -391,6 +591,45 @@ AA <- summary(marginalFreq(M1), dropl5 = "group")
 
 expect_true(
   all(AA$Test$`P(>X^2)` > .05)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 2] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,2]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
 )
 
 ## ztnegbin ####
@@ -409,19 +648,19 @@ fn <- ztnegbin(
 y <- testTruncated$ztnegbin1
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    alphaFormula = ~ X1 + X2 + X3
+    alphaFormula = ~ x1 + x2 + x3
   )
 )
 
@@ -441,11 +680,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed
 )
 
@@ -469,19 +708,19 @@ fn <- ztnegbin(
 y <- testTruncated$ztnegbin2
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    alphaFormula = ~ X1 + X2 + X3
+    alphaFormula = ~ x1 + x2 + x3
   )
 )
 
@@ -505,11 +744,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = eps
 )
@@ -526,6 +765,45 @@ expect_true(
   all(AA$Test$`P(>X^2)` > .05)
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # different link
 fn <- ztnegbin(
   lambdaLink = "neglog",
@@ -537,19 +815,19 @@ fn <- ztnegbin(
 y <- testTruncated$ztnegbin3
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    alphaFormula = ~ X1 + X2 + X3
+    alphaFormula = ~ x1 + x2 + x3
   )
 )
 
@@ -569,11 +847,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = eps
 )
@@ -582,6 +860,45 @@ expect_equivalent(
   as.numeric(table(x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Estimated,
   tolerance = .6
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[, 3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)] >= 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
 )
 
 # different link
@@ -600,19 +917,19 @@ fn <- ztnegbin(
 y <- testTruncated$ztnegbin4
 
 df <- data.frame(
-  X3 = x3[y > 0],
-  X2 = x2[y > 0],
-  X1 = x1[y > 0],
-  Y = y[y > 0]
+  x3 = x3[y > 0],
+  x2 = x2[y > 0],
+  x1 = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X1 + X2 + X3,
+  formula = y ~ x1 + x2 + x3,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    alphaFormula = ~ X1 + X2 + X3
+    alphaFormula = ~ x1 + x2 + x3
   )
 )
 
@@ -638,11 +955,11 @@ expect_true(
 )
 
 expect_silent(
-  stra <- stratifyPopsize(M1, ~ X1)
+  stra <- stratifyPopsize(M1, ~ x1)
 )
 
 expect_equivalent(
-  as.numeric(table(df$X1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
+  as.numeric(table(df$x1))[as.numeric(substr(stra$name, start = 5, stop = 5)) + 1],
   stra$Observed,
   tolerance = eps
 )
@@ -657,5 +974,44 @@ AA <- summary(marginalFreq(M1), dropl5 = "group")
 
 expect_true(
   all(AA$Test$`P(>X^2)` > .05)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[, 3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)] >= 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )) == M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
 )
 

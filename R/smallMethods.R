@@ -84,7 +84,9 @@ model.frame.singleRStaticCountData <- function(formula, ...) {
 #' @method model.matrix singleRStaticCountData
 #' @importFrom stats model.matrix
 #' @exportS3Method 
-model.matrix.singleRStaticCountData <- function(object, type = c("lm", "vlm"), ...) {
+model.matrix.singleRStaticCountData <- function(object, 
+                                                type = c("lm", "vlm"), 
+                                                ...) {
   if (missing(type)) type <- "lm"
   
   switch (type,

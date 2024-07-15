@@ -22,17 +22,17 @@ fn <- ztoipoisson(
 y <- test_inflated$ztoipoisson1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -66,13 +66,97 @@ expect_true(
 )
 
 # test whether estimation of subpopulation sizes are 'good'
-XX <- stratifyPopsize(M1, stratas = ~ X)
+XX <- stratifyPopsize(M1, stratas = ~ x)
 order <- 1 + as.numeric(substr(XX$name, start = 4, stop = 4))
 
 expect_equivalent(
   XX$Estimated,
   as.numeric(table(x1))[order],
   tolerance = .15
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
 )
 
 # same with different link
@@ -85,17 +169,17 @@ fn <- ztoipoisson(
 y <- test_inflated$ztoipoisson2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -129,6 +213,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # ztoigeom
 beta <- c(.6, .2, -1.25, .1)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -142,17 +310,17 @@ fn <- ztoigeom(
 y <- test_inflated$ztoigeom1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -187,6 +355,89 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
 
 # same for different link
 fn <- ztoigeom(
@@ -198,17 +449,17 @@ fn <- ztoigeom(
 y <- test_inflated$ztoigeom2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -237,6 +488,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # ztoinegbin
 beta <- c(.6, .2, -1.25, .1, -1, -.3)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1, beta[5] + beta[6] * x1)
@@ -251,18 +586,18 @@ fn <- ztoinegbin(
 y <- test_inflated$ztoinegbin1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X,
-    alphaFormula = ~ X
+    omegaFormula = ~ x,
+    alphaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -296,6 +631,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # oizt ####
 
 # poisson
@@ -311,17 +730,17 @@ fn <- oiztpoisson(
 y <- test_inflated$oiztpoisson1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -356,6 +775,91 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+
 # same with different link
 fn <- oiztpoisson(
   lambdaLink = "neglog",
@@ -366,17 +870,17 @@ fn <- oiztpoisson(
 y <- test_inflated$oiztpoisson2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -411,6 +915,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # geometric
 beta <- c(.6, .2, -1, .4)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -424,17 +1012,17 @@ fn <- oiztgeom(
 y <- test_inflated$oiztgeom1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -470,6 +1058,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # same for different link
 beta <- c(.6, -.3, -1, .4)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -483,17 +1155,17 @@ fn <- oiztgeom(
 y <- test_inflated$oiztgeom2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X
+    omegaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -528,6 +1200,89 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
 
 # negbin
 beta <- c(.4, .4, -.4, .2, -1.1, .37)
@@ -543,18 +1298,18 @@ fn <- oiztnegbin(
 y <- test_inflated$oiztnegbin1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    omegaFormula = ~ X,
-    alphaFormula = ~ X
+    omegaFormula = ~ x,
+    alphaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -589,6 +1344,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # ztHurdle ####
 
 # poisson
@@ -604,17 +1443,17 @@ fn <- ztHurdlepoisson(
 y <- test_inflated$ztHurdlepoisson1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -649,6 +1488,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # same with different link
 fn <- ztHurdlepoisson(
   lambdaLink = "neglog",
@@ -659,17 +1582,17 @@ fn <- ztHurdlepoisson(
 y <- test_inflated$ztHurdlepoisson2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -704,6 +1627,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # geometric
 beta <- c(.6, .2, -3, .4)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -717,17 +1724,17 @@ fn <- ztHurdlegeom(
 y <- test_inflated$ztHurdlegeom1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -762,6 +1769,89 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
 
 # same for different link
 beta <- c(.6, -.3, -1, .4)
@@ -777,17 +1867,17 @@ fn <- ztHurdlegeom(
 y <- test_inflated$ztHurdlegeom2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -822,6 +1912,89 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
 
 # negbin
 beta <- c(.4, .4, -.4, .2, -1.1, .37)
@@ -838,18 +2011,18 @@ fn <- ztHurdlenegbin(
 y <- test_inflated$ztHurdlenegbin1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X,
-    alphaFormula = ~ X
+    piFormula = ~ x,
+    alphaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -884,6 +2057,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # Hurdlezt ####
 # poisson
 beta <- c(.6, -.3, -.5, .1)
@@ -898,17 +2155,17 @@ fn <- Hurdleztpoisson(
 y <- test_inflated$Hurdleztpoisson1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -943,6 +2200,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # same with different link
 fn <- Hurdleztpoisson(
   lambdaLink = "neglog",
@@ -953,17 +2294,17 @@ fn <- Hurdleztpoisson(
 y <- test_inflated$Hurdleztpoisson2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE, stepsize = .3)
 )
@@ -998,6 +2339,90 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
 # geometric
 beta <- c(.6, .2, -3, .4)
 #eta <- cbind(beta[1] + beta[2] * x1, beta[3] + beta[4] * x1)
@@ -1011,17 +2436,17 @@ fn <- Hurdleztgeom(
 y <- test_inflated$Hurdleztgeom1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -1069,17 +2494,17 @@ fn <- Hurdleztgeom(
 y <- test_inflated$Hurdleztgeom2
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X
+    piFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -1115,6 +2540,89 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 3:4] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[,3:4]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
 
 # negbin
 beta <- c(.4, .4, -.4, .2, -1.1, .37)
@@ -1131,18 +2639,18 @@ fn <- Hurdleztnegbin(
 y <- test_inflated$Hurdleztnegbin1
 
 df <- data.frame(
-  X = x1[y > 0],
-  Y = y[y > 0]
+  x = x1[y > 0],
+  y = y[y > 0]
 )
 
 M1 <- estimatePopsize(
-  formula = Y ~ X,
+  formula = y ~ x,
   model   = fn,
   data    = df,
   method = "IRLS",
   controlModel = controlModel(
-    piFormula = ~ X,
-    alphaFormula = ~ X
+    piFormula = ~ x,
+    alphaFormula = ~ x
   ),
   controlMethod = controlMethod(silent = TRUE)
 )
@@ -1172,3 +2680,86 @@ expect_true(
   (N < pop$confidenceInterval[2, 2])
 )
 
+expect_true(
+  all(predict(
+    M1, 
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_equivalent(
+  sum(predict(
+    M1, 
+    type = "contr"
+  )),
+  M1$populationSize$pointEstimate
+)
+
+expect_silent(
+  predict(
+    M1, 
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
+
+expect_true(
+  all(predict(
+    M1,
+    newdata = data.frame(x = x1),
+    type = "response",
+    se.fit = TRUE
+  )[, 4:6] > 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "link",
+    se.fit = TRUE
+  )[, 4:6]> 0)
+)
+
+expect_true(
+  all(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "mean",
+    se.fit = TRUE
+  )[, c(2, 4)]> 0)
+)
+
+expect_true(
+  sum(predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "contr"
+  )) > N
+)
+
+expect_silent(
+  predict(
+    M1, 
+    newdata = data.frame(x = x1),
+    type = "popSize",
+    se.fit = TRUE
+  )
+)
