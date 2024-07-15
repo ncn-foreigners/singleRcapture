@@ -113,8 +113,7 @@ dfbeta.singleRStaticCountData <- function(model,
       )
     } else {
       res <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind,
-                               .options.snow = opts),
+        obj = foreach::foreach(k = 1:NROW(X), .combine = rbind),
         ex = {
           if (isFALSE(pw[k] - 1 > 0)) {
             c(cf - estimatePopsizeFit(

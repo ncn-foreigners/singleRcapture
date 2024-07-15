@@ -35,10 +35,18 @@ vcov.singleRStaticCountData <- function(object,
       ...
     ),
     "Fisher" = {
-      if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} else {W <- object$model$Wfun(prior = object$priorWeights, eta = object$linearPredictors, y = as.numeric(model.response(model.frame(object))))};
+      if (isTRUE(object$call$method == "IRLS")) {W <- object$weights} 
+        else {
+          W <- object$model$Wfun(
+            prior = object$priorWeights, 
+            eta   = object$linearPredictors, 
+            y     = as.numeric(model.response(model.frame(object)))
+          )
+        };
       if (isTRUE(object$control$controlMethod$checkDiagWeights)) {
         W[, (1:length(family(object)$etaNames)) ^ 2] <- ifelse(
-          W[, (1:length(family(object)$etaNames)) ^ 2] < object$control$controlMethod$weightsEpsilon, 
+          W[, (1:length(family(object)$etaNames)) ^ 2] < 
+          object$control$controlMethod$weightsEpsilon, 
           object$control$controlMethod$weightsEpsilon, 
           W[, (1:length(family(object)$etaNames)) ^ 2]
         )
@@ -140,7 +148,8 @@ residuals.singleRStaticCountData <- function(object,
   res <- object$residuals
   wts <- object$priorWeights
   #mu <- object$fitt.values
-  y <- if (is.null(object$y)) stats::model.response(model.frame(object)) else object$y
+  y <- if (is.null(object$y)) stats::model.response(model.frame(object)) 
+    else object$y
   
   if (type == "pearsonSTD" && length(object$model$etaNames) > 1)
     stop(paste0("Standardized pearson residuals not yet",
@@ -149,28 +158,48 @@ residuals.singleRStaticCountData <- function(object,
   rs <- switch(
     type,
     working = as.data.frame(
-      object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y, prior = wts), 
+      object$model$funcZ(eta = object$linearPredictors, 
+                         weight = object$weights, 
+                         y = y, prior = wts), 
       col.names = paste0("working:", object$model$etaNames)
     ),
     response = res,
     pearson = data.frame(
-      "pearson" = res$truncated / sqrt(object$model$variance(eta = object$linearPredictors, type = "trunc"))
+      "pearson" = res$truncated / sqrt(
+        object$model$variance(eta = object$linearPredictors, type = "trunc")
+      )
     ),
-    pearsonSTD = data.frame("pearsonSTD" = res$truncated / sqrt((1 - hatvalues(object)) * object$model$variance(eta = object$linearPredictors, type = "trunc"))),
+    pearsonSTD = data.frame(
+      "pearsonSTD" = res$truncated / sqrt(
+        (1 - hatvalues(object)) * 
+        object$model$variance(eta = object$linearPredictors, type = "trunc")
+      )
+    ),
     deviance = data.frame(
-      "deviance" = object$model$devResids(y = y, eta = object$linearPredictors, wt = wts)
+      "deviance" = object$model$devResids(y = y, 
+                                          eta = object$linearPredictors, 
+                                          wt = wts)
     ),
     all = {colnames(res) <- c("truncatedResponse", 
                               "nontruncatedResponse");
       data.frame(
-        as.data.frame(object$model$funcZ(eta = object$linearPredictors, weight = object$weights, y = y, prior = wts),
+        as.data.frame(object$model$funcZ(eta = object$linearPredictors, 
+                                         weight = object$weights, 
+                                         y = y, prior = wts),
                       col.names = paste0("working:", object$model$etaNames)),
         res,
-        "pearson" = as.numeric(res$truncated / sqrt(object$model$variance(eta = object$linearPredictors, type = "trunc"))),
+        "pearson" = as.numeric(res$truncated / sqrt(object$model$variance(
+          eta = object$linearPredictors, type = "trunc"
+        ))),
         "pearsonSTD" = if (length(object$model$etaNames) == 1) as.numeric(
-          res$truncated / sqrt((1 - hatvalues(object)) * object$model$variance(object$linearPredictors, type = "trunc"))
+          res$truncated / sqrt(
+            (1 - hatvalues(object)) * 
+            object$model$variance(object$linearPredictors, type = "trunc")
+          )
         ) else NA,
-        "deviance" = as.numeric(object$model$devResids(y = y, eta = object$linearPredictors, wt = wts)),
+        "deviance" = as.numeric(object$model$devResids(
+          y = y, eta = object$linearPredictors, wt = wts
+        )),
         row.names = rownames(object$linearPredictors)
     )}
   )
