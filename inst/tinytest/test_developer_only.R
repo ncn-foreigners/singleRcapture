@@ -1,8 +1,8 @@
 # These tests are only supposed to be run on developer's machine and 
 # package GitHub page not on CRAN (they take too long)
 
-if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
-#if (TRUE) {
+#if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
+if (TRUE) {
   set.seed(123)
   expect_silent(
     xx <- estimatePopsize(
@@ -13,6 +13,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
       controlMethod = controlMethod(epsilon = 1e-6, silent = TRUE),# testing silent
       controlPopVar = controlPopVar(
         B = 140, 
+        bootType = "parametric",
         bootstrapFitcontrol = controlMethod(
           silent = TRUE, 
           epsilon = .Machine$double.eps
@@ -63,7 +64,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
       controlMethod = controlMethod(silent = TRUE),# testing silent
       controlPopVar = controlPopVar(
         B = 35,
-        cores = 2L, bootstrapFitcontrol = controlMethod(),
+        cores = 2L, 
+        bootstrapFitcontrol = controlMethod(),
         bootType = "semiparametric"
       )
     )
