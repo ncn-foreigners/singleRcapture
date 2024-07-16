@@ -18,7 +18,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
           silent = TRUE, 
           epsilon = .Machine$double.eps
         ),
-        cores = 2L
+        cores = 2L,
+        confType = "normal"
       )
     )
   )
@@ -27,6 +28,40 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
     predict(
       xx,
       type = "mean"
+    )
+  )
+  
+  expect_warning(
+    xx <- estimatePopsize(
+      formula = TOTAL_SUB ~ log_size,
+      data = farmsubmission,
+      model = "zotnegbin",
+      controlModel  = controlModel(alphaFormula = ~ C_TYPE), 
+      controlMethod = controlMethod(
+        silent = TRUE, stepsize = .7, 
+        verbose = 4, maxiter = 20
+      )
+    )
+  )
+  
+  expect_silent(
+    predict(
+      xx,
+      type = "mean"
+    )
+  )
+  
+  expect_silent(
+    predict(
+      xx,
+      type = "response"
+    )
+  )
+  
+  expect_silent(
+    predict(
+      xx,
+      type = "link"
     )
   )
   
@@ -42,9 +77,19 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
         B = 70,
         cores = 2L, 
         bootstrapFitcontrol = controlMethod(),
-        bootType = "nonparametric"
+        bootType = "nonparametric",
+        confType = "basic"
       )
     )
+  )
+  
+  
+  expect_silent(
+    dfbeta(xx)
+  )
+  
+  expect_silent(
+    dfbeta(xx, cores = 2L)
   )
   
   expect_silent(
@@ -76,14 +121,18 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
   ### this is dplyr::count but slower and without dependencies
   df <- aggregate(ww ~ ., df, FUN = length)
   
-  expect_silent(
-    estimatePopsize(
+  expect_warning(
+    xx <- estimatePopsize(
       formula = TOTAL_SUB ~ C_TYPE, 
       data = df, 
       model = ztpoisson,
       popVar = "bootstrap",
       weights = df$ww,
-      controlMethod = controlMethod(silent = TRUE),
+      controlMethod = controlMethod(
+        verbose = 5, 
+        saveIRLSlogs = TRUE,
+        criterion = "reltol"
+      ),
       controlModel = controlModel(weightsAsCounts = TRUE),
       controlPopVar = controlPopVar(
         B = 70,
@@ -91,6 +140,20 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
         bootType = "semiparametric"
       )
     )
+  )
+  
+  expect_true(
+    !is.null(
+      xx$fittingLog
+    )
+  )
+  
+  expect_silent(
+    dfbeta(xx)
+  )
+  
+  expect_silent(
+    dfbeta(xx, cores = 2L)
   )
   
   expect_silent(
