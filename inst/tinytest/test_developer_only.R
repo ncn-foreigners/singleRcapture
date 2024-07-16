@@ -1,8 +1,8 @@
 # These tests are only supposed to be run on developer's machine and 
 # package GitHub page not on CRAN (they take too long)
 
-#if isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true") {
-if (TRUE) {
+if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
+#if (TRUE) {
   set.seed(123)
   expect_silent(
     xx <- estimatePopsize(
