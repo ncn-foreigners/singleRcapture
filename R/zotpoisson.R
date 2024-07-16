@@ -24,10 +24,12 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
       )
     } else {
       switch (type,
-        "nontrunc" = lambdaLink(eta, inverse = TRUE, deriv = 1),
-        "trunc" = lambdaLink(eta, inverse = TRUE, deriv = 1) *
-          (exp(2 * lambda) + (-lambda ^ 2 - 2) * exp(lambda) + 1) /
-          (exp(lambda) - lambda - 1) ^ 2
+        "nontrunc" = cbind(lambdaLink(eta, inverse = TRUE, deriv = 1)),
+        "trunc" = cbind(
+          lambdaLink(eta, inverse = TRUE, deriv = 1) *
+            (exp(2 * lambda) + (-lambda ^ 2 - 2) * exp(lambda) + 1) /
+            (exp(lambda) - lambda - 1) ^ 2
+        )
       )
     }
   }

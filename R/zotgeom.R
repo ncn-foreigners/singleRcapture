@@ -24,8 +24,8 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
       )
     } else {
       switch (type,
-        "nontrunc" = lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
-        "trunc" = lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
+        "nontrunc" = cbind(lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)),
+        "trunc" = cbind(lambdaLink(eta[, 1], inverse = TRUE, deriv = 1))
       )
     }
   }

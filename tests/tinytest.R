@@ -1,5 +1,6 @@
 
 if ( requireNamespace("tinytest", quietly=TRUE) ){
-  tinytest::test_package("singleRcapture")
+  xx <- isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")
+  tinytest::test_package("singleRcapture", ncpu = if (xx) 2 else NULL)
 }
 
