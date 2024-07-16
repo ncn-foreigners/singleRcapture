@@ -2,6 +2,12 @@
 
 * Bugfix for interaction terms in formula not being considered
 * Small changes in summary for marginal count distributions
+* Small fixes for standard errors in predicted means
+* Code coverage raised to nearly 90%
+* The `logLik.singleRStaticCountData` method now has a `type` argument that, 
+  if set to `"function"` makes the function return the minus lok-likelihood 
+  function (by default) or if `deriv` argument is set to `1` or `2` respectively
+  either a gradient or hessian of lok-likelihood function.
 
 
 # singleRcapture 0.2.1.1

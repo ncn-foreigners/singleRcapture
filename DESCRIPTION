@@ -6,7 +6,7 @@ Authors@R:
     c(person(given = "Piotr",
              family = "Chlebicki",
              role = c("aut", "cre"),
-             email = "piochl@st.amu.edu.pl"),
+             email = "piotrek.pecet@gmail.com"),
       person(given = "Maciej",
              family = "Beręsewicz",
              role = c("aut", "ctb"),
