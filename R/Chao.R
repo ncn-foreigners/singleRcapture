@@ -24,9 +24,11 @@ chao <- function(lambdaLink = "loghalf",
       )
     } else {
       switch (type,
-        "nontrunc" = 1 * lambdaLink(eta, inverse = TRUE, deriv = 1),
-        "trunc" = (2 / (lambda + 2) ^ 2) *
-        lambdaLink(eta, inverse = TRUE, deriv = 1)
+        "nontrunc" = cbind(1 * lambdaLink(eta, inverse = TRUE, deriv = 1)),
+        "trunc" = cbind(
+          (2 / (lambda + 2) ^ 2) *
+            lambdaLink(eta, inverse = TRUE, deriv = 1)
+        )
       )
     }
   }

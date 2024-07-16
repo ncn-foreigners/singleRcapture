@@ -41,12 +41,31 @@ extractAIC.singleRStaticCountData <- function(fit, scale, k = 2, ...) {
 #' @method logLik singleRStaticCountData
 #' @importFrom stats logLik
 #' @exportS3Method 
-logLik.singleRStaticCountData <- function(object, ...) {
-  val <- object$logL
-  attr(val, "nobs") <- nobs(object)
-  attr(val, "df") <- length(stats::coef(object))
-  class(val) <- "logLik"
-  val
+logLik.singleRStaticCountData <- function(object, 
+                                          type = c("value",
+                                                   "function"), 
+                                          deriv = 0:2,
+                                          ...) {
+  if (missing(type))
+    type <- "value"
+  
+  if (missing(deriv))
+    deriv <- 0
+  
+  if (type == "value") {
+    val <- object$logL
+    attr(val, "nobs") <- nobs(object)
+    attr(val, "df") <- length(stats::coef(object))
+    class(val) <- "logLik"
+    val
+  } else {
+    object$model$makeMinusLogLike(
+      y = as.numeric(model.response(model.frame(object))),
+      X = model.matrix(object, type = "vlm"),
+      weight = object$priorWeights,
+      deriv = deriv
+    )
+  }
 }
 # CODE MODIFIED FROM stats:::model.frame.glm
 #' @method model.frame singleRStaticCountData

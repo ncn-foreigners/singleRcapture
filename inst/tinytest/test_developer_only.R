@@ -51,7 +51,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
   expect_silent(
     predict(
       xx,
-      type = "mean"
+      type = "mean",
+      se.fit = TRUE
     )
   )
   
@@ -71,21 +72,24 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
   expect_silent(
     predict(
       xx,
-      type = "mean"
+      type = "mean",
+      se.fit = TRUE
     )
   )
   
   expect_silent(
     predict(
       xx,
-      type = "response"
+      type = "response",
+      se.fit = TRUE
     )
   )
   
   expect_silent(
     predict(
       xx,
-      type = "link"
+      type = "link",
+      se.fit = TRUE
     )
   )
   
@@ -119,7 +123,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
   expect_silent(
     predict(
       xx,
-      type = "mean"
+      type = "mean",
+      se.fit = TRUE
     )
   )
   
