@@ -37,6 +37,22 @@ expect_silent(
 )
 
 expect_silent(
+  dd <- estimatePopsize(
+    formula = TOTAL_SUB ~ .,
+    model = "zotgeom",
+    method = "optim",
+    data = farmsubmission
+  )
+)
+
+expect_silent(
+  predict(
+    dd,
+    type = "mean"
+  )
+)
+
+expect_silent(
   irls <- estimatePopsize(
     formula = TOTAL_SUB ~ .,
     model = "ztpoisson",
