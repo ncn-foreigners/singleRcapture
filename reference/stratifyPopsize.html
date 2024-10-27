@@ -103,18 +103,18 @@ sub populations either provided or inferred.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+    <p></p>
 <p>In single source capture-recapture models the most frequently used
 estimate for population size is Horvitz-Thompson type estimate:</p>
-<p>\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
-\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
-<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are
+<p>N = _k=1^NI_kP(Y_k&gt;0) =
+_k=1^N_obs11-P(Y_k=0)</p>
+<p>where I_k=I_Y_k &gt; 0 are
 indicator variables, with value 1 if kth unit was observed at least once
 and 0 otherwise and the inverse probabilistic weights weights for
-units observed in the data <em></em>\(\tfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\)
+units observed in the data 1P(Y_k&gt;0)
 are estimated using fitted linear predictors.</p>
 <p>The estimates for different sub populations are made by changing the
-<em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) indicator variables to
+I_k=I_Y_k &gt; 0 indicator variables to
 refer not to the population as a whole but to the sub populations that are
 being considered i.e. by changing values from 1 to 0 if kth unit is not a
 member of sub population that is being considered at the moment.</p>
@@ -136,7 +136,7 @@ as the one described above.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>

@@ -109,13 +109,13 @@ like <code>controlMethod</code> but for fitting models from bootstrap samples.</
 <dt id="arg-sd">sd<a class="anchor" aria-label="anchor" href="#arg-sd"></a></dt>
 <dd><p>indicates how to compute standard deviation of population
 size estimator either as:
-\[\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}\]
-for <code>sqrt</code> (which is slightly biased if <em></em>\(\hat{N}\)
+=var(N)
+for <code>sqrt</code> (which is slightly biased if N
 has a normal distribution) or for <code>normalMVUE</code> as the unbiased
 minimal variance estimator for normal distribution:
-\[\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}
-\frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
-\sqrt{\frac{N_{obs}}{2}}\]
+=var(N)
+(N_obs-12)(N_obs2)
+N_obs2
 where the ration involving gamma functions is computed by log gamma function.</p></dd>
 
 
@@ -142,8 +142,7 @@ computing makes tracing impossible so <code>traceBootstrapSize</code> and
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Piotr Chlebicki, Maciej Beręsewicz
-<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+    <p>Piotr Chlebicki, Maciej Beręsewicz</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -155,7 +154,7 @@ computing makes tracing impossible so <code>traceBootstrapSize</code> and
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>

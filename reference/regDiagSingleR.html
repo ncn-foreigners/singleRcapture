@@ -92,7 +92,7 @@ them into function so that they need not be computed for the second time.</p></d
 
 <dt id="arg-maxitnew">maxitNew<a class="anchor" aria-label="anchor" href="#arg-maxitnew"></a></dt>
 <dd><p>maximal number of iterations for regressions with starting
-points <em></em>\(\hat{\boldsymbol{\beta}}\) on data
+points  on data
 specified at call for <code>model</code> after the removal of k'th row. By default 1.</p></dd>
 
 
@@ -124,8 +124,8 @@ removal of k'th unit from the data set.</p></li>
 <li><p>For <code>dfbeta</code> – A matrix with n rows and p observations where p
 is a number of units in data and p is the number of regression parameters.
 K'th row of this matrix corresponds to
-<em></em>\(\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}\)
-where <em></em>\(\hat{\boldsymbol{\beta}}_{-k}\) is a vector of estimates for
+-_-k
+where _-k is a vector of estimates for
 regression parameters after the removal of k'th row from the data.</p></li>
 <li><p><code>cooks.distance</code> – A matrix with a single columns with
 values of cooks distance for every unit in <code>model.matrix</code></p></li>
@@ -134,7 +134,7 @@ with chosen residuals.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+    <p></p>
 <p><code>dfpopsize</code> and <code>dfbeta</code> are closely related. <code>dfbeta</code>
 fits a regression after removing a specific row from the data and returns the
 difference between regression coefficients estimated on full data set and
@@ -162,35 +162,35 @@ class for extracting diagonal elements of projection matrix.</p>
 of linear predictors in a model, where kth column corresponds to elements of
 the diagonal of projection matrix associated with kth linear predictor.
 For glm's
-\[\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
-\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}
-\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}\]
-where: <em></em>\(\boldsymbol{W}=\mathbb{E}\left(\text{Diag}
-\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}
-\partial\boldsymbol{\eta}}\right)\right)\)
-and <em></em>\(\boldsymbol{X}\) is a model (lm) matrix.
+W^12X
+(X^TWX)^-1
+X^TW^12
+where: W=E(Diag
+(^2^T
+))
+and X is a model (lm) matrix.
 For vglm's present in the package it is instead :
-\[\boldsymbol{X}_{vlm}
-\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
-\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\]
+X_vlm
+(X_vlm^TWX_vlm)^-1
+X_vlm^TW
 where:
-\[
-\boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &amp;
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &amp;
-\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &amp;
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &amp;
-\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
-\vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &amp;
-\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &amp;
-\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
-\end{bmatrix}\right)\]
+
+W = E(bmatrix
+Diag(^2_1^T_1) &amp;
+Diag(^2_1^T_2) &amp;
+ &amp; Diag(^2_1^T_p)<br>
+Diag(^2_2^T_1) &amp;
+Diag(^2_2^T_2) &amp;
+ &amp; Diag(^2_2^T_p)<br>
+ &amp;  &amp;  &amp; <br>
+Diag(^2_p^T_1) &amp;
+Diag(^2_p^T_2) &amp;
+ &amp; Diag(^2_p^T_p)
+bmatrix)
 is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
 predictor (and mixed derivatives) and
-<em></em>\(\boldsymbol{X}_{vlm}\) is a model (vlm)
+X_vlm is a model (vlm)
 matrix constructed using specifications in <code>controlModel</code> and
 call to <code>estimatePopsize</code>.</p>
     </div>
@@ -253,7 +253,7 @@ call to <code>estimatePopsize</code>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>

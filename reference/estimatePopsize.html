@@ -5,18 +5,18 @@ In this types of models it is assumed that the response vector
 (i.e. the dependent variable) corresponds to the number of times a given unit
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:
-\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
-\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]
-where \(I_{k}=I_{Y_{k} &gt; 0}\) are indicator
+N = _k=1^NI_kP(Y_k&amp;gt;0) =
+_k=1^N_obs11-P(Y_k=0)
+where I_k=I_Y_k &amp;gt; 0 are indicator
 variables, with value 1 if kth unit was observed at least once and 0 otherwise."><meta property="og:description" content="estimatePopsize first fits appropriate (v)glm model and
 then estimates full (observed and unobserved) population size.
 In this types of models it is assumed that the response vector
 (i.e. the dependent variable) corresponds to the number of times a given unit
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:
-\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
-\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]
-where \(I_{k}=I_{Y_{k} &gt; 0}\) are indicator
+N = _k=1^NI_kP(Y_k&amp;gt;0) =
+_k=1^N_obs11-P(Y_k=0)
+where I_k=I_Y_k &amp;gt; 0 are indicator
 variables, with value 1 if kth unit was observed at least once and 0 otherwise."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -58,9 +58,9 @@ In this types of models it is assumed that the response vector
 (i.e. the dependent variable) corresponds to the number of times a given unit
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:</p>
-<p>\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
-\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
-<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator
+<p>N = _k=1^NI_kP(Y_k&gt;0) =
+_k=1^N_obs11-P(Y_k=0)</p>
+<p>where I_k=I_Y_k &gt; 0 are indicator
 variables, with value 1 if kth unit was observed at least once and 0 otherwise.</p>
     </div>
 
@@ -214,29 +214,28 @@ with type <code>list</code> containing:<br></p><ul><li><p><code>y</code> – Vec
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The generalized linear model is characterized by equation
-\[\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}\]
-where <em></em>\(\boldsymbol{X}\) is the (lm) model matrix.
+=X
+where X is the (lm) model matrix.
 The vector generalized linear model is similarly characterized by equations
-\[\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}\]
-where <em></em>\(\boldsymbol{X}_{k}\) is a (lm) model
+_k=X_k_k
+where X_k is a (lm) model
 matrix constructed from appropriate formula
 (specified in <code>controlModel</code> parameter).</p>
-<p>The <em></em>\(\boldsymbol{\eta}\) is then a vector constructed as:</p>
-<p>\[\boldsymbol{\eta}=\begin{pmatrix}
-\boldsymbol{\eta}_{1} \cr
-\boldsymbol{\eta}_{2} \cr
-\dotso \cr
-\boldsymbol{\eta}_{p}
-\end{pmatrix}^{T}\]</p>
+<p>The  is then a vector constructed as:</p>
+<p>=pmatrix
+_1 <br>
+_2 <br><br>
+_p
+pmatrix^T</p>
 <p>and in cases of models in our package the (vlm) model matrix
 is constructed as a block matrix:</p>
-<p>\[\boldsymbol{X}_{vlm}=
-\begin{pmatrix}
-\boldsymbol{X}_{1} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{0}\cr
-\boldsymbol{0} &amp; \boldsymbol{X}_{2} &amp;\dotso &amp;\boldsymbol{0}\cr
-\vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
-\boldsymbol{0} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{X}_{p}
-\end{pmatrix}\]</p>
+<p>X_vlm=
+pmatrix
+X_1 &amp; 0 &amp; &amp;0<br>
+0 &amp; X_2 &amp; &amp;0<br>
+ &amp;  &amp;  &amp; <br>
+0 &amp; 0 &amp; &amp;X_p
+pmatrix</p>
 <p>this differs from convention in <code>VGAM</code> package (if we only consider our
 special cases of vglm models) but this is just a convention and does not
 affect the model, this convention is taken because it makes fitting with
@@ -246,11 +245,11 @@ use the <code>vglm</code> model matrix differs with respect to order of
 <code>kronecker</code> multiplication of <code>X</code> and <code>constraints</code>.)
 In this package we use observed likelihood to fit regression models.</p>
 <p>As mentioned above usually the population size estimation is done via:
-\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
-\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
-<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator variables,
+N = _k=1^NI_kP(Y_k&gt;0) =
+_k=1^N_obs11-P(Y_k=0)</p>
+<p>where I_k=I_Y_k &gt; 0 are indicator variables,
 with value 1 if kth unit was observed at least once and 0 otherwise.
-The <em></em>\(\mathbb{P}(Y_{k}&gt;0)\) are estimated by maximum likelihood.</p>
+The P(Y_k&gt;0) are estimated by maximum likelihood.</p>
 <p>The following assumptions are usually present when using
 the method of estimation described above:</p><ol><li><p>The specified regression model is correct. This entails linear
 relationship between independent variables and dependent ones and
@@ -260,97 +259,96 @@ are some possible (admittedly imperfect) workarounds see details in
 <code><a href="singleRmodels.html">singleRmodels()</a></code>.</p></li>
 <li><p>The population size is constant in relevant time frame.</p></li>
 <li><p>Depending on confidence interval construction (asymptotic) normality
-of <em></em>\(\hat{N}\) statistic is assumed.</p></li>
-</ol><p>There are two ways of estimating variance of estimate <em></em>\(\hat{N}\),
+of N statistic is assumed.</p></li>
+</ol><p>There are two ways of estimating variance of estimate N,
 the first being <code>"analytic"</code> usually done by application of
-law of total variance to <em></em>\(\hat{N}\):</p>
-<p>\[\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
-\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
-\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)\]</p>
-<p>and then by <em></em>\(\delta\) method to
-<em></em>\(\hat{N}|I_{1},\dots I_{N}\):</p>
-<p>\[\mathbb{E}\left(\text{var}
-\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
-\left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
-\text{cov}\left(\boldsymbol{\beta}\right)
-\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
-\right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}\]</p>
-<p>and the <em></em>\(\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)\)
+law of total variance to N:</p>
+<p>var(N)=E(var
+(N|I_1,...,I_n))+
+var(E(N|I_1,...,I_n))</p>
+<p>and then by  method to
+N|I_1,... I_N:</p>
+<p>E(var
+(N|I_1,...,I_n))=
+.((N|I_1,...,I_N))^T
+cov()
+((N|I_1,...,I_N))
+|_=</p>
+<p>and the var(E(N|I_1,...,I_n))
 term may be derived analytically (if we assume independence of
-observations) since <em></em>\(\hat{N}|I_{1},\dots,I_{n}\)
+observations) since N|I_1,...,I_n
 is just a constant.</p>
 <p>In general this gives us:
-\[
-\begin{aligned}
-\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)&amp;=
-\text{var}\left(\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\right)\cr
-&amp;=\sum_{k=1}^{N}\text{var}\left(\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\right)\cr
-&amp;=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}&gt;0)^{2}}\text{var}(I_{k})\cr
-&amp;=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}&gt;0)^{2}}\mathbb{P}(Y_{k}&gt;0)(1-\mathbb{P}(Y_{k}&gt;0))\cr
-&amp;=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}&gt;0)}(1-\mathbb{P}(Y_{k}&gt;0))\cr
-&amp;\approx\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)^{2}}(1-\mathbb{P}(Y_{k}&gt;0))\cr
-&amp;=\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}&gt;0)}{\mathbb{P}(Y_{k}&gt;0)^{2}}
-\end{aligned}
-\]</p>
+
+aligned
+var(E(N|I_1,...,I_n))&amp;=
+var(_k=1^NI_kP(Y_k&gt;0))<br>
+&amp;=_k=1^Nvar(I_kP(Y_k&gt;0))<br>
+&amp;=_k=1^N1P(Y_k&gt;0)^2var(I_k)<br>
+&amp;=_k=1^N1P(Y_k&gt;0)^2P(Y_k&gt;0)(1-P(Y_k&gt;0))<br>
+&amp;=_k=1^N1P(Y_k&gt;0)(1-P(Y_k&gt;0))<br>
+&amp;_k=1^NI_kP(Y_k&gt;0)^2(1-P(Y_k&gt;0))<br>
+&amp;=_k=1^N_obs1-P(Y_k&gt;0)P(Y_k&gt;0)^2
+aligned</p>
 <p>Where the approximation on 6th line appears because in 5th line we sum over
-all units, that includes unobserved units, since <em></em>\(I_{k}\) are
-independent and <em></em>\(I_{k}\sim b(\mathbb{P}(Y_{k}&gt;0))\) the 6th line
+all units, that includes unobserved units, since I_k are
+independent and I_k b(P(Y_k&gt;0)) the 6th line
 is an unbiased estimator of the 5th line.</p>
 <p>The other method for estimating variance is <code>"bootstrap"</code>, but since
-<em></em>\(N_{obs}=\sum_{k=1}^{N}I_{k}\) is also a random variable bootstrap
-will not be as simple as just drawing <em></em>\(N_{obs}\) units from data
-with replacement and just computing <em></em>\(\hat{N}\).</p>
+N_obs=_k=1^NI_k is also a random variable bootstrap
+will not be as simple as just drawing N_obs units from data
+with replacement and just computing N.</p>
 <p>Method described above is referred to in literature as <code>"nonparametric"</code>
 bootstrap (see <code><a href="controlPopVar.html">controlPopVar()</a></code>), due to ignoring variability in observed
 sample size it is likely to underestimate variance.</p>
 <p>A more sophisticated bootstrap procedure may be described as follows:</p><ol><li><p>Compute the probability distribution as:
-\[
-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}},
-\frac{\boldsymbol{f}_{1}}{\hat{N}},
-\dots,
-\frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}\]
-where <em></em>\(\boldsymbol{f}_{n}\) denotes observed
+
+f_0N,
+f_1N,
+...,
+f_yN
+where f_n denotes observed
 marginal frequency of units being observed exactly n times.</p></li>
-<li><p>Draw <em></em>\(\hat{N}\) units from the distribution above
-(if <em></em>\(\hat{N}\) is not an integer than draw
-<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)),
-where <em></em>\(\lfloor\cdot\rfloor\) is the floor function.</p></li>
-<li><p>Truncated units with <em></em>\(y=0\).</p></li>
+<li><p>Draw N units from the distribution above
+(if N is not an integer than draw
+N + b(N-N)),
+where  is the floor function.</p></li>
+<li><p>Truncated units with y=0.</p></li>
 <li><p>If there are covariates draw them from original data with replacement from
 uniform distribution. For example if unit drawn to new data has
-<em></em>\(y=2\) choose one of covariate vectors from original data that
+y=2 choose one of covariate vectors from original data that
 was associated with unit for which was observed 2 times.</p></li>
-<li><p>Regress <em></em>\(\boldsymbol{y}_{new}\) on <em></em>\(\boldsymbol{X}_{vlm new}\)
-and obtain <em></em>\(\hat{\boldsymbol{\beta}}_{new}\), with starting point
-<em></em>\(\hat{\boldsymbol{\beta}}\) to make it slightly faster, use them
-to compute <em></em>\(\hat{N}_{new}\).</p></li>
+<li><p>Regress y_new on X_vlm new
+and obtain _new, with starting point
+ to make it slightly faster, use them
+to compute N_new.</p></li>
 <li><p>Repeat 2-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code>.</p></li>
 </ol><p>To do step 1 in procedure above it is convenient to first draw binary vector of length
-<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\) with probability
-<em></em>\(1-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}\), sum elements in that vector to
+N + b(N-N) with probability
+1-f_0N, sum elements in that vector to
 determine the sample size and then draw sample of this size uniformly from the data.</p>
 <p>This procedure is known in literature as <code>"semiparametric"</code> bootstrap
 it is necessary to assume that the have a correct estimate
-<em></em>\(\hat{N}\) in order to use this type of bootstrap.</p>
+N in order to use this type of bootstrap.</p>
 <p>Lastly there is <code>"paramteric"</code> bootstrap where we assume that the
-probabilistic model used to obtain <em></em>\(\hat{N}\) is correct the
-bootstrap procedure may then be described as:</p><ol><li><p>Draw <em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)
+probabilistic model used to obtain N is correct the
+bootstrap procedure may then be described as:</p><ol><li><p>Draw N + b(N-N)
 covariate information vectors with replacement from data according to
-probability distribution that is proportional to: <em></em>\(N_{k}\),
-where <em></em>\(N_{k}\) is the contribution of kth unit i.e.
-<em></em>\(\dfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\).</p></li>
-<li><p>Determine <em></em>\(\boldsymbol{\eta}\) matrix using estimate
-<em></em>\(\hat{\boldsymbol{\beta}}\).</p></li>
-<li><p>Generate <em></em>\(\boldsymbol{y}\) (dependent variable)
-vector using <em></em>\(\boldsymbol{\eta}\) and
+probability distribution that is proportional to: N_k,
+where N_k is the contribution of kth unit i.e.
+1P(Y_k&gt;0).</p></li>
+<li><p>Determine  matrix using estimate
+.</p></li>
+<li><p>Generate y (dependent variable)
+vector using  and
 probability mass function associated with chosen model.</p></li>
-<li><p>Truncated units with <em></em>\(y=0\) and construct
-<em></em>\(\boldsymbol{y}_{new}\) and <em></em>\(\boldsymbol{X}_{vlm new}\).</p></li>
-<li><p>Regress <em></em>\(\boldsymbol{y}_{new}\) on <em></em>\(\boldsymbol{X}_{vlm new}\)
-and obtain <em></em>\(\hat{\boldsymbol{\beta}}_{new}\)
-use them to compute <em></em>\(\hat{N}_{new}\).</p></li>
+<li><p>Truncated units with y=0 and construct
+y_new and X_vlm new.</p></li>
+<li><p>Regress y_new on X_vlm new
+and obtain _new
+use them to compute N_new.</p></li>
 <li><p>Repeat 1-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code></p></li>
@@ -359,9 +357,9 @@ only uses "standard" covariance matrix estimation. It is possible that improper
 covariance matrix estimate is the only part of estimation that has its assumptions
 violated. In such cases post-hoc procedures are implemented in this package
 to address this issue.</p>
-<p>Lastly confidence intervals for <em></em>\(\hat{N}\) are computed
+<p>Lastly confidence intervals for N are computed
 (in analytic case) either by assuming that it follows a normal distribution
-or that variable <em></em>\(\ln(N-\hat{N})\)
+or that variable (N-N)
 follows a normal distribution.</p>
 <p>These estimates may be found using either <code>summary.singleRStaticCountData</code>
 method or <code>popSizeEst.singleRStaticCountData</code> function. They're labelled as
@@ -431,7 +429,7 @@ between observed and fitted quantities.</p>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p>Piotr Chlebicki, Maciej Beręsewicz</p>
-<p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+<p></p>
     </div>
 
     <div class="section level2">
@@ -818,7 +816,7 @@ between observed and fitted quantities.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>

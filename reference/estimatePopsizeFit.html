@@ -111,7 +111,7 @@ linear predictors.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+    <p></p>
 <p>If <code>method</code> argument was set to <code>"optim"</code> the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code>
 function will be used to fit regression with analytically computed gradient and
 (minus) log likelihood functions as <code>gr</code> and <code>fn</code> arguments.
@@ -124,50 +124,50 @@ Thomas W. Yee later extended this algorithm to vector generalised linear models
 and in more general terms it can roughly be described as
 (this is Yee's description after changing some conventions):</p><ol><li><p>Initialize with:</p><ul><li><p><code>converged &lt;- FALSE</code></p></li>
 <li><p><code>iter &lt;- 1</code></p></li>
-<li><p><em></em>\(\boldsymbol{\beta}\)<code> &lt;- start</code></p></li>
-<li><p><em></em>\(\boldsymbol{W}\)<code> &lt;- prior</code></p></li>
-<li><p><em></em>\(\ell\)<code> &lt;- </code><em></em>\(\ell(\boldsymbol{\beta})\)</p></li>
+<li><p><code> &lt;- start</code></p></li>
+<li><p>W<code> &lt;- prior</code></p></li>
+<li><p><code> &lt;- </code>()</p></li>
 </ul></li>
 <li><p>If <code>converged</code> or <code>iter &gt; Maxiter</code> move to step 7.</p></li>
-<li><p>Store values from previous algorithm step:</p><ul><li><p><em></em>\(\boldsymbol{W}_{-}\)<code> &lt;- </code>
-<em></em>\(\boldsymbol{W}\)</p></li>
-<li><p><em></em>\(\ell_{-}\)<code> &lt;- </code>
-<em></em>\(\ell\)</p></li>
-<li><p><em></em>\(\boldsymbol{\beta}_{-}\)<code> &lt;- </code>
-<em></em>\(\boldsymbol{\beta}\)</p></li>
-</ul><p>and assign values at current step:</p><ul><li><p><em></em>\(\boldsymbol{\eta}\)<code> &lt;- </code>
-<em></em>\(\boldsymbol{X}_{vlm}\boldsymbol{\beta}\)</p></li>
-<li><p><em></em>\(Z_{i}\)<code> &lt;- </code>
-<em></em>\(
-\eta_{i}+\frac{\partial\ell_{i}}{\partial\eta_{i}}
-\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
-\partial\eta_{i}^{T}\partial\eta_{i}}\right)^{-1}\)</p></li>
-<li><p><em></em>\(\boldsymbol{W}_{ij}\)<code> &lt;- </code>
-<em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell}{
-\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)\)</p></li>
-</ul><p>where <em></em>\(\ell_{i}\) is the ith component of log likelihood
-function, <em></em>\(\eta_{i}\) is the vector of linear predictors
-associated with ith row and <em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell_{i}}{
-\partial\eta_{i}^{T}\partial\eta_{i}}\right)\)
-corresponds to weights associated with ith row and <em></em>\(\boldsymbol{W}\)
+<li><p>Store values from previous algorithm step:</p><ul><li><p>W_-<code> &lt;- </code>
+W</p></li>
+<li><p>_-<code> &lt;- </code></p></li>
+<li><p>_-<code> &lt;- </code></p></li>
+</ul><p>and assign values at current step:</p><ul><li><p><code> &lt;- </code>
+X_vlm</p></li>
+<li><p>Z_i<code> &lt;- </code>
+
+_i+_i_i
+E(^2_i
+_i^T_i)^-1</p></li>
+<li><p>W_ij<code> &lt;- </code>
+E(^2
+_j^T_i)</p></li>
+</ul><p>where _i is the ith component of log likelihood
+function, _i is the vector of linear predictors
+associated with ith row and E(^2_i
+_i^T_i)
+corresponds to weights associated with ith row and W
 is a block matrix, made of diagonal matrixes
-<em></em>\(\mathbb{E}\left(\frac{\partial^{2}\ell}{
-\partial\boldsymbol{\eta}_{j}^{T}\partial\boldsymbol{\eta}_{i}}\right)\)</p></li>
-<li><p>Regress <em></em>\(\boldsymbol{Z}\) on
-<em></em>\(\boldsymbol{X}_{vlm}\) to obtain
-<em></em>\(\boldsymbol{\beta}\) as:
-\[\boldsymbol{\beta}=
-\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
-\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}\]</p></li>
-<li><p>Assign:</p><ul><li><p><code>converged &lt;- </code><em></em>\(
-\ell(\boldsymbol{\beta})-\ell_{-} \(
-||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} </p></li>
+E(^2
+_j^T_i)</p></li>
+<li><p>Regress Z on
+X_vlm to obtain
+ as:
+=
+(X_vlm^TWX_vlm)^-1
+X_vlm^TWZ</p></li>
+<li><p>Assign:</p><ul><li><p><code>converged &lt;- </code>
+()-_- &lt; _-
+or
+
+||-_-||_ &lt;</p></li>
 <li><p><code>iter &lt;- iter + 1</code></p></li>
-</ul><p>where <em></em>\(\varepsilon\) is the relative tolerance level,
+</ul><p>where  is the relative tolerance level,
 by default <code>1e-8</code>.</p></li>
 <li><p>Return to step 2.</p></li>
-<li><p>Return <em></em>\(\boldsymbol{\beta}, \boldsymbol{W}\), <code>iter</code>.</p></li>
-</ol><p>In this package we use different conventions for <em></em>\(\boldsymbol{X}_{vlm}\)
+<li><p>Return , W, <code>iter</code>.</p></li>
+</ol><p>In this package we use different conventions for X_vlm
 matrix hence slight differences are present in algorithm description but
 results are identical.</p>
     </div>
@@ -975,7 +975,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>

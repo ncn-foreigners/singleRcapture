@@ -177,7 +177,7 @@ on the model. These functions are used as <code>model</code> argument in
 <dl><dt id="arg-lambdalink">lambdaLink<a class="anchor" aria-label="anchor" href="#arg-lambdalink"></a></dt>
 <dd><p>link for Poisson parameter, <code>"log"</code>
 by default except for zelterman's and chao's models where only
-<em></em>\(\ln\left(\frac{x}{2}\right)\) is possible.</p></dd>
+(x2) is possible.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -214,12 +214,12 @@ issues with convergence.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A object of class <code>family</code> containing objects:</p><ul><li><p><code>makeMinusLogLike</code> – A factory function for creating
-<em></em>\(\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
-\frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^{T}\partial\boldsymbol{\beta}}
-\) functions from
-<em></em>\(\boldsymbol{y}\) vector and
-<em></em>\(\boldsymbol{X}_{vlm}\)
-(or just <em></em>\(\boldsymbol{X}\) if applied to model
+(), ,
+^2^T
+ functions from
+y vector and
+X_vlm
+(or just X if applied to model
 with single linear predictor) the argument <code>deriv</code> with possible
 values in <code>0, 1, 2</code> provides which derivative to return with
 <code>0</code> being just the minus log-likelihood.</p></li>
@@ -227,8 +227,8 @@ values in <code>0, 1, 2</code> provides which derivative to return with
 <li><p><code>mu.eta, variance</code> – Functions of linear predictors that
 return expected value and variance. There is a <code>type</code> argument with
 2 possible values <code>"trunc"</code> and <code>"nontrunc"</code> that specifies whether
-to return <em></em>\(\mathbb{E}(Y|Y&gt;0), \text{var}(Y|Y&gt;0)\) or
-<em></em>\(\mathbb{E}(Y), \text{var}(Y)\) respectively.</p></li>
+to return E(Y|Y&gt;0), var(Y|Y&gt;0) or
+E(Y), var(Y) respectively.</p></li>
 <li><p><code>family</code> – Character that specifies name of the model.</p></li>
 <li><p><code>valideta, validmu</code> – For now only returns true. In near future
 will be used to check whether applied linear predictors are valid (i.e. are
@@ -241,185 +241,181 @@ prior weights vector and response vector returns deviance residuals.
 Not all family functions have these functions implemented yet.</p></li>
 <li><p><code>pointEst, popVar</code> – Functions that given prior weights
 linear predictors and in the later case also estimation of
-<em></em>\(\text{cov}(\hat{\boldsymbol{\beta}})\) and <em></em>\(\boldsymbol{X_{vlm}}\)
+cov() and X_vlm
 matrix return point estimate for population size and analytic estimation
 of its variance.There is a additional boolean parameter <code>contr</code> in the
 former function that if set to true returns contribution of each unit.</p></li>
 <li><p><code>etaNames</code> – Names of linear predictors.</p></li>
 <li><p><code>densityFunction</code> – A function that given linear predictors
 returns value of PMF at values <code>x</code>. Additional argument <code>type</code>
-specifies whether to return <em></em>\(\mathbb{P}(Y|Y&gt;0)\) or
-<em></em>\(\mathbb{P}(Y)\).</p></li>
+specifies whether to return P(Y|Y&gt;0) or
+P(Y).</p></li>
 <li><p><code>simulate</code> – A function that generates values of dependent
 vector given linear predictors.</p></li>
 <li><p><code>getStart</code> – Expression for generating starting points.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script></p>
+    <p></p>
 <p>Most of these functions are based on some "base" distribution with
-support <em></em>\(\mathbb{N}_{0}=\mathbb{N}\cup\lbrace 0\rbrace\) that describe
-distribution of <em></em>\(Y\) before truncation. Currently they include:
-\[\mathbb{P}(Y=y|\lambda,\alpha)=\left\lbrace
-\begin{array}{cc}
-\frac{\lambda^{y}e^{-\lambda}}{y!}    &amp; \text{Poisson distribution}  \cr
-\frac{\Gamma(y+\alpha^{-1})}{\Gamma(\alpha^{-1})y!}
-\left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
-\left(\frac{\lambda}{\alpha^{-1}+\lambda}\right)^{y} &amp;
-\text{negative binomial distribution} \cr
-\frac{\lambda^{y}}{(1+\lambda)^{y+1}} &amp;
-\text{geometric distribution}
-\end{array}
-\right.\]
-where <em></em>\(\lambda\) is the Poisson parameter and
-<em></em>\(\alpha\) is the dispersion parameter. Geometric distribution
+support N_0=N 0 that describe
+distribution of Y before truncation. Currently they include:
+P(Y=y|,)=
+arraycc
+^ye^-y!    &amp; Poisson distribution  <br>
+(y+^-1)(^-1)y!
+(^-1^-1+)^^-1
+(^-1+)^y &amp;
+negative binomial distribution <br>
+^y(1+)^y+1 &amp;
+geometric distribution
+array
+.
+where  is the Poisson parameter and
+ is the dispersion parameter. Geometric distribution
 is a special case of negative binomial distribution when
-<em></em>\(\alpha=1\) it is included because negative binomial
+=1 it is included because negative binomial
 distribution is quite troublesome numerical regression in fitting.
 It is important to know that PMF of negative binomial distribution
 approaches the PMF of Poisson distribution when
-<em></em>\(\alpha\rightarrow 0^{+}\).</p>
+ 0^+.</p>
 <p><strong>Note</strong> in literature on single source capture recapture models
 the dispersion parameter which introduces greater variability
 in negative binomial distribution compared to Poisson distribution is
 generally interpreted as explaining the <em>unobserved</em> heterogeneity
 i.e. presence of important unobserved independent variables.
 All these methods for estimating population size are tied to Poisson
-processes hence we use <em></em>\(\lambda\) as parameter symbol
-instead of <em></em>\(\mu\) to emphasize this connection.
+processes hence we use  as parameter symbol
+instead of  to emphasize this connection.
 Also will not be hard to see that <strong>all</strong> estimators derived from
 modifying the "base" distribution are unbiased if assumptions
 made by respective models are not violated.</p>
 <p>The <strong>zero truncated</strong> models corresponding to "base" distributions are
 characterized by relation:
-\[\mathbb{P}(Y=y|Y&gt;0)=\left\lbrace
-\begin{array}{cc}
-\frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)} &amp; \text{when }y\neq 0 \cr
-0 &amp; \text{when }y=0
-\end{array}\right.\]
+P(Y=y|Y&gt;0)=
+arraycc
+P(Y=y)1-P(Y=0) &amp; when y 0 <br>
+0 &amp; when y=0
+array.
 which allows us to estimate parameter values using only observed part of
 population. These models lead to the following estimates, respectively:
-\[
-\begin{aligned}
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-\exp(-\lambda_{k})} &amp;
-\text{ For Poisson distribution} \cr
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &amp;
-\text{ For negative binomial distribution} \cr
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k}} &amp;
-\text{ For geometric distribution}
-\end{aligned}
-\]</p>
+
+aligned
+N &amp;= _k=1^N_obs11-(-_k) &amp;
+ For Poisson distribution <br>
+N &amp;= _k=1^N_obs11-(1+\alpha_k_k)^-_k^-1 &amp;
+ For negative binomial distribution <br>
+N &amp;= _k=1^N_obs1+_k_k &amp;
+ For geometric distribution
+aligned</p>
 <p>One common way in which assumptions of zero truncated models are violated is
 presence of <strong>one inflation</strong> the presence of which is somewhat similar in
 single source capture-recapture models to zero inflation in usual count data
 analysis. There are two ways in which one inflation may be understood,
-they relate to whether <em></em>\(\mathbb{P}(Y=0)\) is
+they relate to whether P(Y=0) is
 modified by inflation. The first approach is inflate
-(<em></em>\(\omega\) parameter) zero truncated distribution as:
-\[
-\mathbb{P}_{new}(Y=y|Y&gt;0) = \left\lbrace\begin{array}{cc}
-\omega + (1 - \omega)\mathbb{P}_{old}(Y=1|Y&gt;0)&amp; \text{when: } y = 1 \cr
-(1 - \omega) \mathbb{P}_{old}(Y=y|Y&gt;0) &amp; \text{when: } y \neq 1
-\end{array}\right.\]
+( parameter) zero truncated distribution as:
+
+P_new(Y=y|Y&gt;0) = arraycc
+ + (1 - )P_old(Y=1|Y&gt;0)&amp; when:  y = 1 <br>
+(1 - ) P_old(Y=y|Y&gt;0) &amp; when:  y  1
+array.
 which corresponds to:
-\[
-\mathbb{P}_{new}(Y=y) = \left\lbrace\begin{array}{cc}
-\mathbb{P}_{old}(Y=0) &amp; \text{when: } y = 0 \cr
-\omega(1 - \mathbb{P}(Y=0)) + (1 - \omega)\mathbb{P}_{old}(Y=1) &amp; \text{when: } y = 1 \cr
-(1 - \omega) \mathbb{P}_{old}(Y=y) &amp; \text{when: } y &gt; 1
-\end{array}\right.
-\]
+
+P_new(Y=y) = arraycc
+P_old(Y=0) &amp; when:  y = 0 <br>
+(1 - P(Y=0)) + (1 - )P_old(Y=1) &amp; when:  y = 1 <br>
+(1 - ) P_old(Y=y) &amp; when:  y &gt; 1
+array.
+
 before zero truncation. Models that utilize this
 approach are commonly referred to as <em>zero truncated one inflated models</em>.
 Another way of accommodating one inflation in SSCR is by putting inflation
 parameter on base distribution as:
-\[
-\mathbb{P}_{new}(Y=y) = \left\lbrace\begin{array}{cc}
-\omega + (1 - \omega)\mathbb{P}_{old}(Y=1)&amp; \text{when: } y = 1 \cr
-(1 - \omega) \mathbb{P}_{old}(Y=y) &amp; \text{when: } y \neq 1
-\end{array}\right.
-\]
+
+P_new(Y=y) = arraycc
+ + (1 - )P_old(Y=1)&amp; when:  y = 1 <br>
+(1 - ) P_old(Y=y) &amp; when:  y  1
+array.
+
 which then becomes:
-\[
-\mathbb{P}_{new}(Y=y|Y&gt;0) = \left\lbrace\begin{array}{cc}
-\frac{\omega}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)} + \frac{(1 - \omega)}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)}\mathbb{P}_{old}(Y=1)&amp; \text{when: } y = 1 \cr
-\frac{(1 - \omega)}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)}\mathbb{P}_{old}(Y=y) &amp; \text{when: } y &gt; 1
-\end{array}\right.
-\]
+
+P_new(Y=y|Y&gt;0) = arraycc
+1 - (1-)P_old(Y=0) + (1 - )1 - (1-)P_old(Y=0)P_old(Y=1)&amp; when:  y = 1 <br>
+(1 - )1 - (1-)P_old(Y=0)P_old(Y=y) &amp; when:  y &gt; 1
+array.
+
 after truncation.
 It was shown by Böhning in 2022 paper that these approaches are equivalent
 in terms of maximizing likelihoods if we do not put formula on
-<em></em>\(\omega\). They can however lead to different
+. They can however lead to different
 population size estimates.</p>
 <p>For <em>zero truncated one inflated models</em> the formula for population size
-estimate <em></em>\(\hat{N}\) does not change since
-<em></em>\(\mathbb{P}(y=0)\) remains the same but estimation of parameters
+estimate N does not change since
+P(y=0) remains the same but estimation of parameters
 changes all calculations.</p>
 <p>For <em>one inflated zero truncated models</em> population size estimates are
 expressed, respectively by:
-\[
-\begin{aligned}
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})\exp(-\lambda_{k})} &amp;\text{ For base Poisson distribution} \cr
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1}{1-(1-\omega_{k})(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}} &amp;\text{ For base negative binomial distribution} \cr
-\hat{N} &amp;= \sum_{k=1}^{N_{obs}}\frac{1+\lambda_{k}}{\lambda_{k} + \omega_{k}} &amp;\text{ For base geometric distribution}
-\end{aligned}
-\]</p>
+
+aligned
+N &amp;= _k=1^N_obs11-(1-_k)(-_k) &amp; For base Poisson distribution <br>
+N &amp;= _k=1^N_obs11-(1-_k)(1+\alpha_k_k)^-_k^-1 &amp; For base negative binomial distribution <br>
+N &amp;= _k=1^N_obs1+_k_k + _k &amp; For base geometric distribution
+aligned</p>
 <p><strong>Zero one truncated</strong> models ignore one counts instead of accommodating
 one inflation by utilizing the identity
-\[
-\ell_{\text{ztoi}}=\boldsymbol{f}_{1}\ln{\frac{\boldsymbol{f}_{1}}{N_{obs}}}
-+(N_{obs}-\boldsymbol{f}_{1})\ln{\left(1-\frac{\boldsymbol{f}_{1}}{N_{obs}}
-\right)} + \ell_{\text{zot}}
-\]
-where <em></em>\(\ell_{\text{zot}}\) is the log likelihood
+
+_ztoi=f_1f_1N_obs
++(N_obs-f_1)(1-f_1N_obs
+) + _zot
+
+where _zot is the log likelihood
 of zero one truncated distribution characterized by probability mass function:
-\[\mathbb{P}(Y=y|Y&gt;1)=\left\lbrace
-\begin{array}{cc}
-\frac{\mathbb{P}(Y=y)}{1-\mathbb{P}(Y=0)-\mathbb{P}(Y=1)} &amp; \text{when }y &gt; 1 \cr
-0 &amp; \text{when }y\in\lbrace 0, 1\rbrace
-\end{array}\right.\]
-where <em></em>\(\mathbb{P}(Y)\) is the probability mass function of
+P(Y=y|Y&gt;1)=
+arraycc
+P(Y=y)1-P(Y=0)-P(Y=1) &amp; when y &gt; 1 <br>
+0 &amp; when y 0, 1
+array.
+where P(Y) is the probability mass function of
 the "base" distribution. The identity above justifies use of zero one truncated,
 unfortunately it was only proven for intercept only models, however
 numerical simulations seem to indicate that even if the theorem cannot be
 extended for (non trivial) regression population size estimation is still
 possible.</p>
 <p>For <em>zero one truncated models</em> population size estimates are expressed by:
-\[
-\begin{aligned}
-\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
-\frac{1-\lambda_{k}\exp(-\lambda_{k})}{1-\exp(-\lambda_{k})-\lambda_{k}\exp(-\lambda_{k})}
-&amp;\text{ For base Poisson distribution} \cr
-\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
-\frac{1-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}{
-1-(1+\alpha_{k}\lambda_{k})^{-\alpha_{k}^{-1}}-\lambda_{k}(1+\alpha_{k}\lambda_{k})^{-1-\alpha_{k}^{-1}}}
-&amp;\text{ For base negative binomial distribution} \cr
-\hat{N} &amp;= \boldsymbol{f}_{1} + \sum_{k=1}^{N_{obs}}
-\frac{\lambda_{k}^{2}+\lambda_{k}+1}{\lambda_{k}^{2}}
-&amp;\text{ For base geometric distribution}
-\end{aligned}
-\]</p>
+
+aligned
+N &amp;= f_1 + _k=1^N_obs
+1-_k(-_k)1-(-_k)-_k(-_k)
+&amp; For base Poisson distribution <br>
+N &amp;= f_1 + _k=1^N_obs
+1-_k(1+_k_k)^-1-_k^-1
+1-(1+_k_k)^-_k^-1-_k(1+_k_k)^-1-_k^-1
+&amp; For base negative binomial distribution <br>
+N &amp;= f_1 + _k=1^N_obs
+_k^2+_k+1_k^2
+&amp; For base geometric distribution
+aligned</p>
 <p>Pseudo hurdle models are experimental and not yet described in literature.</p>
 <p>Lastly there are <strong>chao</strong> and <strong>zelterman</strong> models which are based on
 logistic regression on the dummy variable
-\[
-Z = \left\lbrace\begin{array}{cc}
-0     &amp; \text{if }Y = 1  \cr
-1     &amp; \text{if }Y = 2
-\end{array}\right.\]
+
+Z = arraycc
+0     &amp; if Y = 1  <br>
+1     &amp; if Y = 2
+array.
 based on the equation:
-\[
-\text{logit}(p_{k})=
-\ln\left(\frac{\lambda_{k}}{2}\right)=
-\boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}\]
-where <em></em>\(\lambda_{k}\) is the Poisson parameter.</p>
+
+logit(p_k)=
+(_k2)=
+x_k=_k
+where _k is the Poisson parameter.</p>
 <p>The <em>zelterman</em> estimator of population size is expressed as:
-\[\hat{N}=\sum_{k=1}^{N_{obs}}{1-\exp\left(-\lambda_{k}\right)}\]
+N=_k=1^N_obs1-(-_k)
 and <em>chao</em> estimator has the form:
-\[
-\hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
-\frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
-\]</p>
+
+N=N_obs+_k=1^f_1+f_2
+1_k+ _k^22</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -439,7 +435,7 @@ and <em>chao</em> estimator has the form:
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>
