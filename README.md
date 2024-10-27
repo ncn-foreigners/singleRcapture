@@ -6,14 +6,10 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
-[![Codecov test
-coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
-[![CRAN
-downloads](http://cranlogs.r-pkg.org/badges/grand-total/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
-[![CRAN
-downloads](https://cranlogs.r-pkg.org/badges/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
+[![Codecov test coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
+[![CRAN status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
+[![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8436043.svg)](https://doi.org/10.5281/zenodo.8436043)
 <!-- badges: end -->
 
