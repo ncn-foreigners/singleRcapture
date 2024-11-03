@@ -220,6 +220,8 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
       (y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda)) - 
       (log(1 - PI) + (y - 2) * log(lambda) - (y - 1) * log(1 + lambda))
     )
+    
+    diff[diff < 0] <- 0
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   

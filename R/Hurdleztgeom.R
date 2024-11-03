@@ -248,6 +248,8 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
       ifelse(y == 2, 0,
       (y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda)) - (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda) - log(lambda ^ 2 + PI * (lambda + 1)))
     )
+    diff[diff < 0] <- 0
+    
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   

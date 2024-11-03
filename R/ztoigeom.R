@@ -245,6 +245,8 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
       -log(omega + (1 - omega) / (1 + lambda)),
       (y - 1) * log(idealLambda) - y * log(1 + idealLambda) - log(1 - omega) + log(1 + lambda) - (y - 1) * log(lambda / (1 + lambda))
     )
+    
+    diff[diff < 0] <- 0
     sign(y - mu.eta(eta = eta)) * sqrt(2 * wt * diff)
   }
   

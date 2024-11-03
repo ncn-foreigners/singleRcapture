@@ -718,6 +718,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       diff[logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
+      diff[diff < 0] <- 0
     }
     
     #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)

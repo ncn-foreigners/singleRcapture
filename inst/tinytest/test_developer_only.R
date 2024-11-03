@@ -93,6 +93,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
     )
   )
   
+  set.seed(123)
   expect_silent(
     xx <- estimatePopsize(
       formula = capture ~ gender,

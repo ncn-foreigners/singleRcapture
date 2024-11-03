@@ -130,7 +130,7 @@ stratifyPopsize.singleRStaticCountData <- function(object,
     }
   } else if (is.list(stratas)) {
     if (!all(sapply(stratas, is.logical)))
-      stop("Invalid way of specifying subpopulations in stratas. If stratas argument is a list ")
+      stop("Invalid way of specifying subpopulations in stratas. If stratas argument is a list then all elements of that list must be logical vectors.")
     
     if (length(stratas[[1]]) != object$sizeObserved) 
       stop("Elements of stratas object should have length equal to number of observed units.")
@@ -233,20 +233,19 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   }
   
   result <- data.frame(
-    obs, est, 100 * obs / est, stdErr, 
+    names(stratas), obs, est, 
+    100 * obs / est, stdErr, 
     cnfStudent[, 1], cnfStudent[, 2], 
-    cnfChao[, 1], cnfChao[, 2],
-    names(stratas), alpha
+    cnfChao[, 1], cnfChao[, 2], alpha
   )
   
   bounds <- c("LowerBound", "UpperBound")
   
   colnames(result) <- c(
-    "Observed", "Estimated", 
+    "name", "Observed", "Estimated", 
     "ObservedPercentage", "StdError", 
     paste0("normal", bounds), 
-    paste0("logNormal", bounds), 
-    "name", "confLevel"
+    paste0("logNormal", bounds), "confLevel"
   )
   
   result

@@ -576,6 +576,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     }
     
     #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
+    diff[diff < 0] <- 0
     
     sign(y - mu) * sqrt(2 * wt * diff)
   }

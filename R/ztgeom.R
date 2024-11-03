@@ -117,8 +117,12 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     hm1y <- y - 1 # that's an analytic inverse for geometric
     loghm1y <- ifelse(y > 1, log(hm1y), 0)
-    sign(y - 1 - lambda) * sqrt(-2 * wt * ((y - 1) * log(lambda) - y * log(1 + lambda) - 
-                                           (y - 1) * loghm1y + y * log(y)))
+    
+    diff <- (y - 1) * log(lambda) - y * log(1 + lambda) - 
+            (y - 1) * loghm1y + y * log(y)
+    
+    diff[diff > 0] <- -0
+    sign(y - 1 - lambda) * sqrt(-2 * wt * diff)
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {

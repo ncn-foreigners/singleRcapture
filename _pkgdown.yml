@@ -1,4 +1,3 @@
 url: https://ncn-foreigners.github.io/singleRcapture/
 template:
   bootstrap: 5
-  math-rendering: mathjax

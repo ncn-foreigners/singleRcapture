@@ -130,8 +130,9 @@ zotgeom <- function(lambdaLink = c("log", "neglog"),
     loghm1y <- ifelse(y[iddx] > 2, log(y[iddx] - 2), 0)
     
     diff <- iddx
-    diff[iddx] <- (y[iddx]- 2) * log(lambda) - (y[iddx] - 1) * log(1 + lambda) - 
+    diff[iddx] <- (y[iddx]-  2) * log(lambda) - (y[iddx] - 1) * log(1 + lambda) - 
                   (y[iddx] - 2) * loghm1y + (y[iddx] - 1) * log(y[iddx] - 1)
+    diff[diff > 0] <- -0
     
     sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * diff)
   }

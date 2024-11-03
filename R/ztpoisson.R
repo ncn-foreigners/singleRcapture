@@ -159,6 +159,8 @@ ztpoisson <- function(lambdaLink = c("log", "neglog"),
       ))
     }
     
+    diff[diff > 0] <- -0
+    
     ### Here we take pairwise minimum because in specific situations
     ### lambda and idealLambda are so close for some units that
     ### their respective likelihoods differ only by machine epsilon

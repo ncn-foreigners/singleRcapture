@@ -139,8 +139,10 @@ chao <- function(lambdaLink = "loghalf",
   devResids <- function(y, eta, wt, ...) {
     z <- y - 1
     lambda <- lambdaLink(eta, inverse = TRUE)
+    diff <- (z * log(lambda / 2 / (1 + lambda / 2)) + (1 - z) * log(1 / (1 + lambda / 2)))
+    diff[diff > 0] <- -0
     
-    ((-1) ^ y) * sqrt((-2 * wt * (z * log(lambda / 2 / (1 + lambda / 2)) + (1 - z) * log(1 / (1 + lambda / 2)))) * (y %in% 1:2))
+    ((-1) ^ y) * sqrt((-2 * wt * diff) * (y %in% 1:2))
   }
 
   pointEst <- function (pw, eta, contr = FALSE, y, ...) {

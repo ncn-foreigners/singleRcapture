@@ -191,6 +191,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
         "(2): Incorrect computation of saturated model",
         "\nDouble check deviance before proceeding"
       ))
+      diff[diff > 0] <- -0
     }
 
     sign(y - mu.eta(eta = eta)) * sqrt(-2 * wt * diff)
