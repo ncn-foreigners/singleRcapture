@@ -14,7 +14,6 @@ estimatePopsize(formula, ...)
     "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
     "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
     "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
-  ratioReg = FALSE,
   weights = NULL,
   subset = NULL,
   naAction = NULL,
@@ -27,6 +26,7 @@ estimatePopsize(formula, ...)
   x = FALSE,
   y = TRUE,
   contrasts = NULL,
+  ratioReg = FALSE,
   offset,
   ...
 )
@@ -42,8 +42,6 @@ linear predictor. Only single response models are available.}
 data for the regression and population size estimation.}
 
 \item{model}{model for regression and population estimate full description in \code{\link[=singleRmodels]{singleRmodels()}}.}
-
-\item{ratioReg}{Not yet implemented}
 
 \item{weights}{optional object of prior weights used in fitting the model.
 Can be used to specify number of occurrences of rows in data see \code{\link[=controlModel]{controlModel()}}}
@@ -79,6 +77,8 @@ More information included in \code{\link[=controlPopVar]{controlPopVar()}}.}
 dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{not yet implemented.}
+
+\item{ratioReg}{Not yet implemented}
 
 \item{offset}{a matrix of offset values with number of columns matching the
 number of distribution parameters providing offset values to each of

@@ -187,8 +187,6 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
   on.exit(parallel::stopCluster(cl))
   #doRNG::registerDoRNG()
   
-  ### TODO:: This gives a different results for family = "chao" and "zelterman"
-  ### when compared to non paralelized version
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
     ex = {

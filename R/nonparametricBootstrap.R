@@ -150,9 +150,6 @@ noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   
-  
-  ### TODO:: This gives a different results for family = "chao" and "zelterman"
-  ### when compared to non paralelized version
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
     #obj = foreach::foreach(k = 1:numboot, .export = "singleRcaptureinternalIRLSmultipar"),

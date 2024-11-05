@@ -436,7 +436,6 @@ estimatePopsize.default <- function(formula,
                                       "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
                                       "zelterman", "chao"
                                     ),
-                                    ratioReg = FALSE,
                                     weights  = NULL,
                                     subset   = NULL,
                                     naAction = NULL,
@@ -452,6 +451,7 @@ estimatePopsize.default <- function(formula,
                                     x             = FALSE,
                                     y             = TRUE,
                                     contrasts     = NULL,
+                                    ratioReg      = FALSE,
                                     offset,
                                     ...) {
   if (missing(method)) method <- "IRLS"
@@ -690,7 +690,7 @@ estimatePopsize.default <- function(formula,
     LOG          <- -logLike(coefficients)
     resRes       <- priorWeights * (observed - fitt)
     
-    if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - 1}
+    if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - priorWeights}
   
     deviance <- sum(family$devResids(y   = observed, 
                                      wt  = priorWeights,
