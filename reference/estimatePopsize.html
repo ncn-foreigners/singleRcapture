@@ -76,7 +76,6 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise.<
 <span>    <span class="st">"oiztpoisson"</span>, <span class="st">"ztHurdlepoisson"</span>, <span class="st">"Hurdleztpoisson"</span>, <span class="st">"zotnegbin"</span>, <span class="st">"ztoinegbin"</span>,</span>
 <span>    <span class="st">"oiztnegbin"</span>, <span class="st">"ztHurdlenegbin"</span>, <span class="st">"Hurdleztnegbin"</span>, <span class="st">"zotgeom"</span>, <span class="st">"ztoigeom"</span>, <span class="st">"oiztgeom"</span>,</span>
 <span>    <span class="st">"ztHurdlegeom"</span>, <span class="st">"ztHurdlegeom"</span>, <span class="st">"zelterman"</span>, <span class="st">"chao"</span><span class="op">)</span>,</span>
-<span>  ratioReg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subset <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  naAction <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -89,6 +88,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise.<
 <span>  x <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  contrasts <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ratioReg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">offset</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -115,10 +115,6 @@ data for the regression and population size estimation.</p></dd>
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
 <dd><p>model for regression and population estimate full description in <code><a href="singleRmodels.html">singleRmodels()</a></code>.</p></dd>
-
-
-<dt id="arg-ratioreg">ratioReg<a class="anchor" aria-label="anchor" href="#arg-ratioreg"></a></dt>
-<dd><p>Not yet implemented</p></dd>
 
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
@@ -174,6 +170,10 @@ dependent vector and model matrix as a part of output.</p></dd>
 
 <dt id="arg-contrasts">contrasts<a class="anchor" aria-label="anchor" href="#arg-contrasts"></a></dt>
 <dd><p>not yet implemented.</p></dd>
+
+
+<dt id="arg-ratioreg">ratioReg<a class="anchor" aria-label="anchor" href="#arg-ratioreg"></a></dt>
+<dd><p>Not yet implemented</p></dd>
 
 
 <dt id="arg-offset">offset<a class="anchor" aria-label="anchor" href="#arg-offset"></a></dt>
