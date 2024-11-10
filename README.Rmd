@@ -63,13 +63,6 @@ or install the stable version from [CRAN](https://cran.r-project.org/package=sin
 install.packages(singleRcapture)
 ```
 
-or development version from [development branch on GitHub](https://github.com/ncn-foreigners/singleRcapture/tree/development) with:
-
-```{r, eval=FALSE}
-# install.packages("devtools")
-remotes::install_github("github.com/ncn-foreigners/singleRcapture/tree/development")
-```
-
 ### Examples
 
 The main function of this package is `estimatePopsize` which fitts regression

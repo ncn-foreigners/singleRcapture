@@ -65,15 +65,6 @@ or install the stable version from
 install.packages(singleRcapture)
 ```
 
-or development version from [development branch on
-GitHub](https://github.com/ncn-foreigners/singleRcapture/tree/development)
-with:
-
-``` r
-# install.packages("devtools")
-remotes::install_github("github.com/ncn-foreigners/singleRcapture/tree/development")
-```
-
 ### Examples
 
 The main function of this package is `estimatePopsize` which fitts
@@ -207,7 +198,7 @@ approximately the same effect:
 plot(model, plotType = "dfpopContr")
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="75%" />
 
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
@@ -451,7 +442,7 @@ plot(modelInflated2,
      breaks = 15)
 ```
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="75%" />
 
 and information criteria support the second model:
 
