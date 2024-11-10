@@ -42,10 +42,10 @@ based on a capture-recapture model for the whole population.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">stratas</span>, <span class="va">alpha</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">strata</span>, <span class="va">alpha</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'singleRStaticCountData'</span></span>
-<span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">stratas</span>, <span class="va">alpha</span>, cov <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">stratifyPopsize</span><span class="op">(</span><span class="va">object</span>, <span class="va">strata</span>, <span class="va">alpha</span>, cov <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -57,14 +57,14 @@ based on a capture-recapture model for the whole population.</p>
 in <code>singleRcapture</code> package this is a fitter <code>singleRStaticCountData</code> class object.</p></dd>
 
 
-<dt id="arg-stratas">stratas<a class="anchor" aria-label="anchor" href="#arg-stratas"></a></dt>
-<dd><p>a specification of sub populations either by:</p><ul><li><p>formula – a formula to be applied to <code>model.frame</code> extracted from
-the object .</p></li>
+<dt id="arg-strata">strata<a class="anchor" aria-label="anchor" href="#arg-strata"></a></dt>
+<dd><p>a specification of sub populations given by one of:</p><ul><li><p>formula – a formula to be applied to <code>model.frame</code> extracted from
+the object.</p></li>
 <li><p>Logical vector with number of entries equal to number of rows in the dataset.</p></li>
 <li><p>A (named) list where each element is a logical vector, names of the list
 will be used to specify names variable in returned object.</p></li>
 <li><p>Vector of names of explanatory variables. For <code>singleRStaticCountData</code> method
-for this function this specification of <code>stratas</code> parameter will
+for this function this specification of <code>strata</code> parameter will
 result in every level of explanatory variable having its own sub population
 for each variable specified.</p></li>
 <li><p>If no value was provided the <code>singleRStaticCountData</code> method for this function
@@ -76,7 +76,7 @@ in <code>model.frame</code>.</p></li>
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>significance level for confidence intervals –
 Either a single numeric value or a vector of length equal to number of
-sub populations specified in <code>stratas</code>.
+sub populations specified in <code>strata</code>.
 If missing it is set to <code>.05</code> in <code>singleRStaticCountData</code> method.</p></dd>
 
 
