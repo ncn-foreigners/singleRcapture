@@ -13,12 +13,12 @@ NULL
 #' @param nSim,epsSim if working weights cannot be computed analytically these 
 #' arguments specify maximum number of simulations allowed and
 #' precision level for finding them numerically respectively.
-#' @param lambdaLink link for Poisson parameter, \code{"log"} 
+#' @param lambdaLink a link for Poisson parameter, \code{"log"} 
 #' by default except for zelterman's and chao's models where only 
 #' \mjseqn{\ln\left(\frac{x}{2}\right)} is possible.
-#' @param alphaLink link for dispersion parameter, \code{"log"} by default
-#' @param omegaLink link for inflation parameter, \code{"logit"} by default 
-#' @param piLink link for probability parameter,  \code{"logit"} by default
+#' @param alphaLink a link for dispersion parameter, \code{"log"} by default
+#' @param omegaLink a link for inflation parameter, \code{"logit"} by default 
+#' @param piLink a link for probability parameter,  \code{"logit"} by default
 #' @param eimStep a non negative integer describing 
 #' how many values should be used at each step of approximation
 #' of information matrixes when no analytic solution is available 
@@ -207,34 +207,37 @@ NULL
 #'
 #' @return A object of class \code{family} containing objects:
 #' \itemize{
-#' \item \code{makeMinusLogLike} -- A factory function for creating 
+#' \item \code{makeMinusLogLike} -- A factory function for creating the following functions:
 #' \mjseqn{\ell(\boldsymbol{\beta}), \frac{\partial\ell}{\partial\boldsymbol{\beta}},
 #' \frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^{T}\partial\boldsymbol{\beta}}
-#' } functions from 
-#' \mjseqn{\boldsymbol{y}} vector and 
-#' \mjseqn{\boldsymbol{X}_{vlm}}
+#' } functions from the
+#' \mjseqn{\boldsymbol{y}} vector and the
+#' \mjseqn{\boldsymbol{X}_{vlm}} matrix
 #' (or just \mjseqn{\boldsymbol{X}} if applied to model 
-#' with single linear predictor) the argument \code{deriv} with possible 
-#' values in \code{0, 1, 2} provides which derivative to return with 
-#' \code{0} being just the minus log-likelihood.
-#' \item \code{links} -- List with link functions.
+#' with single linear predictor)which has the \code{deriv} argument with possible 
+#' values in \code{c(0, 1, 2)} that determine which derivative to return; 
+#' the default value is \code{0}, which represents the minus log-likelihood.
+#' \item \code{links} -- A list with link functions.
 #' \item \code{mu.eta, variance} -- Functions of linear predictors that
-#' return expected value and variance. There is a \code{type} argument with
-#' 2 possible values \code{"trunc"} and \code{"nontrunc"} that specifies whether
+#' return expected value and variance. The \code{type} argument with 2 possible 
+#' values (\code{"trunc"} and \code{"nontrunc"}) that specifies whether
 #' to return \mjseqn{\mathbb{E}(Y|Y>0), \text{var}(Y|Y>0)} or 
-#' \mjseqn{\mathbb{E}(Y), \text{var}(Y)} respectively.
-#' \item \code{family} -- Character that specifies name of the model.
-#' \item \code{valideta, validmu} -- For now only returns true. In near future 
-#' will be used to check whether applied linear predictors are valid (i.e. are 
-#' transformed into some elements of parameter space the subjected to inverse
-#' link function).
+#' \mjseqn{\mathbb{E}(Y), \text{var}(Y)} respectively; the \code{deriv} argument 
+#' with values in \code{c(0, 1, 2)} is used for indicating the derivative with 
+#' respect to the linear predictors, which is used for providing 
+#' standard errors in the \code{predict} method.
+#' \item \code{family} -- A string that specifies name of the model.
+#' \item \code{valideta, validmu} -- For now it only returns \code{TRUE}. 
+#' In the near future, it will be used to check whether applied linear 
+#' predictors are valid (i.e. are transformed into some elements of the 
+#' parameter space subjected to the inverse link function).
 #' \item \code{funcZ, Wfun} -- Functions that create pseudo residuals and
 #' working weights used in IRLS algorithm.
-#' \item \code{devResids} -- Function that given the linear predictors
+#' \item \code{devResids} -- A function that given the linear predictors
 #' prior weights vector and response vector returns deviance residuals.
 #' Not all family functions have these functions implemented yet.
 #' \item \code{pointEst, popVar} -- Functions that given prior weights
-#' linear predictors and in the later case also estimation of 
+#' linear predictors and in the latter case also estimate of 
 #' \mjseqn{\text{cov}(\hat{\boldsymbol{\beta}})} and \mjseqn{\boldsymbol{X_{vlm}}}
 #' matrix return point estimate for population size and analytic estimation 
 #' of its variance.There is a additional boolean parameter \code{contr} in the 
@@ -244,9 +247,9 @@ NULL
 #' returns value of PMF at values \code{x}. Additional argument \code{type}
 #' specifies whether to return \mjseqn{\mathbb{P}(Y|Y>0)} or
 #' \mjseqn{\mathbb{P}(Y)}.
-#' \item \code{simulate} -- A function that generates values of dependent 
+#' \item \code{simulate} -- A function that generates values of a dependent 
 #' vector given linear predictors.
-#' \item \code{getStart} -- Expression for generating starting points.
+#' \item \code{getStart} -- An expression for generating starting points.
 #' }
 #' @name singleRmodels
 NULL
@@ -261,17 +264,17 @@ NULL
 #' \code{glm} class or are not relevant to context of \code{singleRcapture}
 #' are omitted.
 #' 
-#' @param model,object object of \code{singleRStaticCountData} class.
+#' @param model,object an object of \code{singleRStaticCountData} class.
 #' @param dfbeta if \code{dfbeta} was already obtained it is possible to pass 
 #' them into function so that they need not be computed for the second time.
-#' @param cores Number of processor cores to be used,
+#' @param cores a number of processor cores to be used,
 #' any number greater than 1 activates code designed with \code{doParallel}, 
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel 
 #' computing makes tracing impossible so \code{trace} parameter is ignored in this case.
 #' @param type a type of residual to return.
-#' @param trace logical value specifying whether to tracking results when
+#' @param trace a logical value specifying whether to tracking results when
 #' \code{cores > 1} it will result in a progress bar being created.
-#' @param maxitNew maximal number of iterations for regressions with starting 
+#' @param maxitNew the maximal number of iterations for regressions with starting 
 #' points \mjseqn{\hat{\boldsymbol{\beta}}} on data 
 #' specified at call for \code{model} after the removal of k'th row. By default 1.
 #' @param ... arguments passed to other methods. 

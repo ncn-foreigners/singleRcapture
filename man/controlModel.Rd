@@ -12,19 +12,19 @@ controlModel(
 )
 }
 \arguments{
-\item{weightsAsCounts}{boolean value indicating whether to treat \code{weights}
+\item{weightsAsCounts}{a boolean value indicating whether to treat \code{weights}
 argument as number of occurrences for each row in the \code{data} and adjust
 necessary methods and functionalities, like adjustments in bootstrap or
 decreasing weights in \code{dfbeta} instead or deleting rows from data,
 to accommodate this form of model specification.}
 
-\item{omegaFormula}{formula for inflation parameter in one inflated zero
+\item{omegaFormula}{a formula for inflation parameter in one inflated zero
 truncated and zero truncated one inflated models.}
 
-\item{alphaFormula}{formula for dispersion parameter in negative binomial
+\item{alphaFormula}{a formula for dispersion parameter in negative binomial
 based models.}
 
-\item{piFormula}{formula for probability parameter in pseudo hurdle zero
+\item{piFormula}{a formula for probability parameter in pseudo hurdle zero
 truncated and zero truncated pseudo hurdle models.}
 }
 \value{

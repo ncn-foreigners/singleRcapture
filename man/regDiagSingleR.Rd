@@ -28,7 +28,7 @@ dfpopsize(model, ...)
 \method{cooks.distance}{singleRStaticCountData}(model, ...)
 }
 \arguments{
-\item{model, object}{object of \code{singleRStaticCountData} class.}
+\item{model, object}{an object of \code{singleRStaticCountData} class.}
 
 \item{...}{arguments passed to other methods.
 Notably \code{dfpopsize.singleRStaticCountData} calls
@@ -38,14 +38,14 @@ provided and \code{controlMethod} is called in \code{dfbeta} method.}
 \item{dfbeta}{if \code{dfbeta} was already obtained it is possible to pass
 them into function so that they need not be computed for the second time.}
 
-\item{maxitNew}{maximal number of iterations for regressions with starting
+\item{maxitNew}{the maximal number of iterations for regressions with starting
 points \mjseqn{\hat{\boldsymbol{\beta}}} on data
 specified at call for \code{model} after the removal of k'th row. By default 1.}
 
-\item{trace}{logical value specifying whether to tracking results when
+\item{trace}{a logical value specifying whether to tracking results when
 \code{cores > 1} it will result in a progress bar being created.}
 
-\item{cores}{Number of processor cores to be used,
+\item{cores}{a number of processor cores to be used,
 any number greater than 1 activates code designed with \code{doParallel},
 \code{foreach} and \code{parallel} packages. Note that for now using parallel
 computing makes tracing impossible so \code{trace} parameter is ignored in this case.}

@@ -32,18 +32,18 @@ estimatePopsize(formula, ...)
 )
 }
 \arguments{
-\item{formula}{formula for the model to be fitted, only applied to the "main"
+\item{formula}{a formula for the model to be fitted, only applied to the "main"
 linear predictor. Only single response models are available.}
 
 \item{...}{additional optional arguments passed to other methods eg.
 \code{estimatePopsizeFit}.}
 
-\item{data}{data frame or object coercible to data.frame class containing
+\item{data}{a data frame or object coercible to data.frame class containing
 data for the regression and population size estimation.}
 
-\item{model}{model for regression and population estimate full description in \code{\link[=singleRmodels]{singleRmodels()}}.}
+\item{model}{a model for regression and population estimate full description in \code{\link[=singleRmodels]{singleRmodels()}}.}
 
-\item{weights}{optional object of prior weights used in fitting the model.
+\item{weights}{an optional object of prior weights used in fitting the model.
 Can be used to specify number of occurrences of rows in data see \code{\link[=controlModel]{controlModel()}}}
 
 \item{subset}{a logical vector indicating which observations should be used
@@ -51,11 +51,12 @@ in regression and population size estimation. It will be evaluated on \code{data
 
 \item{naAction}{Not yet implemented.}
 
-\item{method}{method for fitting values currently supported: iteratively
+\item{method}{a method for fitting values currently supported: iteratively
 reweighted least squares (\code{IRLS}) and maximum likelihood (\code{optim}).}
 
-\item{popVar}{a method of constructing confidence interval either analytic
-or bootstrap. Bootstrap confidence interval type may be specified in
+\item{popVar}{a method of constructing confidence interval and estimating
+the standard error either analytic or bootstrap.
+Bootstrap confidence interval type may be specified in
 \code{controlPopVar.} There is also the third possible value of \code{noEst}
 which skips the population size estimate all together.}
 
@@ -73,14 +74,14 @@ of population size estimation may be constructed with
 \code{singleRcapture::controlPopVar} function.
 More information included in \code{\link[=controlPopVar]{controlPopVar()}}.}
 
-\item{modelFrame, x, y}{logical value indicating whether to return model matrix,
+\item{modelFrame, x, y}{logical values indicating whether to return model matrix,
 dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{not yet implemented.}
 
 \item{ratioReg}{Not yet implemented}
 
-\item{offset}{a matrix of offset values with number of columns matching the
+\item{offset}{a matrix of offset values with the number of columns matching the
 number of distribution parameters providing offset values to each of
 linear predictors.}
 }

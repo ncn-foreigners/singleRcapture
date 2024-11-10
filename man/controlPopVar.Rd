@@ -20,33 +20,33 @@ controlPopVar(
 )
 }
 \arguments{
-\item{alpha}{significance level, 0.05 used by default.}
+\item{alpha}{a significance level, 0.05 used by default.}
 
-\item{bootType}{bootstrap type. Default is \code{"parametric"},
+\item{bootType}{the bootstrap type to be used. Default is \code{"parametric"},
 other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.}
 
-\item{B}{number of bootstrap samples to be performed (default 500).}
+\item{B}{a number of bootstrap samples to be performed (default 500).}
 
-\item{confType}{type of confidence interval for bootstrap confidence interval,
+\item{confType}{a type of confidence interval for bootstrap confidence interval,
 \code{"percentile"} by default.
 Other possibilities: \code{"studentized"} and \code{"basic"}.}
 
-\item{keepbootStat}{boolean value indicating whether to keep a vector of
+\item{keepbootStat}{a boolean value indicating whether to keep a vector of
 statistics produced by bootstrap.}
 
-\item{traceBootstrapSize}{boolean value indicating whether to print size of
+\item{traceBootstrapSize}{a boolean value indicating whether to print size of
 bootstrapped sample after truncation for semi- and fully parametric bootstraps.}
 
-\item{bootstrapVisualTrace}{boolean value indicating whether to plot bootstrap
+\item{bootstrapVisualTrace}{a boolean value indicating whether to plot bootstrap
 statistics in real time if \code{cores = 1} if \code{cores > 1} it instead
 indicates whether to make progress bar.}
 
-\item{fittingMethod}{method used for fitting models from bootstrap samples.}
+\item{fittingMethod}{a method used for fitting models from bootstrap samples.}
 
 \item{bootstrapFitcontrol}{control parameters for each regression works exactly
 like \code{controlMethod} but for fitting models from bootstrap samples.}
 
-\item{sd}{indicates how to compute standard deviation of population
+\item{sd}{a character indicating how to compute standard deviation of population
 size estimator either as:
 \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
 for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}}
@@ -57,10 +57,10 @@ minimal variance estimator for normal distribution:
 \sqrt{\frac{N_{obs}}{2}}}
 where the ration involving gamma functions is computed by log gamma function.}
 
-\item{covType}{type of covariance matrix for regression parameters by default
+\item{covType}{a type of covariance matrix for regression parameters by default
 observed information matrix.}
 
-\item{cores}{for bootstrap only, number of processor cores to be used,
+\item{cores}{for bootstrap only, a number of processor cores to be used,
 any number greater than 1 activates code designed with \code{doParallel},
 \code{foreach} and \code{parallel} packages. Note that for now using parallel
 computing makes tracing impossible so \code{traceBootstrapSize} and

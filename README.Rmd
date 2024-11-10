@@ -144,7 +144,7 @@ plot(model, plotType = "dfpopContr")
 ```
 
 it is easy to deduce from the plot above that we have influential observations in
-our dataset (one in particular).
+our dataset (one in particular).  
 
 Lastly `singleRcapture` offers some posthoc procedures for example a function 
 `stratifyPopsize` that estimates sizes of user specified sub populations and

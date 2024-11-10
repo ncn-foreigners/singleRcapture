@@ -24,11 +24,11 @@ controlMethod(
 )
 }
 \arguments{
-\item{epsilon}{tolerance for fitting algorithms by default \code{1e-8}.}
+\item{epsilon}{a tolerance level for fitting algorithms by default \code{1e-8}.}
 
-\item{maxiter}{maximum number of iterations.}
+\item{maxiter}{a maximum number of iterations.}
 
-\item{verbose}{value indicating whether to trace steps of fitting algorithm for
+\item{verbose}{a numeric value indicating whether to trace steps of fitting algorithm for
 \code{IRLS} fitting method different values of verbose give the following information:
 \itemize{
 \item 1 -- Returns information on the number of current
@@ -44,7 +44,7 @@ taken into account when considering convergence (and all of the above).
 }
 if \code{optim} method was chosen verbose will be passed to \code{\link[stats:optim]{stats::optim()}} as trace.}
 
-\item{printEveryN}{integer value indicating how often to print information
+\item{printEveryN}{an integer value indicating how often to print information
 specified in \code{verbose}, by default set to \code{1}.}
 
 \item{coefStart, etaStart}{initial parameters for regression coefficients
@@ -53,11 +53,11 @@ is needed so if \code{coefStart} is provided it will be converted to \code{etaSt
 for \code{optim} fitting \code{coefStart} is necessary and argument \code{etaStart}
 will be ignored.}
 
-\item{optimMethod}{method of \code{\link[stats:optim]{stats::optim()}} used  \code{"Nelder-Mead"} is the default .}
+\item{optimMethod}{a method of \code{\link[stats:optim]{stats::optim()}} used  \code{"Nelder-Mead"} is the default .}
 
-\item{silent}{logical, indicating whether warnings in \code{IRLS} method should be suppressed.}
+\item{silent}{a logical value, indicating whether warnings in \code{IRLS} method should be suppressed.}
 
-\item{optimPass}{optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
+\item{optimPass}{an optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 if FALSE then list of control parameters will be inferred from other parameters.}
 
 \item{stepsize}{only for \code{IRLS}, scaling of updates to \code{beta} vector
@@ -65,15 +65,15 @@ lower value means slower convergence but more accuracy by default 1.
 In general if fitting algorithm fails lowering this value tends to
 be most effective at correcting it.}
 
-\item{checkDiagWeights}{logical value indicating whether to check if diagonal
+\item{checkDiagWeights}{a logical value indicating whether to check if diagonal
 elements of working weights matrixes in \code{IRLS} are sufficiently positive
 so that these matrixes are positive defined. By default \code{TRUE}.}
 
-\item{weightsEpsilon}{small number to ensure positive definedness of weights matrixes.
+\item{weightsEpsilon}{a small number to ensure positive definedness of weights matrixes.
 Only matters if \code{checkDiagWeights} is set to \code{TRUE}.
 By default \code{1e-8}.}
 
-\item{momentumFactor}{experimental parameter in \code{IRLS} only allowing for
+\item{momentumFactor}{an experimental parameter in \code{IRLS} only allowing for
 taking previous step into account at current step, i.e instead of
 updating regression parameters as:
 \mjsdeqn{\boldsymbol{\beta}_{(a)} = 
@@ -83,13 +83,13 @@ the update will be made as:
 \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
 \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}}
 
-\item{saveIRLSlogs}{logical value indicating if information specified in
+\item{saveIRLSlogs}{a logical value indicating if information specified in
 \code{verbose} should be saved to output object, by default \code{FALSE}.}
 
 \item{momentumActivation}{the value of log-likelihood reduction bellow
 which momentum will apply.}
 
-\item{criterion}{criterion used to determine convergence in \code{IRLS},
+\item{criterion}{a criterion used to determine convergence in \code{IRLS},
 multiple values may be provided. By default \code{c("coef", "abstol")}.}
 }
 \value{

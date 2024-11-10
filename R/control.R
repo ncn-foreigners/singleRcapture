@@ -6,9 +6,9 @@
 #' control parameters for regression fitting in 
 #' \code{estimatePopsizeFit} and \code{estimatePopsize}.
 #'
-#' @param epsilon tolerance for fitting algorithms by default \code{1e-8}.
-#' @param maxiter maximum number of iterations.
-#' @param verbose value indicating whether to trace steps of fitting algorithm for 
+#' @param epsilon a tolerance level for fitting algorithms by default \code{1e-8}.
+#' @param maxiter a maximum number of iterations.
+#' @param verbose a numeric value indicating whether to trace steps of fitting algorithm for 
 #' \code{IRLS} fitting method different values of verbose give the following information:
 #' \itemize{
 #'   \item 1 -- Returns information on the number of current 
@@ -23,28 +23,28 @@
 #'   taken into account when considering convergence (and all of the above).
 #' }
 #' if \code{optim} method was chosen verbose will be passed to [stats::optim()] as trace.
-#' @param printEveryN integer value indicating how often to print information
+#' @param printEveryN an integer value indicating how often to print information
 #' specified in \code{verbose}, by default set to \code{1}.
 #' @param coefStart,etaStart initial parameters for regression coefficients
 #' or linear predictors if \code{NULL}. For \code{IRLS} fitting only \code{etaStart}
 #' is needed so if \code{coefStart} is provided it will be converted to \code{etaStart},
 #' for \code{optim} fitting \code{coefStart} is necessary and argument \code{etaStart}
 #' will be ignored.
-#' @param silent logical, indicating whether warnings in \code{IRLS} method should be suppressed.
-#' @param optimPass optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
+#' @param silent a logical value, indicating whether warnings in \code{IRLS} method should be suppressed.
+#' @param optimPass an optional list of parameters passed to \code{stats::optim(..., control = optimPass)}
 #' if FALSE then list of control parameters will be inferred from other parameters.
-#' @param optimMethod method of [stats::optim()] used  \code{"Nelder-Mead"} is the default .
+#' @param optimMethod a method of [stats::optim()] used  \code{"Nelder-Mead"} is the default .
 #' @param stepsize only for \code{IRLS}, scaling of updates to \code{beta} vector 
 #' lower value means slower convergence but more accuracy by default 1. 
 #' In general if fitting algorithm fails lowering this value tends to 
 #' be most effective at correcting it.
-#' @param checkDiagWeights logical value indicating whether to check if diagonal 
+#' @param checkDiagWeights a logical value indicating whether to check if diagonal 
 #' elements of working weights matrixes in \code{IRLS} are sufficiently positive 
 #' so that these matrixes are positive defined. By default \code{TRUE}.
-#' @param weightsEpsilon small number to ensure positive definedness of weights matrixes. 
+#' @param weightsEpsilon a small number to ensure positive definedness of weights matrixes. 
 #' Only matters if \code{checkDiagWeights} is set to \code{TRUE}. 
 #' By default \code{1e-8}.
-#' @param momentumFactor experimental parameter in \code{IRLS} only allowing for 
+#' @param momentumFactor an experimental parameter in \code{IRLS} only allowing for 
 #' taking previous step into account at current step, i.e instead of 
 #' updating regression parameters as:
 #' \mjsdeqn{\boldsymbol{\beta}_{(a)} = 
@@ -55,9 +55,9 @@
 #' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}
 #' @param momentumActivation the value of log-likelihood reduction bellow 
 #' which momentum will apply.
-#' @param criterion criterion used to determine convergence in \code{IRLS}, 
+#' @param criterion a criterion used to determine convergence in \code{IRLS}, 
 #' multiple values may be provided. By default \code{c("coef", "abstol")}.
-#' @param saveIRLSlogs logical value indicating if information specified in
+#' @param saveIRLSlogs a logical value indicating if information specified in
 #' \code{verbose} should be saved to output object, by default \code{FALSE}.
 #'
 #' @return List with selected parameters, it is also possible to call list directly.
@@ -163,16 +163,16 @@ controlMethod <- function(epsilon             = 1e-8,
 #' the formula also for now all variables from additional formulas should also be
 #' included in the "main" formula.
 #' 
-#' @param weightsAsCounts boolean value indicating whether to treat \code{weights}
+#' @param weightsAsCounts a boolean value indicating whether to treat \code{weights}
 #' argument as number of occurrences for each row in the \code{data} and adjust
 #' necessary methods and functionalities, like adjustments in bootstrap or
 #' decreasing weights in \code{dfbeta} instead or deleting rows from data, 
 #' to accommodate this form of model specification.
-#' @param omegaFormula formula for inflation parameter in one inflated zero 
+#' @param omegaFormula a formula for inflation parameter in one inflated zero 
 #' truncated and zero truncated one inflated models.
-#' @param alphaFormula formula for dispersion parameter in negative binomial
+#' @param alphaFormula a formula for dispersion parameter in negative binomial
 #' based models.
-#' @param piFormula formula for probability parameter in pseudo hurdle zero 
+#' @param piFormula a formula for probability parameter in pseudo hurdle zero 
 #' truncated and zero truncated pseudo hurdle models.
 #' 
 #' @return A list with selected parameters, it is also possible to call list directly.
@@ -197,29 +197,29 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' @description Creating control parameters for population size estimation and 
 #' respective standard error and variance estimation.
 #'
-#' @param alpha significance level, 0.05 used by default.
-#' @param cores for bootstrap only, number of processor cores to be used,
+#' @param alpha a significance level, 0.05 used by default.
+#' @param cores for bootstrap only, a number of processor cores to be used,
 #' any number greater than 1 activates code designed with \code{doParallel}, 
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel
 #' computing makes tracing impossible so \code{traceBootstrapSize} and 
 #' \code{bootstrapVisualTrace} parameters are ignored in this case.
-#' @param bootType bootstrap type. Default is \code{"parametric"}, 
+#' @param bootType the bootstrap type to be used. Default is \code{"parametric"}, 
 #' other possible values are: \code{"semiparametric"} and \code{"nonparametric"}.
-#' @param B number of bootstrap samples to be performed (default 500).
-#' @param confType type of confidence interval for bootstrap confidence interval, 
+#' @param B a number of bootstrap samples to be performed (default 500).
+#' @param confType a type of confidence interval for bootstrap confidence interval, 
 #' \code{"percentile"} by default. 
 #' Other possibilities: \code{"studentized"} and \code{"basic"}.
-#' @param keepbootStat boolean value indicating whether to keep a vector of 
+#' @param keepbootStat a boolean value indicating whether to keep a vector of 
 #' statistics produced by bootstrap.
-#' @param traceBootstrapSize boolean value indicating whether to print size of 
+#' @param traceBootstrapSize a boolean value indicating whether to print size of 
 #' bootstrapped sample after truncation for semi- and fully parametric bootstraps.
-#' @param bootstrapVisualTrace boolean value indicating whether to plot bootstrap 
+#' @param bootstrapVisualTrace a boolean value indicating whether to plot bootstrap 
 #' statistics in real time if \code{cores = 1} if \code{cores > 1} it instead
 #' indicates whether to make progress bar.
-#' @param fittingMethod method used for fitting models from bootstrap samples.
+#' @param fittingMethod a method used for fitting models from bootstrap samples.
 #' @param bootstrapFitcontrol control parameters for each regression works exactly 
 #' like \code{controlMethod} but for fitting models from bootstrap samples.
-#' @param sd indicates how to compute standard deviation of population 
+#' @param sd a character indicating how to compute standard deviation of population 
 #' size estimator either as:
 #' \mjsdeqn{\hat{\sigma}=\sqrt{\hat{\text{var}}(\hat{N})}}
 #' for \code{sqrt} (which is slightly biased if \mjseqn{\hat{N}}
@@ -229,7 +229,7 @@ controlModel <- function(weightsAsCounts = FALSE,
 #' \frac{\Gamma\left(\frac{N_{obs}-1}{2}\right)}{\Gamma\left(\frac{N_{obs}}{2}\right)}
 #' \sqrt{\frac{N_{obs}}{2}}}
 #' where the ration involving gamma functions is computed by log gamma function.
-#' @param covType type of covariance matrix for regression parameters by default 
+#' @param covType a type of covariance matrix for regression parameters by default 
 #' observed information matrix.
 #'
 #' @return A list with selected parameters, it is also possible to call list directly.

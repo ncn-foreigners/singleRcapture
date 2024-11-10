@@ -6,10 +6,14 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
-[![Codecov test coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
-[![CRAN status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
-[![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
-[![CRAN downloads](https://cranlogs.r-pkg.org/badges/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
+[![Codecov test
+coverage](https://codecov.io/gh/ncn-foreigners/singleRcapture/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcapture?branch=main)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/singleRcapture)](https://CRAN.R-project.org/package=singleRcapture)
+[![CRAN total
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
+[![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/singleRcapture)](https://cran.r-project.org/package=singleRcapture)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8436043.svg)](https://doi.org/10.5281/zenodo.8436043)
 <!-- badges: end -->
 
@@ -214,22 +218,22 @@ populations and returns them in a `data.frame`:
 
 ``` r
 stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
-    stratas = list(
+    strata = list(
     "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
     "Males from Turkey" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$nation == "Turkey",
     "Younger males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == "<40yrs",
     "Older males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == ">40yrs"
 ))
-#>   Observed Estimated ObservedPercentage  StdError normalLowerBound
-#> 1       20   931.469           2.147146  955.0676      -1528.62209
-#> 2       78  1291.251           6.040652  741.0066       -432.58790
-#> 3     1391  7337.072          18.958516 1282.1419       4554.70841
-#> 4       91  1542.189           5.900703  781.4754         10.52561
-#>   normalUpperBound logNormalLowerBound logNormalUpperBound                 name
-#> 1         3391.560            119.2661            8389.178 Females from Surinam
-#> 2         3015.090            405.4127            4573.791    Males from Turkey
-#> 3        10119.436           5134.8113           10834.792        Younger males
-#> 4         3073.853            630.7551            3992.677          Older males
+#>                   name Observed Estimated ObservedPercentage  StdError
+#> 1 Females from Surinam       20   931.469           2.147146  955.0676
+#> 2    Males from Turkey       78  1291.251           6.040652  741.0066
+#> 3        Younger males     1391  7337.072          18.958516 1282.1419
+#> 4          Older males       91  1542.189           5.900703  781.4754
+#>   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound
+#> 1      -1528.62209         3391.560            119.2661            8389.178
+#> 2       -432.58790         3015.090            405.4127            4573.791
+#> 3       4554.70841        10119.436           5134.8113           10834.792
+#> 4         10.52561         3073.853            630.7551            3992.677
 #>   confLevel
 #> 1      0.01
 #> 2      0.02
@@ -237,31 +241,31 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 #> 4      0.05
 ```
 
-`stratas` argument may be specified in various ways for example:
+`strata` argument may be specified in various ways for example:
 
 ``` r
-stratifyPopsize(model, stratas = ~ gender / age)
-#>   Observed Estimated ObservedPercentage  StdError normalLowerBound
-#> 1      398 3811.0924          10.443200 1153.9749       1549.34322
-#> 2     1482 8879.2613          16.690578 1812.0813       5327.64720
-#> 3      378 3169.8272          11.924940  880.9491       1443.19883
-#> 4     1391 7337.0721          18.958516 1282.1419       4824.12025
-#> 5       20  641.2651           3.118835  407.5268       -157.47265
-#> 6       91 1542.1892           5.900703  781.4754         10.52561
-#>   normalUpperBound logNormalLowerBound logNormalUpperBound
-#> 1         6072.842           2189.0439            6902.140
-#> 2        12430.875           6090.7752           13354.889
-#> 3         4896.456           1904.3121            5484.622
-#> 4         9850.024           5306.3298           10421.088
-#> 5         1440.003            212.3382            2026.728
-#> 6         3073.853            630.7551            3992.677
-#>                     name confLevel
-#> 1         gender==female      0.05
-#> 2           gender==male      0.05
-#> 3 genderfemale:age<40yrs      0.05
-#> 4   gendermale:age<40yrs      0.05
-#> 5 genderfemale:age>40yrs      0.05
-#> 6   gendermale:age>40yrs      0.05
+stratifyPopsize(model, strata = ~ gender / age)
+#>                     name Observed Estimated ObservedPercentage  StdError
+#> 1         gender==female      398 3811.0924          10.443200 1153.9749
+#> 2           gender==male     1482 8879.2613          16.690578 1812.0813
+#> 3 genderfemale:age<40yrs      378 3169.8272          11.924940  880.9491
+#> 4   gendermale:age<40yrs     1391 7337.0721          18.958516 1282.1419
+#> 5 genderfemale:age>40yrs       20  641.2651           3.118835  407.5268
+#> 6   gendermale:age>40yrs       91 1542.1892           5.900703  781.4754
+#>   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound
+#> 1       1549.34322         6072.842           2189.0439            6902.140
+#> 2       5327.64720        12430.875           6090.7752           13354.889
+#> 3       1443.19883         4896.456           1904.3121            5484.622
+#> 4       4824.12025         9850.024           5306.3298           10421.088
+#> 5       -157.47265         1440.003            212.3382            2026.728
+#> 6         10.52561         3073.853            630.7551            3992.677
+#>   confLevel
+#> 1      0.05
+#> 2      0.05
+#> 3      0.05
+#> 4      0.05
+#> 5      0.05
+#> 6      0.05
 ```
 
 The package was designed with convenience in mind, for example it is
