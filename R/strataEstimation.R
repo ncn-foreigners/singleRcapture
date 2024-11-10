@@ -7,15 +7,15 @@
 #'
 #' @param object an object on which the population size estimates should be based
 #' in \code{singleRcapture} package this is a fitter \code{singleRStaticCountData} class object.
-#' @param stratas a specification of sub populations either by:
+#' @param strata a specification of sub populations given by one of:
 #' \itemize{
 #' \item formula -- a formula to be applied to \code{model.frame} extracted from
-#' the object .
+#' the object.
 #' \item Logical vector with number of entries equal to number of rows in the dataset.
 #' \item A (named) list where each element is a logical vector, names of the list
 #' will be used to specify names variable in returned object.
 #' \item Vector of names of explanatory variables. For \code{singleRStaticCountData} method
-#' for this function this specification of \code{stratas} parameter will
+#' for this function this specification of \code{strata} parameter will
 #' result in every level of explanatory variable having its own sub population
 #' for each variable specified.
 #' \item If no value was provided the \code{singleRStaticCountData} method for this function 
@@ -30,7 +30,7 @@
 #' matrix will be set by calling appropriate \code{vcov} method.
 #' @param alpha significance level for confidence intervals --
 #' Either a single numeric value or a vector of length equal to number of 
-#' sub populations specified in \code{stratas}. 
+#' sub populations specified in \code{strata}. 
 #' If missing it is set to \code{.05} in \code{singleRStaticCountData} method.
 #' @param ... a vector of arguments to be passed to other functions.
 #' For \code{singleRStaticCountData} method for this functions arguments in \code{...} are 
@@ -64,7 +64,7 @@
 #' @return A \code{data.frame} object with row names being the names of specified 
 #' sub populations either provided or inferred.
 #' @export
-stratifyPopsize <- function(object, stratas, alpha, ...) {
+stratifyPopsize <- function(object, strata, alpha, ...) {
   UseMethod("stratifyPopsize")
 }
 
@@ -76,79 +76,79 @@ stratifyPopsize <- function(object, stratas, alpha, ...) {
 #' @importFrom stats contrasts
 #' @exportS3Method
 stratifyPopsize.singleRStaticCountData <- function(object, 
-                                                   stratas,
+                                                   strata,
                                                    alpha, 
                                                    cov = NULL,
                                                    ...) {
   ## TODO:: New data doesn't work yet
   
-  # if stratas is unspecified get all levels of factors in modelFrame
-  if (missing(stratas)) {
-    stratas <- names(which(attr(object$terms, "dataClasses") == "factor"))
-    stratas <- stratas[stratas %in% attr(object$terms, "term.labels")]
-    if (!length(stratas)) {
-      stratas <- names(which(attr(object$terms, "dataClasses") == "character"))
-      stratas <- stratas[stratas %in% attr(object$terms, "term.labels")]
+  # if strata is unspecified get all levels of factors in modelFrame
+  if (missing(strata)) {
+    strata <- names(which(attr(object$terms, "dataClasses") == "factor"))
+    strata <- strata[strata %in% attr(object$terms, "term.labels")]
+    if (!length(strata)) {
+      strata <- names(which(attr(object$terms, "dataClasses") == "character"))
+      strata <- strata[strata %in% attr(object$terms, "term.labels")]
     }
-    if (!length(stratas)) {
-      stop("No stratas argument was provided and no factors or character columns are present in model.frame.")
+    if (!length(strata)) {
+      stop("No strata argument was provided and no factors or character columns are present in model.frame.")
     }
   }
-  # If there are no factors or characters and no stratas was provided throw error
+  # If there are no factors or characters and no strata was provided throw error
   # if significance level is unspecified set it to 5%
   if (missing(alpha)) alpha <- .05
   
-  # convert stratas to list for all viable types of specifying the argument
-  if (inherits(stratas, "formula")) {
-    mf <- model.frame(stratas, model.frame(object))
+  # convert strata to list for all viable types of specifying the argument
+  if (inherits(strata, "formula")) {
+    mf <- model.frame(strata, model.frame(object))
     mmf <- model.matrix(
-      stratas, data = mf, 
+      strata, data = mf, 
       contrasts.arg = lapply(
         subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
         contrasts, contrasts = FALSE
       )
     )
     trm <- attr(mf, "terms")
-    stratas <- list()
+    strata <- list()
     for (k in attr(trm, "term.labels")) {
       if (k %in% colnames(mf)) {
         if (is.integer(mf[, k]) | is.character(mf[, k])) {
           for (t in unique(mf[,k])) {
-            stratas[[paste0(k, "==", t)]] <- mf[,k] == t
+            strata[[paste0(k, "==", t)]] <- mf[,k] == t
           }
         } else if (is.factor(mf[, k])) {
           for (t in levels(mf[, k])) {
-            stratas[[paste0(k, "==", t)]] <- mf[,k] == t
+            strata[[paste0(k, "==", t)]] <- mf[,k] == t
           }
         }
       } else {
         tLevs <- colnames(mmf)[attr(mmf, "assign") == which(attr(trm, "term.labels") == k)]
         for (t in tLevs) {
-          stratas[[as.character(t)]] <- mmf[, t] == 1
+          strata[[as.character(t)]] <- mmf[, t] == 1
         }
       }
     }
-  } else if (is.list(stratas)) {
-    if (!all(sapply(stratas, is.logical)))
-      stop("Invalid way of specifying subpopulations in stratas. If stratas argument is a list then all elements of that list must be logical vectors.")
+  } else if (is.list(strata)) {
+    if (!all(sapply(strata, is.logical)))
+      stop("Invalid way of specifying subpopulations in strata. If strata argument is a list then all elements of that list must be logical vectors.")
     
-    if (length(stratas[[1]]) != object$sizeObserved) 
-      stop("Elements of stratas object should have length equal to number of observed units.")
+    if (length(strata[[1]]) != object$sizeObserved) 
+      stop("Elements of strata object should have length equal to number of observed units.")
     
-  } else if (is.logical(stratas)) {
-    if (length(stratas) != object$sizeObserved) 
-      stop("Stratas object should have length equal to number of observed units.")
+  } else if (is.logical(strata)) {
+    if (length(strata) != object$sizeObserved) 
+      stop("strata object should have length equal to number of observed units.")
     
-    stratas <- list(strata = stratas)
-  } else if (is.character(stratas)) {
+    strata <- list(strata = strata)
+  } else if (is.character(strata)) {
     modelFrame <- model.frame(object)
     out <- list()
-    for (k in stratas) {
+    for (k in strata) {
       if (!(k %in% colnames(modelFrame))) 
-        stop("Variable specified in stratas is not present in model frame.")
+        stop("Variable specified in strata is not present in model frame.")
       
       #if (!(is.factor(modelFrame[, k])) & !(is.character(modelFrame[, k]))) 
-      #  stop("Variable specified in stratas is not a factor or a character vector.")
+      #  stop("Variable specified in strata is not a factor or a character vector.")
 
       if (is.factor(modelFrame[, k])) {
         # this makes a difference on factor that is not present
@@ -161,18 +161,18 @@ stratifyPopsize.singleRStaticCountData <- function(object,
         }
       }
     }
-    stratas <- out
+    strata <- out
   } else {
     # a formula, a list with logical vectors specifying different sub 
     # populations or a single logical vector or a vector 
     # with names of factor variables.
     errorMessage <- paste0(
-      "Invalid way of specifying subpopulations in stratas.\n", 
+      "Invalid way of specifying subpopulations in strata.\n", 
       "Please provide either:\n",
       "(1) - a list with logical vectors specifying different sub populations\n",
       "(2) - a single logical vector\n",
       "(3) - a formula\n",
-      "(4) - a vector with names of variables by which stratas will be created\n"
+      "(4) - a vector with names of variables by which strata will be created\n"
     )
     stop(errorMessage)
   }
@@ -190,16 +190,16 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   if (is.function(cov)) cov <- cov(object, ...)
   if (is.null(cov)) cov <- vcov(object, ...)
   
-  obs <- vector(mode = "numeric", length = length(stratas))
-  est <- vector(mode = "numeric", length = length(stratas))
-  stdErr <- vector(mode = "numeric", length = length(stratas))
-  cnfStudent <- matrix(nrow = length(stratas), ncol = 2)
-  cnfChao <- matrix(nrow = length(stratas), ncol = 2)
+  obs <- vector(mode = "numeric", length = length(strata))
+  est <- vector(mode = "numeric", length = length(strata))
+  stdErr <- vector(mode = "numeric", length = length(strata))
+  cnfStudent <- matrix(nrow = length(strata), ncol = 2)
+  cnfChao <- matrix(nrow = length(strata), ncol = 2)
   sc <- qnorm(p = 1 - alpha / 2)
-  if (length(sc) != length(stratas)) sc <- rep(sc, length.out = length(stratas))
+  if (length(sc) != length(strata)) sc <- rep(sc, length.out = length(strata))
   
-  for (k in 1:length(stratas)) {
-    cond <- stratas[[k]]
+  for (k in 1:length(strata)) {
+    cond <- strata[[k]]
     
     if (isTRUE(object$control$controlModel$weightsAsCounts)) {
       obs[k] <- sum(priorWeights[cond])
@@ -233,7 +233,7 @@ stratifyPopsize.singleRStaticCountData <- function(object,
   }
   
   result <- data.frame(
-    names(stratas), obs, est, 
+    names(strata), obs, est, 
     100 * obs / est, stdErr, 
     cnfStudent[, 1], cnfStudent[, 2], 
     cnfChao[, 1], cnfChao[, 2], alpha

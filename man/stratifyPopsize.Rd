@@ -5,23 +5,23 @@
 \alias{stratifyPopsize.singleRStaticCountData}
 \title{Estimate size of sub populations.}
 \usage{
-stratifyPopsize(object, stratas, alpha, ...)
+stratifyPopsize(object, strata, alpha, ...)
 
-\method{stratifyPopsize}{singleRStaticCountData}(object, stratas, alpha, cov = NULL, ...)
+\method{stratifyPopsize}{singleRStaticCountData}(object, strata, alpha, cov = NULL, ...)
 }
 \arguments{
 \item{object}{an object on which the population size estimates should be based
 in \code{singleRcapture} package this is a fitter \code{singleRStaticCountData} class object.}
 
-\item{stratas}{a specification of sub populations either by:
+\item{strata}{a specification of sub populations given by one of:
 \itemize{
 \item formula -- a formula to be applied to \code{model.frame} extracted from
-the object .
+the object.
 \item Logical vector with number of entries equal to number of rows in the dataset.
 \item A (named) list where each element is a logical vector, names of the list
 will be used to specify names variable in returned object.
 \item Vector of names of explanatory variables. For \code{singleRStaticCountData} method
-for this function this specification of \code{stratas} parameter will
+for this function this specification of \code{strata} parameter will
 result in every level of explanatory variable having its own sub population
 for each variable specified.
 \item If no value was provided the \code{singleRStaticCountData} method for this function
@@ -31,7 +31,7 @@ in \code{model.frame}.
 
 \item{alpha}{significance level for confidence intervals --
 Either a single numeric value or a vector of length equal to number of
-sub populations specified in \code{stratas}.
+sub populations specified in \code{strata}.
 If missing it is set to \code{.05} in \code{singleRStaticCountData} method.}
 
 \item{...}{a vector of arguments to be passed to other functions.
