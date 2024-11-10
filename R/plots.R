@@ -39,7 +39,7 @@
 #'   for each column of linear predictors.
 #'   \item \code{cooks} -- Plot of cooks distance for detecting influential observations.
 #'   \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
-#'   \item \code{strata} -- Plot of confidence intervals and point estimates for stratas provided in \code{...} argument
+#'   \item \code{strata} -- Plot of confidence intervals and point estimates for strata provided in \code{...} argument
 #' }
 #' @param histKernels logical value indicating whether to add density lines
 #' to histogram.

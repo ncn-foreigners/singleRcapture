@@ -70,7 +70,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "tr
   )
   
   # test whether estimation of subpopulation sizes are 'good'
-  XX <- stratifyPopsize(M1, stratas = ~ x)
+  XX <- stratifyPopsize(M1, strata = ~ x)
   order <- 1 + as.numeric(substr(XX$name, start = 4, stop = 4))
   
   expect_equivalent(

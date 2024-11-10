@@ -152,7 +152,7 @@ returns them in a `data.frame`:
 
 ```{r}
 stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
-    stratas = list(
+    strata = list(
     "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
     "Males from Turkey" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$nation == "Turkey",
     "Younger males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == "<40yrs",
@@ -160,10 +160,10 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 ))
 ```
 
-`stratas` argument may be specified in various ways for example: 
+`strata` argument may be specified in various ways for example: 
 
 ```{r}
-stratifyPopsize(model, stratas = ~ gender / age)
+stratifyPopsize(model, strata = ~ gender / age)
 ```
 
 The package was designed with convenience in mind, for example it is possible

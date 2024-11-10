@@ -49,7 +49,7 @@ absolute values of (standardized) pearson residuals against linear predictors
 for each column of linear predictors.
 \item \code{cooks} -- Plot of cooks distance for detecting influential observations.
 \item \code{hatplot} -- Plot of hat values for each linear predictor for detecting influential observations.
-\item \code{strata} -- Plot of confidence intervals and point estimates for stratas provided in \code{...} argument
+\item \code{strata} -- Plot of confidence intervals and point estimates for strata provided in \code{...} argument
 }}
 
 \item{confIntStrata}{confidence interval type to use for strata plot.

@@ -491,7 +491,7 @@ expect_equal(
 )
 
 expect_error(
-  stratifyPopsize(Model, stratas = 8L)
+  stratifyPopsize(Model, strata = 8L)
 )
 
 expect_silent(
