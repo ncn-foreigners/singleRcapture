@@ -8,9 +8,6 @@ dfpopsize <- function(model, ...) {
 #' @rdname regDiagSingleR
 #' @exportS3Method 
 dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, ...) {
-  if (isTRUE(model$call$popVar == "bootstrap")) 
-    warning("dfpopsize may (in some cases) not work correctly when bootstrap was chosen as population variance estimate.")
-  
   dfb <- if (is.null(dfbeta)) dfbeta(model, ...) else dfbeta
   
   X <- model.frame(model, ...)
