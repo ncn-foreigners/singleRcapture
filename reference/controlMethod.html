@@ -70,15 +70,15 @@ control parameters for regression fitting in
 
 
 <dl><dt id="arg-epsilon">epsilon<a class="anchor" aria-label="anchor" href="#arg-epsilon"></a></dt>
-<dd><p>tolerance for fitting algorithms by default <code>1e-8</code>.</p></dd>
+<dd><p>a tolerance level for fitting algorithms by default <code>1e-8</code>.</p></dd>
 
 
 <dt id="arg-maxiter">maxiter<a class="anchor" aria-label="anchor" href="#arg-maxiter"></a></dt>
-<dd><p>maximum number of iterations.</p></dd>
+<dd><p>a maximum number of iterations.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
-<dd><p>value indicating whether to trace steps of fitting algorithm for
+<dd><p>a numeric value indicating whether to trace steps of fitting algorithm for
 <code>IRLS</code> fitting method different values of verbose give the following information:</p><ul><li><p>1 – Returns information on the number of current
 iteration and current log-likelihood.</p></li>
 <li><p>2 – Returns information on vector of regression parameters
@@ -93,7 +93,7 @@ taken into account when considering convergence (and all of the above).</p></li>
 
 
 <dt id="arg-printeveryn">printEveryN<a class="anchor" aria-label="anchor" href="#arg-printeveryn"></a></dt>
-<dd><p>integer value indicating how often to print information
+<dd><p>an integer value indicating how often to print information
 specified in <code>verbose</code>, by default set to <code>1</code>.</p></dd>
 
 
@@ -106,15 +106,15 @@ will be ignored.</p></dd>
 
 
 <dt id="arg-optimmethod">optimMethod<a class="anchor" aria-label="anchor" href="#arg-optimmethod"></a></dt>
-<dd><p>method of <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> used  <code>"Nelder-Mead"</code> is the default .</p></dd>
+<dd><p>a method of <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> used  <code>"Nelder-Mead"</code> is the default .</p></dd>
 
 
 <dt id="arg-silent">silent<a class="anchor" aria-label="anchor" href="#arg-silent"></a></dt>
-<dd><p>logical, indicating whether warnings in <code>IRLS</code> method should be suppressed.</p></dd>
+<dd><p>a logical value, indicating whether warnings in <code>IRLS</code> method should be suppressed.</p></dd>
 
 
 <dt id="arg-optimpass">optimPass<a class="anchor" aria-label="anchor" href="#arg-optimpass"></a></dt>
-<dd><p>optional list of parameters passed to <code>stats::optim(..., control = optimPass)</code>
+<dd><p>an optional list of parameters passed to <code>stats::optim(..., control = optimPass)</code>
 if FALSE then list of control parameters will be inferred from other parameters.</p></dd>
 
 
@@ -126,19 +126,19 @@ be most effective at correcting it.</p></dd>
 
 
 <dt id="arg-checkdiagweights">checkDiagWeights<a class="anchor" aria-label="anchor" href="#arg-checkdiagweights"></a></dt>
-<dd><p>logical value indicating whether to check if diagonal
+<dd><p>a logical value indicating whether to check if diagonal
 elements of working weights matrixes in <code>IRLS</code> are sufficiently positive
 so that these matrixes are positive defined. By default <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-weightsepsilon">weightsEpsilon<a class="anchor" aria-label="anchor" href="#arg-weightsepsilon"></a></dt>
-<dd><p>small number to ensure positive definedness of weights matrixes.
+<dd><p>a small number to ensure positive definedness of weights matrixes.
 Only matters if <code>checkDiagWeights</code> is set to <code>TRUE</code>.
 By default <code>1e-8</code>.</p></dd>
 
 
 <dt id="arg-momentumfactor">momentumFactor<a class="anchor" aria-label="anchor" href="#arg-momentumfactor"></a></dt>
-<dd><p>experimental parameter in <code>IRLS</code> only allowing for
+<dd><p>an experimental parameter in <code>IRLS</code> only allowing for
 taking previous step into account at current step, i.e instead of
 updating regression parameters as:
 _(a) =
@@ -150,7 +150,7 @@ _(a) = _(a-1) + stepsize
 
 
 <dt id="arg-saveirlslogs">saveIRLSlogs<a class="anchor" aria-label="anchor" href="#arg-saveirlslogs"></a></dt>
-<dd><p>logical value indicating if information specified in
+<dd><p>a logical value indicating if information specified in
 <code>verbose</code> should be saved to output object, by default <code>FALSE</code>.</p></dd>
 
 
@@ -160,7 +160,7 @@ which momentum will apply.</p></dd>
 
 
 <dt id="arg-criterion">criterion<a class="anchor" aria-label="anchor" href="#arg-criterion"></a></dt>
-<dd><p>criterion used to determine convergence in <code>IRLS</code>,
+<dd><p>a criterion used to determine convergence in <code>IRLS</code>,
 multiple values may be provided. By default <code>c("coef", "abstol")</code>.</p></dd>
 
 </dl></div>

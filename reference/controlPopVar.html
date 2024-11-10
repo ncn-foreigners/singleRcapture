@@ -63,42 +63,42 @@ respective standard error and variance estimation.</p>
 
 
 <dl><dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>significance level, 0.05 used by default.</p></dd>
+<dd><p>a significance level, 0.05 used by default.</p></dd>
 
 
 <dt id="arg-boottype">bootType<a class="anchor" aria-label="anchor" href="#arg-boottype"></a></dt>
-<dd><p>bootstrap type. Default is <code>"parametric"</code>,
+<dd><p>the bootstrap type to be used. Default is <code>"parametric"</code>,
 other possible values are: <code>"semiparametric"</code> and <code>"nonparametric"</code>.</p></dd>
 
 
 <dt id="arg-b">B<a class="anchor" aria-label="anchor" href="#arg-b"></a></dt>
-<dd><p>number of bootstrap samples to be performed (default 500).</p></dd>
+<dd><p>a number of bootstrap samples to be performed (default 500).</p></dd>
 
 
 <dt id="arg-conftype">confType<a class="anchor" aria-label="anchor" href="#arg-conftype"></a></dt>
-<dd><p>type of confidence interval for bootstrap confidence interval,
+<dd><p>a type of confidence interval for bootstrap confidence interval,
 <code>"percentile"</code> by default.
 Other possibilities: <code>"studentized"</code> and <code>"basic"</code>.</p></dd>
 
 
 <dt id="arg-keepbootstat">keepbootStat<a class="anchor" aria-label="anchor" href="#arg-keepbootstat"></a></dt>
-<dd><p>boolean value indicating whether to keep a vector of
+<dd><p>a boolean value indicating whether to keep a vector of
 statistics produced by bootstrap.</p></dd>
 
 
 <dt id="arg-tracebootstrapsize">traceBootstrapSize<a class="anchor" aria-label="anchor" href="#arg-tracebootstrapsize"></a></dt>
-<dd><p>boolean value indicating whether to print size of
+<dd><p>a boolean value indicating whether to print size of
 bootstrapped sample after truncation for semi- and fully parametric bootstraps.</p></dd>
 
 
 <dt id="arg-bootstrapvisualtrace">bootstrapVisualTrace<a class="anchor" aria-label="anchor" href="#arg-bootstrapvisualtrace"></a></dt>
-<dd><p>boolean value indicating whether to plot bootstrap
+<dd><p>a boolean value indicating whether to plot bootstrap
 statistics in real time if <code>cores = 1</code> if <code>cores &gt; 1</code> it instead
 indicates whether to make progress bar.</p></dd>
 
 
 <dt id="arg-fittingmethod">fittingMethod<a class="anchor" aria-label="anchor" href="#arg-fittingmethod"></a></dt>
-<dd><p>method used for fitting models from bootstrap samples.</p></dd>
+<dd><p>a method used for fitting models from bootstrap samples.</p></dd>
 
 
 <dt id="arg-bootstrapfitcontrol">bootstrapFitcontrol<a class="anchor" aria-label="anchor" href="#arg-bootstrapfitcontrol"></a></dt>
@@ -107,7 +107,7 @@ like <code>controlMethod</code> but for fitting models from bootstrap samples.</
 
 
 <dt id="arg-sd">sd<a class="anchor" aria-label="anchor" href="#arg-sd"></a></dt>
-<dd><p>indicates how to compute standard deviation of population
+<dd><p>a character indicating how to compute standard deviation of population
 size estimator either as:
 =var(N)
 for <code>sqrt</code> (which is slightly biased if N
@@ -120,12 +120,12 @@ where the ration involving gamma functions is computed by log gamma function.</p
 
 
 <dt id="arg-covtype">covType<a class="anchor" aria-label="anchor" href="#arg-covtype"></a></dt>
-<dd><p>type of covariance matrix for regression parameters by default
+<dd><p>a type of covariance matrix for regression parameters by default
 observed information matrix.</p></dd>
 
 
 <dt id="arg-cores">cores<a class="anchor" aria-label="anchor" href="#arg-cores"></a></dt>
-<dd><p>for bootstrap only, number of processor cores to be used,
+<dd><p>for bootstrap only, a number of processor cores to be used,
 any number greater than 1 activates code designed with <code>doParallel</code>,
 <code>foreach</code> and <code>parallel</code> packages. Note that for now using parallel
 computing makes tracing impossible so <code>traceBootstrapSize</code> and

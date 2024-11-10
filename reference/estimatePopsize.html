@@ -99,7 +99,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise.<
 
 
 <dl><dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
-<dd><p>formula for the model to be fitted, only applied to the "main"
+<dd><p>a formula for the model to be fitted, only applied to the "main"
 linear predictor. Only single response models are available.</p></dd>
 
 
@@ -109,16 +109,16 @@ linear predictor. Only single response models are available.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>data frame or object coercible to data.frame class containing
+<dd><p>a data frame or object coercible to data.frame class containing
 data for the regression and population size estimation.</p></dd>
 
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>model for regression and population estimate full description in <code><a href="singleRmodels.html">singleRmodels()</a></code>.</p></dd>
+<dd><p>a model for regression and population estimate full description in <code><a href="singleRmodels.html">singleRmodels()</a></code>.</p></dd>
 
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
-<dd><p>optional object of prior weights used in fitting the model.
+<dd><p>an optional object of prior weights used in fitting the model.
 Can be used to specify number of occurrences of rows in data see <code><a href="controlModel.html">controlModel()</a></code></p></dd>
 
 
@@ -132,13 +132,14 @@ in regression and population size estimation. It will be evaluated on <code>data
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>method for fitting values currently supported: iteratively
+<dd><p>a method for fitting values currently supported: iteratively
 reweighted least squares (<code>IRLS</code>) and maximum likelihood (<code>optim</code>).</p></dd>
 
 
 <dt id="arg-popvar">popVar<a class="anchor" aria-label="anchor" href="#arg-popvar"></a></dt>
-<dd><p>a method of constructing confidence interval either analytic
-or bootstrap. Bootstrap confidence interval type may be specified in
+<dd><p>a method of constructing confidence interval and estimating
+the standard error either analytic or bootstrap.
+Bootstrap confidence interval type may be specified in
 <code>controlPopVar.</code> There is also the third possible value of <code>noEst</code>
 which skips the population size estimate all together.</p></dd>
 
@@ -164,7 +165,7 @@ More information included in <code><a href="controlPopVar.html">controlPopVar()<
 
 
 <dt id="arg-modelframe-x-y">modelFrame, x, y<a class="anchor" aria-label="anchor" href="#arg-modelframe-x-y"></a></dt>
-<dd><p>logical value indicating whether to return model matrix,
+<dd><p>logical values indicating whether to return model matrix,
 dependent vector and model matrix as a part of output.</p></dd>
 
 
@@ -177,7 +178,7 @@ dependent vector and model matrix as a part of output.</p></dd>
 
 
 <dt id="arg-offset">offset<a class="anchor" aria-label="anchor" href="#arg-offset"></a></dt>
-<dd><p>a matrix of offset values with number of columns matching the
+<dd><p>a matrix of offset values with the number of columns matching the
 number of distribution parameters providing offset values to each of
 linear predictors.</p></dd>
 

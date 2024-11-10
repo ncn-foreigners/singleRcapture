@@ -189,51 +189,51 @@
 <p>Lastly <code>singleRcapture</code> offers some posthoc procedures for example a function <code>stratifyPopsize</code> that estimates sizes of user specified sub populations and returns them in a <code>data.frame</code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.05</span><span class="op">)</span>, <span class="co"># different significance level for each sub population</span></span>
-<span>    stratas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Females from Surinam"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"female"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">nation</span> <span class="op">==</span> <span class="st">"Surinam"</span>,</span>
 <span>    <span class="st">"Males from Turkey"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">nation</span> <span class="op">==</span> <span class="st">"Turkey"</span>,</span>
 <span>    <span class="st">"Younger males"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">age</span> <span class="op">==</span> <span class="st">"&lt;40yrs"</span>,</span>
 <span>    <span class="st">"Older males"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">age</span> <span class="op">==</span> <span class="st">"&gt;40yrs"</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   Observed Estimated ObservedPercentage  StdError normalLowerBound</span></span>
-<span><span class="co">#&gt; 1       20   931.469           2.147146  955.0676      -1528.62209</span></span>
-<span><span class="co">#&gt; 2       78  1291.251           6.040652  741.0066       -432.58790</span></span>
-<span><span class="co">#&gt; 3     1391  7337.072          18.958516 1282.1419       4554.70841</span></span>
-<span><span class="co">#&gt; 4       91  1542.189           5.900703  781.4754         10.52561</span></span>
-<span><span class="co">#&gt;   normalUpperBound logNormalLowerBound logNormalUpperBound                 name</span></span>
-<span><span class="co">#&gt; 1         3391.560            119.2661            8389.178 Females from Surinam</span></span>
-<span><span class="co">#&gt; 2         3015.090            405.4127            4573.791    Males from Turkey</span></span>
-<span><span class="co">#&gt; 3        10119.436           5134.8113           10834.792        Younger males</span></span>
-<span><span class="co">#&gt; 4         3073.853            630.7551            3992.677          Older males</span></span>
+<span><span class="co">#&gt;                   name Observed Estimated ObservedPercentage  StdError</span></span>
+<span><span class="co">#&gt; 1 Females from Surinam       20   931.469           2.147146  955.0676</span></span>
+<span><span class="co">#&gt; 2    Males from Turkey       78  1291.251           6.040652  741.0066</span></span>
+<span><span class="co">#&gt; 3        Younger males     1391  7337.072          18.958516 1282.1419</span></span>
+<span><span class="co">#&gt; 4          Older males       91  1542.189           5.900703  781.4754</span></span>
+<span><span class="co">#&gt;   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
+<span><span class="co">#&gt; 1      -1528.62209         3391.560            119.2661            8389.178</span></span>
+<span><span class="co">#&gt; 2       -432.58790         3015.090            405.4127            4573.791</span></span>
+<span><span class="co">#&gt; 3       4554.70841        10119.436           5134.8113           10834.792</span></span>
+<span><span class="co">#&gt; 4         10.52561         3073.853            630.7551            3992.677</span></span>
 <span><span class="co">#&gt;   confLevel</span></span>
 <span><span class="co">#&gt; 1      0.01</span></span>
 <span><span class="co">#&gt; 2      0.02</span></span>
 <span><span class="co">#&gt; 3      0.03</span></span>
 <span><span class="co">#&gt; 4      0.05</span></span></code></pre></div>
-<p><code>stratas</code> argument may be specified in various ways for example:</p>
+<p><code>strata</code> argument may be specified in various ways for example:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, stratas <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">/</span> <span class="va">age</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   Observed Estimated ObservedPercentage  StdError normalLowerBound</span></span>
-<span><span class="co">#&gt; 1      398 3811.0924          10.443200 1153.9749       1549.34322</span></span>
-<span><span class="co">#&gt; 2     1482 8879.2613          16.690578 1812.0813       5327.64720</span></span>
-<span><span class="co">#&gt; 3      378 3169.8272          11.924940  880.9491       1443.19883</span></span>
-<span><span class="co">#&gt; 4     1391 7337.0721          18.958516 1282.1419       4824.12025</span></span>
-<span><span class="co">#&gt; 5       20  641.2651           3.118835  407.5268       -157.47265</span></span>
-<span><span class="co">#&gt; 6       91 1542.1892           5.900703  781.4754         10.52561</span></span>
-<span><span class="co">#&gt;   normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
-<span><span class="co">#&gt; 1         6072.842           2189.0439            6902.140</span></span>
-<span><span class="co">#&gt; 2        12430.875           6090.7752           13354.889</span></span>
-<span><span class="co">#&gt; 3         4896.456           1904.3121            5484.622</span></span>
-<span><span class="co">#&gt; 4         9850.024           5306.3298           10421.088</span></span>
-<span><span class="co">#&gt; 5         1440.003            212.3382            2026.728</span></span>
-<span><span class="co">#&gt; 6         3073.853            630.7551            3992.677</span></span>
-<span><span class="co">#&gt;                     name confLevel</span></span>
-<span><span class="co">#&gt; 1         gender==female      0.05</span></span>
-<span><span class="co">#&gt; 2           gender==male      0.05</span></span>
-<span><span class="co">#&gt; 3 genderfemale:age&lt;40yrs      0.05</span></span>
-<span><span class="co">#&gt; 4   gendermale:age&lt;40yrs      0.05</span></span>
-<span><span class="co">#&gt; 5 genderfemale:age&gt;40yrs      0.05</span></span>
-<span><span class="co">#&gt; 6   gendermale:age&gt;40yrs      0.05</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, strata <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">/</span> <span class="va">age</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                     name Observed Estimated ObservedPercentage  StdError</span></span>
+<span><span class="co">#&gt; 1         gender==female      398 3811.0924          10.443200 1153.9749</span></span>
+<span><span class="co">#&gt; 2           gender==male     1482 8879.2613          16.690578 1812.0813</span></span>
+<span><span class="co">#&gt; 3 genderfemale:age&lt;40yrs      378 3169.8272          11.924940  880.9491</span></span>
+<span><span class="co">#&gt; 4   gendermale:age&lt;40yrs     1391 7337.0721          18.958516 1282.1419</span></span>
+<span><span class="co">#&gt; 5 genderfemale:age&gt;40yrs       20  641.2651           3.118835  407.5268</span></span>
+<span><span class="co">#&gt; 6   gendermale:age&gt;40yrs       91 1542.1892           5.900703  781.4754</span></span>
+<span><span class="co">#&gt;   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
+<span><span class="co">#&gt; 1       1549.34322         6072.842           2189.0439            6902.140</span></span>
+<span><span class="co">#&gt; 2       5327.64720        12430.875           6090.7752           13354.889</span></span>
+<span><span class="co">#&gt; 3       1443.19883         4896.456           1904.3121            5484.622</span></span>
+<span><span class="co">#&gt; 4       4824.12025         9850.024           5306.3298           10421.088</span></span>
+<span><span class="co">#&gt; 5       -157.47265         1440.003            212.3382            2026.728</span></span>
+<span><span class="co">#&gt; 6         10.52561         3073.853            630.7551            3992.677</span></span>
+<span><span class="co">#&gt;   confLevel</span></span>
+<span><span class="co">#&gt; 1      0.05</span></span>
+<span><span class="co">#&gt; 2      0.05</span></span>
+<span><span class="co">#&gt; 3      0.05</span></span>
+<span><span class="co">#&gt; 4      0.05</span></span>
+<span><span class="co">#&gt; 5      0.05</span></span>
+<span><span class="co">#&gt; 6      0.05</span></span></code></pre></div>
 <p>The package was designed with convenience in mind, for example it is possible to specify that weights provided on call are to be interpreted as number of occurrences of units in each row:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">netherlandsimmigrant</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,<span class="fl">5</span><span class="op">)</span><span class="op">]</span></span>
