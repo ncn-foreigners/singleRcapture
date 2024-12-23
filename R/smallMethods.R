@@ -162,6 +162,7 @@ df.residual.singleRStaticCountData <- function(object, ...) {
 
 #' @importFrom stats sigma
 #' @method sigma singleRStaticCountData
+#' @rdname regDiagSingleR
 #' @exportS3Method 
 sigma.singleRStaticCountData <- function(object, ...) {
   predict(object, type = "mean", se = TRUE)[c(3, 4)]
@@ -169,6 +170,7 @@ sigma.singleRStaticCountData <- function(object, ...) {
 
 #' @importFrom stats influence
 #' @method influence singleRStaticCountData
+#' @rdname regDiagSingleR
 #' @exportS3Method 
 influence.singleRStaticCountData <- function(model, do.coef = FALSE, ...) {
   res <- list()
@@ -199,6 +201,7 @@ influence.singleRStaticCountData <- function(model, do.coef = FALSE, ...) {
 
 #' @importFrom stats rstudent
 #' @method rstudent singleRStaticCountData
+#' @rdname regDiagSingleR
 #' @exportS3Method 
 rstudent.singleRStaticCountData <- function(model, ...) {
   res <- residuals(model, type = "pearson")[, 1]
@@ -212,6 +215,7 @@ rstudent.singleRStaticCountData <- function(model, ...) {
 
 #' @importFrom stats rstandard
 #' @method rstandard singleRStaticCountData
+#' @rdname regDiagSingleR
 #' @exportS3Method 
 rstandard.singleRStaticCountData <- function(model,
                                              type = c("deviance", "pearson"), 

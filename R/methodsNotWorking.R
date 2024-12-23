@@ -8,7 +8,7 @@ add1.singleRStaticCountData <- function(object, scope, ...) {
 #' @importFrom stats profile
 #' @method profile singleRStaticCountData
 #' @exportS3Method 
-profile.singleRStaticCountData <- function(object, scope, ...) {
+profile.singleRStaticCountData <- function(fitted, ...) {
   stop("The profile method for singleRStaticCountData class doesn't work yet.")
 }
 #' @importFrom stats drop1

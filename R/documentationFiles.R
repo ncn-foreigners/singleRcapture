@@ -267,6 +267,8 @@ NULL
 #' @param model,object an object of \code{singleRStaticCountData} class.
 #' @param dfbeta if \code{dfbeta} was already obtained it is possible to pass 
 #' them into function so that they need not be computed for the second time.
+#' @param do.coef logical indicating if \code{dfbeta} computation for influence 
+#' should be done. \code{FALSE} by default.
 #' @param cores a number of processor cores to be used,
 #' any number greater than 1 activates code designed with \code{doParallel}, 
 #' \code{foreach} and \code{parallel} packages. Note that for now using parallel 
@@ -291,10 +293,11 @@ NULL
 #' for every unit present in the data.\code{dfpopsize} does the same for 
 #' population size estimation utilizing coefficients computed by \code{dfbeta}.
 #' 
-#' 
 #' \code{cooks.distance} is implemented (for now) only for models with a single
 #' linear predictor and works exactly like the method for \code{glm} class.
 #' 
+#' \code{sigma} computes the standard errors of predicted means. Returns a matrix
+#' with two columns first for truncated mean and the other for the non-truncated mean.
 #' 
 #' \code{residuals.singleRStaticCountData} (can be abbreviated to \code{resid})
 #'  works like \code{residuals.glm} with the exception that:
@@ -353,6 +356,8 @@ NULL
 #' matrix constructed using specifications in \code{controlModel} and 
 #' call to \code{estimatePopsize}.
 #'
+#' \code{influence} works like \code{glm} counterpart computing the most important
+#' influence measures.
 #'
 #' @seealso [estimatePopsize()] [stats::hatvalues()] [controlMethod()] [stats::dfbeta()]
 #' [stats::cooks.distance()]
