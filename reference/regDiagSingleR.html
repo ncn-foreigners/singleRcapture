@@ -13,7 +13,7 @@ are omitted."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@ are omitted."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Regression diagnostics in singleRcapture</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/documentationFiles.R" class="external-link"><code>R/documentationFiles.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/leave-one-out.R" class="external-link"><code>R/leave-one-out.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/miscDiagnostics.R" class="external-link"><code>R/miscDiagnostics.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/documentationFiles.R" class="external-link"><code>R/documentationFiles.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/leave-one-out.R" class="external-link"><code>R/leave-one-out.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/miscDiagnostics.R" class="external-link"><code>R/miscDiagnostics.R</code></a>, and 1 more</small>
       <div class="d-none name"><code>regDiagSingleR.Rd</code></div>
     </div>
 
@@ -67,7 +67,19 @@ are omitted.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'singleRStaticCountData'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">cooks.distance</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">cooks.distance</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'singleRStaticCountData'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'singleRStaticCountData'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/lm.influence.html" class="external-link">influence</a></span><span class="op">(</span><span class="va">model</span>, do.coef <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'singleRStaticCountData'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstudent</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'singleRStaticCountData'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard</a></span><span class="op">(</span><span class="va">model</span>, type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"deviance"</span>, <span class="st">"pearson"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -111,6 +123,11 @@ computing makes tracing impossible so <code>trace</code> parameter is ignored in
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p>a type of residual to return.</p></dd>
 
+
+<dt id="arg-do-coef">do.coef<a class="anchor" aria-label="anchor" href="#arg-do-coef"></a></dt>
+<dd><p>logical indicating if <code>dfbeta</code> computation for influence
+should be done. <code>FALSE</code> by default.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -143,6 +160,8 @@ for every unit present in the data.<code>dfpopsize</code> does the same for
 population size estimation utilizing coefficients computed by <code>dfbeta</code>.</p>
 <p><code>cooks.distance</code> is implemented (for now) only for models with a single
 linear predictor and works exactly like the method for <code>glm</code> class.</p>
+<p><code>sigma</code> computes the standard errors of predicted means. Returns a matrix
+with two columns first for truncated mean and the other for the non-truncated mean.</p>
 <p><code>residuals.singleRStaticCountData</code> (can be abbreviated to <code>resid</code>)
 works like <code>residuals.glm</code> with the exception that:</p><ul><li><p><code>"pearson"</code> – returns non standardized residuals.</p></li>
 <li><p><code>"pearsonSTD"</code> – is currently defined only for single predictors
@@ -193,6 +212,8 @@ predictor (and mixed derivatives) and
 X_vlm is a model (vlm)
 matrix constructed using specifications in <code>controlModel</code> and
 call to <code>estimatePopsize</code>.</p>
+<p><code>influence</code> works like <code>glm</code> counterpart computing the most important
+influence measures.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
