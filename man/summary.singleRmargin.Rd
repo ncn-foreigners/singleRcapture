@@ -13,7 +13,7 @@
 but it is not always possible.}
 
 \item{dropl5}{a character indicating treatment of cells with frequencies < 5
-either grouping them, dropping or leaving them as is. Defaults to drop.}
+either grouping them, dropping or leaving them as is. Defaults to \code{drop}.}
 
 \item{...}{currently does nothing.}
 }

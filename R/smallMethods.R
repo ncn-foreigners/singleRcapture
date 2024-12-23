@@ -18,19 +18,6 @@ popSizeEst <- function(object, ...) {
 family.singleRStaticCountData <- function(object, ...) {
   object$model
 }
-
-#' @method AIC singleRStaticCountData
-#' @importFrom stats AIC
-#' @exportS3Method 
-AIC.singleRStaticCountData <- function(object, ...) {
-  2 * (length(object$coefficients) - object$logL)
-}
-#' @method BIC singleRStaticCountData
-#' @importFrom stats BIC
-#' @exportS3Method 
-BIC.singleRStaticCountData <- function(object, ...) {
-  length(object$coefficients) * log(nobs(object, ...)) - 2 * object$logL
-}
 #' @method extractAIC singleRStaticCountData
 #' @importFrom stats extractAIC
 #' @exportS3Method 
@@ -171,4 +158,71 @@ nobs.singleRStaticCountData <- function(object, ...) {
 #' @exportS3Method 
 df.residual.singleRStaticCountData <- function(object, ...) {
   object$dfResidual
+}
+
+#' @importFrom stats sigma
+#' @method sigma singleRStaticCountData
+#' @exportS3Method 
+sigma.singleRStaticCountData <- function(object, ...) {
+  predict(object, type = "mean", se = TRUE)[c(3, 4)]
+}
+
+#' @importFrom stats influence
+#' @method influence singleRStaticCountData
+#' @exportS3Method 
+influence.singleRStaticCountData <- function(model, do.coef = FALSE, ...) {
+  res <- list()
+  hat <- hatvalues(model)
+  if (NCOL(hat) > 1) {
+    for (k in 1L:NCOL(hat)) {
+      res[[paste0("hat:", colnames(hat)[k])]] <- hat[, k]
+    }
+  } else {
+    res[["hat"]] <- hat[, 1]
+  }
+  
+  if (isTRUE(do.coef)) {
+    dfb <- dfbeta(model, ...)
+    res[["coefficients"]] <- dfb
+  }
+  
+  sigma <- sigma(model)
+  res[["sigma:truncated"]]    <- sigma[, 1]
+  res[["sigma:nontruncated"]] <- sigma[, 2]
+  
+  res[["dev.res"]] <- residuals(model, type = "deviance")[, 1]
+  
+  res[["pear.res"]] <- residuals(model, type = "pearson")[, 1]
+  
+  res
+}
+
+#' @importFrom stats rstudent
+#' @method rstudent singleRStaticCountData
+#' @exportS3Method 
+rstudent.singleRStaticCountData <- function(model, ...) {
+  res <- residuals(model, type = "pearson")[, 1]
+  hat <- hatvalues(model)[, 1]
+  
+  res <- res / sqrt((1 - hat))
+  
+  res[is.infinite(res)] <- NaN
+  res
+}
+
+#' @importFrom stats rstandard
+#' @method rstandard singleRStaticCountData
+#' @exportS3Method 
+rstandard.singleRStaticCountData <- function(model,
+                                             type = c("deviance", "pearson"), 
+                                             ...) {
+  type <- match.arg(type)
+  res <- switch (type,
+    pearson  = residuals(model, type = "pearsonSTD")[, 1],
+    deviance = residuals(model, type = "deviance")[, 1] / 
+      (sqrt(1 - hatvalues(model)[, 1]) * sigma(model)[, 1]),
+  )
+  
+  res[is.infinite(res)] <- NaN
+  res
 }

@@ -102,12 +102,27 @@ plot.singleRStaticCountData <- function(x,
                                         histKernels = TRUE,
                                         dfpop,
                                         ...) {
-  if (missing(plotType)) stop("Argument plotType must be provided needed")
+  if (missing(plotType) | (!is.null(plotType) & 
+      !isTRUE(is.integer(plotType)) & !isTRUE(is.character(plotType)))) {
+    if (is.numeric(plotType) & (length(plotType) == 1)) {
+      plotType <- as.integer(plotType)
+    } else {
+      stop("Argument plotType must be provided as a character or integer or NULL.")
+    }
+  }
+  if (isTRUE(is.integer(plotType))) {
+    plotType <- c(
+      "qq", "marginal", "fitresid",
+      "bootHist", "rootogram", "dfpopContr",
+      "dfpopBox", "scaleLoc", "cooks",
+      "hatplot", "strata"
+    )[plotType]
+  }
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldpar))
   
-  if ((plotType == "bootHist") && (!is.numeric(x$populationSize$boot))) {
+  if (isTRUE(plotType == "bootHist") && isTRUE(!is.numeric(x$populationSize$boot))) {
     stop("Trying to plot bootstrap results with no bootstrap performed")
   } 
   plotType <- match.arg(plotType)

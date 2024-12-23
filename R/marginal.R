@@ -97,7 +97,7 @@ marginalFreq <- function(object,
 #' @param df degrees of freedom if not provided the function will try and manually
 #' but it is not always possible.
 #' @param dropl5 a character indicating treatment of cells with frequencies < 5 
-#' either grouping them, dropping or leaving them as is. Defaults to drop.
+#' either grouping them, dropping or leaving them as is. Defaults to \code{drop}.
 #' @param ... currently does nothing.
 #'
 #' @method summary singleRmargin
@@ -120,6 +120,10 @@ summary.singleRmargin <- function(object, df,
                                              "group", 
                                              "no"), 
                                   ...) {
+  if (missing(dropl5)) {
+    dropl5 <- "drop"
+  }
+  
   if (!is.character(dropl5) | length(dropl5) > 1) {
     warning("The argument dropl5 should be a 1 length character vector")
     dropl5 <- dropl5[1]

@@ -1,4 +1,5 @@
 #' @method print singleRStaticCountData
+#' @importFrom stats AIC BIC
 #' @exportS3Method 
 print.singleRStaticCountData <- function(x, ...) {
   cat("Call: ")

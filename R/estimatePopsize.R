@@ -755,7 +755,7 @@ estimatePopsize.default <- function(formula,
         naAction         = naAction,
         fittingLog       = if (is.null(IRLSlog)) "IRLS logs were not saved." else IRLSlog
       ),
-      class = c("singleRStaticCountData", "singleR", "glm", "lm")
+      class = c("singleRStaticCountData", "glm", "lm")
     )
   } else {
     stop("Ratio regression is not yet implemented")
