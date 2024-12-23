@@ -9,7 +9,7 @@
 \alias{hatvalues.singleRStaticCountData}
 \alias{residuals.singleRStaticCountData}
 \alias{cooks.distance.singleRStaticCountData}
-\title{Regression diagnostics in \code{singleRcapture}}
+\title{Regression diagnostics in singleRcapture}
 \usage{
 dfpopsize(model, ...)
 

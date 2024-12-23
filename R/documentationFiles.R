@@ -255,7 +255,7 @@ NULL
 NULL
 
 #' \loadmathjax
-#' @title Regression diagnostics in \code{singleRcapture}
+#' @title Regression diagnostics in singleRcapture
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
 #'
