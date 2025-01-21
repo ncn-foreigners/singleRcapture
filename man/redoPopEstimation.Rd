@@ -3,7 +3,7 @@
 \name{redoPopEstimation}
 \alias{redoPopEstimation}
 \alias{redoPopEstimation.singleRStaticCountData}
-\title{Updating population size estimation results.}
+\title{Updating population size estimation results}
 \usage{
 redoPopEstimation(object, newdata, ...)
 

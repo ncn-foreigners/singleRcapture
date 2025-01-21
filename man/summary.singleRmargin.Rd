@@ -2,7 +2,7 @@
 % Please edit documentation in R/marginal.R
 \name{summary.singleRmargin}
 \alias{summary.singleRmargin}
-\title{Statistical tests of goodness of fit.}
+\title{Statistical tests of goodness of fit}
 \usage{
 \method{summary}{singleRmargin}(object, df, dropl5 = c("drop", "group", "no"), ...)
 }

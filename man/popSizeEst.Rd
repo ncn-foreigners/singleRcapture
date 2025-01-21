@@ -3,7 +3,7 @@
 \name{popSizeEst}
 \alias{popSizeEst}
 \alias{popSizeEst.singleRStaticCountData}
-\title{Extract population size estimation results.}
+\title{Extract population size estimation results}
 \usage{
 popSizeEst(object, ...)
 

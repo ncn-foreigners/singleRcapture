@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimatePopsizeFit.R
 \name{estimatePopsizeFit}
 \alias{estimatePopsizeFit}
-\title{Regression fitting in single source capture-recapture models}
+\title{Regression fitting in single-source capture-recapture models}
 \usage{
 estimatePopsizeFit(
   y,

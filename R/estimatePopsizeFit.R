@@ -1,6 +1,6 @@
 #' \loadmathjax
 #' 
-#' @title Regression fitting in single source capture-recapture models
+#' @title Regression fitting in single-source capture-recapture models
 #' @author Piotr Chlebicki, Maciej Beresewicz
 #'
 #' @description \code{estimatePopsizeFit} does for \code{estimatePopsize} what

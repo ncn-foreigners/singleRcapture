@@ -1,6 +1,6 @@
 #' @import mathjaxr
 NULL
-#' @title Single source capture-recapture models
+#' @title Single-source capture-recapture models
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #'
 #' \loadmathjax

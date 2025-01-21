@@ -1,6 +1,6 @@
 #' \loadmathjax
 
-#' @title Obtain Covariance Matrix estimation.
+#' @title Obtain Covariance Matrix estimation
 #' 
 #' @description A \code{vcov} method for \code{singleRStaticCountData} class.
 #' 

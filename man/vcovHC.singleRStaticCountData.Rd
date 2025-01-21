@@ -36,7 +36,7 @@
 \item{sandwich}{logical. Should the sandwich estimator be computed? If set to FALSE only the meat matrix is returned. Same as in \code{\link[sandwich:vcovHC]{sandwich::vcovHC()}}}
 }
 \value{
-Variance-covariance matrix estimation corrected for heteroscedasticity of regression errors.
+Variance-covariance matrix estimation corrected for heteroscedasticity of regression errors
 }
 \description{
 S3 method for \code{vcovHC} to handle \code{singleRStaticCountData} class objects.

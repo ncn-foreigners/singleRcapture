@@ -1,4 +1,4 @@
-#' @title Extract population size estimation results.
+#' @title Extract population size estimation results
 #' 
 #' @description An extractor function with \code{singleRStaticCountData} method for extracting
 #' important information regarding pop size estimate.

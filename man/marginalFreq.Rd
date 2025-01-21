@@ -2,7 +2,7 @@
 % Please edit documentation in R/marginal.R
 \name{marginalFreq}
 \alias{marginalFreq}
-\title{Observed and fitted marginal Frequencies}
+\title{Observed and fitted marginal frequencies}
 \usage{
 marginalFreq(
   object,

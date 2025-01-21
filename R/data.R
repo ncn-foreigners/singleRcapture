@@ -23,7 +23,7 @@
 #' @usage data("farmsubmission")
 "farmsubmission"
 
-#' @title Data on immigration in Netherlands
+#' @title Data on immigration in the Netherlands
 #' @description  This data set contains information about immigrants in four
 #' cities (Amsterdam, Rotterdam, The Hague and Utrecht) in Netherlands that have
 #' been staying in the country illegally in 1995 and have appeared in police

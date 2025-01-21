@@ -3,7 +3,7 @@
 \name{estimatePopsize}
 \alias{estimatePopsize}
 \alias{estimatePopsize.default}
-\title{Single source capture-recapture models}
+\title{Single-source capture-recapture models}
 \usage{
 estimatePopsize(formula, ...)
 

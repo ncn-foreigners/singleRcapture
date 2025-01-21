@@ -2,7 +2,7 @@
 % Please edit documentation in R/miscDiagnostics.R
 \name{vcov.singleRStaticCountData}
 \alias{vcov.singleRStaticCountData}
-\title{Obtain Covariance Matrix estimation.}
+\title{Obtain Covariance Matrix estimation}
 \usage{
 \method{vcov}{singleRStaticCountData}(object, type = c("Fisher", "observedInform"), ...)
 }

@@ -3,7 +3,7 @@
 \name{predict.singleRStaticCountData}
 \alias{predict.singleRStaticCountData}
 \title{\loadmathjax
-Predict method for \code{singleRStaticCountData} class}
+Predict method for singleRStaticCountData class}
 \usage{
 \method{predict}{singleRStaticCountData}(
   object,

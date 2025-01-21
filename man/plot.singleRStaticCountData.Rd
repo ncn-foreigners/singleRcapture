@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{plot.singleRStaticCountData}
 \alias{plot.singleRStaticCountData}
-\title{Diagnostic plots for regression and population size estimation.}
+\title{Diagnostic plots for regression and population size estimation}
 \usage{
 \method{plot}{singleRStaticCountData}(
   x,

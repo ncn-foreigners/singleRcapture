@@ -1,3 +1,7 @@
+# singleRcapture 0.2.2
+
+* Fixing documentation typos and errors
+
 # singleRcapture 0.2.1.2
 
 * Bugfix for interaction terms in formula not being considered

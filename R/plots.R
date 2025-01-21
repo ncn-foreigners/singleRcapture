@@ -1,4 +1,4 @@
-#' @title Diagnostic plots for regression and population size estimation.
+#' @title Diagnostic plots for regression and population size estimation
 #' @author Piotr Chlebicki
 #'
 #' @description Simple diagnostic plots for \code{singleRStaticCountData} class objects.

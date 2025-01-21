@@ -65,7 +65,7 @@ bread.singleRStaticCountData <- function(x,...) {
 #'   \item \code{vcov} -- when calling \code{bread} internally.
 #' }
 #'
-#' @return Variance-covariance matrix estimation corrected for heteroscedasticity of regression errors.
+#' @return Variance-covariance matrix estimation corrected for heteroscedasticity of regression errors
 #' @seealso [sandwich::vcovHC()] [singleRcapture::redoPopEstimation()]
 #' @examples 
 #' set.seed(1)
