@@ -102,22 +102,24 @@ plot.singleRStaticCountData <- function(x,
                                         histKernels = TRUE,
                                         dfpop,
                                         ...) {
-  if (missing(plotType) | (!is.null(plotType) & 
-      !isTRUE(is.integer(plotType)) & !isTRUE(is.character(plotType)))) {
-    if (is.numeric(plotType) & (length(plotType) == 1)) {
-      plotType <- as.integer(plotType)
+  
+  if (missing(plotType) || is.null(plotType)) {
+    plotType <- eval(formals()$plotType)[1]
+  } else if (is.numeric(plotType) && length(plotType) == 1) {
+    # Handle numeric index
+    valid_plots <- eval(formals()$plotType)
+    if (plotType > 0 && plotType <= length(valid_plots)) {
+      plotType <- valid_plots[as.integer(plotType)]
     } else {
-      stop("Argument plotType must be provided as a character or integer or NULL.")
+      stop("Numeric plotType must be between 1 and ", length(valid_plots))
     }
+  } else if (is.character(plotType)) {
+    # Use match.arg for character input validation against the options
+    plotType <- match.arg(plotType)
+  } else {
+    stop("plotType must be NULL, a character string, or a numeric index")
   }
-  if (isTRUE(is.integer(plotType))) {
-    plotType <- c(
-      "qq", "marginal", "fitresid",
-      "bootHist", "rootogram", "dfpopContr",
-      "dfpopBox", "scaleLoc", "cooks",
-      "hatplot", "strata"
-    )[plotType]
-  }
+  
   ## sugested by Victoria Wimmer
   oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldpar))
