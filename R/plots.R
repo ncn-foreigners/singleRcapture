@@ -7,7 +7,7 @@
 #' @param dfpop TODO
 #' @param confIntStrata confidence interval type to use for strata plot.
 #' Currently supported values are \code{"normal"} and \code{"logNormal"}.
-#' @param plotType character parameter specifying type of plot to be made.
+#' @param plotType character parameter (default \code{"qq"}) specifying type of plot to be made.
 #' The following list presents and briefly explains possible type of plots:
 #' \itemize{
 #'   \item \code{qq} -- The quantile-quantile plot for pearson residuals 

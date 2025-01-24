@@ -35,14 +35,15 @@ This package aims to implement already existing and introduce new
 methods of estimating population size from single source to simplify the
 research process.
 
-Currently we’ve implemented most of the frequentist approaches used in
+Currently we have implemented most of the frequentist approaches used in
 literature such as:
 
 - Zero truncated Poisson, geometric and negative binomial regression.
 - Zero truncated one inflated and one inflated zero truncated Poisson
   and geometric models. (Negative binomial is currently in development.)
 - Zero one truncated Poisson geometric and negative binomial models.
-- Generalized Chao and Zelterman’s models based on logistic regression.
+- Generalized Chao’s and Zelterman’s models based on logistic
+  regression.
 - Three types of bootstrap parametric, semi-parametric and non
   parametric.
 - And a wide range of additional functionalities associated with
@@ -122,15 +123,15 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 #> Population size estimation results: 
 #> Point estimate 12690.35
 #> Observed proportion: 14.8% (N obs = 1880)
-#> Std. Error 2808.169
+#> Std. Error 2808.165
 #> 95% CI for the population size:
 #>           lowerBound upperBound
-#> normal      7186.444   18194.26
-#> logNormal   8431.275   19718.32
+#> normal      7186.449   18194.25
+#> logNormal   8431.277   19718.31
 #> 95% CI for the share of observed population:
 #>           lowerBound upperBound
-#> normal     10.332927   26.16037
-#> logNormal   9.534281   22.29793
+#> normal     10.332933   26.16035
+#> logNormal   9.534288   22.29793
 ```
 
 We implemented a method for `plot` function to visualise the model fit
@@ -198,7 +199,7 @@ approximately the same effect:
 plot(model, plotType = "dfpopContr")
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="75%" />
+<img src="man/figures/README-plot-example-1.png" width="75%" />
 
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
@@ -216,15 +217,15 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
     "Older males" = netherlandsimmigrant$gender == "male" & netherlandsimmigrant$age == ">40yrs"
 ))
 #>                   name Observed Estimated ObservedPercentage  StdError
-#> 1 Females from Surinam       20   931.469           2.147146  955.0676
-#> 2    Males from Turkey       78  1291.251           6.040652  741.0066
-#> 3        Younger males     1391  7337.072          18.958516 1282.1419
-#> 4          Older males       91  1542.189           5.900703  781.4754
+#> 1 Females from Surinam       20  931.4677           2.147149  955.0657
+#> 2    Males from Turkey       78 1291.2513           6.040652  741.0066
+#> 3        Younger males     1391 7337.0708          18.958520 1282.1402
+#> 4          Older males       91 1542.1886           5.900705  781.4747
 #>   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound
-#> 1      -1528.62209         3391.560            119.2661            8389.178
+#> 1      -1528.61853         3391.554            119.2661            8389.158
 #> 2       -432.58790         3015.090            405.4127            4573.791
-#> 3       4554.70841        10119.436           5134.8113           10834.792
-#> 4         10.52561         3073.853            630.7551            3992.677
+#> 3       4554.71057        10119.431           5134.8122           10834.785
+#> 4         10.52637         3073.851            630.7551            3992.674
 #>   confLevel
 #> 1      0.01
 #> 2      0.02
@@ -237,19 +238,19 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 ``` r
 stratifyPopsize(model, strata = ~ gender / age)
 #>                     name Observed Estimated ObservedPercentage  StdError
-#> 1         gender==female      398 3811.0924          10.443200 1153.9749
-#> 2           gender==male     1482 8879.2613          16.690578 1812.0813
-#> 3 genderfemale:age<40yrs      378 3169.8272          11.924940  880.9491
-#> 4   gendermale:age<40yrs     1391 7337.0721          18.958516 1282.1419
-#> 5 genderfemale:age>40yrs       20  641.2651           3.118835  407.5268
-#> 6   gendermale:age>40yrs       91 1542.1892           5.900703  781.4754
+#> 1         gender==female      398 3811.0911          10.443203 1153.9733
+#> 2           gender==male     1482 8879.2594          16.690581 1812.0790
+#> 3 genderfemale:age<40yrs      378 3169.8263          11.924944  880.9478
+#> 4   gendermale:age<40yrs     1391 7337.0708          18.958520 1282.1402
+#> 5 genderfemale:age>40yrs       20  641.2648           3.118836  407.5264
+#> 6   gendermale:age>40yrs       91 1542.1886           5.900705  781.4747
 #>   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound
-#> 1       1549.34322         6072.842           2189.0439            6902.140
-#> 2       5327.64720        12430.875           6090.7752           13354.889
-#> 3       1443.19883         4896.456           1904.3121            5484.622
-#> 4       4824.12025         9850.024           5306.3298           10421.088
-#> 5       -157.47265         1440.003            212.3382            2026.728
-#> 6         10.52561         3073.853            630.7551            3992.677
+#> 1       1549.34513         6072.837           2189.0443            6902.133
+#> 2       5327.64991        12430.869           6090.7762           13354.880
+#> 3       1443.20030         4896.452           1904.3126            5484.617
+#> 4       4824.12208         9850.019           5306.3306           10421.082
+#> 5       -157.47223         1440.002            212.3382            2026.726
+#> 6         10.52637         3073.851            630.7551            3992.674
 #>   confLevel
 #> 1      0.05
 #> 2      0.05
@@ -410,8 +411,6 @@ modelInflated2 <- estimatePopsize(
     ),
     controlModel = controlModel(omegaFormula = ~ gender) # put covariates on omega i.e. the inflation parameter
 )
-#> Warning in singleRcaptureinternalIRLSmultipar(dependent = y, covariates = X, :
-#> Convergence at halfstepsize
 #> Warning in estimatePopsize.default(formula = capture ~ age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.
 #> NOTE: Second derivative test failing does not 
 #>         necessarily mean that the maximum of score function that was found 
@@ -421,11 +420,11 @@ modelInflated2 <- estimatePopsize(
 #> netherlandsimmigrant, : Switching from observed information matrix to Fisher
 #> information matrix because hessian of log-likelihood is not negative define.
 popSizeEst(modelInflated2)
-#> Point estimate: 5496.374
-#> Variance: 1217985
+#> Point estimate: 5496.376
+#> Variance: 1217986
 #> 99% confidence intervals:
 #> lowerBound upperBound 
-#>   4002.763  10231.717
+#>   4002.763  10231.716
 ```
 
 the results are significantly different (the warning issued concerns the
@@ -442,7 +441,7 @@ plot(modelInflated2,
      breaks = 15)
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" width="75%" />
+<img src="man/figures/README-plot-inflated-1.png" width="75%" />
 
 and information criteria support the second model:
 
@@ -451,5 +450,5 @@ and information criteria support the second model:
 
 ## Funding
 
-Work on this package is supported by the the National Science Center,
+Work on this package is supported by the the National Science Centre,
 OPUS 20 grant no. 2020/39/B/HS4/00941.

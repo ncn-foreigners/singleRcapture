@@ -39,12 +39,12 @@ is the number of times a particular unit was observed in source data.
 This package aims to implement already existing and introduce new methods
 of estimating population size from single source to simplify the research process.
 
-Currently we've implemented most of the frequentist approaches used in literature such as:
+Currently we have implemented most of the frequentist approaches used in literature such as:
 
 - Zero truncated Poisson, geometric and negative binomial regression.
 - Zero truncated one inflated and one inflated zero truncated Poisson and geometric models. (Negative binomial is currently in development.)
 - Zero one truncated Poisson geometric and negative binomial models.
-- Generalized Chao and Zelterman's models based on logistic regression.
+- Generalized Chao's and Zelterman's models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and non parametric.
 - And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
 
@@ -121,7 +121,7 @@ goodness of fit test between fitted and observed marginal frequencies.
 To do it we call a `summary` function of `marginalFreq` function which
 computes marginal frequencies for the fitted `singleR` class object:
 
-```{r}
+```{r summary-statistics}
 summary(marginalFreq(model), df = 2, dropl5 = "group")
 ```
 
@@ -132,7 +132,7 @@ and by only omitting it in pop size estimation (this is what is called the
 contribution of an observation). If observation is not influential these two 
 actions should have the approximately the same effect:
 
-```{r, fig.show="hold", out.width="75%"}
+```{r plot-example, fig.show="hold", out.width="75%"}
 plot(model, plotType = "dfpopContr")
 ```
 
@@ -143,7 +143,7 @@ Lastly `singleRcapture` offers some posthoc procedures for example a function
 `stratifyPopsize` that estimates sizes of user specified sub populations and
 returns them in a `data.frame`:
 
-```{r}
+```{r stratifyPopsize-example1}
 stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
     strata = list(
     "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
@@ -155,7 +155,7 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 
 `strata` argument may be specified in various ways for example: 
 
-```{r}
+```{r stratifyPopsize-example2}
 stratifyPopsize(model, strata = ~ gender / age)
 ```
 
@@ -163,7 +163,7 @@ The package was designed with convenience in mind, for example it is possible
 to specify that weights provided on call are to be interpreted as number of 
 occurrences of units in each row:
 
-```{r}
+```{r step-by-step}
 df <- netherlandsimmigrant[, c(1:3,5)]
 df$ww <- 0
 ### this is dplyr::count without dependencies
@@ -202,7 +202,7 @@ and the option to estimate standard error of population size estimate by
 bootstrap, models with more than one distribution parameter being dependent 
 on covariates and some non standard link functions for example:
 
-```{r}
+```{r boot-advanced}
 modelInflated2 <- estimatePopsize(
     formula = capture ~ age,
     data = netherlandsimmigrant,
@@ -232,7 +232,7 @@ minimum, here it was inconclusive but we manually checked that fitting process
 found the optimal regression coefficients it's here to provide more information
 to the user):
 
-```{r, fig.show="hold", out.width="75%"}
+```{r plot-inflated, fig.show="hold", out.width="75%"}
 plot(modelInflated2, 
      plotType = "bootHist", 
      labels = TRUE, 
@@ -242,7 +242,7 @@ plot(modelInflated2,
 
 and information criteria support the second model:
 
-```{r,echo=FALSE}
+```{r aic-bic,echo=FALSE}
 cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
     "\nSecond model: AIC = ", AIC(modelInflated2), " BIC = ", BIC(modelInflated2), 
     "\n", sep = "")
@@ -250,4 +250,4 @@ cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
 
 ## Funding
 
-Work on this package is supported by the the National Science Center, OPUS 20 grant no. 2020/39/B/HS4/00941.   
+Work on this package is supported by the the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941.   

@@ -1,6 +1,8 @@
 # singleRcapture 0.2.2
 
 * Fixing documentation typos and errors
+* `plot` now has a default value of `qq`
+* vignette added based on the paper submitted to the JSS
 
 # singleRcapture 0.2.1.2
 
@@ -9,9 +11,9 @@
 * Small fixes for standard errors in predicted means
 * Code coverage raised to nearly 90%
 * The `logLik.singleRStaticCountData` method now has a `type` argument that, 
-  if set to `"function"` makes the function return the minus lok-likelihood 
+  if set to `"function"` makes the function return the minus log-likelihood 
   function (by default) or if `deriv` argument is set to `1` or `2` respectively
-  either a gradient or hessian of lok-likelihood function.
+  either a gradient or hessian of log-likelihood function.
 
 
 # singleRcapture 0.2.1.1
