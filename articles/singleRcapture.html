@@ -120,40 +120,51 @@ hard-to-reach or hidden populations, where standard sampling methods may
 be inappropriate because of prohibitive costs or problems with
 identifying population members.</p>
 <p>While methods for two or more sources are implemented in various
-open-source software packages, for instance <span class="citation">(<a href="#ref-yang2006care4">Yang and Chao 2006</a>)</span> (in ), <span class="citation">(<a href="#ref-baillargeon2007rcapture">Baillargeon and
-Rivest 2007</a>)</span>, <span class="citation">(<a href="#ref-laake2013marked">Laake et al. 2013</a>)</span> or <span class="citation">(<a href="#ref-yee2015vgam">Thomas W. Yee, Stoklosa,
-and Huggins 2015</a>)</span> (all in ), single-source capture-recapture
-(SSCR) methods are either not available at all or are only partially
-implemented in existing packages or other software. Therefore, the paper
-attempts to bridge this gap by introducing the package, which implement
+open-source software packages, for instance <strong>CARE-4</strong>
+<span class="citation">(<a href="#ref-yang2006care4">Yang and Chao
+2006</a>)</span> (in <strong>GAUSS</strong>), <strong>Rcapture</strong>
+<span class="citation">(<a href="#ref-baillargeon2007rcapture">Baillargeon and Rivest
+2007</a>)</span>, <strong>marked</strong> <span class="citation">(<a href="#ref-laake2013marked">Laake et al. 2013</a>)</span> or
+<strong>VGAM</strong> <span class="citation">(<a href="#ref-yee2015vgam">Thomas W. Yee, Stoklosa, and Huggins
+2015</a>)</span> (all in <strong>R</strong>), single-source
+capture-recapture (SSCR) methods are either not available at all or are
+only partially implemented in existing <strong>R</strong> packages or
+other software. Therefore, the paper attempts to bridge this gap by
+introducing the <strong>singleRcapture</strong> package, which implement
 <em>state-of-the-art</em> SSCR methods and offer a user friendly API
-resembling existing functions (e.g., <code>glm</code>). In the next
-subsection we describe existing packages and other software that could
-be used for estimating population size using SSCR methods.</p>
+resembling existing <strong>R</strong> functions (e.g.,
+<code>glm</code>). In the next subsection we describe existing
+<strong>R</strong> packages and other software that could be used for
+estimating population size using SSCR methods.</p>
 <div class="section level3">
 <h3 id="sec-software">Software for capture-recapture with a single source<a class="anchor" aria-label="anchor" href="#sec-software"></a>
 </h3>
 <p>The majority of SSCR methods assume zero-truncated distributions or
-their extensions (e.g., inclusion of one-inflation). The <span class="citation">(<a href="#ref-Distributionsjl">Besançon et al.
-2021</a>)</span> (in ), <span class="citation">(<a href="#ref-seabold2010statsmodels">Seabold and Perktold 2010</a>)</span>
-(in ), <span class="citation">(<a href="#ref-countreg">Zeileis, Kleiber,
-and Jackman 2008</a>)</span>, <span class="citation">(<a href="#ref-VGAM-main">Thomas W. Yee 2015</a>)</span> or <span class="citation">(<a href="#ref-distributions3">Hayes et al.
-2024</a>)</span> (in ) implement some of those truncated distributions
-(e.g.  or ) and the most general distributions, such as Generally
-Altered, Inflated, Truncated and Deflated, can be found in the package
-(e.g.  for the Poisson distribution, see <span class="citation">Thomas
-W. Yee and Ma (<a href="#ref-gaitdcount">2024</a>)</span> for a detailed
-description). However, the estimation of parameters of a given truncated
-(and possibly inflated) distribution is just the first step (as in the
-case of log-linear models in capture-recapture with two sources) and, to
-the best of our knowledge, there is no open-source software that can be
-used to estimate population size using on SSCR methods and includes
-variance estimators or diagnostics.</p>
-<p>Therefore, the purpose of the , an package, is to bridge this gap by
-providing scientists and other practitioners with a tool for estimating
-population size with SSCR methods. We have implemented state-of-the-art
-methods, as recently described by <span class="citation">Böhning, Bunge,
-and Heijden (<a href="#ref-bohning2018capture">2018</a>)</span> or <span class="citation">Böhning and Friedl (<a href="#ref-bohning2024one">2024</a>)</span> and provided their
+their extensions (e.g., inclusion of one-inflation). The
+<strong>Distributions.jl</strong> <span class="citation">(<a href="#ref-Distributionsjl">Besançon et al. 2021</a>)</span> (in
+<strong>Julia</strong>), <strong>StatsModels</strong> <span class="citation">(<a href="#ref-seabold2010statsmodels">Seabold and
+Perktold 2010</a>)</span> (in <strong>Python</strong>),
+<strong>countreg</strong> <span class="citation">(<a href="#ref-countreg">Zeileis, Kleiber, and Jackman 2008</a>)</span>,
+<strong>VGAM</strong> <span class="citation">(<a href="#ref-VGAM-main">Thomas W. Yee 2015</a>)</span> or
+<strong>distributions3</strong> <span class="citation">(<a href="#ref-distributions3">Hayes et al. 2024</a>)</span> (in
+<strong>R</strong>) implement some of those truncated distributions
+(e.g. <code>distributions3::ZTPoisson</code> or
+<code>countreg::zerotrunc</code>) and the most general distributions,
+such as Generally Altered, Inflated, Truncated and Deflated, can be
+found in the <strong>VGAM</strong> package (e.g.
+<code><a href="https://rdrr.io/pkg/VGAM/man/gaitdpoisson.html" class="external-link">VGAM::gaitdpoisson</a></code> for the Poisson distribution, see <span class="citation">Thomas W. Yee and Ma (<a href="#ref-gaitdcount">2024</a>)</span> for a detailed description).
+However, the estimation of parameters of a given truncated (and possibly
+inflated) distribution is just the first step (as in the case of
+log-linear models in capture-recapture with two sources) and, to the
+best of our knowledge, there is no open-source software that can be used
+to estimate population size using on SSCR methods and includes variance
+estimators or diagnostics.</p>
+<p>Therefore, the purpose of the <strong>singleRcapture</strong>, an
+<strong>R</strong> package, is to bridge this gap by providing
+scientists and other practitioners with a tool for estimating population
+size with SSCR methods. We have implemented state-of-the-art methods, as
+recently described by <span class="citation">Böhning, Bunge, and Heijden
+(<a href="#ref-bohning2018capture">2018</a>)</span> or <span class="citation">Böhning and Friedl (<a href="#ref-bohning2024one">2024</a>)</span> and provided their
 extensions (e.g., inclusion of covariates, different treatment of
 one-inflation), which will be covered in detail in Section . The package
 implements variance estimation based on various methods, can be used to
@@ -170,12 +181,13 @@ information about fitting methods and available methods of variance
 estimation. Section introduces the main functions of the package.
 Section presents a case study and contains an assessment of its results,
 diagnostics and estimates of specific sub-populations. Section describes
-classes and implemented in the package. The paper ends with conclusions
-and an appendix showing how to use the function which is aimed to mimic
-the or similar functions. In replication materials we show how to
-implement a custom model as this option could be of interest to users
-wishing to apply any new bootstrap methods not implemented in the
-package.</p>
+classes and <code>S3methods</code> implemented in the package. The paper
+ends with conclusions and an appendix showing how to use the
+<code>estimatePopsizeFit</code> function which is aimed to mimic the
+<code>glm.fit</code> or similar functions. In replication materials we
+show how to implement a custom model as this option could be of interest
+to users wishing to apply any new bootstrap methods not implemented in
+the package.</p>
 </div>
 </div>
 <div class="section level2">
@@ -204,12 +216,12 @@ follows a version of the zero-truncated count data distribution (and its
 extensions). When we know the parameters of the distribution we can
 estimate the population size using a Horvitz-Thompson type estimator
 given by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mn>1</mn><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mn>1</mn><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \hat{N}=
 \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}[Y_{k}&gt;0|\boldsymbol{X}_{k}]}=
 \sum_{k=1}^{N_{obs}}\frac{1}{\mathbb{P}[Y_{k}&gt;0|\boldsymbol{X}_{k}]},
 \label{eq-ht-estimator}
-\end{equation}</annotation></semantics></math></p>
+</annotation></semantics></math></p>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>:=</mo><msub><mi>ℐ</mi><mi>ℕ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I_{k}:=\mathcal{I}_{\mathbb{N}}(Y_{k})</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">N_{obs}</annotation></semantics></math>
@@ -307,9 +319,10 @@ the data is
 <div class="section level3">
 <h3 id="available-models">Available models<a class="anchor" aria-label="anchor" href="#available-models"></a>
 </h3>
-<p>The full list of models implemented in along with corresponding
-expressions for probability density functions and point estimates can be
-found in the collective help file for all family functions:</p>
+<p>The full list of models implemented in
+<strong>singleRcapture</strong> along with corresponding expressions for
+probability density functions and point estimates can be found in the
+collective help file for all family functions:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="va">ztpoisson</span></span></code></pre></div>
 <p>For the sake of simplicity, we only list the family functions
@@ -319,6 +332,43 @@ consult the relevant literature.</p>
 <p>In addition, we propose two new approaches to model singletons in a
 similar way as in hurdle models. In particular, we have proposed the
 following:</p>
+<ul>
+<li>The zero-truncated hurdle model (<code>ztHurdle</code>*) for
+Poisson, geometric and NB2 is defined as:</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\mathbb{P}[Y^{\ast}=y]=\begin{cases}
+\frac{\mathbb{P}[Y=0]}{1-\mathbb{P}[Y=1]} &amp; y=0, \\
+\pi(1-\mathbb{P}[Y=1]) &amp; y=1, \\
+(1-\pi) \frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=1]} &amp; y&gt;1,
+\end{cases}
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>π</mi><msub><mn>𝟏</mn><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mn>𝟏</mn><mrow><mi>ℕ</mi><mo>\</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathbb{P}[Y^{\ast}=y|Y^{\ast}&gt;0]=\pi\mathbf{1}_{\{1\}}(y)+
+(1-\pi)\mathbf{1}_{\mathbb{N}\setminus\{1\}}(y)\frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]}.
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
+denotes the conditional probability of observing singletons.</p>
+<ul>
+<li>The hurdle zero-truncated model (<code>Hurdlezt</code>*) for
+Poisson, geometric and NB2 is defined as:</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>≠</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\mathbb{P}[Y^{\ast}=y]=\begin{cases}
+\pi &amp; y=1, \\
+(1-\pi) \frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=1]} &amp; y\neq1,
+\end{cases}
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\mathbb{P}[Y^{\ast}=y|Y^{\ast}&gt;0]=\begin{cases}
+\pi\frac{1-\mathbb{P}[Y=1]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]} &amp; y=1,\\
+(1-\pi)\frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]} &amp; y&gt;1,
+\end{cases}
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
+denotes the unconditional probability of observing singletons.</p>
 <p>The approaches presented above differ in their assumptions,
 computational complexity, or in the way they treat heterogeneity of
 captures and singletons. For instance, the dispersion parameter
@@ -331,9 +381,9 @@ information.</p>
 <p>While not discussed in the literature, the interpretation of
 heterogeneous
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-across the population (specified in ) would be that the unobserved
-heterogeneity affects the accuracy of the prediction for the dependent
-variable
+across the population (specified in <code>controlModel</code>) would be
+that the unobserved heterogeneity affects the accuracy of the prediction
+for the dependent variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
 more severely than others. The geometric model (NB with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha=1</annotation></semantics></math>)
@@ -380,9 +430,9 @@ to be somewhat overlooked in SSCR studies, we should point out that the
 interpretation of the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ω</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math>
 inflation parameter (in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
+<code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
 is more convenient than the interpretation of the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
 probability parameter (in hurdle models). Additionally, the
@@ -404,13 +454,15 @@ studies are required to confirm this observation.</p>
 <div class="section level3">
 <h3 id="fitting-method">Fitting method<a class="anchor" aria-label="anchor" href="#fitting-method"></a>
 </h3>
-<p>As previously noted, the package can be used to model the (linear)
-dependence of all parameters on covariates. A modified IRLS algorithm is
-employed for this purpose as presented in Algorithm ; full details are
-available in . In order to apply the algorithm, a modified model matrix
+<p>As previously noted, the <strong>singleRcapture</strong> package can
+be used to model the (linear) dependence of all parameters on
+covariates. A modified IRLS algorithm is employed for this purpose as
+presented in Algorithm ; full details are available in . In order to
+apply the algorithm, a modified model matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}</annotation></semantics></math>
-is created when the function is called. In the context of the models
-implemented in , this matrix can be written as:</p>
+is created when the <code>estimatePopsize</code> function is called. In
+the context of the models implemented in
+<strong>singleRcapture</strong>, this matrix can be written as:</p>
 <p><span class="math display">$$\begin{equation}\label{X_vlm-definition}
   \boldsymbol{X}_{\text{vlm}}=
   \begin{pmatrix}
@@ -453,7 +505,7 @@ which is often just
 </h3>
 <p>We have implemented three types of bootstrap algorithms: parametric
 (adapted from theory in , for multiple source setting with covariates),
-semi-parametric (see e.g. ) and nonparametric. The nonparametric version
+semi-parametric (see e.g. ) and nonparametric. The nonparametric version
 is the usual bootstrap algorithm; which will typically underestimate the
 variance of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>.
@@ -475,63 +527,77 @@ according to the selected model, as described in Algorithm .</p>
 standard error estimates, it is imperative that the estimated model for
 the entire superpopulation probability space is consistent, which may be
 much less realistic than in the case of the semi-parametric bootstrap.
-The parametric bootstrap algorithm is the default option in .</p>
+The parametric bootstrap algorithm is the default option in
+<strong>singleRcapture</strong>.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="sec-main">The main function<a class="anchor" aria-label="anchor" href="#sec-main"></a>
 </h2>
-<p>The package is built around the function. The main design objective
-was to make using as similar as possible to the standard function or
-packages for fitting zero-truncated regression models, such as (e.g. 
-function). The function is used to first fit an appropriate (vector)
-generalized linear model and to estimate the population size along with
-its variance. It is assumed that the response vector (i.e. the dependent
-variable) corresponds to the number of times a given unit was observed
-in the source. The most important arguments are given in Table ; the
-obligatory ones are .</p>
-<p>An important step in using is specifying the parameter, which
-indicates the type of model that will be used for estimating the
-<em>unobserved</em> part of the population. For instance, to fit Chao’s
-or Zelterman’s model one should select or and, assuming that
+<p>The <strong>singleRcapture</strong> package is built around the
+<code>estimatePopsize</code> function. The main design objective was to
+make using <code>estimatePopsize</code> as similar as possible to the
+standard <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm</a></code> function or packages for fitting
+zero-truncated regression models, such as <strong>countreg</strong>
+(e.g. <code>countreg::zerotrunc</code> function). The
+<code>estimatePopsize</code> function is used to first fit an
+appropriate (vector) generalized linear model and to estimate the
+population size along with its variance. It is assumed that the response
+vector (i.e. the dependent variable) corresponds to the number of times
+a given unit was observed in the source. The most important arguments
+are given in Table ; the obligatory ones are
+<code>formula, data, model</code>.</p>
+<p>An important step in using <code>estimatePopsize</code> is specifying
+the <code>model</code> parameter, which indicates the type of model that
+will be used for estimating the <em>unobserved</em> part of the
+population. For instance, to fit Chao’s or Zelterman’s model one should
+select <code>chao</code> or <code>zelterman</code> and, assuming that
 one-inflation is present, one can select one of the zero-truncated
 one-inflated
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+(<code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
 or one-inflated zero-truncated
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
-models, such as for Poisson or for NB2.</p>
+(<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+models, such as <code>oiztpoisson</code> for Poisson or
+<code>ztoinegbin</code> for NB2.</p>
 <p>If it is assumed that heterogeneity is observed for NB2 models, one
-can specify the formula in the argument with the function and the
+can specify the formula in the <code>controlModel</code> argument with
+the <code>controlModel</code> function and the <code>alphaFormula</code>
 argument. This enables the user to provide a formula for the dispersion
 parameter in the NB2 models. If heterogeneity is assumed for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
+<code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>,
-one can specify the argument, which corresponds to the
+<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>,
+one can specify the <code>omegaFormula</code> argument, which
+corresponds to the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ω</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math>
 parameter in these models. Finally, if covariates are assumed to be
 available for the hurdle models
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
+(<code>ztHurdle</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>),
-then can be specified, as it provides a formula for the probability
-parameter in these models.</p>
-<p>The function makes it possible to specify the variance estimation
-method via (e.g. analytic or variance bootstrap) and control the
-estimation process by specifying . In the control function the user can
-specify the argument, which has three possible values: and . Additional
-arguments accepted by the function, which are relevant to bootstrap,
+<code>Hurdlezt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>),
+then <code>piFormula</code> can be specified, as it provides a formula
+for the probability parameter in these models.</p>
+<p>The <code>estimatePopsize</code> function makes it possible to
+specify the variance estimation method via <code>popVar</code>
+(e.g. analytic or variance bootstrap) and control the estimation process
+by specifying <code>controlPopVar</code>. In the control function
+<code>controlPopVar</code> the user can specify the
+<code>bootType</code> argument, which has three possible values:
+<code>"parametric", "semiparametric"</code> and
+<code>"nonparametric"</code>. Additional arguments accepted by the
+<code>contorlPopVar</code> function, which are relevant to bootstrap,
 include:</p>
 <p>In addition, the user can specify the type of confidence interval by
-means of and the type of covariance matrix by using for the analytical
-variance estimator (observed or the Fisher information matrix).</p>
+means of <code>confType</code> and the type of covariance matrix by
+using <code>covType</code> for the analytical variance estimator
+(observed or the Fisher information matrix).</p>
 <p>In the next sections we present a case study involving the use of a
 simple zero-truncated Poisson regression and a more advanced model:
-one-inflated zero-truncated geometric regression with the link function.
-First, we present the example dataset, then we describe how to estimate
-the population size and assess the quality and diagnostics measures.
-Finally, we show how to estimate the population size in user-specified
-sub-populations.</p>
+one-inflated zero-truncated geometric regression with the
+<code>cloglog</code> link function. First, we present the example
+dataset, then we describe how to estimate the population size and assess
+the quality and diagnostics measures. Finally, we show how to estimate
+the population size in user-specified sub-populations.</p>
 </div>
 <div class="section level2">
 <h2 id="sec-study">Data analysis example<a class="anchor" aria-label="anchor" href="#sec-study"></a>
@@ -549,7 +615,7 @@ sub-populations.</p>
 in four Dutch cities (Amsterdam, Rotterdam, The Hague and Utrecht), who
 were staying in the country without a legal permit in 1995 and appeared
 in police records for that year. This dataset is included in the package
-called :</p>
+called <code>netherlandsimmigrant</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">netherlandsimmigrant</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">netherlandsimmigrant</span><span class="op">)</span></span></code></pre></div>
@@ -561,9 +627,10 @@ called :</p>
 <span><span class="co">## 5       1   male &lt;40yrs Other reason         Asia</span></span>
 <span><span class="co">## 6       2   male &lt;40yrs Other reason North Africa</span></span></code></pre>
 <p>The number of times each individual appeared in the records is
-included in the variable. The available covariates include ; the last
-two represent the reason for being captured and the region of the world
-a given person comes from:</p>
+included in the <code>capture</code> variable. The available covariates
+include <code>gender, age, reason, nation</code>; the last two represent
+the reason for being captured and the region of the world a given person
+comes from:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">netherlandsimmigrant</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##     capture         gender         age                reason    </span></span>
@@ -588,9 +655,10 @@ once (i.e. 1645).</p>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">##    1    2    3    4    5    6 </span></span>
 <span><span class="co">## 1645  183   37   13    1    1</span></span></code></pre>
-<p>The basic syntax of is very similar to that of , the same can be said
-about the output of the summary method except for additional results of
-population size estimates (denoted as ).</p>
+<p>The basic syntax of <code>estimatePopsize</code> is very similar to
+that of <code>glm</code>, the same can be said about the output of the
+summary method except for additional results of population size
+estimates (denoted as ).</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">basicModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">nation</span>,</span>
@@ -656,7 +724,7 @@ unit in the dataset may lead to undesirable consequences for the person
 concerned (in this case, a possible deportation, detention or something
 similar). For these reasons, the user may consider one-inflated models,
 such as one-inflated zero-truncated geometric model (specified by
-family) and those presented below.</p>
+<code>oiztgeom</code> family) and those presented below.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
 <span><span class="va">modelInflated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
@@ -723,7 +791,8 @@ family) and those presented below.</p>
 <p>According to this approach, the population size is about 7,000, which
 is about 5,000 less than in the case of the naive Poisson approach. A
 comparison of AIC and BIC suggests that the one-inflation model fits the
-data better with BIC for 1727 and 1757 for .</p>
+data better with BIC for <code>oiztgeom</code> 1727 and 1757 for
+<code>ztpoisson</code>.</p>
 <p>We can access population size estimates using the following code,
 which returns a list with numerical results.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -745,7 +814,8 @@ which returns a list with numerical results.</p>
 zero-truncated geometric model should be based on the assessment of the
 model and the assumptions regarding the data generation process. One
 possible method of selection is based on the likelihood ratio test,
-which can be computed quickly and conveniently with the (<span class="citation">Zeileis and Hothorn (<a href="#ref-lmtest">2002</a>)</span>) interface:</p>
+which can be computed quickly and conveniently with the
+<strong>lmtest</strong> (<span class="citation">Zeileis and Hothorn (<a href="#ref-lmtest">2002</a>)</span>) interface:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">lmtest</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
@@ -786,8 +856,8 @@ collection process, these quantities should be quite close and both
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>χ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\chi^{2}</annotation></semantics></math>
 tests can be used to test the statistical significance of the
-discrepancy with the following syntax for the Poisson model (rather poor
-fit):</p>
+discrepancy with the following <strong>singleRcapture</strong> syntax
+for the Poisson model (rather poor fit):</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">margFreq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">basicModel</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">margFreq</span>, df <span class="op">=</span> <span class="fl">1</span>, dropl5 <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></code></pre></div>
@@ -813,8 +883,8 @@ fit):</p>
 <span><span class="co">## -------------------------------------------------------------- </span></span>
 <span><span class="co">## Cells with fitted frequencies of &lt; 5 have been grouped </span></span>
 <span><span class="co">## Names of cells used in calculating test(s) statistic: 1 2 3 4</span></span></code></pre>
-<p>where the argument is used to indicate how to handle cells with less
-than
+<p>where the <code>dropl5</code> argument is used to indicate how to
+handle cells with less than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>5</mn><annotation encoding="application/x-tex">5</annotation></semantics></math>
 fitted observations. Note, however, that currently there is no
 continuity correction.</p>
@@ -822,10 +892,10 @@ continuity correction.</p>
 <div class="section level3">
 <h3 id="diagnostics">Diagnostics<a class="anchor" aria-label="anchor" href="#diagnostics"></a>
 </h3>
-<p>The class has a method implementing several types of quick
-demonstrative plots, such as the rootogram , for comparing fitted and
-marginal frequencies, which can be generated with the following
-syntax:</p>
+<p>The <code>singleRStaticCountData</code> class has a <code>plot</code>
+method implementing several types of quick demonstrative plots, such as
+the rootogram , for comparing fitted and marginal frequencies, which can
+be generated with the following syntax:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>   <span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"ZT Poisson model"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"OI ZT Geometric model"</span><span class="op">)</span></span></code></pre></div>
@@ -834,11 +904,12 @@ syntax:</p>
 Rootograms for ztpoisson (left) and oiztgeom (right) models
 </p>
 </div>
-<p>The above plots suggest that the model fits the data better. Another
-important issue in population size estimation is to conduct model
-diagnostics in order to verify whether influential observations are
-present in the data. For this purpose the leave-one-out (LOO) diagnostic
-implemented in the from the package has been adapted as shown below
+<p>The above plots suggest that the <code>oiztgeom</code> model fits the
+data better. Another important issue in population size estimation is to
+conduct model diagnostics in order to verify whether influential
+observations are present in the data. For this purpose the leave-one-out
+(LOO) diagnostic implemented in the <code>dfbeta</code> from the
+<strong>stats</strong> package has been adapted as shown below
 (multiplied by a factor of a hundred for better readability):</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dfb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">dfbeta</a></span><span class="op">(</span><span class="va">basicModel</span><span class="op">)</span></span>
@@ -865,9 +936,10 @@ implemented in the from the package has been adapted as shown below
 <span><span class="co">## (Intercept):omega     -6.8668 -0.0193  0.0476  0.0476  9.3389</span></span>
 <span><span class="co">## gendermale:omega      -2.2733 -0.2227  0.1313  0.2482 11.1234</span></span>
 <span><span class="co">## age&gt;40yrs:omega      -30.2130 -0.2247 -0.1312 -0.0663  2.0393</span></span></code></pre>
-<p>The result of the can be further used in the function, which can be
-used to quantify LOO on the population size. Note the warning when the
-bootstap variance estimation is applied.</p>
+<p>The result of the <code>dfbeta</code> can be further used in the
+<code>dfpopsize</code> function, which can be used to quantify LOO on
+the population size. Note the warning when the bootstap variance
+estimation is applied.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dfb_pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/regDiagSingleR.html">dfpopsize</a></span><span class="op">(</span><span class="va">basicModel</span>, dfbeta <span class="op">=</span> <span class="va">dfb</span><span class="op">)</span></span>
 <span><span class="va">dfi_pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/regDiagSingleR.html">dfpopsize</a></span><span class="op">(</span><span class="va">modelInflated</span>, dfbeta <span class="op">=</span> <span class="va">dfi</span><span class="op">)</span></span>
@@ -894,19 +966,22 @@ Results for ztpoisson (left) and oiztgeom (right) model
 </div>
 <p>These plots show how the population size changes if a given
 observation is removed. For instance, if we remove observation 542, then
-the population size will increase by about 4236 for the model. In the
-case of , the largest change is equal to 457 for observation 900.</p>
+the population size will increase by about 4236 for the
+<code>ztpoisson</code> model. In the case of <code>oiztgeom</code>, the
+largest change is equal to 457 for observation 900.</p>
 <p>The full list of plot types along with the list of optional arguments
-that can be passed from the call to the method down to base and
-functions can be found in the help file of the method.</p>
+that can be passed from the call to the <code>plot</code> method down to
+base <strong>R</strong> and <strong>graphics</strong> functions can be
+found in the help file of the <code>plot</code> method.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="va">plot.singleRStaticCountData</span></span></code></pre></div>
 <p>Researchers may be interested not only in the total population size
 but also in the size of specific sub-populations (e.g. males, females,
-particular age groups). For this reason we have created the function,
-which estimates the size by strata defined by the coefficients in the
-model (the default option). The following output presents results based
-on the and models.</p>
+particular age groups). For this reason we have created the
+<code>stratifyPopsize</code> function, which estimates the size by
+strata defined by the coefficients in the model (the default option).
+The following output presents results based on the
+<code>ztpoisson</code> and <code>oiztgeom</code> models.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">popSizestrata</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">basicModel</span><span class="op">)</span></span>
 <span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"Observed"</span>, <span class="st">"Estimated"</span>, <span class="st">"logNormalLowerBound"</span>, </span>
@@ -942,10 +1017,12 @@ on the and models.</p>
 <span><span class="co">## 8                    gender==male 1482 5590.1764  3838.4550  8644.0776</span></span>
 <span><span class="co">## 9                     age==&lt;40yrs 1769 6437.8154  4462.3472  9862.2147</span></span>
 <span><span class="co">## 10                    age==&gt;40yrs  111  262.1379   170.9490   492.0347</span></span></code></pre>
-<p>The function prepared to handle objects of the class, accepts three
-optional parameters , which are used for specifying sub-populations,
-significance levels and the covariance matrix to be used for computing
-standard errors. An example of the full call is presented below.</p>
+<p>The <code>stratifyPopsize</code> function prepared to handle objects
+of the <code>singleRStaticCountData</code> class, accepts three optional
+parameters <code>strata, alpha, cov</code>, which are used for
+specifying sub-populations, significance levels and the covariance
+matrix to be used for computing standard errors. An example of the full
+call is presented below.</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://sandwich.R-Forge.R-project.org/" class="external-link">sandwich</a></span><span class="op">)</span></span>
 <span><span class="va">popSizestrataCustom</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span></span>
@@ -963,14 +1040,16 @@ standard errors. An example of the full call is presented below.</p>
 <span><span class="co">## 2   gender==male 1482  8879.261  6261.5109  12930.760  0.10</span></span>
 <span><span class="co">## 3    age==&lt;40yrs 1769 10506.899  7297.2057  15580.151  0.05</span></span>
 <span><span class="co">## 4    age==&gt;40yrs  111  2183.454   787.0673   6464.016  0.05</span></span></code></pre>
-<p>We have provided integration with the package to correct the
-variance-covariance matrix in the
+<p>We have provided integration with the <strong>sandwich</strong>
+package to correct the variance-covariance matrix in the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
-method. In the code we have used the method for class from the package,
-different significance levels for confidence intervals in each stratum
-and a formula to specify that we want estimates for both males and
-females to be grouped by and . The parameter can be specified either
-as:</p>
+method. In the code we have used the <code>vcovHC</code> method for
+<code>singleRStaticCountData</code> class from the
+<strong>sandwich</strong> package, different significance levels for
+confidence intervals in each stratum and a formula to specify that we
+want estimates for both males and females to be grouped by
+<code>nation</code> and <code>age</code>. The <code>strata</code>
+parameter can be specified either as:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"Stratum 1"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span>   <span class="op">&amp;</span> </span>
@@ -978,8 +1057,9 @@ as:</p>
 <span>  <span class="st">"Stratum 2"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"female"</span> <span class="op">&amp;</span> </span>
 <span>    <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">nation</span> <span class="op">==</span> <span class="st">"North Africa"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>One can also specify in the function, which results in a plot with
-point and CI estimates of the population size.</p>
+<p>One can also specify <code>plotType = "strata"</code> in the
+<code>plot</code> function, which results in a plot with point and CI
+estimates of the population size.</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">8.5</span>, <span class="fl">4.1</span>, <span class="fl">2.5</span><span class="op">)</span>, cex.main <span class="op">=</span> <span class="fl">.7</span>, cex.lab <span class="op">=</span> <span class="fl">.6</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"strata"</span><span class="op">)</span></span>
@@ -990,14 +1070,18 @@ Population size by covariates for ztpoisson (left) and oiztgeom (right)
 model
 </p>
 </div>
-<p>Only the type of confidence interval is used for plotting since the
-studentized confidence intervals often result in negative lower
-bounds.</p>
-<p>We have created a number of classes. The main ones are: , , and
-supplementary are: , and , which make it possible to extract relevant
-information regarding the population size.</p>
-<p>For instance, the function can be used to extract information about
-the estimated size of the population as given below:</p>
+<p>Only the <code>logNormal</code> type of confidence interval is used
+for plotting since the studentized confidence intervals often result in
+negative lower bounds.</p>
+<p>We have created a number of classes. The main ones are:
+<code>singleRStaticCountData</code>, <code>singleRfamily</code>, and
+supplementary are: <code>popSizeEstResults</code>,
+<code>summarysingleRmargin</code> and
+<code>summarysingleRStaticCountData</code>, which make it possible to
+extract relevant information regarding the population size.</p>
+<p>For instance, the <code>popSizeEst</code> function can be used to
+extract information about the estimated size of the population as given
+below:</p>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">popEst</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/popSizeEst.html">popSizeEst</a></span><span class="op">(</span><span class="va">basicModel</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Point estimate: 12690.35</span></span>
@@ -1006,10 +1090,13 @@ the estimated size of the population as given below:</p>
 <span><span class="co">##           lowerBound upperBound</span></span>
 <span><span class="co">## normal      7186.444   18194.26</span></span>
 <span><span class="co">## logNormal   8431.275   19718.32</span></span></code></pre>
-<p>and the resulting object of the class contains the following
-fields:</p>
-<p>The only explicitly defined method for , and classes is the method,
-but the former one also accepts primitives like :</p>
+<p>and the resulting object <code>popEst</code> of the
+<code>popSizeEstResults</code> class contains the following fields:</p>
+<p>The only explicitly defined method for
+<code>popSizeEstResults</code>, <code>summarysingleRmargin</code> and
+<code>summarysingleRStaticCountData</code> classes is the
+<code>print</code> method, but the former one also accepts
+<strong>R</strong> primitives like <code>coef</code>:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">basicModel</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                        Estimate Std. Error    z value      P(&gt;|z|)</span></span>
@@ -1021,8 +1108,10 @@ but the former one also accepts primitives like :</p>
 <span><span class="co">## nationRest of Africa -0.9106361  0.3008092 -3.0272880 2.467587e-03</span></span>
 <span><span class="co">## nationSurinam        -2.3363962  1.0135645 -2.3051282 2.115939e-02</span></span>
 <span><span class="co">## nationTurkey         -1.6753917  0.6027744 -2.7794674 5.444812e-03</span></span></code></pre>
-<p>analogously to from . The inherits the class from and has explicitly
-defined and methods. Example usage is presented below</p>
+<p>analogously to <code>glm</code> from <strong>stats</strong>. The
+<code>singleRfamily</code> inherits the <code>family</code> class from
+<strong>stats</strong> and has explicitly defined <code>print</code> and
+<code>simulate</code> methods. Example usage is presented below</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234567890</span><span class="op">)</span></span>
 <span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">10000</span></span>
@@ -1037,30 +1126,34 @@ defined and methods. Example usage is presented below</p>
 <span><span class="co">##  Mean   :0.2036   Mean   :-0.8982   Mean   :0.4196  </span></span>
 <span><span class="co">##  3rd Qu.:0.0000   3rd Qu.:-1.0000   3rd Qu.:1.0000  </span></span>
 <span><span class="co">##  Max.   :1.0000   Max.   :-0.5000   Max.   :5.0000</span></span></code></pre>
-<p>The full list of explicitly defined methods for methods is presented
-in Table .</p>
+<p>The full list of explicitly defined methods for
+<code>singleRStaticCountData</code> methods is presented in Table .</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="concluding-remarks">Concluding remarks<a class="anchor" aria-label="anchor" href="#concluding-remarks"></a>
 </h2>
-<p>In this paper we have introduced the package for single source
-capture-recapture models. The package implement state-of-the-art methods
-for estimating population size based on a single data set with multiple
-counts. The package implements different methods to account for
-heterogeneity in capture probabilities, modelled using covariates, as
-well as behavioural change, modelled using one-inflation. We have built
-the package to facilitate the implementation of new models using
-objects; their application is exemplified in the Appendix . An example
-of implementing a custom family described in Appendix is presented in
-replication materials.</p>
-<p>Furthermore, since many users are familiar with or packages, we have
-implemented a lightweight extension called , available through Github
-(), which can be used to integrate with these packages.</p>
+<p>In this paper we have introduced the <strong>singleRcapture</strong>
+package for single source capture-recapture models. The package
+implement state-of-the-art methods for estimating population size based
+on a single data set with multiple counts. The package implements
+different methods to account for heterogeneity in capture probabilities,
+modelled using covariates, as well as behavioural change, modelled using
+one-inflation. We have built the package to facilitate the
+implementation of new models using <code>family</code> objects; their
+application is exemplified in the Appendix . An example of implementing
+a custom family described in Appendix is presented in replication
+materials.</p>
+<p>Furthermore, since many <strong>R</strong> users are familiar with
+<strong>countreg</strong> or <strong>VGAM</strong> packages, we have
+implemented a lightweight extension called
+<strong>singleRcaptureExtra</strong>, available through Github (), which
+can be used to integrate <strong>singleRcapture</strong> with these
+packages.</p>
 <p>In future work we plan to implement Bayesian estimation using
-(e.g. via the package; ) and for one-inflation models we can use the
-recent approach proposed by and implement our own families using the
-package.</p>
+<strong>Stan</strong> (e.g. via the <strong>brms</strong> package; ) and
+for one-inflation models we can use the recent approach proposed by and
+implement our own families using the <strong>brms</strong> package.</p>
 </div>
 <div class="section level2">
 <h2 id="Acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#Acknowledgements"></a>
@@ -1078,11 +1171,12 @@ the paper.</p>
 <h2 id="sec-details">Detailed information<a class="anchor" aria-label="anchor" href="#sec-details"></a>
 </h2>
 <div class="section level3" short-title="The estimatePopsizeFit function">
-<h3 id="sec-estimatePopsizeFit">The function<a class="anchor" aria-label="anchor" href="#sec-estimatePopsizeFit"></a>
+<h3 id="sec-estimatePopsizeFit">The <code>estimatePopsizeFit</code> function<a class="anchor" aria-label="anchor" href="#sec-estimatePopsizeFit"></a>
 </h3>
 <p>In this section we provide a step-by-step description of how to
-prepare data in order to use the function, which may be useful to some
-users, e.g. those wishing to make modifications to the
+prepare data in order to use the <code>estimatePopsizeFit</code>
+function, which may be useful to some users, e.g. those wishing to make
+modifications to the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>
 estimate or to the bootstrap. In order to show how to apply the function
 we will fit a zero truncated geometric model on the data from <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> with covariate
@@ -1094,7 +1188,8 @@ dependency:
   \text{logit}(\omega) &amp;=
   \beta_{2, 1} + \beta_{2, 2} \text{log\_distance} + \beta_{2, 3} \text{C\_TYPE}.
 \end{align*}</annotation></semantics></math></p>
-<p>This would be equivalent to the following call:</p>
+<p>This would be equivalent to the following <code>esimatePopsize</code>
+call:</p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>  <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>,</span>
@@ -1114,10 +1209,10 @@ dependency:
 <ol start="2" style="list-style-type: decimal">
 <li>Fill the first
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
-rows with according to the specified formula and specify the attribute
-that informs the function which elements of the design matrix correspond
-to which linear predictor (covariates for counts and covariates for
-one-inflation)</li>
+rows with <code>model.matrix</code> according to the specified formula
+and specify the attribute <code>attr(X, "hwm")</code> that informs the
+function which elements of the design matrix correspond to which linear
+predictor (covariates for counts and covariates for one-inflation)</li>
 </ol>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span></span>
@@ -1132,7 +1227,7 @@ one-inflation)</li>
 <ol start="3" style="list-style-type: decimal">
 <li>Obtain starting
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
-parameters using the function.</li>
+parameters using the <code>glm.fit</code> function.</li>
 </ol>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm.fit</a></span><span class="op">(</span></span>
@@ -1143,8 +1238,9 @@ parameters using the function.</li>
 <span><span class="va">start</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] -0.82583943  0.33254499 -0.03277732  0.32746933</span></span></code></pre>
 <ol start="4" style="list-style-type: decimal">
-<li>Use the function to fit the model assuming a zero-truncated
-one-inflated geometric distribution as specified in the argument.</li>
+<li>Use the <code>estimatePopsizeFit</code> function to fit the model
+assuming a zero-truncated one-inflated geometric distribution as
+specified in the <code>family</code> argument.</li>
 </ol>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePopsizeFit.html">estimatePopsizeFit</a></span><span class="op">(</span></span>
@@ -1161,7 +1257,7 @@ one-inflated geometric distribution as specified in the argument.</li>
 <span><span class="op">)</span></span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Compare our results with those obtained by applying the
-function.</li>
+<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code> function.</li>
 </ol>
 <div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">makeMinusLogLike</span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></code></pre></div>
@@ -1189,33 +1285,38 @@ function.</li>
 <span><span class="co">## 7     -1.0865     -1.0372</span></span>
 <span><span class="co">## 8 -17278.7613 -17280.1189</span></span>
 <span><span class="co">## 9     15.0000   1696.0000</span></span></code></pre>
-<p>The default parameter for fitting is
+<p>The default <code>maxiter</code> parameter for <code>"optim"</code>
+fitting is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1000</mn><annotation encoding="application/x-tex">1000</annotation></semantics></math>,
-but we needed to increase it since the does not converge in
+but we needed to increase it since the <code>optim</code> does not
+converge in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1000</mn><annotation encoding="application/x-tex">1000</annotation></semantics></math>
 steps and “gets stuck” at a plateau, which results in a lower
-log-likelihood value compared to the standard .</p>
+log-likelihood value compared to the standard <code>"IRLS"</code>.</p>
 <p>The above situation is rather typical. While we did not conduct any
 formal numerical analyses, it seems that when one attempts to model more
 than one parameter of the distribution as covariate dependent
-algorithms, both and seem to be ill-suited for the task despite being
+<code>optim</code> algorithms, both <code>"Nelder-Mead"</code> and
+<code>"L-BFGS-B"</code> seem to be ill-suited for the task despite being
 provided with the analytically computed gradient. This is one of the
-reasons why is the default fitting method.</p>
+reasons why <code>"IRLS"</code> is the default fitting method.</p>
 </div>
 <div class="section level3">
 <h3 id="sec-family">Structure of a family function<a class="anchor" aria-label="anchor" href="#sec-family"></a>
 </h3>
-<p>In this section we provide details regarding the object for the
-package. This object contains additional parameters in comparison to the
-standard object from the package.</p>
+<p>In this section we provide details regarding the <code>family</code>
+object for the <strong>singleRcapture</strong> package. This object
+contains additional parameters in comparison to the standard
+<code>family</code> object from the <code>stats</code> package.</p>
 </div>
 </div>
 <div class="section level2" short-title="Implementing custom singleRcapture family function">
-<h2 id="sec-custom">Implementing a custom family function<a class="anchor" aria-label="anchor" href="#sec-custom"></a>
+<h2 id="sec-custom">Implementing a custom <strong>singleRcapture</strong> family
+function<a class="anchor" aria-label="anchor" href="#sec-custom"></a>
 </h2>
 <p>Suppose we want to implement a very specific zero truncated family
-function in the , which corresponds to the following “untruncated”
-distribution:</p>
+function in the <strong>singleRcapture</strong>, which corresponds to
+the following “untruncated” distribution:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>π</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>2</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
   \mathbb{P}[Y=y|\lambda, \pi] = \begin{cases}
     1 - \frac{1}{2}\lambda - \frac{1}{2}\pi &amp; \text{when: } y=0\\
@@ -1226,7 +1327,7 @@ distribution:</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>,</mo><mi>π</mi><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lambda, \pi\in\left(0, 1\right)</annotation></semantics></math>
 being dependent on covariates.</p>
 <p>Below we provide a possible way of implementing the above model, with
-meaning
+<code>lambda, pi</code> meaning
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi><mo>,</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mrow><annotation encoding="application/x-tex">\frac{1}{2}\lambda,\frac{1}{2}\pi</annotation></semantics></math>.
 We provide a simple example that shows that the proposed approach works
 as expected.</p>
@@ -1644,7 +1745,7 @@ links up to the third order:</p>
 <span><span class="co">##     }</span></span>
 <span><span class="co">##     res</span></span>
 <span><span class="co">## }</span></span>
-<span><span class="co">## &lt;bytecode: 0x55f5cb3f1210&gt;</span></span>
+<span><span class="co">## &lt;bytecode: 0x560e8a911848&gt;</span></span>
 <span><span class="co">## &lt;environment: namespace:singleRcapture&gt;</span></span></code></pre>
 <p>One could, of course, include the code for computing them
 manually.</p>
