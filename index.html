@@ -31,6 +31,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/singleRcapture.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
@@ -55,12 +56,12 @@
 <p>Single source models are distinct from other capture-recapture models because we cannot estimate the population size based on how many units were observed in two or three sources which is the standard approach.</p>
 <p>Instead in single source models we utilize count data regression models on positive distributions (i.e. on counts greater than 0) where the dependent variable is the number of times a particular unit was observed in source data.</p>
 <p>This package aims to implement already existing and introduce new methods of estimating population size from single source to simplify the research process.</p>
-<p>Currently we’ve implemented most of the frequentist approaches used in literature such as:</p>
+<p>Currently we have implemented most of the frequentist approaches used in literature such as:</p>
 <ul>
 <li>Zero truncated Poisson, geometric and negative binomial regression.</li>
 <li>Zero truncated one inflated and one inflated zero truncated Poisson and geometric models. (Negative binomial is currently in development.)</li>
 <li>Zero one truncated Poisson geometric and negative binomial models.</li>
-<li>Generalized Chao and Zelterman’s models based on logistic regression.</li>
+<li>Generalized Chao’s and Zelterman’s models based on logistic regression.</li>
 <li>Three types of bootstrap parametric, semi-parametric and non parametric.</li>
 <li>And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.</li>
 </ul>
@@ -125,15 +126,15 @@
 <span><span class="co">#&gt; Population size estimation results: </span></span>
 <span><span class="co">#&gt; Point estimate 12690.35</span></span>
 <span><span class="co">#&gt; Observed proportion: 14.8% (N obs = 1880)</span></span>
-<span><span class="co">#&gt; Std. Error 2808.169</span></span>
+<span><span class="co">#&gt; Std. Error 2808.165</span></span>
 <span><span class="co">#&gt; 95% CI for the population size:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal      7186.444   18194.26</span></span>
-<span><span class="co">#&gt; logNormal   8431.275   19718.32</span></span>
+<span><span class="co">#&gt; normal      7186.449   18194.25</span></span>
+<span><span class="co">#&gt; logNormal   8431.277   19718.31</span></span>
 <span><span class="co">#&gt; 95% CI for the share of observed population:</span></span>
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
-<span><span class="co">#&gt; normal     10.332927   26.16037</span></span>
-<span><span class="co">#&gt; logNormal   9.534281   22.29793</span></span></code></pre></div>
+<span><span class="co">#&gt; normal     10.332933   26.16035</span></span>
+<span><span class="co">#&gt; logNormal   9.534288   22.29793</span></span></code></pre></div>
 <p>We implemented a method for <code>plot</code> function to visualise the model fit and other useful diagnostic information. One of which is <code>rootogram</code>, a type of plot that compares fitted and observed marginal frequencies:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span><span class="op">)</span></span></code></pre></div>
@@ -180,7 +181,7 @@
 <p>Finally let us check if we have any influential observations. We will do this by comparing the deletion effect of every observation on population size estimate by removing it entirely from the model (from population size estimate and regression) and by only omitting it in pop size estimation (this is what is called the contribution of an observation). If observation is not influential these two actions should have the approximately the same effect:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"dfpopContr"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-5-1.png" width="75%"></p>
+<p><img src="reference/figures/README-plot-example-1.png" width="75%"></p>
 <p>it is easy to deduce from the plot above that we have influential observations in our dataset (one in particular).</p>
 <p>Lastly <code>singleRcapture</code> offers some posthoc procedures for example a function <code>stratifyPopsize</code> that estimates sizes of user specified sub populations and returns them in a <code>data.frame</code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -192,15 +193,15 @@
 <span>    <span class="st">"Older males"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">age</span> <span class="op">==</span> <span class="st">"&gt;40yrs"</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                   name Observed Estimated ObservedPercentage  StdError</span></span>
-<span><span class="co">#&gt; 1 Females from Surinam       20   931.469           2.147146  955.0676</span></span>
-<span><span class="co">#&gt; 2    Males from Turkey       78  1291.251           6.040652  741.0066</span></span>
-<span><span class="co">#&gt; 3        Younger males     1391  7337.072          18.958516 1282.1419</span></span>
-<span><span class="co">#&gt; 4          Older males       91  1542.189           5.900703  781.4754</span></span>
+<span><span class="co">#&gt; 1 Females from Surinam       20  931.4677           2.147149  955.0657</span></span>
+<span><span class="co">#&gt; 2    Males from Turkey       78 1291.2513           6.040652  741.0066</span></span>
+<span><span class="co">#&gt; 3        Younger males     1391 7337.0708          18.958520 1282.1402</span></span>
+<span><span class="co">#&gt; 4          Older males       91 1542.1886           5.900705  781.4747</span></span>
 <span><span class="co">#&gt;   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
-<span><span class="co">#&gt; 1      -1528.62209         3391.560            119.2661            8389.178</span></span>
+<span><span class="co">#&gt; 1      -1528.61853         3391.554            119.2661            8389.158</span></span>
 <span><span class="co">#&gt; 2       -432.58790         3015.090            405.4127            4573.791</span></span>
-<span><span class="co">#&gt; 3       4554.70841        10119.436           5134.8113           10834.792</span></span>
-<span><span class="co">#&gt; 4         10.52561         3073.853            630.7551            3992.677</span></span>
+<span><span class="co">#&gt; 3       4554.71057        10119.431           5134.8122           10834.785</span></span>
+<span><span class="co">#&gt; 4         10.52637         3073.851            630.7551            3992.674</span></span>
 <span><span class="co">#&gt;   confLevel</span></span>
 <span><span class="co">#&gt; 1      0.01</span></span>
 <span><span class="co">#&gt; 2      0.02</span></span>
@@ -210,19 +211,19 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, strata <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">/</span> <span class="va">age</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     name Observed Estimated ObservedPercentage  StdError</span></span>
-<span><span class="co">#&gt; 1         gender==female      398 3811.0924          10.443200 1153.9749</span></span>
-<span><span class="co">#&gt; 2           gender==male     1482 8879.2613          16.690578 1812.0813</span></span>
-<span><span class="co">#&gt; 3 genderfemale:age&lt;40yrs      378 3169.8272          11.924940  880.9491</span></span>
-<span><span class="co">#&gt; 4   gendermale:age&lt;40yrs     1391 7337.0721          18.958516 1282.1419</span></span>
-<span><span class="co">#&gt; 5 genderfemale:age&gt;40yrs       20  641.2651           3.118835  407.5268</span></span>
-<span><span class="co">#&gt; 6   gendermale:age&gt;40yrs       91 1542.1892           5.900703  781.4754</span></span>
+<span><span class="co">#&gt; 1         gender==female      398 3811.0911          10.443203 1153.9733</span></span>
+<span><span class="co">#&gt; 2           gender==male     1482 8879.2594          16.690581 1812.0790</span></span>
+<span><span class="co">#&gt; 3 genderfemale:age&lt;40yrs      378 3169.8263          11.924944  880.9478</span></span>
+<span><span class="co">#&gt; 4   gendermale:age&lt;40yrs     1391 7337.0708          18.958520 1282.1402</span></span>
+<span><span class="co">#&gt; 5 genderfemale:age&gt;40yrs       20  641.2648           3.118836  407.5264</span></span>
+<span><span class="co">#&gt; 6   gendermale:age&gt;40yrs       91 1542.1886           5.900705  781.4747</span></span>
 <span><span class="co">#&gt;   normalLowerBound normalUpperBound logNormalLowerBound logNormalUpperBound</span></span>
-<span><span class="co">#&gt; 1       1549.34322         6072.842           2189.0439            6902.140</span></span>
-<span><span class="co">#&gt; 2       5327.64720        12430.875           6090.7752           13354.889</span></span>
-<span><span class="co">#&gt; 3       1443.19883         4896.456           1904.3121            5484.622</span></span>
-<span><span class="co">#&gt; 4       4824.12025         9850.024           5306.3298           10421.088</span></span>
-<span><span class="co">#&gt; 5       -157.47265         1440.003            212.3382            2026.728</span></span>
-<span><span class="co">#&gt; 6         10.52561         3073.853            630.7551            3992.677</span></span>
+<span><span class="co">#&gt; 1       1549.34513         6072.837           2189.0443            6902.133</span></span>
+<span><span class="co">#&gt; 2       5327.64991        12430.869           6090.7762           13354.880</span></span>
+<span><span class="co">#&gt; 3       1443.20030         4896.452           1904.3126            5484.617</span></span>
+<span><span class="co">#&gt; 4       4824.12208         9850.019           5306.3306           10421.082</span></span>
+<span><span class="co">#&gt; 5       -157.47223         1440.002            212.3382            2026.726</span></span>
+<span><span class="co">#&gt; 6         10.52637         3073.851            630.7551            3992.674</span></span>
 <span><span class="co">#&gt;   confLevel</span></span>
 <span><span class="co">#&gt; 1      0.05</span></span>
 <span><span class="co">#&gt; 2      0.05</span></span>
@@ -366,8 +367,6 @@
 <span>    <span class="op">)</span>,</span>
 <span>    controlModel <span class="op">=</span> <span class="fu"><a href="reference/controlModel.html">controlModel</a></span><span class="op">(</span>omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span><span class="op">)</span> <span class="co"># put covariates on omega i.e. the inflation parameter</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in singleRcaptureinternalIRLSmultipar(dependent = y, covariates = X, :</span></span>
-<span><span class="co">#&gt; Convergence at halfstepsize</span></span>
 <span><span class="co">#&gt; Warning in estimatePopsize.default(formula = capture ~ age, data = netherlandsimmigrant, : The (analytically computed) hessian of the score function is not negative define.</span></span>
 <span><span class="co">#&gt; NOTE: Second derivative test failing does not </span></span>
 <span><span class="co">#&gt;         necessarily mean that the maximum of score function that was found </span></span>
@@ -377,11 +376,11 @@
 <span><span class="co">#&gt; netherlandsimmigrant, : Switching from observed information matrix to Fisher</span></span>
 <span><span class="co">#&gt; information matrix because hessian of log-likelihood is not negative define.</span></span>
 <span><span class="fu"><a href="reference/popSizeEst.html">popSizeEst</a></span><span class="op">(</span><span class="va">modelInflated2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Point estimate: 5496.374</span></span>
-<span><span class="co">#&gt; Variance: 1217985</span></span>
+<span><span class="co">#&gt; Point estimate: 5496.376</span></span>
+<span><span class="co">#&gt; Variance: 1217986</span></span>
 <span><span class="co">#&gt; 99% confidence intervals:</span></span>
 <span><span class="co">#&gt; lowerBound upperBound </span></span>
-<span><span class="co">#&gt;   4002.763  10231.717</span></span></code></pre></div>
+<span><span class="co">#&gt;   4002.763  10231.716</span></span></code></pre></div>
 <p>the results are significantly different (the warning issued concerns the second derivative test for existence of local minimum, here it was inconclusive but we manually checked that fitting process found the optimal regression coefficients it’s here to provide more information to the user):</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated2</span>, </span>
@@ -389,7 +388,7 @@
 <span>     labels <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">175</span><span class="op">)</span>,</span>
 <span>     breaks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="75%"></p>
+<p><img src="reference/figures/README-plot-inflated-1.png" width="75%"></p>
 <p>and information criteria support the second model:</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co">#&gt;  First model: AIC = 1736.854 BIC = 1759.01</span></span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt; Second model: AIC = 1734.803 BIC = 1756.959</span></span></code></pre></div>
@@ -398,7 +397,7 @@
 <div class="section level2">
 <h2 id="funding">Funding<a class="anchor" aria-label="anchor" href="#funding"></a>
 </h2>
-<p>Work on this package is supported by the the National Science Center, OPUS 20 grant no. 2020/39/B/HS4/00941.</p>
+<p>Work on this package is supported by the the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -429,7 +428,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Piotr Chlebicki <br><small class="roles"> Author, maintainer </small>  </li>
+<li>Piotr Chlebicki <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0009-0006-4867-7434" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>Maciej Beręsewicz <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-8281-4301" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 </ul>
 </div>
