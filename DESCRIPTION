@@ -39,4 +39,5 @@ Suggests:
     knitr,
     tinytest,
     covr,
-    VGAM
+    VGAM,
+    lmtest
