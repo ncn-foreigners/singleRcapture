@@ -55,7 +55,7 @@
                         <h4 data-toc-skip class="author">Piotr
 Chlebicki, Maciej Beręsewicz</h4>
             
-            <h4 data-toc-skip class="date">2025-01-24</h4>
+            <h4 data-toc-skip class="date">2025-01-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/vignettes/singleRcapture.Rmd" class="external-link"><code>vignettes/singleRcapture.Rmd</code></a></small>
       <div class="d-none name"><code>singleRcapture.Rmd</code></div>
@@ -145,7 +145,7 @@ their extensions (e.g., inclusion of one-inflation). The
 <strong>Julia</strong>), <strong>StatsModels</strong> <span class="citation">(<a href="#ref-seabold2010statsmodels">Seabold and
 Perktold 2010</a>)</span> (in <strong>Python</strong>),
 <strong>countreg</strong> <span class="citation">(<a href="#ref-countreg">Zeileis, Kleiber, and Jackman 2008</a>)</span>,
-<strong>VGAM</strong> <span class="citation">(<a href="#ref-VGAM-main">Thomas W. Yee 2015</a>)</span> or
+<strong>VGAM</strong> <span class="citation">(<a href="#ref-VGAM-main">T. Yee 2015</a>)</span> or
 <strong>distributions3</strong> <span class="citation">(<a href="#ref-distributions3">Hayes et al. 2024</a>)</span> (in
 <strong>R</strong>) implement some of those truncated distributions
 (e.g. <code>distributions3::ZTPoisson</code> or
@@ -166,28 +166,28 @@ size with SSCR methods. We have implemented state-of-the-art methods, as
 recently described by <span class="citation">Böhning, Bunge, and Heijden
 (<a href="#ref-bohning2018capture">2018</a>)</span> or <span class="citation">Böhning and Friedl (<a href="#ref-bohning2024one">2024</a>)</span> and provided their
 extensions (e.g., inclusion of covariates, different treatment of
-one-inflation), which will be covered in detail in Section . The package
-implements variance estimation based on various methods, can be used to
-create custom models and diagnostic plots (e.g. rootograms) with
+one-inflation), which will be covered in detail in Section 2. The
+package implements variance estimation based on various methods, can be
+used to create custom models and diagnostic plots (e.g. rootograms) with
 parameters estimated using a modified iteratively reweighted least
 squares (IRLS) algorithm we have implemented for estimation stability.
 To the best of our knowledge, no existing open-source package allows the
 estimation of population size by selecting an appropriate SSCR model,
 conducting the estimation, and providing informative diagnostics of the
 results.</p>
-<p>The remaining part of the paper is structured as follows. Section
+<p>The remaining part of the paper is structured as follows. Section 2
 contains a brief description of the theoretical background and
 information about fitting methods and available methods of variance
-estimation. Section introduces the main functions of the package.
-Section presents a case study and contains an assessment of its results,
-diagnostics and estimates of specific sub-populations. Section describes
-classes and <code>S3methods</code> implemented in the package. The paper
-ends with conclusions and an appendix showing how to use the
-<code>estimatePopsizeFit</code> function which is aimed to mimic the
-<code>glm.fit</code> or similar functions. In replication materials we
-show how to implement a custom model as this option could be of interest
-to users wishing to apply any new bootstrap methods not implemented in
-the package.</p>
+estimation. Section 3 introduces the main functions of the package.
+Section 4 presents a case study and contains an assessment of its
+results, diagnostics and estimates of specific sub-populations. Section
+5 describes classes and <code>S3methods</code> implemented in the
+package. The paper ends with conclusions and an appendix showing how to
+use the <code>estimatePopsizeFit</code> function which is aimed to mimic
+the <code>glm.fit</code> or similar functions. In replication materials
+we show how to implement a custom model as this option could be of
+interest to users wishing to apply any new bootstrap methods not
+implemented in the package.</p>
 </div>
 </div>
 <div class="section level2">
@@ -217,10 +217,11 @@ extensions). When we know the parameters of the distribution we can
 estimate the population size using a Horvitz-Thompson type estimator
 given by:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mn>1</mn><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{equation}
 \hat{N}=
 \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}[Y_{k}&gt;0|\boldsymbol{X}_{k}]}=
 \sum_{k=1}^{N_{obs}}\frac{1}{\mathbb{P}[Y_{k}&gt;0|\boldsymbol{X}_{k}]},
-\label{eq-ht-estimator}
+\end{equation}
 </annotation></semantics></math></p>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>:=</mo><msub><mi>ℐ</mi><mi>ℕ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I_{k}:=\mathcal{I}_{\mathbb{N}}(Y_{k})</annotation></semantics></math>,
@@ -233,7 +234,7 @@ is obtained after substituting regression parameters
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
 for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y_{k}&gt;0|\boldsymbol{x}_{k}]</annotation></semantics></math>
-in .</p>
+in the above equation.</p>
 <p>The basic SSCR assumes independence between counts, which is a rather
 naive assumption, since the first capture may significantly influence
 the behavior of a given unit or limit the possibility of subsequent
@@ -250,37 +251,45 @@ varialbe
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
 that corresponds to the data collection process which exhibits one
 inflation:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation*}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\begin{equation*}
   \mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right] =
   \omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y&gt;0].
-\end{equation*}</annotation></semantics></math></p>
+\end{equation*}
+</annotation></semantics></math></p>
 <p>Analytic variance estimation is then performed by computing two parts
 of the decomposition according to the law of total variance given
 by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq-law_of_total_variance_decomposition}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{equation}\label{eq-law_of_total_variance_decomposition}
   \text{var}[\hat{N}] = \mathbb{E}\left[\text{var}
   \left[\hat{N}|I_{1},\dots,I_{n}\right]\right] + 
   \text{var}\left[\mathbb{E}[\hat{N}|I_{1},\dots,I_{n}]\right],
-\end{equation}</annotation></semantics></math></p>
+\end{equation}
+</annotation></semantics></math></p>
 <p>where the first part can be estimated using the multivariate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
 method given by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mtext mathvariant="normal">cov</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mi>𝛃</mi><mo>=</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation*}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mtext mathvariant="normal">cov</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mi>𝛃</mi><mo>=</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{equation*}
   \mathbb{E}\left[\text{var} \left[\hat{N}|I_{1},\dots,I_{n}\right]\right] =
   \left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^\top
   \text{cov}\left[\hat{\boldsymbol{\beta}}\right]
   \left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
   \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}},
-\end{equation*}</annotation></semantics></math></p>
-<p>while the second part of the decomposition in , assuming independence
-of
+\end{equation*}
+</annotation></semantics></math></p>
+<p>while the second part of the decomposition above, assuming
+independence of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>k</mi></msub><annotation encoding="application/x-tex">I_{k}</annotation></semantics></math>’s
 and after some omitted simplifications, is optimally estimated by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mo>≈</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>ℙ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation*}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mo>≈</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>ℙ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{equation*}
   \text{var}\left[\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right] =
   \text{var}\left[\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\right]
   \approx\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}&gt;0)}{\mathbb{P}(Y_{k}&gt;0)^{2}},
-\end{equation*}</annotation></semantics></math></p>
+\end{equation*}
+</annotation></semantics></math></p>
 <p>which serves as the basis for interval estimation. Confidence
 intervals are usually constructed under the assumption of (asymptotic)
 normality of
@@ -295,15 +304,19 @@ confidence intervals in SSCR, namely a possibly skewed distribution of
 and results in the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1-\alpha</annotation></semantics></math>
 confidence interval given by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><mfrac><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></mrow><mi>ξ</mi></mfrac><mo>,</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>ξ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation*}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><mfrac><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></mrow><mi>ξ</mi></mfrac><mo>,</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>ξ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{equation*}
   \left(N_{obs}+\frac{\hat{N}-N_{obs}}{\xi},N_{obs} +
   \left(\hat{N}-N_{obs}\right)\xi\right),
-\end{equation*}</annotation></semantics></math></p>
+\end{equation*}
+</annotation></semantics></math></p>
 <p>where:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ξ</mi><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mfrac><mi>α</mi><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msqrt><mrow><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mover><mtext mathvariant="normal">Var</mtext><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation*}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ξ</mi><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mfrac><mi>α</mi><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msqrt><mrow><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mover><mtext mathvariant="normal">Var</mtext><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{equation*}
   \xi = \exp\left(z\left(1-\frac{\alpha}{2}\right)
   \sqrt{\ln\left(1+\frac{\widehat{\text{Var}}(\hat{N})}{\left(\hat{N}-N_{obs}\right)^{2}}\right)}\right),
-\end{equation*}</annotation></semantics></math></p>
+\end{equation*}
+</annotation></semantics></math></p>
 <p>and where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
 is the quantile function of the standard normal distribution. The
@@ -313,8 +326,8 @@ is best interpreted as being an estimator of the total number of units
 in the population, since we have no means of estimating the number of
 units in the population for which the probability of being included in
 the data is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
-.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math><span class="citation">(<a href="#ref-ztpoisson">Heijden et al.
+2003</a>)</span>.</p>
 </div>
 <div class="section level3">
 <h3 id="available-models">Available models<a class="anchor" aria-label="anchor" href="#available-models"></a>
@@ -329,6 +342,105 @@ collective help file for all family functions:</p>
 together with brief descriptions. For more detailed information, please
 consult the relevant literature.</p>
 <p>The current list of these family functions includes:</p>
+<ul>
+<li>Generalized Chao’s <span class="citation">(<a href="#ref-chao1987estimating">Chao 1987</a>)</span> and Zelterman’s
+<span class="citation">(<a href="#ref-zelterman1988robust">Zelterman
+1988</a>)</span> estimators via logistic regression on variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Z</mi><annotation encoding="application/x-tex">Z</annotation></semantics></math>
+defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Z=1</annotation></semantics></math>
+if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">Y=2</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Z=0</annotation></semantics></math>
+if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Y=1</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>∼</mo><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Z\sim b(p)</annotation></semantics></math>
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">b(\cdot)</annotation></semantics></math>
+is the Bernoulli distribution and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+can be modeled for each unit
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mi>k</mi></msub><mi>/</mi><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{logit}(p_k)=\ln(\lambda_k/2)</annotation></semantics></math>
+with Poisson parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mo>=</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mi>𝛃</mi></mrow><annotation encoding="application/x-tex">\lambda_k=\boldsymbol{x}_{k}\boldsymbol{\beta}</annotation></semantics></math>
+(for a covariate extension see <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> and <span class="citation">Böhning and Heijden (<a href="#ref-zelterman">2009</a>)</span>):</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">Chao</mtext></msub><mo>=</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><msub><mi>𝐟</mi><mn>1</mn></msub><mo>+</mo><msub><mi>𝐟</mi><mn>2</mn></msub></mrow></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\hat{N}_{\text{Chao}} = N_{obs}+
+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
+\left(2\exp\left(\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)+
+2\exp\left(2\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)^{-1},
+\tag{Chao's estimator}
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">Zelt</mtext></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\hat{N}_{\text{Zelt}}=\sum_{k=1}^{N_{obs}}
+\left(1-\exp\left(-2\exp\left(\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)\right)^{-1}.
+\tag{Zelterman's estimator}
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐟</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\boldsymbol{f}_{1}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐟</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\boldsymbol{f}_{2}</annotation></semantics></math>
+denotes number of units observed once and twice.</p>
+<ul>
+<li>Zero-truncated
+(<code>zt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+and zero-one-truncated
+(<code>zot</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+Poisson <span class="citation">(<a href="#ref-zotmodels">Böhning and
+Heijden 2019</a>)</span>, geometric, NB type II (NB2) regression, where
+the non-truncated distribution is parameterized as:</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mfrac><mrow><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>+</mo><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi><mi>!</mi></mrow></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>+</mo><mi>λ</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>λ</mi><mrow><mi>λ</mi><mo>+</mo><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathbb{P}[Y=y|\lambda,\alpha] = \frac{\Gamma\left(y+\alpha^{-1}\right)}{\Gamma\left(\alpha^{-1}\right)y!}
+\left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
+\left(\frac{\lambda}{\lambda + \alpha^{-1}}\right)^{y}.
+</annotation></semantics></math></p>
+<ul>
+<li>Zero-truncated one-inflated
+(<code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+modifications, where the count data variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
+is defined such that its distribution statisfies:</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\mathbb{P}\left[Y^{\ast}=y\right]=
+\begin{cases}
+\mathbb{P}[Y=0] &amp; y=0, \\
+\omega\left(1-\mathbb{P}[Y=0]\right)+(1-\omega)\mathbb{P}[Y=1] &amp; y=1, \\
+(1-\omega)\mathbb{P}[Y=y] &amp; y&gt;1,
+\end{cases}
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right]=\omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y&gt;0].
+</annotation></semantics></math></p>
+<ul>
+<li>One-inflated zero-truncated
+(<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+modifications, where the count data variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
+is defined as:</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathbb{P}\left[Y^{\ast}=y\right] = \omega \mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y],
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><mfrac><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right] = 
+\omega\frac{\mathcal{I}_{\{1\}}(y)}{1-(1-\omega)\mathbb{P}[Y=0]}+
+(1-\omega)\frac{\mathbb{P}[Y=y]}{1-(1-\omega)\mathbb{P}[Y=0]}.
+</annotation></semantics></math></p>
+<p>Note that
+<code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
+and
+<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
+distributions are equivalent, in the sense that the maximum value of the
+likelihood function is equal for both of those distributions given any
+data, as shown by <span class="citation">(<a href="#ref-bohning2023equivalence">Böhning 2023</a>)</span> but
+population size estimators are different.</p>
 <p>In addition, we propose two new approaches to model singletons in a
 similar way as in hurdle models. In particular, we have proposed the
 following:</p>
@@ -373,11 +485,12 @@ denotes the unconditional probability of observing singletons.</p>
 computational complexity, or in the way they treat heterogeneity of
 captures and singletons. For instance, the dispersion parameter
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-in the NB2 type models is often interpreted as measuring the of
-unobserved heterogeneity in the underlying Poisson process . When using
-any truncated NB model, the hope is that given the class of models
-considered, the consistency is not lost despite the lack of
-information.</p>
+in the NB2 type models is often interpreted as measuring the
+<code>severity</code> of unobserved heterogeneity in the underlying
+Poisson process <span class="citation">(<a href="#ref-ztnegbin">Cruyff
+and Heijden 2008</a>)</span>. When using any truncated NB model, the
+hope is that given the class of models considered, the consistency is
+not lost despite the lack of information.</p>
 <p>While not discussed in the literature, the interpretation of
 heterogeneous
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
@@ -419,8 +532,8 @@ or
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>−</mo></mrow><annotation encoding="application/x-tex">2-</annotation></semantics></math>dimentional
 manifold, transforming this parameter space into
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mn>3</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^{3}</annotation></semantics></math>
-would require using “link” functions that depend on more than one
-parameter.</p>
+would require using <code>link</code> functions that depend on more than
+one parameter.</p>
 <p>Hurdle models represent another approach to modelling one-inflation.
 They can also model deflation as well as inflation and deflation
 simultaneously, so they are more flexible and, in the case of hurdle
@@ -457,13 +570,14 @@ studies are required to confirm this observation.</p>
 <p>As previously noted, the <strong>singleRcapture</strong> package can
 be used to model the (linear) dependence of all parameters on
 covariates. A modified IRLS algorithm is employed for this purpose as
-presented in Algorithm ; full details are available in . In order to
-apply the algorithm, a modified model matrix
+presented in Algorithm 1; full details are available in <span class="citation">T. Yee (<a href="#ref-VGAM-main">2015</a>)</span>. In
+order to apply the algorithm, a modified model matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}</annotation></semantics></math>
 is created when the <code>estimatePopsize</code> function is called. In
 the context of the models implemented in
 <strong>singleRcapture</strong>, this matrix can be written as:</p>
-<p><span class="math display">$$\begin{equation}\label{X_vlm-definition}
+<p><span class="math display">$$
+\begin{equation}\label{X_vlm-definition}
   \boldsymbol{X}_{\text{vlm}}=
   \begin{pmatrix}
     \boldsymbol{X}_{1} &amp; \boldsymbol{0}&amp;\dotso
@@ -474,11 +588,72 @@ the context of the models implemented in
     \boldsymbol{0}&amp; \boldsymbol{0}&amp;\dotso
 &amp;\boldsymbol{X}_{p}
   \end{pmatrix}
-\end{equation}$$</span></p>
+\end{equation}
+$$</span></p>
 <p>where each
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{i}</annotation></semantics></math>
 corresponds to a model matrix associated with a user specified
 formula.</p>
+<div class="section level4">
+<h4 id="algorithm-1-the-modified-irls-algorithm-used-in-the-singlercapture-package">Algorithm 1: The modified IRLS algorithm used in the
+<strong>singleRcapture</strong> package<a class="anchor" aria-label="anchor" href="#algorithm-1-the-modified-irls-algorithm-used-in-the-singlercapture-package"></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li><p>Initialize with <code>iter</code> ← 1,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>
+← <code>start</code>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐖</mi><annotation encoding="application/x-tex">\boldsymbol{W}</annotation></semantics></math>
+← I,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>ℓ</mo><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})</annotation></semantics></math></p></li>
+<li>
+<p>Store values from the previous step:<br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>ℓ</mo><mo>−</mo></msub><annotation encoding="application/x-tex">\ell_{-}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>ℓ</mo><annotation encoding="application/x-tex">\ell</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐖</mi><mo>−</mo></msub><annotation encoding="application/x-tex">\boldsymbol{W}_{-}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐖</mi><annotation encoding="application/x-tex">\boldsymbol{W}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛃</mi><mo>−</mo></msub><annotation encoding="application/x-tex">\boldsymbol{\beta}_{-}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
+(the last assignment is omitted during the first iteration), and assign
+values in the current iteration:</p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\displaystyle\boldsymbol{\eta}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝛃</mi><mo>+</mo><mi>𝐨</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}\boldsymbol{\beta}+\boldsymbol{o}</annotation></semantics></math></p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐖</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{W}_{(k)}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msubsup><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msubsup><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]</annotation></semantics></math></p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐙</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{Z}_{(k)}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><mo>+</mo><mfrac><mrow><mi>∂</mi><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow></mfrac><msubsup><mi>𝐖</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><mo>−</mo><msub><mi>𝐨</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{\eta}_{(k)}+\frac{\partial\ell}{\partial\boldsymbol{\eta}_{(k)}}\boldsymbol{W}_{(k)}^{-1}-\boldsymbol{o}_{(k)}</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐨</mi><annotation encoding="application/x-tex">\boldsymbol{o}</annotation></semantics></math>
+denotes offset.</p>
+</li>
+<li><p>Assign the current coefficient value:<br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝐖</mi><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝐖</mi><mi>𝐙</mi></mrow><annotation encoding="application/x-tex">\left(\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{X}_{\text{vlm}}\right)^{-1}\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{Z}</annotation></semantics></math></p></li>
+<li><p>If
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>&lt;</mo><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})&lt;\ell(\boldsymbol{\beta}_{-})</annotation></semantics></math>
+try selecting the smallest value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+such that for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛃</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\boldsymbol{\beta}_{h}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mrow><mo>−</mo><mi>h</mi></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo>+</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">2^{-h}\left(\boldsymbol{\beta}+\boldsymbol{\beta}_{-}\right)</annotation></semantics></math>
+the inequality
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛃</mi><mi>h</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta}_{h})&gt;\ell(\boldsymbol{\beta}_{-})</annotation></semantics></math>
+holds if this is successful
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
+←
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛃</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\boldsymbol{\beta}_{h}</annotation></semantics></math>,
+else stop the algorithm.</p></li>
+<li><p>If convergence is achieved or <code>iter</code> is higher than
+<code>maxiter</code>, stop the algorithm, else <code>iter</code> ← 1 +
+<code>iter</code> and return to step 2.</p></li>
+</ol>
 <p>In the case of multi-parameter families, we get a matrix of linear
 predictors
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>
@@ -500,20 +675,42 @@ while in the typical IRLS they are scalars
 which is often just
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msup><mi>η</mi><mn>2</mn></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\displaystyle-\frac{\partial^{2}\ell}{\partial\eta^{2}}</annotation></semantics></math>.</p>
 </div>
+</div>
 <div class="section level3">
 <h3 id="sec-boostrap">Bootstrap variance estimators<a class="anchor" aria-label="anchor" href="#sec-boostrap"></a>
 </h3>
 <p>We have implemented three types of bootstrap algorithms: parametric
-(adapted from theory in , for multiple source setting with covariates),
-semi-parametric (see e.g. ) and nonparametric. The nonparametric version
-is the usual bootstrap algorithm; which will typically underestimate the
-variance of
+(adapted from theory in <span class="citation">Zwane and Van der Heijden
+(<a href="#ref-zwane">2003</a>)</span>, <span class="citation">Norris
+and Pollock (<a href="#ref-norrpoll">1996</a>)</span> for multiple
+source setting with covariates), semi-parametric (see e.g. <span class="citation">Böhning and Friedl (<a href="#ref-BoehningFriedl2021">2021</a>)</span>) and nonparametric. The
+nonparametric version is the usual bootstrap algorithm; which will
+typically underestimate the variance of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>.
 In this section, the focus is on the first two approaches.</p>
 <p>The idea of semi-parametric bootstrap is to modify the usual
 bootstrap to include the additional uncertainty resulting from the fact
 that the sample size is a random variable. This type of bootstrap is
-performed in steps listed in Algorithm .</p>
+performed in steps listed in Algorithm 2.</p>
+<div class="section level4">
+<h4 id="algorithm-2-semi-parametric-bootstrap">Algorithm 2: Semi-parametric bootstrap<a class="anchor" aria-label="anchor" href="#algorithm-2-semi-parametric-bootstrap"></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>Draw a sample of size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mi>′</mi><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mi>′</mi><mo>,</mo><mfrac><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mrow><mi>N</mi><mi>′</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_{obs}'\sim\text{Binomial}\left(N', \frac{N_{obs}}{N'}\right)</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>′</mi><mo>=</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>+</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N'=\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)</annotation></semantics></math>
+</li>
+<li>Draw
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mi>′</mi></mrow><annotation encoding="application/x-tex">N_{obs}'</annotation></semantics></math>
+units from the data uniformly without replacement</li>
+<li>Obtain a new population size estimate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>b</mi></msub><annotation encoding="application/x-tex">N_b</annotation></semantics></math>
+using bootstrap data</li>
+<li>Repeat 1-3 steps
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+times</li>
+</ol>
 <p>In other words, we first draw a sample size and then a sample
 conditional on the sample size. Note that when using the semi-parametric
 bootstrap one implicitly assumes that the population size estimate
@@ -522,7 +719,36 @@ is accurate. The last implemented bootstrap type is the parametric
 algorithm, which first draws a finite population of size
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\approx\hat{N}</annotation></semantics></math>
 from the superpopulation model and then samples from this population
-according to the selected model, as described in Algorithm .</p>
+according to the selected model, as described in Algorithm 3.</p>
+</div>
+<div class="section level4">
+<h4 id="algorithm-3-parametric-bootstrap">Algorithm 3: Parametric bootstrap<a class="anchor" aria-label="anchor" href="#algorithm-3-parametric-bootstrap"></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>Draw the number of covariates equal to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>+</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)</annotation></semantics></math>
+proportional to the estimated contribution
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">(\mathbb{P}\left[Y_{k}&gt;0|\boldsymbol{x}_{k}\right])^{-1}</annotation></semantics></math>
+with replacement</li>
+<li>Using the fitted model and regression coefficients
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\boldsymbol{\beta}}</annotation></semantics></math>
+draw for each covariate the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+value from the corresponding probability measure on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℕ</mi><mo>∪</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathbb{N}\cup\{0\}</annotation></semantics></math>
+</li>
+<li>Truncate units with the drawn
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+value equal to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+</li>
+<li>Obtain a population size estimate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>b</mi></msub><annotation encoding="application/x-tex">N_b</annotation></semantics></math>
+based on the truncated data</li>
+<li>Repeat 1-4 steps
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+times</li>
+</ol>
 <p>Note that in order for this type of algorithm to result in consistent
 standard error estimates, it is imperative that the estimated model for
 the entire superpopulation probability space is consistent, which may be
@@ -531,9 +757,13 @@ The parametric bootstrap algorithm is the default option in
 <strong>singleRcapture</strong>.</p>
 </div>
 </div>
+</div>
 <div class="section level2">
 <h2 id="sec-main">The main function<a class="anchor" aria-label="anchor" href="#sec-main"></a>
 </h2>
+<div class="section level3">
+<h3 id="the-estimatepopsize-function">The <code>estimatePopsize</code> function<a class="anchor" aria-label="anchor" href="#the-estimatepopsize-function"></a>
+</h3>
 <p>The <strong>singleRcapture</strong> package is built around the
 <code>estimatePopsize</code> function. The main design objective was to
 make using <code>estimatePopsize</code> as similar as possible to the
@@ -545,8 +775,72 @@ appropriate (vector) generalized linear model and to estimate the
 population size along with its variance. It is assumed that the response
 vector (i.e. the dependent variable) corresponds to the number of times
 a given unit was observed in the source. The most important arguments
-are given in Table ; the obligatory ones are
+are given in Table below; the obligatory ones are
 <code>formula, data, model</code>.</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="75%">
+</colgroup>
+<thead><tr class="header">
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>formula</code></td>
+<td>The main formula (i.e., for the Poisson
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+parameter);</td>
+</tr>
+<tr class="even">
+<td><code>data</code></td>
+<td>A <code>data.frame</code> (or <code>data.frame</code> coercible)
+object;</td>
+</tr>
+<tr class="odd">
+<td><code>model</code></td>
+<td>Either a function, a string, or a family class object specifying
+which model should be used; possible values are listed in the
+documentation. The supplied argument should have the form
+<code>model = "ztpoisson"</code>, <code>model = ztpoisson</code>, or if
+a link function should be specified, then
+<code>model = ztpoisson(lambdaLink = "log")</code> can be used;</td>
+</tr>
+<tr class="even">
+<td><code>method</code></td>
+<td>A numerical method used to fit regression <code>IRLS</code> or
+<code>optim</code>;</td>
+</tr>
+<tr class="odd">
+<td><code>popVar</code></td>
+<td>A method for estimating variance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>
+and creating confidence intervals (either bootstrap, analytic, or
+skipping the estimation entirely);</td>
+</tr>
+<tr class="even">
+<td>
+<code>controlMethod</code>, <code>controlModel</code>, or
+<code>controlPopVar</code>
+</td>
+<td>Control parameters for numerical fitting, specifying additional
+formulas (inflation, dispersion) and population size estimation,
+respectively;</td>
+</tr>
+<tr class="odd">
+<td><code>offset</code></td>
+<td>A matrix of offset values with the number of columns matching the
+number of distribution parameters, providing offset values to each of
+the linear predictors;</td>
+</tr>
+<tr class="even">
+<td><code>...</code></td>
+<td>Additional optional arguments passed to other methods, e.g.,
+<code>estimatePopsizeFit</code>;</td>
+</tr>
+</tbody>
+</table>
 <p>An important step in using <code>estimatePopsize</code> is specifying
 the <code>model</code> parameter, which indicates the type of model that
 will be used for estimating the <em>unobserved</em> part of the
@@ -577,6 +871,10 @@ or
 <code>Hurdlezt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>),
 then <code>piFormula</code> can be specified, as it provides a formula
 for the probability parameter in these models.</p>
+</div>
+<div class="section level3">
+<h3 id="controlling-variance-estimation-with-controlpopvar">Controlling variance estimation with <code>controlPopVar</code><a class="anchor" aria-label="anchor" href="#controlling-variance-estimation-with-controlpopvar"></a>
+</h3>
 <p>The <code>estimatePopsize</code> function makes it possible to
 specify the variance estimation method via <code>popVar</code>
 (e.g. analytic or variance bootstrap) and control the estimation process
@@ -587,6 +885,34 @@ by specifying <code>controlPopVar</code>. In the control function
 <code>"nonparametric"</code>. Additional arguments accepted by the
 <code>contorlPopVar</code> function, which are relevant to bootstrap,
 include:</p>
+<ul>
+<li>
+<code>alpha</code>, <code>B</code> – the significance level and the
+number of bootstrap samples to be performed, respectively, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.05</mn><annotation encoding="application/x-tex">0.05</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>500</mn><annotation encoding="application/x-tex">500</annotation></semantics></math>
+being the default options.</li>
+<li>
+<code>cores</code> – the number of process cores to be used in
+bootstrap (1 by default); parallel computing is enabled by
+<strong>doParallel</strong> <span class="citation">(<a href="#ref-doParallel">Microsoft and Weston 2022a</a>)</span>,
+<strong>foreach</strong> <span class="citation">(<a href="#ref-foreach">Microsoft and Weston 2022b</a>)</span> and
+<strong>parallel</strong> packages <span class="citation">(<a href="#ref-parallel">R Core Team 2023</a>)</span>.</li>
+<li>
+<code>keepbootStat</code> – a logical value indicating whether to
+keep a vector of statistics produced by the bootstrap.</li>
+<li>
+<code>traceBootstrapSize</code>, <code>bootstrapVisualTrace</code> –
+logical values indicating whether sample and population size should be
+tracked (<code>FALSE</code> by default); these work only when
+<code>cores</code> = 1.</li>
+<li>
+<code>fittingMethod</code>, <code>bootstrapFitcontrol</code> – the
+fitting method (by default the same as the one used in the original
+call) and control parameters (<code>controlMethod</code>) for model
+fitting in the bootstrap.</li>
+</ul>
 <p>In addition, the user can specify the type of confidence interval by
 means of <code>confType</code> and the type of covariance matrix by
 using <code>covType</code> for the analytical variance estimator
@@ -598,6 +924,7 @@ one-inflated zero-truncated geometric regression with the
 dataset, then we describe how to estimate the population size and assess
 the quality and diagnostics measures. Finally, we show how to estimate
 the population size in user-specified sub-populations.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="sec-study">Data analysis example<a class="anchor" aria-label="anchor" href="#sec-study"></a>
@@ -611,11 +938,11 @@ the population size in user-specified sub-populations.</p>
 <div class="section level3">
 <h3 id="dataset">Dataset<a class="anchor" aria-label="anchor" href="#dataset"></a>
 </h3>
-<p>We use a dataset from , which contains information about immigrants
-in four Dutch cities (Amsterdam, Rotterdam, The Hague and Utrecht), who
-were staying in the country without a legal permit in 1995 and appeared
-in police records for that year. This dataset is included in the package
-called <code>netherlandsimmigrant</code>:</p>
+<p>We use a dataset from <span class="citation">Heijden et al. (<a href="#ref-ztpoisson">2003</a>)</span>, which contains information about
+immigrants in four Dutch cities (Amsterdam, Rotterdam, The Hague and
+Utrecht), who were staying in the country without a legal permit in 1995
+and appeared in police records for that year. This dataset is included
+in the package called <code>netherlandsimmigrant</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">netherlandsimmigrant</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">netherlandsimmigrant</span><span class="op">)</span></span></code></pre></div>
@@ -658,7 +985,8 @@ once (i.e. 1645).</p>
 <p>The basic syntax of <code>estimatePopsize</code> is very similar to
 that of <code>glm</code>, the same can be said about the output of the
 summary method except for additional results of population size
-estimates (denoted as ).</p>
+estimates (denoted as
+<code>Population size estimation results</code>).</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">basicModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">nation</span>,</span>
@@ -735,7 +1063,8 @@ such as one-inflated zero-truncated geometric model (specified by
 <span>        omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    popVar <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
-<span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="../reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span>bootType <span class="op">=</span> <span class="st">"semiparametric"</span><span class="op">)</span></span>
+<span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="../reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span>bootType <span class="op">=</span> <span class="st">"semiparametric"</span>,</span>
+<span>                                  B <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">modelInflated</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
@@ -743,7 +1072,8 @@ such as one-inflated zero-truncated geometric model (specified by
 <span><span class="co">## estimatePopsize.default(formula = capture ~ nation, data = netherlandsimmigrant, </span></span>
 <span><span class="co">##     model = oiztgeom(omegaLink = "cloglog"), popVar = "bootstrap", </span></span>
 <span><span class="co">##     controlModel = controlModel(omegaFormula = ~gender + age), </span></span>
-<span><span class="co">##     controlPopVar = controlPopVar(bootType = "semiparametric"))</span></span>
+<span><span class="co">##     controlPopVar = controlPopVar(bootType = "semiparametric", </span></span>
+<span><span class="co">##         B = 50))</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Pearson Residuals:</span></span>
 <span><span class="co">##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span></span>
@@ -778,16 +1108,16 @@ such as one-inflated zero-truncated geometric model (specified by
 <span><span class="co">## Population size estimation results: </span></span>
 <span><span class="co">## Point estimate 6699.953</span></span>
 <span><span class="co">## Observed proportion: 28.1% (N obs = 1880)</span></span>
-<span><span class="co">## Boostrap sample skewness: 1.621389</span></span>
+<span><span class="co">## Boostrap sample skewness: 0.5209689</span></span>
 <span><span class="co">## 0 skewness is expected for normally distributed variable</span></span>
 <span><span class="co">## ---</span></span>
-<span><span class="co">## Bootstrap Std. Error 1719.353</span></span>
+<span><span class="co">## Bootstrap Std. Error 1579.235</span></span>
 <span><span class="co">## 95% CI for the population size:</span></span>
 <span><span class="co">## lowerBound upperBound </span></span>
-<span><span class="co">##   5001.409  11415.969 </span></span>
+<span><span class="co">##   5107.533  10738.242 </span></span>
 <span><span class="co">## 95% CI for the share of observed population:</span></span>
 <span><span class="co">## lowerBound upperBound </span></span>
-<span><span class="co">##   16.46816   37.58941</span></span></code></pre>
+<span><span class="co">##   17.50752   36.80838</span></span></code></pre>
 <p>According to this approach, the population size is about 7,000, which
 is about 5,000 less than in the case of the naive Poisson approach. A
 comparison of AIC and BIC suggests that the one-inflation model fits the
@@ -806,10 +1136,10 @@ which returns a list with numerical results.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/popSizeEst.html">popSizeEst</a></span><span class="op">(</span><span class="va">modelInflated</span><span class="op">)</span> <span class="co"># alternative: modelInflated$populationSize</span></span></code></pre></div>
 <pre><code><span><span class="co">## Point estimate: 6699.953</span></span>
-<span><span class="co">## Variance: 2956175</span></span>
+<span><span class="co">## Variance: 2493985</span></span>
 <span><span class="co">## 95% confidence intervals:</span></span>
 <span><span class="co">## lowerBound upperBound </span></span>
-<span><span class="co">##   5001.409  11415.969</span></span></code></pre>
+<span><span class="co">##   5107.533  10738.242</span></span></code></pre>
 <p>The decision whether to use a zero-truncated Poisson or one-inflated
 zero-truncated geometric model should be based on the assessment of the
 model and the assumptions regarding the data generation process. One
@@ -894,13 +1224,14 @@ continuity correction.</p>
 </h3>
 <p>The <code>singleRStaticCountData</code> class has a <code>plot</code>
 method implementing several types of quick demonstrative plots, such as
-the rootogram , for comparing fitted and marginal frequencies, which can
-be generated with the following syntax:</p>
+the rootogram <span class="citation">(<a href="#ref-rootogram">Kleiber
+and Zeileis 2016</a>)</span>, for comparing fitted and marginal
+frequencies, which can be generated with the following syntax:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>   <span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"ZT Poisson model"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"OI ZT Geometric model"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="singleRcapture_files/figure-html/rootogram-1.png" alt="Rootograms for ztpoisson (left) and oiztgeom (right) models" width="7.5cm"><img src="singleRcapture_files/figure-html/rootogram-2.png" alt="Rootograms for ztpoisson (left) and oiztgeom (right) models" width="7.5cm"><p class="caption">
+<img src="singleRcapture_files/figure-html/rootogram-1.png" alt="Rootograms for ztpoisson (left) and oiztgeom (right) models" width="480"><img src="singleRcapture_files/figure-html/rootogram-2.png" alt="Rootograms for ztpoisson (left) and oiztgeom (right) models" width="480"><p class="caption">
 Rootograms for ztpoisson (left) and oiztgeom (right) models
 </p>
 </div>
@@ -960,7 +1291,7 @@ estimate:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"dfpopContr"</span>, </span>
 <span>     dfpop <span class="op">=</span> <span class="va">dfi_pop</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4500</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="singleRcapture_files/figure-html/dfpopsize_plot-1.png" alt="Results for ztpoisson (left) and oiztgeom (right) model" width="7.5cm"><img src="singleRcapture_files/figure-html/dfpopsize_plot-2.png" alt="Results for ztpoisson (left) and oiztgeom (right) model" width="7.5cm"><p class="caption">
+<img src="singleRcapture_files/figure-html/dfpopsize_plot-1.png" alt="Results for ztpoisson (left) and oiztgeom (right) model" width="480"><img src="singleRcapture_files/figure-html/dfpopsize_plot-2.png" alt="Results for ztpoisson (left) and oiztgeom (right) model" width="480"><p class="caption">
 Results for ztpoisson (left) and oiztgeom (right) model
 </p>
 </div>
@@ -975,6 +1306,10 @@ base <strong>R</strong> and <strong>graphics</strong> functions can be
 found in the help file of the <code>plot</code> method.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="va">plot.singleRStaticCountData</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="the-stratifypopsize-function">The <code>stratifyPopsize</code> function<a class="anchor" aria-label="anchor" href="#the-stratifypopsize-function"></a>
+</h3>
 <p>Researchers may be interested not only in the total population size
 but also in the size of specific sub-populations (e.g. males, females,
 particular age groups). For this reason we have created the
@@ -1040,8 +1375,9 @@ call is presented below.</p>
 <span><span class="co">## 2   gender==male 1482  8879.261  6261.5109  12930.760  0.10</span></span>
 <span><span class="co">## 3    age==&lt;40yrs 1769 10506.899  7297.2057  15580.151  0.05</span></span>
 <span><span class="co">## 4    age==&gt;40yrs  111  2183.454   787.0673   6464.016  0.05</span></span></code></pre>
-<p>We have provided integration with the <strong>sandwich</strong>
-package to correct the variance-covariance matrix in the
+<p>We have provided integration with the <strong>sandwich</strong> <span class="citation">(<a href="#ref-sandwich">Zeileis, Köll, and Graham
+2020</a>)</span> package to correct the variance-covariance matrix in
+the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
 method. In the code we have used the <code>vcovHC</code> method for
 <code>singleRStaticCountData</code> class from the
@@ -1050,6 +1386,22 @@ confidence intervals in each stratum and a formula to specify that we
 want estimates for both males and females to be grouped by
 <code>nation</code> and <code>age</code>. The <code>strata</code>
 parameter can be specified either as:</p>
+<ul>
+<li>a formula with the empty left hand side, as shown in the example
+above (e.g. <code>~ gender * age</code>),</li>
+<li>a logical vector with the number of entries equal to the number of
+rows in the dataset, in which case only one stratum will be created
+(e.g. <code>netherlandsimmigrant$gender == "male"</code>),</li>
+<li>a vector of names of explanatory variables, which will result in
+every level of the explanatory variable having its own sub-population
+for each variable specified (e.g. <code>c("gender", "age")</code>),</li>
+<li>not supplied at all, in which case strata will correspond to levels
+of each factor in the data without any interactions (string vectors will
+be converted to factors for the convenience of the user),</li>
+<li>a (named) list where each element is a logical vector; names of the
+list will be used to specify variable names in the returned object, for
+example:</li>
+</ul>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"Stratum 1"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"male"</span>   <span class="op">&amp;</span> </span>
@@ -1061,11 +1413,10 @@ parameter can be specified either as:</p>
 <code>plot</code> function, which results in a plot with point and CI
 estimates of the population size.</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">8.5</span>, <span class="fl">4.1</span>, <span class="fl">2.5</span><span class="op">)</span>, cex.main <span class="op">=</span> <span class="fl">.7</span>, cex.lab <span class="op">=</span> <span class="fl">.6</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"strata"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"strata"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"strata"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="singleRcapture_files/figure-html/strata_plot-1.png" alt="Population size by covariates for ztpoisson (left) and oiztgeom (right) model" width="7.5cm"><img src="singleRcapture_files/figure-html/strata_plot-2.png" alt="Population size by covariates for ztpoisson (left) and oiztgeom (right) model" width="7.5cm"><p class="caption">
+<img src="singleRcapture_files/figure-html/strata_plot-1.png" alt="Population size by covariates for ztpoisson (left) and oiztgeom (right) model" width="576"><img src="singleRcapture_files/figure-html/strata_plot-2.png" alt="Population size by covariates for ztpoisson (left) and oiztgeom (right) model" width="576"><p class="caption">
 Population size by covariates for ztpoisson (left) and oiztgeom (right)
 model
 </p>
@@ -1073,6 +1424,11 @@ model
 <p>Only the <code>logNormal</code> type of confidence interval is used
 for plotting since the studentized confidence intervals often result in
 negative lower bounds.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="sec-methods">Classes and <code>S3Methods</code><a class="anchor" aria-label="anchor" href="#sec-methods"></a>
+</h2>
 <p>We have created a number of classes. The main ones are:
 <code>singleRStaticCountData</code>, <code>singleRfamily</code>, and
 supplementary are: <code>popSizeEstResults</code>,
@@ -1092,6 +1448,23 @@ below:</p>
 <span><span class="co">## logNormal   8431.275   19718.32</span></span></code></pre>
 <p>and the resulting object <code>popEst</code> of the
 <code>popSizeEstResults</code> class contains the following fields:</p>
+<ul>
+<li>
+<code>pointEstimate</code>, <code>variance</code> – numerics
+containing the point estimate and variance of this estimate.</li>
+<li>
+<code>confidenceInterval</code> – a <code>data.frame</code> with
+confidence intervals.</li>
+<li>
+<code>boot</code> – If the bootstrap was performed a numeric vector
+containing the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>
+values from the bootstrap, a character vector with value
+<code>"No bootstrap performed"</code> otherwise.</li>
+<li>
+<code>control</code> – a <code>controlPopVar</code> object with
+controls used to obtain the object.</li>
+</ul>
 <p>The only explicitly defined method for
 <code>popSizeEstResults</code>, <code>summarysingleRmargin</code> and
 <code>summarysingleRStaticCountData</code> classes is the
@@ -1112,6 +1485,106 @@ below:</p>
 <code>singleRfamily</code> inherits the <code>family</code> class from
 <strong>stats</strong> and has explicitly defined <code>print</code> and
 <code>simulate</code> methods. Example usage is presented below</p>
+<table class="table">
+<colgroup>
+<col width="23%">
+<col width="76%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>fitted</code></td>
+<td>It works almost exactly like <code>glm</code> counterparts but
+returns more information, namely on fitted values for the truncated and
+non-truncated probability distribution;</td>
+</tr>
+<tr class="even">
+<td><code>logLik</code></td>
+<td>Compared to <code>glm</code> method, it has the possibility of
+returning not just the value of the fitted log-likelihood but also the
+entire function (argument <code>type = "function"</code>) along with two
+first derivatives (argument <code>deriv = 0:2</code>);</td>
+</tr>
+<tr class="odd">
+<td><code>model.matrix</code></td>
+<td>It has the possibility of returning the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mtext mathvariant="normal">vlm</mtext></msub><annotation encoding="application/x-tex">X_{\text{vlm}}</annotation></semantics></math>
+matrix defined previously;</td>
+</tr>
+<tr class="even">
+<td><code>simulate</code></td>
+<td>It calls the <code>simulate</code> method for the chosen model and
+fitted
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>;</td>
+</tr>
+<tr class="odd">
+<td><code>predict</code></td>
+<td>It has the possibility of returning either fitted distribution
+parameters for each unit (<code>type = "response"</code>), or just
+linear predictors (<code>type = "link"</code>), or means of the fitted
+distributions of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Y|Y&gt;0</annotation></semantics></math>
+(<code>type = "mean"</code>) or the inverse probability weights
+(<code>type = "contr"</code>). It is possible to set the
+<code>se.fit</code> argument to <code>TRUE</code> in order to obtain
+standard errors for each of those by using the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+method. Also, it is possible to use a custom covariance matrix for
+standard error computation (argument <code>cov</code>);</td>
+</tr>
+<tr class="even">
+<td><code>redoPopEstimation</code></td>
+<td>A function that applies all post-hoc procedures that were performed
+(such as heteroscedastic consistent covariance matrix estimation via
+<strong>countreg</strong>) to estimate the population size and standard
+errors;</td>
+</tr>
+<tr class="odd">
+<td><code>residuals</code></td>
+<td>Used for obtaining residuals of several types, we refer interested
+readers to the manual
+<code>?singleRcapture:::residuals.singleRStaticCountData</code>;</td>
+</tr>
+<tr class="even">
+<td><code>stratifyPopsize, summary</code></td>
+<td>Compared to the <code>glm</code> class, summary has the possibility
+of adding confidence intervals to the coefficient matrix (argument
+<code>confint = TRUE</code>) and using a custom covariance matrix
+(argument <code>cov = someMatrix</code>);</td>
+</tr>
+<tr class="odd">
+<td><code>plot</code></td>
+<td>It has been discussed above;</td>
+</tr>
+<tr class="even">
+<td><code>popSizeEst</code></td>
+<td>An extractor showcased above;</td>
+</tr>
+<tr class="odd">
+<td><code>cooks.distance</code></td>
+<td>It works only for single predictor models;</td>
+</tr>
+<tr class="even">
+<td><code>dfbeta, dfpopsize</code></td>
+<td>Multi-threading in <code>dfbeta</code> is available and
+<code>dfpopsize</code> calls <code>dfbeta</code> if no
+<code>dfbeta</code> object was provided in the call;</td>
+</tr>
+<tr class="odd">
+<td><code>bread, estfun, vcovHC</code></td>
+<td>For (almost) full <strong>sandwich</strong> compatibility;</td>
+</tr>
+<tr class="even">
+<td><code>AIC, BIC, extractAIC, family, confint, df.residual, model.frame, hatvalues, nobs, print, sigma, influence, rstudent, rstandard</code></td>
+<td>These work exactly like <code>glm</code> counterparts.</td>
+</tr>
+</tbody>
+</table>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234567890</span><span class="op">)</span></span>
 <span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">10000</span></span>
@@ -1127,8 +1600,8 @@ below:</p>
 <span><span class="co">##  3rd Qu.:0.0000   3rd Qu.:-1.0000   3rd Qu.:1.0000  </span></span>
 <span><span class="co">##  Max.   :1.0000   Max.   :-0.5000   Max.   :5.0000</span></span></code></pre>
 <p>The full list of explicitly defined methods for
-<code>singleRStaticCountData</code> methods is presented in Table .</p>
-</div>
+<code>singleRStaticCountData</code> methods is presented in Table
+above.</p>
 </div>
 <div class="section level2">
 <h2 id="concluding-remarks">Concluding remarks<a class="anchor" aria-label="anchor" href="#concluding-remarks"></a>
@@ -1141,8 +1614,8 @@ different methods to account for heterogeneity in capture probabilities,
 modelled using covariates, as well as behavioural change, modelled using
 one-inflation. We have built the package to facilitate the
 implementation of new models using <code>family</code> objects; their
-application is exemplified in the Appendix . An example of implementing
-a custom family described in Appendix is presented in replication
+application is exemplified in the Section 7. An example of implementing
+a custom family described in Section 8 is presented in replication
 materials.</p>
 <p>Furthermore, since many <strong>R</strong> users are familiar with
 <strong>countreg</strong> or <strong>VGAM</strong> packages, we have
@@ -1151,9 +1624,9 @@ implemented a lightweight extension called
 can be used to integrate <strong>singleRcapture</strong> with these
 packages.</p>
 <p>In future work we plan to implement Bayesian estimation using
-<strong>Stan</strong> (e.g. via the <strong>brms</strong> package; ) and
-for one-inflation models we can use the recent approach proposed by and
-implement our own families using the <strong>brms</strong> package.</p>
+<strong>Stan</strong> (e.g. via the <strong>brms</strong> package; <span class="citation">Carpenter et al. (<a href="#ref-carpenter2017stan">2017</a>)</span>, <span class="citation">Bürkner (<a href="#ref-brms">2017</a>)</span>) and for
+one-inflation models we can use the recent approach proposed by <span class="citation">Tuoto, Di Cecco, and Tancredi (<a href="#ref-tuoto2022bayesian">2022</a>)</span> and implement our own
+families using the <strong>brms</strong> package.</p>
 </div>
 <div class="section level2">
 <h2 id="Acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#Acknowledgements"></a>
@@ -1180,8 +1653,8 @@ modifications to the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>
 estimate or to the bootstrap. In order to show how to apply the function
 we will fit a zero truncated geometric model on the data from <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> with covariate
-dependency:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>4</mn></mrow></msub><mtext mathvariant="normal">log_size</mtext><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
+dependency:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>4</mn></mrow></msub><mtext mathvariant="normal">log_size</mtext><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
   \log(\lambda) &amp;=
   \beta_{1, 1} + \beta_{1, 2} \text{log\_distance} + \beta_{1, 3} \text{C\_TYPE} +
   \beta_{1, 4} \text{log\_size}, \\
@@ -1308,6 +1781,104 @@ reasons why <code>"IRLS"</code> is the default fitting method.</p>
 object for the <strong>singleRcapture</strong> package. This object
 contains additional parameters in comparison to the standard
 <code>family</code> object from the <code>stats</code> package.</p>
+<table class="table">
+<colgroup>
+<col width="19%">
+<col width="80%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>makeMinusLogLike</code></td>
+<td>A factory function for creating the following functions: <br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><mi>∂</mi><mo>ℓ</mo></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial\ell}{\partial\boldsymbol{\beta}}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msup><mi>𝛃</mi><mi>⊤</mi></msup><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^\top\partial\boldsymbol{\beta}}</annotation></semantics></math><br> from the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\boldsymbol{y}</annotation></semantics></math>
+vector and the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mrow><mi>v</mi><mi>l</mi><mi>m</mi></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{vlm}</annotation></semantics></math>
+matrix. The <code>deriv</code> argument has possible values in
+<code>c(0, 1, 2)</code> that determine which derivative to return; the
+default value is <code>0</code>, which represents the minus
+log-likelihood.</td>
+</tr>
+<tr class="even">
+<td><code>links</code></td>
+<td>A list with link functions;</td>
+</tr>
+<tr class="odd">
+<td><code>mu.eta, variance</code></td>
+<td>Functions of linear predictors that return the expected value and
+variance. The <code>type</code> argument with 2 possible values
+(<code>"trunc"</code> and <code>"nontrunc"</code>) specifies whether to
+return
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[Y|Y&gt;0], \text{var}[Y|Y&gt;0]</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[Y], \text{var}[Y]</annotation></semantics></math>
+respectively. The <code>deriv</code> argument with values in
+<code>c(0, 1, 2)</code> is used for indicating the derivative with
+respect to the linear predictors, which is used for providing standard
+errors in the <code>predict</code> method.</td>
+</tr>
+<tr class="even">
+<td><code>family</code></td>
+<td>A string that specifies the model name;</td>
+</tr>
+<tr class="odd">
+<td><code>valideta, validmu</code></td>
+<td>For now, it only returns <code>TRUE</code>. In the near future, it
+will be used to check whether applied linear predictors are valid (i.e.,
+are transformed into some elements of the parameter space subjected to
+the inverse link function).</td>
+</tr>
+<tr class="even">
+<td><code>funcZ, Wfun</code></td>
+<td>Functions that create pseudo residuals and working weights used in
+the IRLS algorithm;</td>
+</tr>
+<tr class="odd">
+<td><code>devResids</code></td>
+<td>A function that returns deviance residuals given a vector of prior
+weights of linear predictors and the response vector;</td>
+</tr>
+<tr class="even">
+<td><code>pointEst, popVar</code></td>
+<td>Functions that return the point estimate for the population size and
+analytic estimation of its variance given prior weights of linear
+predictors and, in the latter case, also estimates of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{cov}(\hat{\boldsymbol{\beta}})</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}</annotation></semantics></math>
+matrix. There is an additional boolean parameter <code>contr</code> in
+the former function, which, if set to <code>TRUE</code>, returns the
+contribution of each unit.</td>
+</tr>
+<tr class="odd">
+<td><code>etaNames</code></td>
+<td>Names of linear predictors;</td>
+</tr>
+<tr class="even">
+<td><code>densityFunction</code></td>
+<td>A function that returns the value of PMF at values of <code>x</code>
+given linear predictors. The <code>type</code> argument specifies
+whether to return
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y|Y&gt;0]</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y]</annotation></semantics></math>;</td>
+</tr>
+<tr class="odd">
+<td><code>simulate</code></td>
+<td>A function that generates values of a dependent vector given linear
+predictors;</td>
+</tr>
+<tr class="even">
+<td><code>getStart</code></td>
+<td>An expression for generating starting points;</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2" short-title="Implementing custom singleRcapture family function">
@@ -1317,13 +1888,14 @@ function<a class="anchor" aria-label="anchor" href="#sec-custom"></a>
 <p>Suppose we want to implement a very specific zero truncated family
 function in the <strong>singleRcapture</strong>, which corresponds to
 the following “untruncated” distribution:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>π</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>2</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>π</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>2</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
   \mathbb{P}[Y=y|\lambda, \pi] = \begin{cases}
     1 - \frac{1}{2}\lambda - \frac{1}{2}\pi &amp; \text{when: } y=0\\
     \frac{1}{2}\pi &amp; \text{when: } y=1\\
     \frac{1}{2}\lambda &amp; \text{when: } y=2,
   \end{cases}
-\end{equation}</annotation></semantics></math> with
+</annotation></semantics></math></p>
+<p>with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>,</mo><mi>π</mi><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lambda, \pi\in\left(0, 1\right)</annotation></semantics></math>
 being dependent on covariates.</p>
 <p>Below we provide a possible way of implementing the above model, with
@@ -1745,10 +2317,14 @@ links up to the third order:</p>
 <span><span class="co">##     }</span></span>
 <span><span class="co">##     res</span></span>
 <span><span class="co">## }</span></span>
-<span><span class="co">## &lt;bytecode: 0x560e8a911848&gt;</span></span>
+<span><span class="co">## &lt;bytecode: 0x55b303c0ea70&gt;</span></span>
 <span><span class="co">## &lt;environment: namespace:singleRcapture&gt;</span></span></code></pre>
 <p>One could, of course, include the code for computing them
 manually.</p>
+</div>
+<div class="section level2">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-baffour2013modern" class="csl-entry">
 Baffour, Bernard, Thomas King, and Paolo Valente. 2013. <span>“The
@@ -1767,22 +2343,70 @@ Definition and Modeling of Probability Distributions in the JuliaStats
 Ecosystem.”</span> <em>Journal of Statistical Software</em> 98 (16):
 1–30. <a href="https://doi.org/10.18637/jss.v098.i16" class="external-link">https://doi.org/10.18637/jss.v098.i16</a>.
 </div>
+<div id="ref-bohning2023equivalence" class="csl-entry">
+Böhning, Dankmar. 2023. <span>“On the Equivalence of One-Inflated
+Zero-Truncated and Zero-Truncated One-Inflated Count Data
+Likelihoods.”</span> <em>Biometrical Journal</em> 65 (2): 2100343. <a href="https://doi.org/10.1002/bimj.202100343" class="external-link">https://doi.org/10.1002/bimj.202100343</a>.
+</div>
 <div id="ref-bohning2018capture" class="csl-entry">
 Böhning, Dankmar, John Bunge, and Peter GM Heijden. 2018.
 <em>Capture-Recapture Methods for the Social and Medical Sciences</em>.
 CRC Press Boca Raton.
 </div>
+<div id="ref-BoehningFriedl2021" class="csl-entry">
+Böhning, Dankmar, and Herwig Friedl. 2021. <span>“Population Size
+Estimation Based Upon Zero-Truncated, One-Inflated and Sparse Count
+Data: Estimating the Number of Dice Snakes in Graz and Flare Stars in
+the Pleiades.”</span> <em>Statistical Methods &amp; Applications</em>,
+January. <a href="https://doi.org/10.1007/s10260-021-00556-8" class="external-link">https://doi.org/10.1007/s10260-021-00556-8</a>.
+</div>
 <div id="ref-bohning2024one" class="csl-entry">
-Böhning, Dankmar, and Herwig Friedl. 2024. <span>“One-Inflation and
-Zero-Truncation Count Data Modelling Revisited with a View on
-Horvitz–Thompson Estimation of Population Size.”</span>
-<em>International Statistical Review</em> 92 (1): 148–65. <a href="https://doi.org/10.1111/insr.12557" class="external-link">https://doi.org/10.1111/insr.12557</a>.
+———. 2024. <span>“One-Inflation and Zero-Truncation Count Data Modelling
+Revisited with a View on Horvitz–Thompson Estimation of Population
+Size.”</span> <em>International Statistical Review</em> 92 (1): 148–65.
+<a href="https://doi.org/10.1111/insr.12557" class="external-link">https://doi.org/10.1111/insr.12557</a>.
+</div>
+<div id="ref-zelterman" class="csl-entry">
+Böhning, Dankmar, and Peter G. M. van der Heijden. 2009. <span>“A
+Covariate Adjustment for Zero-Truncated Approaches to Estimating the
+Size of Hidden and Elusive Populations.”</span> <em>The Annals of
+Applied Statistics</em> 3 (2): 595–610. <a href="https://doi.org/10.1214/08-AOAS214" class="external-link">https://doi.org/10.1214/08-AOAS214</a>.
+</div>
+<div id="ref-zotmodels" class="csl-entry">
+———. 2019. <span>“The Identity of the Zero-Truncated, One-Inflated
+Likelihood and the Zero-One-Truncated Likelihood for General Count
+Densities with an Application to Drink-Driving in Britain.”</span>
+<em>The Annals of Applied Statistics</em> 13 (2): 1198–1211. <a href="https://doi.org/10.1214/18-AOAS1232" class="external-link">https://doi.org/10.1214/18-AOAS1232</a>.
 </div>
 <div id="ref-chao-generalization" class="csl-entry">
 Böhning, Dankmar, Alberto Vidal-Diez, Rattana Lerdsuwansri, Chukiat
 Viwatwongkasem, and Mark Arnold. 2013. <span>“A Generalization of Chao’s
 Estimator for Covariate Information.”</span> <em>Biometrics</em> 69 (4):
 1033–42. <a href="https://doi.org/10.1111/biom.12062" class="external-link">https://doi.org/10.1111/biom.12062</a>.
+</div>
+<div id="ref-brms" class="csl-entry">
+Bürkner, Paul-Christian. 2017. <span>“<span class="nocase">brms</span>:
+An <span>R</span> Package for <span>Bayesian</span> Multilevel Models
+Using <span>Stan</span>.”</span> <em>Journal of Statistical
+Software</em> 80 (1): 1–28. <a href="https://doi.org/10.18637/jss.v080.i01" class="external-link">https://doi.org/10.18637/jss.v080.i01</a>.
+</div>
+<div id="ref-carpenter2017stan" class="csl-entry">
+Carpenter, Bob, Andrew Gelman, Matthew D Hoffman, Daniel Lee, Ben
+Goodrich, Michael Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li,
+and Allen Riddell. 2017. <span>“Stan: A Probabilistic Programming
+Language.”</span> <em>Journal of Statistical Software</em> 76 (1): 1–32.
+<a href="https://doi.org/10.18637/jss.v076.i01" class="external-link">https://doi.org/10.18637/jss.v076.i01</a>.
+</div>
+<div id="ref-chao1987estimating" class="csl-entry">
+Chao, Anne. 1987. <span>“Estimating the Population Size for
+Capture-Recapture Data with Unequal Catchability.”</span>
+<em>Biometrics</em> 43 (4): 783–91. <a href="https://doi.org/10.2307/2531532" class="external-link">https://doi.org/10.2307/2531532</a>.
+</div>
+<div id="ref-ztnegbin" class="csl-entry">
+Cruyff, Maarten J. L. F., and Peter G. M. van der Heijden. 2008.
+<span>“Point and Interval Estimation of the Population Size Using a
+Zero-Truncated Negative Binomial Regression Model.”</span>
+<em>Biometrical Journal</em> 50 (6): 1035–50. <a href="https://doi.org/10.1002/bimj.200810455" class="external-link">https://doi.org/10.1002/bimj.200810455</a>.
 </div>
 <div id="ref-dunne2024system" class="csl-entry">
 Dunne, John, and Li-Chun Zhang. 2024. <span>“A System of Population
@@ -1813,16 +2437,43 @@ Engbersen, and Hans C van Houwelingen. 2003. <span>“Point and Interval
 Estimation of the Population Size Using the Truncated Poisson Regression
 Model.”</span> <em>Statistical Modelling</em> 3 (4): 305–22. <a href="https://doi.org/10.1191/1471082X03st057oa" class="external-link">https://doi.org/10.1191/1471082X03st057oa</a>.
 </div>
+<div id="ref-rootogram" class="csl-entry">
+Kleiber, Christian, and Achim Zeileis. 2016. <span>“Visualizing Count
+Data Regressions Using Rootograms.”</span> <em>The American
+Statistician</em> 70 (3): 296–303. <a href="https://doi.org/10.1080/00031305.2016.1173590" class="external-link">https://doi.org/10.1080/00031305.2016.1173590</a>.
+</div>
 <div id="ref-laake2013marked" class="csl-entry">
 Laake, Jeff L, Devin S Johnson, Paul B Conn, and Nick Isaac. 2013.
 <span>“Marked: An r Package for Maximum Likelihood and Markov Chain
 Monte Carlo Analysis of Capture-Recapture Data.”</span> <em>Methods in
 Ecology &amp; Evolution</em> 4 (9): 885–90. <a href="https://doi.org/10.1111/2041-210X.12065" class="external-link">https://doi.org/10.1111/2041-210X.12065</a>.
 </div>
+<div id="ref-doParallel" class="csl-entry">
+Microsoft, and Steve Weston. 2022a. <em>doParallel: Foreach Parallel
+Adaptor for the ’Parallel’ Package</em>. <a href="https://CRAN.R-project.org/package=doParallel" class="external-link">https://CRAN.R-project.org/package=doParallel</a>.
+</div>
+<div id="ref-foreach" class="csl-entry">
+———. 2022b. <em>Foreach: Provides Foreach Looping Construct</em>. <a href="https://CRAN.R-project.org/package=foreach" class="external-link">https://CRAN.R-project.org/package=foreach</a>.
+</div>
+<div id="ref-norrpoll" class="csl-entry">
+Norris, James L, and Kenneth H Pollock. 1996. <span>“Including Model
+Uncertainty in Estimating Variances in Multiple Capture Studies.”</span>
+<em>Environmental and Ecological Statistics</em> 3 (3): 235–44. <a href="https://doi.org/10.1007/BF00569242" class="external-link">https://doi.org/10.1007/BF00569242</a>.
+</div>
+<div id="ref-parallel" class="csl-entry">
+R Core Team. 2023. <em>R: A Language and Environment for Statistical
+Computing</em>. Vienna, Austria: R Foundation for Statistical Computing.
+<a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
+</div>
 <div id="ref-seabold2010statsmodels" class="csl-entry">
 Seabold, Skipper, and Josef Perktold. 2010. <span>“Statsmodels:
 Econometric and Statistical Modeling with Python.”</span> In <em>9th
 Python in Science Conference</em>.
+</div>
+<div id="ref-tuoto2022bayesian" class="csl-entry">
+Tuoto, Tiziana, Davide Di Cecco, and Andrea Tancredi. 2022.
+<span>“Bayesian Analysis of One-Inflated Models for Elusive Population
+Size Estimation.”</span> <em>Biometrical Journal</em> 64 (5): 912–33. <a href="https://doi.org/10.1002/bimj.202100048" class="external-link">https://doi.org/10.1002/bimj.202100048</a>.
 </div>
 <div id="ref-vincent2022estimating" class="csl-entry">
 Vincent, Kyle, and Steve Thompson. 2022. <span>“Estimating the Size and
@@ -1841,7 +2492,7 @@ Yang, Hsing-Chen, and Anne Chao. 2006. <span>“Program
 4).”</span> <a href="http://chao.stat.nthu.edu.tw" class="external-link">http://chao.stat.nthu.edu.tw</a>.
 </div>
 <div id="ref-VGAM-main" class="csl-entry">
-Yee, Thomas W. 2015. <em>Vector Generalized Linear and Additive Models:
+Yee, Thomas. 2015. <em>Vector Generalized Linear and Additive Models:
 With an Implementation in r</em>. 1st ed. Springer Publishing Company,
 Incorporated.
 </div>
@@ -1865,10 +2516,28 @@ Zeileis, Achim, Christian Kleiber, and Simon Jackman. 2008.
 <span>“Regression Models for Count Data in <span>R</span>.”</span>
 <em>Journal of Statistical Software</em> 27 (8): 1–25. <a href="https://doi.org/10.18637/jss.v027.i08" class="external-link">https://doi.org/10.18637/jss.v027.i08</a>.
 </div>
+<div id="ref-sandwich" class="csl-entry">
+Zeileis, Achim, Susanne Köll, and Nathaniel Graham. 2020. <span>“Various
+Versatile Variances: An Object-Oriented Implementation of Clustered
+Covariances in <span>R</span>.”</span> <em>Journal of Statistical
+Software</em> 95 (1): 1–36. <a href="https://doi.org/10.18637/jss.v095.i01" class="external-link">https://doi.org/10.18637/jss.v095.i01</a>.
+</div>
+<div id="ref-zelterman1988robust" class="csl-entry">
+Zelterman, Daniel. 1988. <span>“Robust Estimation in Truncated Discrete
+Distributions with Application to Capture-Recapture Experiments.”</span>
+<em>Journal of Statistical Planning and Inference</em> 18 (2): 225–37.
+<a href="https://doi.org/10.1016/0378-3758(88)90097-9" class="external-link">https://doi.org/10.1016/0378-3758(88)90097-9</a>.
+</div>
 <div id="ref-zhang2019note" class="csl-entry">
 Zhang, Li-Chun. 2019. <span>“A Note on Dual System Population Size
 Estimator.”</span> <em>Journal of Official Statistics</em> 35 (1):
 279–83. <a href="https://doi.org/10.2478/jos-2019-0013" class="external-link">https://doi.org/10.2478/jos-2019-0013</a>.
+</div>
+<div id="ref-zwane" class="csl-entry">
+Zwane, EN, and PGM Van der Heijden. 2003. <span>“Implementing the
+Parametric Bootstrap in Capture–Recapture Models with Continuous
+Covariates.”</span> <em>Statistics &amp; Probability Letters</em> 65
+(2): 121–25. <a href="https://doi.org/10.1016/j.spl.2003.07.003" class="external-link">https://doi.org/10.1016/j.spl.2003.07.003</a>.
 </div>
 </div>
 </div>
