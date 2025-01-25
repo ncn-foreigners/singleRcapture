@@ -117,7 +117,7 @@ plot.singleRStaticCountData <- function(x,
     # Use match.arg for character input validation against the options
     plotType <- match.arg(plotType)
   } else {
-    stop("plotType must be NULL, a character string, or a numeric index")
+    stop("plotType must be a character string, or a numeric index")
   }
   
   ## sugested by Victoria Wimmer

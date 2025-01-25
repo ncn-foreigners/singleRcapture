@@ -21,5 +21,5 @@ drop1.singleRStaticCountData <- function(object, scope, ...) {
 #' @method anova singleRStaticCountData
 #' @exportS3Method 
 anova.singleRStaticCountData <- function(object, ...) {
-  stop("The anova method for singleRStaticCountData class doesn't work yet.")
+  stop("The custom anova method for singleRStaticCountData class is not yet implemented. If the goal is to compare models we recommend using `lmtest::lrtest` instead. ")
 }
