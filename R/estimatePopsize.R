@@ -421,7 +421,8 @@ NULL
 #' @export
 estimatePopsize <- function(formula, 
                             ...) {
-  # For future development
+  # So that other packages such as singleRcaptureExtra
+  # can implement custom methods
   UseMethod("estimatePopsize")
 }
 #' @rdname estimatePopsize
