@@ -55,7 +55,7 @@
                         <h4 data-toc-skip class="author">Piotr
 Chlebicki, Maciej Beręsewicz</h4>
             
-            <h4 data-toc-skip class="date">2025-01-25</h4>
+            <h4 data-toc-skip class="date">2025-01-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/vignettes/singleRcapture.Rmd" class="external-link"><code>vignettes/singleRcapture.Rmd</code></a></small>
       <div class="d-none name"><code>singleRcapture.Rmd</code></div>
@@ -576,20 +576,17 @@ order to apply the algorithm, a modified model matrix
 is created when the <code>estimatePopsize</code> function is called. In
 the context of the models implemented in
 <strong>singleRcapture</strong>, this matrix can be written as:</p>
-<p><span class="math display">$$
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>𝐗</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mn>𝟎</mn></mtd><mtd columnalign="center" style="text-align: center"><mi>…</mi></mtd><mtd columnalign="center" style="text-align: center"><mn>𝟎</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>𝟎</mn></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐗</mi><mn>2</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>…</mi></mtd><mtd columnalign="center" style="text-align: center"><mn>𝟎</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>⋱</mo></mtd><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>𝟎</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>𝟎</mn></mtd><mtd columnalign="center" style="text-align: center"><mi>…</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐗</mi><mi>p</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \begin{equation}\label{X_vlm-definition}
   \boldsymbol{X}_{\text{vlm}}=
   \begin{pmatrix}
-    \boldsymbol{X}_{1} &amp; \boldsymbol{0}&amp;\dotso
-&amp;\boldsymbol{0}\cr
-    \boldsymbol{0}&amp; \boldsymbol{X}_{2} &amp;\dotso
-&amp;\boldsymbol{0}\cr
-    \vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
-    \boldsymbol{0}&amp; \boldsymbol{0}&amp;\dotso
-&amp;\boldsymbol{X}_{p}
+    \boldsymbol{X}_{1} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{0}\\
+    \boldsymbol{0} &amp; \boldsymbol{X}_{2} &amp;\dotso &amp;\boldsymbol{0}\\
+    \vdots &amp; \vdots &amp; \ddots &amp; \vdots\\
+    \boldsymbol{0} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{X}_{p}
   \end{pmatrix}
 \end{equation}
-$$</span></p>
+</annotation></semantics></math></p>
 <p>where each
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{i}</annotation></semantics></math>
 corresponds to a model matrix associated with a user specified
@@ -2317,7 +2314,7 @@ links up to the third order:</p>
 <span><span class="co">##     }</span></span>
 <span><span class="co">##     res</span></span>
 <span><span class="co">## }</span></span>
-<span><span class="co">## &lt;bytecode: 0x55b303c0ea70&gt;</span></span>
+<span><span class="co">## &lt;bytecode: 0x55f7a36053b8&gt;</span></span>
 <span><span class="co">## &lt;environment: namespace:singleRcapture&gt;</span></span></code></pre>
 <p>One could, of course, include the code for computing them
 manually.</p>
