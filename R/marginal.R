@@ -24,7 +24,7 @@
 #' @seealso [estimatePopsize()] -- where example of usage is provided
 #' @export
 marginalFreq <- function(object,
-                         includeones = TRUE, # matters only for zero one truncated models
+                         includeones = TRUE,
                          includezeros = TRUE,
                          onecount = NULL,
                          range,
@@ -73,8 +73,6 @@ marginalFreq <- function(object,
   res
 }
 
-# moved from methods. 
-# TODO:: add simulated p-value
 #' @title Statistical tests of goodness of fit
 #'
 #' @description Performs two statistical test on observed and fitted

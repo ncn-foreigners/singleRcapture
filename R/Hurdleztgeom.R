@@ -76,16 +76,16 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- PI * (lambda ^ 2 + lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))
-    #Ey <- mu.eta(eta)
-    YY <- mu.eta(eta) - z ## expected for (1-z)Y
+    
+    ## expected value for (1-z)Y
+    YY <- mu.eta(eta) - z
     
     # PI^2 derivative
     G00 <- (-z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + 
       ((lambda + 1) / (lambda ^ 2 + PI * (lambda + 1))) ^ 2) *
       piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * prior
     
-    # mixed
-    
+    # mixed derivative
     G01 <- lambda * (lambda + 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2) * 
            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
            piLink(eta[, 2], inverse = TRUE, deriv = 1) * prior
@@ -115,14 +115,16 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     z <- ifelse(y == 1, y, 0)
     weight <- weight / prior
     
+    # lambda derivative
     G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1) + 
       (1 - z) * (y / lambda - (y - 1) / (1 + lambda)) - 
       (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1))
-    G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) # lambda derivative
+    G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
+    # PI derivative
     G0 <- z / PI - (1 - z) / (1 - PI) - 
       (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda))
-    G0 <- G0 * piLink(eta[, 2], inverse = TRUE, deriv = 1) # PI derivative
+    G0 <- G0 * piLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -131,8 +133,7 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) # more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -147,8 +148,11 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     }
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -165,14 +169,16 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
+        # lambda derivative
         G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1) + 
               (1 - z) * (y / lambda - (y - 1) / (1 + lambda)) - 
               (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1))
-        G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) # lambda derivative
+        G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
         
+        # PI derivative
         G0 <- z / PI - (1 - z) / (1 - PI) - 
               (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda))
-        G0 <- G0 * weight * piLink(eta[, 2], inverse = TRUE, deriv = 1) # PI derivative
+        G0 <- G0 * weight * piLink(eta[, 2], inverse = TRUE, deriv = 1)
         
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
@@ -192,23 +198,24 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
         res <- matrix(nrow = length(beta), ncol = length(beta), 
                       dimnames = list(names(beta), names(beta)))
         
+        # lambda derivative
         G1 <- z * (2 * lambda + 1) / (lambda ^ 2 + lambda + 1) + 
           (1 - z) * (y / lambda - (y - 1) / (1 + lambda)) - 
           (2 * lambda + PI) / (lambda ^ 2 + PI * (lambda + 1))
-        G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) # lambda derivative
+        G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
         
+        # PI derivative
         G0 <- z / PI - (1 - z) / (1 - PI) - 
           (1 + lambda) / (lambda ^ 2 + PI * (1 + lambda))
-        G0 <- G0 * weight * piLink(eta[, 2], inverse = TRUE, deriv = 1) # PI derivative
+        G0 <- G0 * weight * piLink(eta[, 2], inverse = TRUE, deriv = 1)
         
         # PI^2 derivative
         G00 <- -z / (PI ^ 2) - (1 - z) / ((1 - PI) ^ 2) + 
           ((lambda + 1) ^ 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2)
         G00 <- weight * (G0 * piLink(eta[, 2], inverse = TRUE, deriv = 2) + 
-                         G00 * piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2)  # second derivative of inverse logistic link
+                         G00 * piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2)
         
         # mixed
-        
         G01 <- lambda * (lambda + 2) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2)
         G01 <- G01 * piLink(eta[, 2], inverse = TRUE, deriv = 1) *
                lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight
@@ -221,12 +228,23 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
           2 / (lambda ^ 2 + PI * (lambda + 1))
         
         G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-                G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)) * weight # second derivative of log link
+                G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)) * weight
         
-        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
-        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
-        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
-        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- t(t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]))
+        res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- 
+          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00)) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        
+        res[1:lambdaPredNumber, 1:lambdaPredNumber] <- 
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11)) %*% 
+          X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        
+        res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- 
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01)) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        
+        res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- 
+          t(t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G01)) %*% 
+              as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)]))
         
         res
       }
@@ -240,13 +258,15 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
   devResids <- function(y, eta, wt, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    #idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed
+    
     # when pi = 0 distribution collapses to zotgeom
     idealLambda <- ifelse(y > 1, y - 2, 0)
     diff <- ifelse(
       y == 1, -(log(PI) + log(lambda ^ 2 + lambda + 1) - log(lambda ^ 2 + PI * (lambda + 1))),
       ifelse(y == 2, 0,
-      (y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda)) - (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda) - log(lambda ^ 2 + PI * (lambda + 1)))
+      (y - 2) * log(idealLambda) - (y - 1) * log(1 + idealLambda)) - 
+        (log(1 - PI) + y * log(lambda) - (y - 1) * log(1 + lambda) - 
+           log(lambda ^ 2 + PI * (lambda + 1)))
     )
     diff[diff < 0] <- 0
     
@@ -267,17 +287,21 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
+    # w.r to PI
     bigTheta1 <- -pw *  piLink(eta[, 2], inverse = TRUE, deriv = 1) * 
       (lambda ^ 2 + lambda + 1) * (lambda + 1) / 
-      (lambda ^ 2 + PI * (lambda + 1)) ^ 2 # w.r to PI
+      (lambda ^ 2 + PI * (lambda + 1)) ^ 2
+    
+    # w.r to lambda
     bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
-      ((PI - 1) * lambda * (lambda + 2)) / (lambda ^ 2 + PI * lambda + PI) ^ 2 # w.r to lambda
+      ((PI - 1) * lambda * (lambda + 2)) / (lambda ^ 2 + PI * lambda + PI) ^ 2
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    f2 <- sum(pw * (lambda ^ 2 + lambda + 1) * (1 - PI) * (1 + lambda) / ((lambda ^ 2 + PI * (lambda + 1)) ^ 2))
+    f2 <- sum(pw * (lambda ^ 2 + lambda + 1) * (1 - PI) * (1 + lambda) / 
+                ((lambda ^ 2 + PI * (lambda + 1)) ^ 2))
     
     f1 + f2
   }
@@ -329,7 +353,8 @@ Hurdleztgeom <- function(lambdaLink = c("log", "neglog"),
     if (method == "IRLS") {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
-        family$links[[2]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
+        family$links[[2]](weighted.mean(observed == 1, priorWeights) * 
+                            (.5 + .5 * (observed == 1)) + .01)
       ) + offset
     } else if (method == "optim") {
       init <- c(

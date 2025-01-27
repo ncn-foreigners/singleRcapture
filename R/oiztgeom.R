@@ -68,10 +68,13 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
   Wfun <- function(prior, eta, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+    # expected for I's
     z <- (lambda ^ 2) * omega + lambda * omega + lambda + omega
-    z <- z / (lambda ^ 2 + lambda * omega + lambda + omega) # expected for I's
+    z <- z / (lambda ^ 2 + lambda * omega + lambda + omega)
     Ey <- mu.eta(eta)
-    XXX <- Ey - z ## z here is the prob of 1 and XXX is expected for (1-z)*y
+    
+    ## z here is the prob of 1 and XXX is expected for yI(y >= 2)
+    XXX <- Ey - z
     
     # omega^2 derivative
     G00 <- (1 / ((lambda + omega) ^ 2) - z * ((lambda ^ 2 + lambda + 1) ^ 2) / 
@@ -89,7 +92,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
     omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * prior
     
-    # Beta^2 derivative
+    # lambda^2 derivative
     G11 <- (z * (((omega + 2 * lambda + 1) ^ 2) / 
     ((omega * lambda + omega + lambda ^ 2 + lambda) ^ 2) - 
     2 / (omega * lambda + omega + lambda ^ 2 + lambda) + 
@@ -118,13 +121,14 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     z <- ifelse(y == 1, y, 0)
     weight <- weight / prior
     
+    # lambda derivative
     G1 <- z * (omega - 1) * lambda * (omega * (2 + lambda) + lambda) / ((1 + lambda) * (lambda + omega) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
     G1 <- G1 + (1 - z) * (y / lambda - y / (1 + lambda) - 1 / (omega + lambda))
     G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
-    
+    # omega derivative
     G0 <- z * (lambda + 1) * (lambda ^ 2) / ((omega + lambda) * (omega * (lambda ^ 2 + lambda + 1) + lambda))
-    G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda)) # omega derivative
+    G0 <- G0 - (1 - z) * (lambda + 1) / ((1 - omega) * (omega + lambda))
     G0 <- G0 * omegaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
@@ -134,8 +138,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]])
+      xx <- chol2inv(chol(weight[[x]]))
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -159,8 +162,11 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     }
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -238,7 +244,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
           G01 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber]) * G01) %*% 
           as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
           
-          # Beta^2 derivative
+          # lambda^2 derivative
           G11 <- (z * (((omega + 2 * lambda + 1) ^ 2) / 
           ((omega * lambda + omega + lambda ^ 2 + lambda) ^ 2) - 
           2 / (omega * lambda + omega + lambda ^ 2 + lambda) + 
@@ -249,7 +255,7 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
           y / (lambda ^ 2) + 1 / ((omega + lambda) ^ 2)))
           
           G11 <- (G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
-                  G1 *  lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight # second derivative of log link
+                  G1 *  lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)) * weight
           
           G11 <- t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11)) %*% 
           X[1:(nrow(X) / 2), 1:lambdaPredNumber]
@@ -298,8 +304,13 @@ oiztgeom <- function(lambdaLink = c("log", "neglog"),
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- -pw * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * (1 + lambda) / ((lambda + omega) ^ 2) # w.r to omega
-    bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * (omega - 1) / ((lambda + omega) ^ 2) # w.r to lambda
+    # w.r to omega
+    bigTheta1 <- -pw * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * 
+      (1 + lambda) / ((lambda + omega) ^ 2)
+    
+    # w.r to lambda
+    bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
+      (omega - 1) / ((lambda + omega) ^ 2)
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     

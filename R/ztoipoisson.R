@@ -69,8 +69,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
   Wfun <- function(prior, y, eta, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    z <- omega + (1 - omega) * lambda / (exp(lambda) - 1) # expected for I's
-    #z <- ifelse(y == 1, y, 0)
+    z <- omega + (1 - omega) * lambda / (exp(lambda) - 1)
     
     G00 <- prior * (-(z * (1 - lambda / (exp(lambda) - 1)) ^ 2) / 
     (omega + (lambda * (1 - omega)) / (exp(lambda) - 1)) ^ 2 - 
@@ -82,8 +81,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
     omegaLink(eta[, 2], inverse = TRUE, deriv = 1))
     
-    #expected value of (1-z)*y
-    # XXXX <- (1 - omega) * lambda * (exp(lambda) - 1) / (exp(lambda) - 1)
+    #expected value of (1-I(y = 1))*y
     XXXX <- (1 - omega) * lambda
     
     G11 <- prior * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 * 
@@ -128,8 +126,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) # more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -154,8 +151,11 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -221,7 +221,7 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
         omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight) %*% 
         as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
         
-        # Beta^2 derivative
+        # lambda^2 derivative
         G11 <- ((1 - z) * (exp(2 * lambda) / (exp(lambda) - 1) ^ 2-
         exp(lambda) / (exp(lambda) - 1) - y / lambda ^ 2) + 
         (z * ((2 * (1 - omega) * lambda * exp(2 * lambda)) / (exp(lambda) - 1) ^ 3-
@@ -258,7 +258,6 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     mu <- mu.eta(eta = eta)
-    #idealOmega <- ifelse(y == 1, 1, 0)
     
     idealLambda <- tryCatch(
       expr = {
@@ -308,9 +307,14 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- rep(0, nrow(eta)) # w.r to omega
-    bigTheta2 <- pw * (exp(lambda) / (exp(lambda) - 1) ^ 2) # w.r to lambda
-    bigTheta2 <- bigTheta2 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)# w.r to lambda
+    # w.r to omega
+    bigTheta1 <- rep(0, nrow(eta))
+    
+    # w.r to lambda
+    bigTheta2 <- pw * (exp(lambda) / (exp(lambda) - 1) ^ 2)
+    
+    # w.r to lambda
+    bigTheta2 <- bigTheta2 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
@@ -361,15 +365,12 @@ ztoipoisson <- function(lambdaLink = c("log", "neglog"),
     sims
   }
   
-  # new
   getStart <- expression(
     if (method == "IRLS") {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
         (sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
       ) + offset
-      # print(summary(etaStart))
-      # stop("abc")
     } else if (method == "optim") {
       init <- c(
         family$links[[1]](weighted.mean(observed, priorWeights)),

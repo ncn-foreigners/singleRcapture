@@ -89,9 +89,6 @@ controlMethod <- function(epsilon             = 1e-8,
   if (!missing(criterion) && all(!(c("coef", "abstol", "reltol") %in% criterion))) 
     stop("At least one convergence criterion has to be chosen")
   
-  #if (isFALSE(is.integer(printEveryN) & printEveryN > 0))
-  #  stop("printEveryN argument is either negative or not an integer")
-  
   if (!isTRUE(is.finite(epsilon)) || !isTRUE(0 < epsilon) || isTRUE(length(epsilon) > 1))
     stop("Argument epsilon has to be a positive numeric value (of length 1).")
   
@@ -103,7 +100,7 @@ controlMethod <- function(epsilon             = 1e-8,
   
   if (!isTRUE(is.finite(printEveryN)) || !isFALSE(0 > printEveryN) || isTRUE(length(printEveryN) > 1)) {
     stop("Argument printEveryN has to be a nonnegative numeric value (of length 1).")
-    # If it's not an int
+    # If it's not an integer
     printEveryN <- as.integer(printEveryN)
   }
   
@@ -182,7 +179,6 @@ controlModel <- function(weightsAsCounts = FALSE,
                          omegaFormula = ~ 1,
                          alphaFormula = ~ 1,
                          piFormula = ~ 1) {
-  # This is not fully completed yet.
   list(
     weightsAsCounts = weightsAsCounts,
     omegaFormula    = omegaFormula,
@@ -242,7 +238,7 @@ controlPopVar <- function(alpha = .05,
                           B = 500,
                           confType = c("percentilic",
                                        "normal",
-                                       "basic"), # TODO: add all
+                                       "basic"),
                           keepbootStat = TRUE,
                           traceBootstrapSize = FALSE,
                           bootstrapVisualTrace = FALSE,
@@ -258,7 +254,7 @@ controlPopVar <- function(alpha = .05,
   if (missing(covType))  covType <- "observedInform"
   if (missing(sd))       sd <- "sqrtVar"
   
-  # I'm using !isTRUE instead of isFALSE because I do not wan't nulls to pass the tests
+  # Null's are not supposed to pass the tests
   if (!isTRUE(is.finite(alpha)) || isTRUE(0 > alpha || 1 < alpha) || isTRUE(length(alpha) > 1))
     stop("Argument alpha should be a numeric value between 0 and 1 (of length 1).")
   

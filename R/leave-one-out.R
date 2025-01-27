@@ -36,7 +36,7 @@ dfpopsize.singleRStaticCountData <- function(model, dfbeta = NULL, ...) {
         pw = pw[-k]
       )
     } else {
-      # Here additional conditional is not needed since if weights are zero nothing breaks
+      # If weights are zero nothing breaks
       kk <- rep(0, length(pw))
       kk[k] <- 1
       res[k] <- model$model$pointEst(
@@ -67,7 +67,7 @@ dfbeta.singleRStaticCountData <- function(model,
                            trace = FALSE,
                            cores = 1,
                            ...) {
-  # formula method removed since it doesn't give good results will reimplement if we find better formula
+  # The usual formula from glms doesn't work
   X <- model.frame.singleRStaticCountData(model, ...)
   y <- if (is.null(model$y)) stats::model.response(X) else model$y
   X <- X
@@ -81,7 +81,6 @@ dfbeta.singleRStaticCountData <- function(model,
     cl <- parallel::makeCluster(cores)
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
-    #parallel::clusterExport(cl, c("singleRinternalGetXvlmMatrix", "cf", "y", "X", "maxitNew", "model", "pw", "offset", "eta"), envir = environment())
     
     if (isFALSE(model$control$controlModel$weightsAsCounts)) {
       res <- foreach::`%dopar%`(

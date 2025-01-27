@@ -71,8 +71,8 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- PI
-    YY <- mu.eta(eta) - PI ## expected for (1-z)Y
-    #z <- ifelse(y == 1, y, 0)
+    ## expected for (1-z)Y
+    YY <- mu.eta(eta) - PI
     
     G00 <- -piLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 * 
     ((PI - z) / ((PI - 1) ^ 2 * PI) + (PI - z) / ((PI - 1) * PI ^ 2) -
@@ -113,8 +113,8 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- 1 / diag(weight[[x]]) # in this case matrix is diagonal
+      # in this case matrix is diagonal
+      xx <- 1 / diag(weight[[x]])
       xx * uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -139,8 +139,11 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -195,10 +198,14 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
         
         # PI^2 derivative
         res[-(1:lambdaPredNumber), -(1:lambdaPredNumber)] <- 
-          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
-        # Beta^2 derivative
+          t(as.data.frame(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)] * G00 * weight)) %*% 
+          as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
+        # lambda^2 derivative
         res[1:lambdaPredNumber, 1:lambdaPredNumber] <- 
-          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+          t(as.data.frame(X[1:(nrow(X) / 2), 1:lambdaPredNumber] * G11 * weight)) %*% 
+          X[1:(nrow(X) / 2), 1:lambdaPredNumber]
+        
+        #mixed
         res[1:lambdaPredNumber, -(1:lambdaPredNumber)] <- 0
         res[-(1:lambdaPredNumber), 1:lambdaPredNumber] <- 0
         
@@ -266,7 +273,6 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    #PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     N <- pw * (1 - lambda * exp(-lambda)) / (1 - exp(-lambda) - lambda * exp(-lambda))
     if(!contr) {
@@ -279,9 +285,11 @@ ztHurdlepoisson <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- rep(0, nrow(eta)) # w.r to PI
+    # w.r to PI
+    bigTheta1 <- rep(0, nrow(eta))
+    # w.r to lambda
     bigTheta2 <- -as.numeric(pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
-    (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2) # w.r to lambda
+      (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2)
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     

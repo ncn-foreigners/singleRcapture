@@ -157,8 +157,6 @@ print.summarysingleRStaticCountData <- function(x,
   cat("Pearson Residuals:\n")
   print(summary(c(x$residuals[, 1])))
   
-  # Start accesing the coefficient information in proper format
-  
   cat("\nCoefficients:\n")
   
   cond <- matrix(sapply(
@@ -193,7 +191,6 @@ print.summarysingleRStaticCountData <- function(x,
           stop = lengths[[x]] - (1 + lK)
         )}
       )
-      #print(toPrint)
       printCoefmat(
         toPrint, digits = digits, 
         signif.stars = signif.stars, 
@@ -204,7 +201,6 @@ print.summarysingleRStaticCountData <- function(x,
       )
     } else {
       cat("-----------------------\nFor linear predictors associated with:", k, "\n")
-      #print(subset(x$coefficients, rowSums(cond) == 0))
       printCoefmat(
         subset(x$coefficients, rowSums(cond) == 0), 
         digits = digits, 

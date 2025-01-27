@@ -63,7 +63,6 @@ redoPopEstimation.singleRStaticCountData <- function(object,
                                                      offset,
                                                      weightsAsCounts,
                                                      ...) {
-  ### weightsAsPopCount works
   if (missing(cov)) {
     cov <- vcov
   }

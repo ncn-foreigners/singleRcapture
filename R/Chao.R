@@ -85,8 +85,11 @@ chao <- function(lambdaLink = "loghalf",
       offset <- cbind(rep(0, NROW(X)))
     }
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta, eta) {
@@ -199,14 +202,9 @@ chao <- function(lambdaLink = "loghalf",
         (priorWeights * (observed == 2) + .5) / (priorWeights + 1)
       ) + offset
       etaStart <- family$links[[1]](2 * (etaStart / (1 - etaStart)))
-      #stop("abc")
     } else if (method == "optim") {
       init <- mean(((priorWeights * (observed == 2) + .5) / (priorWeights + 1))[observed %in% 1:2])
       coefStart <- rep(family$links[[1]](2 * init / (1 - init)), NCOL(variables))
-      # coefStart <- (lm.wfit(y = as.vector(observed[observed %in% 1:2]),
-      #                      x = variables[observed %in% 1:2, ,drop = FALSE],
-      #                      w = priorWeights[observed %in% 1:2],
-      #                      offset = as.numeric(offset[observed %in% 1:2, 1, drop = FALSE]))$coefficients + coefStart) / 2
     }
   )
   

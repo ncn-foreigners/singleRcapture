@@ -71,7 +71,9 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- PI
-    YY <- mu.eta(eta) - z ## expected for (1-z)Y
+    
+    ## expected for (1-I)Y
+    YY <- mu.eta(eta) - z
     
     G00 <- (-1) * piLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 / ((1 - PI) * PI)
     
@@ -113,8 +115,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- diag(weight[[x]]) # in this case matrix is diagonal
+      xx <- diag(weight[[x]])
       xx * uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -138,8 +139,11 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     }
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -186,7 +190,7 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
                (1 / ((1 - PI) * PI) + (PI - z) / ((1 - PI) ^ 2 * PI) + 
                (z - PI) / ((1 - PI) * PI ^ 2))
         
-        # Beta^2 derivative
+        # lambda^2 derivative
         G11 <- lambdaLink(eta[, 1], inverse = TRUE, deriv = 2) * 
           (1 - z) * ((y - 2) / lambda - (y - 1) / (lambda + 1)) -
           lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 *
@@ -212,8 +216,8 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
   devResids <- function(y, eta, wt, ...) {
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    # idealPI <- ifelse(y == 1, 1, 0) memmory allocation not needed when pi = 0 distribution collapses to zotgeom
     idealLambda <- ifelse(y > 1, y - 2, 0)
+    
     diff <- ifelse(
       y == 1, -log(PI),
       ifelse(y == 2, 0,
@@ -239,9 +243,11 @@ ztHurdlegeom <- function(lambdaLink = c("log", "neglog"),
     PI     <- piLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- rep(0, nrow(eta)) # w.r to PI
+    # w.r to PI
+    bigTheta1 <- rep(0, nrow(eta))
+    # w.r to lambda
     bigTheta2 <- (pw * as.numeric(-(lambda + 2) / lambda ^ 3) *
-    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)) # w.r to lambda
+    lambdaLink(eta[, 1], inverse = TRUE, deriv = 1))
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     

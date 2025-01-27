@@ -79,9 +79,10 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
+    
     res <- rep(0, NROW(eta))
     k <- 2 
+    
     finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
       prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
@@ -117,7 +118,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     Etrig <- compExpect(eta[iddx, , drop = FALSE])
     
-    # 2nd log(alpha) derivative
+    # 2nd alpha derivative
     G00 <- iddx
     G00[iddx] <- Etrig + (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
@@ -156,7 +157,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G01[iddx] <- G01[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] *
       alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx]
     
-    # second beta derivative
+    # second lambda derivative
     G11 <- iddx
     G11[iddx] <- ((alpha * lambda + 1) ^ (2 / alpha) * 
     (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * Ey) * lambda ^ 3 +
@@ -174,10 +175,10 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G11[iddx] <- G11[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] ^ 2
     
     matrix(
-      -c(G11 * prior, # lambda predictor derivative without X matrix,
-        G01 * prior,  # mixed derivative without X matrix
-        G01 * prior,  # mixed derivative without X matrix
-        G00 * prior  # alpha predictor derivative without X matrix
+      -c(G11 * prior, # lambda
+        G01 * prior,  # mixed 
+        G01 * prior,  # mixed 
+        G00 * prior  # alpha 
       ),
       dimnames = list(rownames(eta), 
                       c("lambda", "mixed", "mixed", "alpha")),
@@ -217,9 +218,8 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
       if (iddx[x]) {
-        xx <- solve(weight[[x]]) # more stable
+        xx <- solve(weight[[x]])
         xx %*% uMatrix[x, ]
       } else {
         uMatrix[x, ]
@@ -247,8 +247,11 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     iddx <- y > 1
     X <- as.matrix(X)
 
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -319,7 +322,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) + 
         (alpha * (-y[iddx] - 1 / alpha)) / (alpha * lambda + 1)
         
-        # 2nd log(alpha) derivative
+        # 2nd alpha derivative
         
         G00 <- iddx
         G00[iddx] <- (2 * digamma(1 / alpha + y[iddx])) / alpha ^ 3 - (2 * digamma(1 / alpha)) / alpha ^ 3 +
@@ -362,7 +365,7 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         G01[iddx] <- G01[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] *
                                   alphaLink(eta[, 2], inverse = TRUE, deriv = 1)[iddx]
         
-        # second beta derivative
+        # second lambda derivative
         G11 <- iddx
         G11[iddx] <- ((alpha * lambda + 1) ^ (2 / alpha) * 
         (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * y[iddx]) * lambda ^ 3 +
@@ -411,8 +414,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     if (any(yUnq > 77)) {
       warning("Curently numerical deviance is unreliable for counts greater than 78.")
     }
-
-    ## This could be more stable but this will do for now
     
     findL <- function(yNow) {
       stats::optim(
@@ -423,8 +424,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           a <- exp(x[3])
           
           sum(c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s der
-                #experimenta;
-                #lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a)),
                 s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
                 s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2) ^ 2)#alpha der
         },
@@ -477,7 +476,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
     }
 
-    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
     diff[diff < 0] <- 0
 
     sign(y - mu) * sqrt(2 * wt * diff)
@@ -550,7 +548,6 @@ zotnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   getStart <- expression(
     if (method == "IRLS") {
-      # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
       init <- log(abs((observed / weighted.mean(observed, priorWeights) - 1) / observed) + .1)
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),

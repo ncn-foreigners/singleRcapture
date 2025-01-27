@@ -473,10 +473,10 @@ $$
 \begin{equation}\label{X_vlm-definition}
   \bX_{\text{vlm}}=
   \begin{pmatrix}
-    \bX_{1} & \bZero &\dotso &\bZero\cr
-    \bZero & \bX_{2} &\dotso &\bZero\cr
-    \vdots & \vdots & \ddots & \vdots\cr
-    \bZero & \bZero &\dotso &\bX_{p}
+    \bX_{1} & \boldsymbol{0} &\dotso &\boldsymbol{0}\\
+    \boldsymbol{0} & \bX_{2} &\dotso &\boldsymbol{0}\\
+    \vdots & \vdots & \ddots & \vdots\\
+    \boldsymbol{0} & \boldsymbol{0} &\dotso &\bX_{p}
   \end{pmatrix}
 \end{equation}
 $$

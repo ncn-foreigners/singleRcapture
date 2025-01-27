@@ -102,15 +102,11 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   compdigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(alpha ^ (-2)) / (temp + 1 / alpha))
     (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ^ 2)
   }
   
   
   comptrigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(temp ^ 2) / (((1 + temp * alpha)) ^ 2))
     (2 * (digamma(y + 1 / alpha) - digamma(1 / alpha)) * alpha +
        trigamma(y + 1 / alpha) - trigamma(1 / alpha)) / (alpha ^ 4)
   }
@@ -124,10 +120,11 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
     res <- rep(0, NROW(eta))
-    k <- 2 # 1 is the first possible y value for 0 truncated hurdle distribution
+    
+    # 1 is the first possible y value for 0 truncated hurdle distribution
     # but here we compute the (1 - z) * psi function which takes 0 at y = 1
+    k <- 2 
     finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
       prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
@@ -158,7 +155,8 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     z  <- PI
     
-    XXX <- mu.eta(eta, type = "trunc") - z ## expected for (1-z)Y
+    ## expected for (1-I)Y
+    XXX <- mu.eta(eta, type = "trunc") - z
     
     Etrig <- compExpectG1(eta)
     
@@ -270,8 +268,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) #more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     
@@ -300,7 +297,9 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
             function(beta) {
@@ -512,8 +511,6 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       warning("Curently numerical deviance is unreliable for counts greater than 78.")
     }
     
-    ## This could be more stable but this will do for now
-    
     findL <- function(yNow) {
       stats::optim(
         par = if(TRUE) c(0, log(yNow), -15 + 2 * (yNow %in% 3:5) - 2 * (yNow %in% 6:9)) else c(0, log(yNow), -6),
@@ -523,8 +520,6 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           a <- exp(x[3])
           
           sum(c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s der
-                #experimenta;
-                #lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a)),
                 s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
                 s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2) ^ 2)#alpha der
         },
@@ -575,7 +570,6 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
     }
     
-    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
     diff[diff < 0] <- 0
     
     sign(y - mu) * sqrt(2 * wt * diff)
@@ -671,7 +665,6 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
         family$links[[2]](ifelse(init < -.5, .1, init + .55)),
-        #(sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
         family$links[[3]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
     } else if (method == "optim") {

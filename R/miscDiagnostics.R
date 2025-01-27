@@ -147,7 +147,6 @@ residuals.singleRStaticCountData <- function(object,
   type <- match.arg(type)
   res <- object$residuals
   wts <- object$priorWeights
-  #mu <- object$fitt.values
   y <- if (is.null(object$y)) stats::model.response(model.frame(object)) 
     else object$y
   
@@ -219,6 +218,6 @@ cooks.distance.singleRStaticCountData <- function(model, ...) {
   
   ht <- hatvalues(model)
   res <- (res * (ht / (length(coef(model)))))
-  rownames(res) <- rownames(ht) # fixed
+  rownames(res) <- rownames(ht)
   res
 }

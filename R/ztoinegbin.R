@@ -91,15 +91,11 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   compdigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(alpha ^ (-2)) / (temp + 1 / alpha))
     (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ^ 2)
   }
   
   
   comptrigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(temp ^ 2) / (((1 + temp * alpha)) ^ 2))
     (2 * (digamma(y + 1 / alpha) - digamma(1 / alpha)) * alpha +
     trigamma(y + 1 / alpha) - trigamma(1 / alpha)) / (alpha ^ 4)
   }
@@ -333,8 +329,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     })
 
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) #more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     
@@ -363,7 +358,9 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
             function(beta) {
@@ -721,8 +718,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       diff[diff < 0] <- 0
     }
     
-    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
-    
     sign(y - mu) * sqrt(2 * wt * diff)
   }
   
@@ -802,8 +797,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     sims
   }
   
-  # new starting points
-  
   getStart <- expression(
     if (method == "IRLS") {
       init <- log(abs((observed / weighted.mean(observed, priorWeights) - 1) / observed) + .1)
@@ -812,9 +805,6 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         family$links[[2]](ifelse(init < -.5, .1, init + .55)),
         family$links[[3]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
-      # print(summary(etaStart))
-      # print(summary(cbind(family$links[[1]](etaStart[,1], inverse = TRUE),family$links[[2]](etaStart[,2], inverse = TRUE),family$links[[3]](etaStart[,3], inverse = TRUE))))
-      # stop("abc")
     } else if (method == "optim") {
       init <- c(
         family$links[[1]](weighted.mean(observed, priorWeights)),

@@ -83,15 +83,11 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   compdigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(alpha ^ (-2)) / (temp + 1 / alpha))
     (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ^ 2)
   }
   
   
   comptrigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(temp ^ 2) / (((1 + temp * alpha)) ^ 2))
     (2 * (digamma(y + 1 / alpha) - digamma(1 / alpha)) * alpha +
        trigamma(y + 1 / alpha) - trigamma(1 / alpha)) / (alpha ^ 4)
   }
@@ -104,8 +100,9 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     P0 <- (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha)
     res <- rep(0, NROW(eta))
-    k <- 2 # 1 is the first possible y value for 0 truncated hurdle distribution
+    # 1 is the first possible y value for 0 truncated hurdle distribution
     # but here we compute the (1 - z) * psi function which takes 0 at y = 1
+    k <- 2 
     finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
       prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
@@ -310,8 +307,7 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) #more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     
@@ -338,7 +334,9 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
             function(beta) {
@@ -633,7 +631,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     findL <- function(t) {
       yNow <- yUnq[t]
       stats::optim(
-        #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
         par = c(0, log(yNow), -10),
         fn = function(x) {
           s <- x[1]
@@ -645,7 +642,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           sum(c((l*prob - yNow) * 4.5,# s der
                 yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
                 (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2,#alpha der
-                #this is experimental
                 lgamma(yNow+1/a)-lgamma(1/a) - lgamma(yNow+1)-(yNow+1/a)*log(1+a*l)+yNow*log(l*a)-log(1-(1+a*l)^(-1/a))) ^ 2) ^ .5
         },
         method = "BFGS",
@@ -680,8 +676,6 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
       diff[diff < 0] <- 0
     }
-    
-    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
     
     sign(y - mu) * sqrt(2 * wt * diff)
   }

@@ -2,8 +2,7 @@
 % Please edit documentation in R/predict.R
 \name{predict.singleRStaticCountData}
 \alias{predict.singleRStaticCountData}
-\title{\loadmathjax
-Predict method for singleRStaticCountData class}
+\title{Predict method for singleRStaticCountData class}
 \usage{
 \method{predict}{singleRStaticCountData}(
   object,
@@ -63,6 +62,8 @@ but gives the possibility to get standard errors of
 mean/distribution parameters and directly get pop size estimates for new data.
 }
 \details{
+\loadmathjax
+
 Standard errors are computed with assumption of regression
 coefficients being asymptotically normally distributed, if this assumption
 holds then each of linear predictors i.e. each row of

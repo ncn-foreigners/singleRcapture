@@ -85,8 +85,11 @@ zelterman <- function(lambdaLink = "loghalf",
       offset <- cbind(rep(0, NROW(X)))
     }
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (
       deriv,
@@ -108,7 +111,6 @@ zelterman <- function(lambdaLink = "loghalf",
           (lambda * (2 + lambda)) * weight[iddx] * 
           lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx]
         
-        #G0 <- (z - (lambda / 2) / (1 + lambda / 2)) * weight
         if (NbyK) {
           return(as.data.frame(X[iddx, , drop = FALSE]) * G0)
         }
@@ -128,8 +130,6 @@ zelterman <- function(lambdaLink = "loghalf",
           lambdaLink(eta, inverse = TRUE, deriv = 1)[iddx] ^ 2 +
           ((z[iddx] - 1) * lambda + 2 * z[iddx]) / (lambda * (2 + lambda)) *
           lambdaLink(eta, inverse = TRUE, deriv = 2)[iddx]
-        
-        #G00 <- weight * (-lambda / 2 / (1 + lambda / 2) ^ 2)
         
         t(as.data.frame(X) * weight * G00) %*% as.matrix(X)
       }

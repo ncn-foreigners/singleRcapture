@@ -45,7 +45,6 @@ simulate.singleRStaticCountData <- function(object, nsim = 1, seed = NULL, ...) 
   n <- nobs(object)
   eta <- object$linearPredictors
   
-  # Replicate each row in eta priorWeights number of times
   if (isTRUE(object$control$controlModel$weightsAsCounts)) {
     eta <- matrix(
       unlist(sapply(1:NROW(eta), function(x) {

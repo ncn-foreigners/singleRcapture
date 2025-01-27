@@ -1,5 +1,5 @@
 #' \loadmathjax
-#' Predict method for singleRStaticCountData class
+#' @title Predict method for singleRStaticCountData class
 #' 
 #' @description
 #' A method for \code{predict} function, works analogous to \code{predict.glm}

@@ -31,36 +31,7 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
   #terms <- terms(modelFrame)
   
   while (k <= numboot) {
-    # TODO:: since modelframe is needed maybe revisit it and save some memory on response
-    if (FALSE) {
-      # maybe add this as an option??
-      # in tests this is slower than "normal" option 
-      # but idk maybe if data is large enough it will be faster??
-      # the problem here is that aggregate is slow and I don't want to
-      # add another dependency in dplyr/data.table just to make it faster
-      # strap        <- sample(x = 1:length(y), 
-      #                        size = n, 
-      #                        prob = weights / n, 
-      #                        replace = TRUE)
-      # 
-      # ystrap       <- as.numeric(y[strap])
-      # offsetStrap  <- offset[strap, , drop = FALSE]
-      # Xstrap       <- modelFrame[strap, , drop = FALSE]
-      # 
-      # # get data into right format
-      # XXX <- data.frame(Xstrap, offsetStrap, ystrap, singleRcaptureInternalColnameFreq = 0)
-      # XXX <- aggregate(singleRcaptureInternalColnameFreq ~ ., data = XXX, length)
-      # 
-      # weightsStrap <- XXX$singleRcaptureInternalColnameFreq
-      # ystrap <- XXX[,NCOL(XXX)-1, drop = TRUE]
-      # offsetStrap <- XXX[,(NCOL(Xstrap)+1):(NCOL(XXX) - 2), drop = FALSE]
-      # offsetStrap <- as.matrix(offsetStrap)
-      # 
-      # Xstrap <- XXX[, 1:NCOL(Xstrap), drop = FALSE]
-      # attr(Xstrap, "terms") <- terms
-      # # free memmory
-      # XXX <- NULL
-    } else if (isTRUE(weightsFlag)) {
+    if (isTRUE(weightsFlag)) {
       strap        <- sample(x = 1:length(y), 
                              size = n, 
                              prob = weights / n, 
@@ -77,7 +48,6 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
       
       ystrap       <- as.numeric(y[strap])
       weightsStrap <- as.numeric(weights[strap])
-      #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
       offsetStrap  <- offset[strap, , drop = FALSE]
       Xstrap       <- modelFrame[strap, , drop = FALSE]
     }
@@ -118,7 +88,6 @@ noparBoot <- function(family, formulas, y, X, modelFrame,
       
       if (visT) graphics::points(k - 1, est, pch = 1)
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
-      #if (visT) graphics::points(k - 1, est, pch = 1)
       
       strappedStatistic[k - 1] <- est
     }
@@ -152,11 +121,9 @@ noparBootMultiCore <- function(family, formulas, y, X, modelFrame,
   
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
-    #obj = foreach::foreach(k = 1:numboot, .export = "singleRcaptureinternalIRLSmultipar"),
     ex = {
       theta <- NULL
       while (is.null(theta)) {
-        # TODO:: since modelframe is needed maybe revisit it and save some memory on response
         if (isTRUE(weightsFlag)) {
           strap        <- sample(x = 1:length(y), 
                                  size = n, 

@@ -42,7 +42,7 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   Wfun <- function(prior, eta, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    matrix( # returning as matrix to keep type consistency
+    matrix(
       prior / (lambda * (lambda + 1)) * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2,
       ncol = 1, dimnames = list(rownames(eta), c("lambda"))
     )
@@ -68,8 +68,11 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -83,7 +86,6 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         G1 <- (y - 1) / lambda - y / (1 + lambda)
         G1 <- weight * G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
-        # Beta derivative
         if (NbyK) {
           return(as.data.frame(X) * G1)
         }
@@ -102,8 +104,6 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
         G11 <- y / (lambda + 1) ^ 2 - (y - 1) / lambda ^ 2
         G11 <- G11 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
         
-        # second beta derivative
-        
         t(as.data.frame(X) * (G1 + G11) * weight) %*% X
       },
     )
@@ -115,7 +115,7 @@ ztgeom <- function(lambdaLink = c("log", "neglog"),
   
   devResids <- function (y, eta, wt, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    hm1y <- y - 1 # that's an analytic inverse for geometric
+    hm1y <- y - 1
     loghm1y <- ifelse(y > 1, log(hm1y), 0)
     
     diff <- (y - 1) * log(lambda) - y * log(1 + lambda) - 
@@ -173,7 +173,6 @@ simulate <- function(n, eta, lower = 0, upper = Inf) {
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12))
       ) + offset
-      #etaStart <- etaStart * priorWeights / sum(priorWeights)
     } else if (method == "optim") {
       init <- c(
         family$links[[1]](weighted.mean(observed, priorWeights))

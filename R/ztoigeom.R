@@ -69,12 +69,9 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
   Wfun <- function(prior, y, eta, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    z <- omega + (1 - omega) / (1 + lambda) # expected for I's
-    #z <- ifelse(y == 1, y, 0)
+    z <- omega + (1 - omega) / (1 + lambda)
     Ey <- mu.eta(eta = eta)
-    #Ey <- y
     XXX <- (1 - omega) * (1 + lambda - 1 / (1 + lambda))
-    #XXX <- Ey - z
       
     G00 <- prior * omegaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 *
     (-(lambda ^ 2 * omega ^ 2 + ((2 - 2 * z) * lambda - 2 * z * lambda ^ 2) * omega + 
@@ -121,8 +118,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]]) #more stable
+      xx <- chol2inv(chol(weight[[x]]))
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -147,8 +143,11 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
     
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -208,7 +207,7 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
         G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
         omegaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight) %*% 
         as.matrix(X[-(1:(nrow(X) / 2)), -(1:lambdaPredNumber)])
-        # Beta^2 derivative
+        # lambda^2 derivative
         G11 <- ((2 * (1 - omega) * z) / ((lambda + 1) ^ 3 * ((1 - omega) / (lambda + 1) + omega)) -
         ((1 - omega) ^ 2 * z) / ((lambda + 1) ^ 4 * ((1 - omega) / (lambda + 1) + omega) ^ 2) +
         (1 - z) * (y / (lambda + 1) ^ 2 - (y - 1) / lambda ^ 2))
@@ -238,7 +237,6 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
   devResids <- function(y, eta, wt, ...) {
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-    # idealOmega <- ifelse(y == 1, 1, 0) memmory allocation not needed
     idealLambda <- ifelse(y > 1, y - 1, 0)
     diff <- ifelse(
       y == 1,
@@ -251,7 +249,6 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   pointEst <- function (pw, eta, contr = FALSE, ...) {
-    #omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     N <- pw * (1 + 1 / lambda)
     if(!contr) {
@@ -261,11 +258,12 @@ ztoigeom <- function(lambdaLink = c("log", "neglog"),
   }
   
   popVar <- function (pw, eta, cov, Xvlm, ...) {
-    #omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    bigTheta1 <- rep(0, NROW(eta)) # w.r to omega
-    bigTheta2 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * pw / (lambda ^ 2) # w.r to lambda
+    # w.r to omega
+    bigTheta1 <- rep(0, NROW(eta))
+    # w.r to lambda
+    bigTheta2 <- -lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * pw / (lambda ^ 2)
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     

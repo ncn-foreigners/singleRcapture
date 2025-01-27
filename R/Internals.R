@@ -3,7 +3,7 @@
 #' @importFrom stats var
 #' @importFrom stats quantile
 #' @importFrom stats qnorm
-singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some of those are not needed
+singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
                                                      beta, weights,
                                                      hessian, family,
                                                      eta, popVar,
@@ -13,7 +13,6 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
                                                      modelFrame, 
                                                      cov, offset,
                                                      weightsFlag) {
-  #if (popVar == "noEst") {return(NULL)} moved to main function to avoid copying function parameters
   hwm <- attr(Xvlm, "hwm")
   siglevel <- control$alpha
   numboot <- control$B
@@ -24,7 +23,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
     N <- family$pointEst(pw = weights, eta = eta, y = y)
     if (is.null(cov)) {
       
-      cov <- switch(control$covType, # Change covariance here by adding more cases
+      cov <- switch(control$covType,
         "observedInform" = {
           tryCatch(
             expr = {suppressWarnings(solve(-hessian(beta)))},
@@ -168,7 +167,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad, # check if some
     class = "popSizeEstResults"
   )
 }
-# multiparameter
+# multiparameter IRLS
 singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                family,
                                                formulas,
@@ -189,7 +188,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
                                                saveLog,
                                                offset,
                                                ...) {
-  dg <- 8 # add to controll
+  dg <- 8
   converged <- FALSE
   
   # Lowering stepsize to about .3 usually helps a great deal in IRLS fitting
@@ -298,7 +297,6 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       ))
     
     WPrev <- W
-    #W <- Wfun(prior = prior, eta = eta, y = dependent)
     tryCatch(
       expr = {
         W <- Wfun(prior = prior, eta = eta, y = dependent)
@@ -335,17 +333,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
       expr = {z <- eta + Zfun(eta = eta, weight = W, y = dependent, prior = prior) - offset}
     )
     
-    if (is.null(z)) {
-      # stop(paste0(
-      #   "Pseudo residuals of IRLS algorithm could not have been computed at iteration: ",
-      #   iter, "\nMost likely working weight matrixes could not have been inverted."
-      # ), call. = FALSE)
-    }
     XbyW     <- singleRinternalMultiplyWeight(X = covariates, W = W)
-    # A <- t(Xvlm) %*% WW %*% (Xvlm)
-    # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
     A        <- XbyW %*% covariates
     B        <- XbyW %*% as.numeric(z)
+    # The code above does basically:
+    # A <- t(Xvlm) %*% WW %*% (Xvlm)
+    # B <- t(Xvlm) %*% WW %*% (as.numeric(z))
+    # but does not allocate memmory to the full weight matrix
     
     if (any(!is.finite(A)) || any(!is.finite(B))) {
       stop("IRLS step could not have been computed at iteration ", iter, call. = FALSE)
@@ -353,8 +347,7 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     
     betaPrev <- beta
     stepPrev <- step
-    step     <- solve(A,B)
-    #step <- coef(lm.wfit(x = covariates, y = z, w = W[,1]))
+    step     <- solve(A, B)
     
     if (!is.null(betaPrev)) {
       step <- step - betaPrev
@@ -490,14 +483,13 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
 
   list(coefficients = beta, iter = iter, weights = W, logg = logg)
 }
-# make Xvlm matrix
 #' @importFrom stats terms
 singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL) {
   nPar <- length(parNames)
   Xses <- list()
   
   for (k in 1:nPar) {
-    # TODO:: Add contrasts here
+    # Contrasts could be added in this place
     if (length(attr(terms(formulas[[k]], data = X), "term.labels")) != 0) {
       Xses[[k]] <- tryCatch(
         expr = {model.matrix(
@@ -530,9 +522,6 @@ singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL
   }
   hwm <- sapply(Xses, ncol)
   
-  # TODO:: Low priority but this could be much better 
-  # (without the need to allocate memmory for each X in Xses) 
-  # and for Xvlm which just stacks them
   Xvlm <- matrix(0, nrow = nPar * nrow(X), ncol = sum(hwm))
   colnames(Xvlm) <- unlist(sapply(X = Xses, FUN = colnames))
   row <- 0
@@ -548,9 +537,9 @@ singleRinternalGetXvlmMatrix <- function(X, formulas, parNames, contrasts = NULL
 #' @importFrom stats reformulate
 singleRinternalMergeFormulas <- function(ff) {
   # This code was inspired by: https://stevencarlislewalker.wordpress.com/2012/08/06/merging-combining-adding-together-two-formula-objects-in-r/
-  #ff is a list with many formulas
   env <- environment(ff[[1]])
-  for (k in 1:length(ff)) { # eliminate left hand side
+  for (k in 1:length(ff)) { 
+    # eliminate left hand side
     if (length(ff[[k]]) == 3) {
       resp <- ff[[k]][[2]]
       ff[[k]][[2]] <- NULL
@@ -560,7 +549,8 @@ singleRinternalMergeFormulas <- function(ff) {
   if (any(dotCheck)) {
     out <- reformulate(".", resp)
   } else {
-    for (k in 1:length(ff)) { # extract right hand side and create string vector
+    for (k in 1:length(ff)) { 
+      # extract right hand side and create string vector
       ff[[k]] <- strsplit(deparse(ff[[k]][[2]]), " \\+ ")[[1]]
     }
     ff <- unlist(ff)
@@ -570,14 +560,15 @@ singleRinternalMergeFormulas <- function(ff) {
   environment(out) <- env
   out
 }
-
 # This is almost certainly an overkill but it supports arbitrary number of linear predictors
 singleRinternalMultiplyWeight <- function (X, W, ...) {
   hwm <- attr(X, "hwm")
   thick <- sqrt(ncol(W))
   XbyW <- matrix(0, nrow = ncol(X), ncol = nrow(X))
+  
   wch <- c(0, cumsum(hwm))
   whichVector <- t(matrix(1:(thick ^ 2), ncol = thick))
+  
   index1 <- 1:(nrow(X) / thick)
   for (i in 1:thick) {
     index <- 1:(nrow(X) / thick)
@@ -589,33 +580,3 @@ singleRinternalMultiplyWeight <- function (X, W, ...) {
   }
   XbyW
 }
-# TODO
-# cholFroW <- function(W, prior) {
-#   if (NROW(W) != NROW(prior)) 
-#     stop(paste0(
-#       "Error in estimatePopsizeFit, working ",
-#       "weights and prior weights suggest different number of observations."
-#     ))
-#   L <- list()
-#   for (k in 1:NROW(W)) {
-#     L[[k]] <- chol(matrix(prior[k] * W[k,], ncol = 2, nrow = 2))
-#   }
-#   L
-# }
-# TODO
-# MultibyCholW <- function(Z, X, cholW, which) {
-#   # zmień na większą liczbe parametrów
-#   W <- cholW
-#   if (!is.null(Z)) {# 1 2 to par 3 to mieszane
-#     return(c(Z[1:NROW(W)]*cholW[,1]+Z[NROW(W)+1:2*NROW(W)]*cholW[,3], Z[1:NROW(W)]*cholW[,2]))
-#   } else if (!is.null(X)) {
-#     # to samo co wyżej może wykorzystaj istniejące funkcje
-#     # to jest explicite używając własnoći dekompozycji choleskiego
-#     return(cbind(
-#       rbind(cholW[,1]*X[1:(NROW(X)/2),1:which[1]]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
-#             cholW[,2]*X[-(1:(NROW(X)/2)),1:which[1]]),
-#       rbind(cholW[,1]*X[1:(NROW(X)/2),-(1:which[1])]+cholW[,3]*X[-(1:(NROW(X)/2)),-(1:which[1])],
-#             cholW[,2]*X[-(1:(NROW(X)/2)),-(1:which[1])])
-#     ))
-#   }
-# }

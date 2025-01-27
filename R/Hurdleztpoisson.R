@@ -79,7 +79,8 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     z <- PI * (1 - lambda * exp(-lambda)) / (1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda))
     
-    YY <- mu.eta(eta) - z ## expected for (1-z)Y
+    ## expected for (1-z)Y
+    YY <- mu.eta(eta) - z
     
     # PI^2 derivative
     G00 <- exp(-2 * lambda) / (-exp(-lambda) * (1 - PI) - lambda * exp(-lambda) + 1) ^ 2 - 
@@ -123,15 +124,17 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     
     z <- ifelse(y == 1, y, 0)
     
+    # lambda derivative
     G1 <- -(lambda * exp(-lambda) + (1 - PI) * exp(-lambda) - exp(-lambda)) /
       (-lambda * exp(-lambda) - (1 - PI) * exp(-lambda) + 1) +
       (z * (lambda * exp(-lambda) - exp(-lambda))) /
       (1 - lambda * exp(-lambda)) + (1 - z) * (y / lambda - 1)
     G1 <- G1 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
+    # PI derivative
     G0 <- z / PI - (1 - z) / (1 - PI) - 
       exp(-lambda) / (-exp(-lambda) * (1-PI) - lambda * exp(-lambda) + 1)
-    G0 <- G0 * piLink(eta[, 2], inverse = TRUE, deriv = 1) # PI derivative
+    G0 <- G0 * piLink(eta[, 2], inverse = TRUE, deriv = 1)
     
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
@@ -140,8 +143,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) # more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -165,8 +167,11 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     }
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -183,15 +188,17 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
         PI     <- piLink(eta[, 2], inverse = TRUE)
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         
+        # lambda derivative
         G1 <- -(lambda * exp(-lambda) + (1 - PI) * exp(-lambda) - exp(-lambda)) /
           (-lambda * exp(-lambda) - (1 - PI) * exp(-lambda) + 1) +
           (z * (lambda * exp(-lambda) - exp(-lambda))) /
           (1 - lambda * exp(-lambda)) + (1 - z) * (y / lambda - 1)
         G1 <- G1 * weight * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
         
+        # PI derivative
         G0 <- z / PI - (1 - z) / (1 - PI) - 
           exp(-lambda) / (-exp(-lambda) * (1-PI) - lambda * exp(-lambda) + 1)
-        G0 <- G0 * weight * piLink(eta[, 2], inverse = TRUE, deriv = 1) # PI derivative
+        G0 <- G0 * weight * piLink(eta[, 2], inverse = TRUE, deriv = 1)
         
         if (NbyK) {
           XX <- 1:(attr(X, "hwm")[1])
@@ -232,7 +239,7 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
         G01 <- G01 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
           piLink(eta[, 2], inverse = TRUE, deriv = 1)
         
-        # Beta^2 derivative
+        # lambda^2 derivative
         G11 <- (lambda * exp(-lambda) + (1 - PI) * exp(-lambda) - exp(-lambda)) ^ 2 / 
           (-lambda * exp(-lambda) - (1 - PI) * exp(-lambda) + 1) ^ 2 - 
           (z * (lambda * exp(-lambda) - exp(-lambda)) ^ 2) / 
@@ -342,16 +349,18 @@ Hurdleztpoisson <- function(lambdaLink = c("log", "neglog"),
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     prob <- 1 - (1 - PI) * exp(-lambda) - lambda * exp(-lambda)
     
+    # w.r to PI
     bigTheta1 <- -pw * piLink(eta[, 2], inverse = TRUE, deriv = 1) * 
-      ((exp(lambda) - lambda) / (PI + exp(lambda) - lambda - 1) ^ 2)# w.r to PI
+      ((exp(lambda) - lambda) / (PI + exp(lambda) - lambda - 1) ^ 2)
+    
+    # w.r to lambda
     bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
-      (PI - 1) * (exp(lambda) - 1) / (exp(lambda) - lambda + PI - 1) ^ 2 # w.r to lambda
+      (PI - 1) * (exp(lambda) - 1) / (exp(lambda) - lambda + PI - 1) ^ 2
     
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
     
-    #f2 <- sum(pw * (1 - PI) * exp(-lambda) * (1 - lambda * exp(-lambda)) / (prob ^ 2))
     f2 <- sum(pw * (1 - lambda * exp(-lambda)) * (1 - PI) * exp(-lambda) / (prob ^ 2))
     
     f1 + f2

@@ -188,14 +188,14 @@
 # #' @importFrom maxLik maxLik
 #' @export
 estimatePopsizeFit <- function(y, X,
-                                family,
-                                control,
-                                method,
-                                priorWeights,
-                                coefStart,
-                                etaStart,
-                                offset,
-                                ...) {
+                               family,
+                               control,
+                               method,
+                               priorWeights,
+                               coefStart,
+                               etaStart,
+                               offset,
+                               ...) {
   hwm <- attr(X, "hwm")
   tbgname <- colnames(X)
   X <- as.matrix(X)
@@ -304,20 +304,6 @@ estimatePopsizeFit <- function(y, X,
     
     iter <- FITT$counts
     beta <- FITT$par
-  } else if (method == "maxLik") {
-    # weights <- priorWeights
-    # ll <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights)
-    # gr <- family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 1)
-    # FITT <- maxLik::maxLik(
-    #   logLik = function(x) -ll(x),
-    #   grad = function(x) matrix(gr(x), nrow = 1),
-    #   hess = family$makeMinusLogLike(y = y, X = X, weight = priorWeights, deriv = 2),
-    #   method = "NM",
-    #   start = start,
-    #   iterlim = 10000
-    # )
-    # print(FITT)
-    stop("Currently in development")
   } else {
     stop("Method implemented.")
   }

@@ -1,6 +1,5 @@
 # ALL CODE IN THIS FILE WAS DEVELOPED BASED ON CODE IN sandwich PACKAGE
 
-## TODO:: Add offset to all those
 #' @importFrom sandwich estfun
 #' @method estfun singleRStaticCountData
 #' @rdname vcovHC.singleRStaticCountData
@@ -15,7 +14,6 @@ estfun.singleRStaticCountData <- function(x,...) {
   if (is.null(wts)) wts <- rep(1, length(Y))
   
   if (x$control$controlModel$weightsAsCounts) {
-    ## TODO:: find a better fix
     nums <- rep(1:length(Y), wts)
     Y <- Y[nums]
     X <- X[rep(nums, length(x$model$etaNames)), , drop = FALSE]
@@ -24,12 +22,20 @@ estfun.singleRStaticCountData <- function(x,...) {
       X = X, 
       weight = 1, 
       NbyK = TRUE, 
-      der = 1
+      deriv = 1,
+      offset = x$offset[rep(nums, length(x$model$etaNames)), , drop = FALSE]
     )(beta)
     
     colnames(res) <- names(beta)
   } else {
-    res <- x$model$makeMinusLogLike(y = Y, X = X, weight = x$priorWeights, NbyK = TRUE, deriv = 1)(beta)
+    res <- x$model$makeMinusLogLike(
+      y = Y, 
+      X = X, 
+      weight = x$priorWeights, 
+      NbyK = TRUE, 
+      deriv = 1,
+      offset = x$offset
+    )(beta)
     
     colnames(res) <- names(beta)
     rownames(res) <- rownames(X)
@@ -120,7 +126,6 @@ vcovHC.singleRStaticCountData <- function(x,
   Y <- if (is.null(x$y)) stats::model.response(model.frame(x)) else x$y
   
   if (x$control$controlModel$weightsAsCounts) {
-    ## TODO:: find a better fix
     nums <- rep(1:length(Y), x$priorWeights)
     Y <- Y[nums]
     X <- X[rep(nums, length(x$model$etaNames)), , drop = FALSE]
@@ -129,7 +134,8 @@ vcovHC.singleRStaticCountData <- function(x,
       X = X, 
       weight = 1, 
       vectorDer = TRUE, 
-      der = 1
+      deriv = 1,
+      offset = x$offset[rep(nums, length(x$model$etaNames)), , drop = FALSE]
     )(beta))
     
     hat <- (hat / x$priorWeights)[nums]
@@ -139,7 +145,8 @@ vcovHC.singleRStaticCountData <- function(x,
       X = X, 
       weight = x$priorWeights, 
       vectorDer = TRUE, 
-      der = 1
+      deriv = 1,
+      offset = x$offset
     )(beta))
   }
 

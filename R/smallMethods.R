@@ -65,13 +65,6 @@ model.frame.singleRStaticCountData <- function(formula, ...) {
   dotargs <- dots[match(c("data", "na.action", "subset"), names(dots), 0L)]
   
   if (length(dotargs) || is.null(formula$modelFrame)) {
-    # fcall <- formula$call
-    # fcall$method <- "model.frame"
-    # fcall[[1L]] <- quote(stats::glm)
-    # fcall[names(nargs)] <- nargs
-    # env <- environment(formula$terms)
-    # eval(fcall, env)
-    # TODO:: low priority add na action and subset here
     combinedFromula <- singleRinternalMergeFormulas(formula$formula)
     if (!is.null(dotargs$data)) {
       jj <- all.vars(combinedFromula)[attr(terms(combinedFromula), "response")]

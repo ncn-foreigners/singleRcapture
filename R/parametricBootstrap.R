@@ -22,7 +22,6 @@ parBoot <- function(family, formulas, y, X, beta, weights,
     ))
   }
   
-  
   contr <- family$pointEst(pw = weights,
                            eta = eta,
                            contr = TRUE,
@@ -51,7 +50,6 @@ parBoot <- function(family, formulas, y, X, beta, weights,
       
       weightsStrap <- as.numeric(weights[strap])
       offsetStrap  <- offset[strap, , drop = FALSE]
-      #etaStrap     <- eta[strap, , drop = FALSE]
       Xstrap       <- modelFrame[strap, , drop = FALSE]
       
       colnames(Xstrap) <- colnames(modelFrame)
@@ -79,7 +77,6 @@ parBoot <- function(family, formulas, y, X, beta, weights,
       
       weightsStrap <- as.numeric(weights[strap])
       offsetStrap  <- offset[strap, , drop = FALSE]
-      #etaStrap     <- eta[strap, , drop = FALSE]
       Xstrap       <- modelFrame[strap, , drop = FALSE]
       
       colnames(Xstrap) <- colnames(modelFrame)
@@ -95,7 +92,6 @@ parBoot <- function(family, formulas, y, X, beta, weights,
       )
       
       weightsStrap <- weightsStrap[ystrap > 0]
-      #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
       offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
       
       strap <- rep(ystrap > 0, length(family$etaNames))
@@ -185,7 +181,6 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  #doRNG::registerDoRNG()
   
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:numboot, .combine = c),
@@ -198,7 +193,6 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
           
           weightsStrap <- as.numeric(weights[strap])
           offsetStrap  <- offset[strap, , drop = FALSE]
-          #etaStrap     <- eta[strap, , drop = FALSE]
           Xstrap       <- modelFrame[strap, , drop = FALSE]
           
           colnames(Xstrap) <- colnames(modelFrame)
@@ -226,7 +220,6 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
           
           weightsStrap <- as.numeric(weights[strap])
           offsetStrap  <- offset[strap, , drop = FALSE]
-          #etaStrap     <- eta[strap, , drop = FALSE]
           Xstrap       <- modelFrame[strap, , drop = FALSE]
           
           colnames(Xstrap) <- colnames(modelFrame)
@@ -242,7 +235,6 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
           )
           
           weightsStrap <- weightsStrap[ystrap > 0]
-          #etaStrap     <- etaStrap[ystrap > 0, , drop = FALSE]
           offsetStrap  <- offsetStrap[ystrap > 0, , drop = FALSE]
           
           strap <- rep(ystrap > 0, length(family$etaNames))

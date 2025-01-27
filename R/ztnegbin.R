@@ -71,15 +71,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   compdigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(alpha ^ (-2)) / (temp + 1 / alpha))
     (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ^ 2)
   }
   
   
   comptrigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(temp ^ 2) / (((1 + temp * alpha)) ^ 2))
     (2 * (digamma(y + 1 / alpha) - digamma(1 / alpha)) * alpha +
      trigamma(y + 1 / alpha) - trigamma(1 / alpha)) / (alpha ^ 4)
   }
@@ -91,7 +87,6 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
     res <- rep(0, NROW(eta))
     k <- 1
     finished <- rep(FALSE, NROW(eta))
@@ -148,7 +143,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G01 <- G01 * prior * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
            lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
     
-    # second beta derivative
+    # second lambda derivative
     
     G11 <- prior * ((alpha * lambda + 1) ^ (2 / alpha) * (alpha * lambda ^ 2 - 2 * alpha * Ey * lambda - Ey) +
     (alpha * lambda + 1) ^ (1 / alpha) * ((1 - alpha) * lambda ^ 2 + 4 * alpha * Ey * lambda + 2 * Ey) - 2 * alpha * Ey * lambda - Ey) /
@@ -176,7 +171,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       matrix(as.numeric(weight[x, ]), ncol = 2)
     })
     
-    # log(alpha) derivative
+    # alpha derivative
     dig <- compdigamma(y = y, alpha = alpha)
     
     G0 <- (dig + ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) +
@@ -184,7 +179,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) - 1))) *
     alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
-    # Beta derivative
+    # lambda derivative
     G1 <- -((lambda - y) * (alpha * lambda + 1) ^ (1 / alpha) + y) /
     (lambda * (alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) - 1)) *
     lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
@@ -192,8 +187,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     uMatrix <- matrix(c(G1, G0), ncol = 2)
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) #more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     
@@ -217,8 +211,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     y <- as.numeric(y)
     X <- as.matrix(X)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -235,7 +232,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         lambda <- lambdaLink(eta[, 1], inverse = TRUE)
         alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
         
-        # log(alpha) derivative
+        # alpha derivative
         dig <- compdigamma(y = y, alpha = alpha)
         
         G0 <- (dig + ((lambda * alpha + 1) ^ (1 / alpha + 1) * log(lambda * alpha + 1) +
@@ -243,7 +240,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         (alpha ^ 2 * (lambda * alpha + 1) * ((lambda * alpha + 1) ^ (1 / alpha) - 1))) *
         alphaLink(eta[, 2], inverse = TRUE, deriv = 1) * weight
         
-        # Beta derivative
+        # lambda derivative
         G1 <- -((lambda - y) * (alpha * lambda + 1) ^ (1 / alpha) + y) /
         (lambda * (alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha) - 1)) *
         lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * weight
@@ -270,7 +267,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         trig <- comptrigamma(y = y, alpha = alpha)
         dig <-  compdigamma(y = y, alpha = alpha)
         
-        # 2nd log(alpha) derivative
+        # 2nd alpha derivative
         G00 <- ((trig + ((lambda * alpha + 1) ^ (1 / alpha) * 
         (lambda ^ 2 * alpha ^ 2 + 2 * lambda * alpha + 1) * log(lambda * alpha + 1) ^ 2 +
         ((lambda * alpha + 1) ^ (1 / alpha) * (2 * lambda ^ 2 * alpha ^ 3 + 
@@ -300,7 +297,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
         G01 <- G01 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
                lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)
         
-        # second beta derivative
+        # second lambda derivative
         
         G11 <- (((alpha * lambda + 1) ^ (2 / alpha) * (alpha * lambda ^ 2 - 2 * alpha * y * lambda - y) +
         (alpha * lambda + 1) ^ (1 / alpha) * ((1 - alpha) * lambda ^ 2 + 4 * alpha * y * lambda + 2 * y) - 2 * alpha * y * lambda - y) /
@@ -352,33 +349,9 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       warning("Curently numerical deviance is unreliable for counts greater than 78.")
     }
     
-    # findL <- function(t) {
-    #   yNow <- yUnq[t]
-    #   nleqslv::nleqslv(
-    #     x = -c(.5, log(yNow), ifelse(yNow < 10, 1, 2)),
-    #     fn = function(x) {
-    #       s <- x[1]
-    #       l <- exp(x[2])
-    #       a <- exp(x[3])
-    #        
-    #       prob <- 1 - (1+a*l)^(-1/a)
-    #       prob <- 1 / prob
-    #       c(l*prob - yNow,# s der
-    #         yNow/l+(1+yNow*a)/(1+l*a)+s*yNow*l-(yNow-l)/(l*(1+l*a))-s*yNow*(yNow-l)/(l*(1+l*a)),# lambda der
-    #         (1+yNow*a)*l+(yNow-l)*(1+s*yNow)*((1+a*l)*log(1+a*l)-a*l)+l*(1+a*l)*(digamma(1/a)+log(a)+log(yNow+1/a))-(digamma(yNow+1/a)+1)*(1+a*l)*l)#alpha der
-    #     },
-    #     control = list(
-    #       xtol = .Machine$double.eps
-    #     )
-    #   )$x
-    # }
-    
-    ## This could be more stable but this will do for now
-    
     findL <- function(t) {
       yNow <- yUnq[t]
       stats::optim(
-        #par = if(yNow < 26) c(0, .6, 0) else c(-.5, log(yNow), -20),
         par = c(0, log(yNow), -10),
         fn = function(x) {
           s <- x[1]
@@ -390,33 +363,12 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           sum(c((l*prob - yNow) * 4.5,# s der
             yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
             (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2,#alpha der
-            #this is experimental
             lgamma(yNow+1/a)-lgamma(1/a) - lgamma(yNow+1)-(yNow+1/a)*log(1+a*l)+yNow*log(l*a)-log(1-(1+a*l)^(-1/a))) ^ 2) ^ .5
         },
         method = "BFGS",
         control = list(maxit = 10000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
       )$par
     }
-    
-    ### for testing 
-    # findL <- function(yNow) {
-    #   stats::optim(
-    #     par = c(0, .6, -14),
-    #     fn = function(x) {
-    #       s <- x[1]
-    #       l <- exp(x[2])
-    #       a <- exp(x[3])
-    # 
-    #       prob <- 1 - (1+a*l)^(-1/a)
-    #       prob <- 1 / prob
-    #       sum(c((l*prob - yNow) * 10,# s der
-    #             yNow/l+(-yNow*a-1)/(1+a*l)-(1+a*l)^(-1-1/a)*prob+s*(prob-prob^2*(l*(1+a*l)^(-1-1/a))),# lambda der
-    #             (log(l*a+1)/a^2-l/(a*(l*a+1)))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a)))+(s*l*(log(l*a+1)/a^2-l/(a*(l*a+1))))/((l*a+1)^(1/a)*(1-1/(l*a+1)^(1/a))^2)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(yNow+1/a)/a^2+digamma(1/a)/a^2) ^ 2) ^ .5#alpha der
-    #     },
-    #     method = "BFGS",
-    #     control = list(maxit = 100000, abstol = .Machine$double.eps, reltol = .Machine$double.eps)
-    #   )
-    # }
     
     suppressWarnings({
       logLikIdeal <- sapply(1:length(yUnq), FUN = function(x) {
@@ -446,8 +398,6 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       diff[diff < 0] <- 0
     }
     
-    #diff <- ifelse(abs(diff) < 1e-1 & diff > 0, 0, diff)
-    
     sign(y - mu) * sqrt(2 * wt * diff)
   }
 
@@ -466,11 +416,14 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     pr <- 1 - (1 + alpha * lambda) ^ (- 1 / alpha)
 
+    # w.r to alpha
     bigTheta1 <- pw  *  alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
     ((lambda * alpha + 1) ^ (1 / alpha - 1) * ((lambda * alpha + 1) * log(lambda * alpha + 1) - lambda * alpha)) /
-    (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2)# w.r to alpha
+    (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) - 1) ^ 2)
+    
+    # w.r to lambda
     bigTheta2 <- -pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
-    ((alpha * lambda + 1) ^ (1 / alpha - 1) / ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2)# w.r to lambda
+    ((alpha * lambda + 1) ^ (1 / alpha - 1) / ((alpha * lambda + 1) ^ (1 / alpha) - 1) ^ 2)
 
     bigTheta <- t(c(bigTheta2, bigTheta1) %*% Xvlm)
 
@@ -506,7 +459,6 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   getStart <- expression(
     if (method == "IRLS") {
-      # init <- log(abs((observed / mean(observed) - 1) / mean(observed)) + .1)
       init <- log(abs((observed / weighted.mean(observed, priorWeights) - 1) / observed) + .1)
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),

@@ -48,8 +48,7 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     Ey <- mu.eta(eta)[iddx]
     
     G11 <- iddx
-    # This looks much scaries than it ought to :) 
-    # ... to bad!
+    
     G11[iddx] <- (-((lambda - Ey) * exp(lambda) + exp(lambda) + Ey - 1) /
     (lambda * (exp(lambda) - lambda - 1)) + 
     ((lambda - Ey) * exp(lambda) + (Ey - 1) * lambda + Ey) /
@@ -87,8 +86,11 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
       offset <- cbind(rep(0, NROW(X)))
     }
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {
@@ -145,7 +147,6 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
   devResids <- function(y, eta, wt, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     iddx <- y > 1
-    #print(table(y))
     
     inverseFunction <- function(y) {stats::uniroot(
       f = function(x) {mu.eta(x) - y}, 
@@ -155,8 +156,6 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     
     # only compute predictors in saturated model for unique values of y
     # this is faster because stats::uniroot in slow whereas lamW::lambertW0 is really fast
-    # so this is not worth it in ztpoisson and yes this is what I have to do because R does 
-    # not have dictionaries :( Also I checked it with rbenchmark::benchmark with many replications
     yUnq <- unique(y[iddx])
     lambdaSat <- sapply(yUnq, FUN = function(x) ifelse(x == 2, -Inf, inverseFunction(x)))
     
@@ -215,9 +214,6 @@ zotpoisson <- function(lambdaLink = c("log", "neglog"),
     iddx <- y > 1
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)[iddx]
     Xvlm <- as.data.frame(Xvlm)
-    
-    #prob <- (1 - exp(-lambda) - lambda * exp(-lambda))
-    #term <- (1 - lambda * exp(-lambda)) ^ 2
     
     f1 <- -t(Xvlm[iddx,, drop = FALSE]) %*% 
       (as.numeric(pw[iddx] * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1)[iddx] * 

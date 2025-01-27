@@ -72,10 +72,11 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     omega  <-  omegaLink(eta[, 2], inverse = TRUE)
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     
-    z <- (exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega) # expected for I's
-    #z <- ifelse(y == 1, y, 0)
+    # expected for I's
+    z <- (exp(lambda) * omega + lambda * (1 - omega)) / (exp(lambda) - 1 + omega)
     Ey <- mu.eta(eta)
-    XXX <- Ey - z ## z here is the prob of 1 and XXX is expected for (1-z)*y
+    ## z here is the prob of 1 and XXX is expected for (1-I(y=1))*y
+    XXX <- Ey - z
     
     # omega^2 derivative
     G00 <- (-(z * (exp(lambda) - lambda) ^ 2) /
@@ -136,8 +137,7 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      #xx <- solve(weight[[x]])
+      xx <- chol2inv(chol(weight[[x]]))
       xx %*% uMatrix[x, ]
     })
     pseudoResid <- t(pseudoResid)
@@ -162,8 +162,11 @@ oiztpoisson <- function(lambdaLink = c("log", "neglog"),
     }
     z <- as.numeric(y == 1)
     
-    if (!(deriv %in% c(0, 1, 2))) stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    if (!(deriv %in% c(0, 1, 2))) 
+      stop("Only score function and derivatives up to 2 are supported.")
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
       function(beta) {

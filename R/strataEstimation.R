@@ -80,9 +80,6 @@ stratifyPopsize.singleRStaticCountData <- function(object,
                                                    alpha, 
                                                    cov = NULL,
                                                    ...) {
-  ## TODO:: New data doesn't work yet
-  
-  # if strata is unspecified get all levels of factors in modelFrame
   if (missing(strata)) {
     strata <- names(which(attr(object$terms, "dataClasses") == "factor"))
     strata <- strata[strata %in% attr(object$terms, "term.labels")]
@@ -94,8 +91,6 @@ stratifyPopsize.singleRStaticCountData <- function(object,
       stop("No strata argument was provided and no factors or character columns are present in model.frame.")
     }
   }
-  # If there are no factors or characters and no strata was provided throw error
-  # if significance level is unspecified set it to 5%
   if (missing(alpha)) alpha <- .05
   
   # convert strata to list for all viable types of specifying the argument
@@ -104,7 +99,8 @@ stratifyPopsize.singleRStaticCountData <- function(object,
     mmf <- model.matrix(
       strata, data = mf, 
       contrasts.arg = lapply(
-        subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
+        # this makes it so that all levels of factors are encoded
+        subset(mf, select = sapply(mf, is.factor)),
         contrasts, contrasts = FALSE
       )
     )
@@ -146,12 +142,9 @@ stratifyPopsize.singleRStaticCountData <- function(object,
     for (k in strata) {
       if (!(k %in% colnames(modelFrame))) 
         stop("Variable specified in strata is not present in model frame.")
-      
-      #if (!(is.factor(modelFrame[, k])) & !(is.character(modelFrame[, k]))) 
-      #  stop("Variable specified in strata is not a factor or a character vector.")
 
       if (is.factor(modelFrame[, k])) {
-        # this makes a difference on factor that is not present
+        # this makes a difference on factors that have leves which are not represented in the data
         for (t in levels(modelFrame[, k])) {
           out[[paste0(as.character(k), "==", t)]] <- (modelFrame[, k] == t)
         }
@@ -163,9 +156,6 @@ stratifyPopsize.singleRStaticCountData <- function(object,
     }
     strata <- out
   } else {
-    # a formula, a list with logical vectors specifying different sub 
-    # populations or a single logical vector or a vector 
-    # with names of factor variables.
     errorMessage <- paste0(
       "Invalid way of specifying subpopulations in strata.\n", 
       "Please provide either:\n",
@@ -177,16 +167,13 @@ stratifyPopsize.singleRStaticCountData <- function(object,
     stop(errorMessage)
   }
   
-  # get necessary model info AFTER possible error in function
   family <- family(object = object)
   priorWeights <- object$priorWeights
   eta <- object$linearPredictors
   Xvlm <- model.matrix(object, "vlm")
-  # this is now needed
   y <- if (is.null(object$y)) model.response(model.frame(object)) else object$y
   flagWeighting <- object$control$controlModel$weightsAsCounts
   
-  # get covariance matrix
   if (is.function(cov)) cov <- cov(object, ...)
   if (is.null(cov)) cov <- vcov(object, ...)
   

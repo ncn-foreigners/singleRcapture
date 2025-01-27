@@ -112,21 +112,16 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   }
   
   compdigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(alpha ^ (-2)) / (temp + 1 / alpha))
     (-digamma(y + 1 / alpha) + digamma(1 / alpha)) / (alpha ^ 2)
   }
   
   
   comptrigamma <- function(y, alpha) {
-    #temp <- 0:(y-1)
-    #sum(-(temp ^ 2) / (((1 + temp * alpha)) ^ 2))
     (2 * (digamma(y + 1 / alpha) - digamma(1 / alpha)) * alpha +
     trigamma(y + 1 / alpha) - trigamma(1 / alpha)) / alpha ^ 4
   }
   
   # Computing the expected value of di/trigamma functions on (y + 1/alpha)
-  
   compExpectG1 <- function(eta) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
@@ -134,10 +129,11 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
     P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    #P0 <- stats::dnbinom(x = 0, size = 1 / alpha, mu = lambda)
+    
     res <- rep(0, NROW(eta))
-    k <- 2 # 1 is the first possible y value for 0 truncated hurdle distribution
+    # 1 is the first possible y value for 0 truncated hurdle distribution
     # but here we compute the (1 - z) * psi function which takes 0 at y = 1
+    k <- 2 
     finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
       prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
@@ -169,11 +165,12 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     z <- PI * (1 - lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1))
     z <- z / (1 - (1 - PI) * (1 + alpha * lambda) ^ (-1 / alpha) - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
     
-    XXX <- mu.eta(eta, type = "trunc") - z ## expected for (1-z)Y
+    ## expected for (1-z)Y
+    XXX <- mu.eta(eta, type = "trunc") - z
 
     Etrig  <- compExpectG1(eta)
 
-    # PI
+    # PI derivative
     G00 <- 1 / ((alpha * lambda + 1) ^ (2 / alpha) * 
     (-(1 - PI) / (alpha * lambda + 1) ^ (1 / alpha) -
     lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) ^ 2) -
@@ -181,7 +178,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     G00 <- G00 * piLink(eta[, 3], inverse = TRUE, deriv = 1) ^ 2
     
-    # PI alpha
+    # PI alpha derivative
     G01 <- -((lambda * alpha + 1) ^ (1 / alpha) * (1 + alpha * lambda) ^ 2 *
     log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) *
     (-lambda ^ 2 * alpha ^ 2 - lambda * alpha) - lambda ^ 2 * alpha ^ 2) /
@@ -191,7 +188,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G01 <- G01 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
                     piLink(eta[, 3], inverse = TRUE, deriv = 1)
     
-    # PI lambda
+    # PI lambda derivative
     G02 <- ((alpha * lambda + 1) ^ (1 / alpha + 1) - 1) /
     ((alpha * lambda + 1) ^ (1 / alpha + 1) + 
     ((PI - 1) * alpha - 1) * lambda + PI - 1) ^ 2
@@ -199,7 +196,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G02 <- G02 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                      piLink(eta[, 3], inverse = TRUE, deriv = 1)
     
-    # alpha
+    # alpha derivative
     G11 <- (-(1 - PI) * (log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
     (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
     (log(lambda * alpha + 1) / alpha ^ 2 + lambda * (-1 / alpha - 1) / (lambda * alpha + 1))) ^ 2 /
@@ -234,7 +231,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
-    # alpha lambda
+    # alpha lambda derivative
     G12 <- (1 - z) * lambda / (lambda * alpha + 1) ^ 2 - 
     XXX / ((1 / alpha + lambda) ^ 2 * alpha ^ 2) -
     ((-(1 - PI) * (lambda * alpha + 1) ^ (-1 / alpha - 1) +
@@ -274,8 +271,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G12 <- G12 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                   alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
     
-    #lambda
-    
+    #lambda derivative
     G22 <- (1 - z) * alpha / (alpha * lambda + 1) ^ 2 + XXX / (lambda + 1 / alpha) ^ 2 - XXX / lambda ^ 2 - 
     ((1 - PI) * (-1 / alpha - 1) * alpha * (alpha * lambda + 1) ^ (-1 / alpha - 2) -
     2 * (-1 / alpha - 1) * alpha * (alpha * lambda + 1) ^ (-1 / alpha - 2) -
@@ -352,8 +348,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     })
     
     pseudoResid <- sapply(X = 1:length(weight), FUN = function (x) {
-      #xx <- chol2inv(chol(weight[[x]])) # less computationally demanding
-      xx <- solve(weight[[x]]) #more stable
+      xx <- solve(weight[[x]])
       xx %*% uMatrix[x, ]
     })
     
@@ -383,7 +378,9 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
-    deriv <- deriv + 1 # to make it conform to how switch in R works, i.e. indexing begins with 1
+    
+    # to make it conform to how switch in R works, i.e. indexing begins with 1
+    deriv <- deriv + 1
     
     switch (deriv,
             function(beta) {
@@ -391,8 +388,6 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               lambda <- lambdaLink(eta[, 1], inverse = TRUE)
               alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
               PI     <-     piLink(eta[, 3], inverse = TRUE)
-              # P0 <- (1 + alpha * lambda) ^ (- 1 / alpha)
-              # P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
               
               -sum(weight * (
               z * (log(PI) + log(1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))) +
@@ -476,7 +471,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               trig <- comptrigamma(y = y, alpha = alpha)
               dig  <-  compdigamma(y = y, alpha = alpha)
               
-              # PI
+              # PI dervative
               G0 <- z / PI - (1 - z) / (1 - PI) - 1 /
               ((alpha * lambda + 1) ^ (1 / alpha) * 
               (-(1 - PI) / (alpha * lambda + 1) ^ (1 / alpha) -
@@ -490,7 +485,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               G00 <- G00 * piLink(eta[, 3], inverse = TRUE, deriv = 1) ^ 2 +
                       G0 * piLink(eta[, 3], inverse = TRUE, deriv = 2)
               
-              # PI alpha
+              # PI alpha dervative
               G01 <- -((lambda * alpha + 1) ^ (1 / alpha) * (1 + alpha * lambda) ^ 2 *
               log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) *
               (-lambda ^ 2 * alpha ^ 2 - lambda * alpha) - lambda ^ 2 * alpha ^ 2) /
@@ -500,7 +495,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               G01 <- G01 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
                               piLink(eta[, 3], inverse = TRUE, deriv = 1)
               
-              # PI lambda
+              # PI lambda dervative
               G02 <- ((alpha * lambda + 1) ^ (1 / alpha + 1) - 1) /
               ((alpha * lambda + 1) ^ (1 / alpha + 1) + 
               ((PI - 1) * alpha - 1) * lambda + PI - 1) ^ 2
@@ -508,7 +503,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               G02 <- G02 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                                piLink(eta[, 3], inverse = TRUE, deriv = 1)
               
-              # alpha
+              # alpha dervative
               G1 <- (1 - z) * (log(lambda * alpha + 1) / alpha ^ 2 - 
               lambda / (alpha * (lambda * alpha + 1)) +
               y / ((1 / alpha + lambda) * alpha ^ 2) + dig) - 
@@ -555,7 +550,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2 +
                       G1 * alphaLink(eta[, 2], inverse = TRUE, deriv = 2)
               
-              # alpha lambda
+              # alpha lambda dervative
               G12 <- (1 - z) * (lambda / (lambda * alpha + 1) ^ 2 - 
               y / ((1 / alpha + lambda) ^ 2 * alpha ^ 2)) -
               ((-(1 - PI) * (lambda * alpha + 1) ^ (-1 / alpha - 1) +
@@ -595,7 +590,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               G12 <- G12 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                             alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
               
-              #lambda
+              #lambda dervative
               G2 <- (1 - z) * (-1 / (alpha * lambda + 1) - y / (lambda + 1 / alpha) + y / lambda) -
               ((1 - PI) * (alpha * lambda + 1) ^ (-1 / alpha - 1) - (alpha * lambda + 1) ^ (-1 / alpha - 1) - 
               (-1 / alpha - 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) /
@@ -691,7 +686,6 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       warning("Curently numerical deviance is unreliable for counts greater than 78.")
     }
     
-    ## This could be more stable but this will do for now
     
     findL <- function(yNow) {
       stats::optim(
@@ -701,11 +695,9 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           l <- exp(x[2])
           a <- exp(x[3])
           
-          sum(c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s der
-                #experimenta;
-                #lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a)),
-                s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
-                s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2) ^ 2)#alpha der
+          sum(c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s derivative
+                s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda derivative
+                s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2) ^ 2)#alpha derivative
         },
         gr = function(x) {
           s <- x[1]
@@ -717,8 +709,8 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           d23.32 <- (((l*a+1)^(2/a)*(l^5*s*a^5+(5*l^4*s-l^4)*a^4+((-l^5+2*l^4+9*l^3)*s-l^4-3*l^3)*a^3+((-3*l^4+6*l^3+7*l^2)*s-3*l^3-3*l^2)*a^2+((-3*l^3+6*l^2+2*l)*s-3*l^2-l)*a+(2*l-l^2)*s-l)+(l*a+1)^(1/a)*(-l^5*s*a^5+((-3*l^5-5*l^4)*s+l^4)*a^4+((-3*l^5-10*l^4-9*l^3)*s+2*l^4+3*l^3)*a^3+((-l^5-7*l^4-13*l^3-7*l^2)*s+l^4+5*l^3+3*l^2)*a^2+((-2*l^4-5*l^3-8*l^2-2*l)*s+2*l^3+4*l^2+l)*a+(-l^3-l^2-2*l)*s+l^2+l))*log(l*a+1)+(l*a+1)^(2/a)*((3*l^3*yNow-l^5*s-2*l^4)*a^5+((3*l^3+9*l^2)*yNow+(2*l^5-8*l^4+2*l^3)*s-8*l^3)*a^4+((6*l^2+9*l)*yNow+(l^5+2*l^4-13*l^3+4*l^2)*s+l^4-10*l^2)*a^3+((3*l+3)*yNow+(2*l^4-2*l^3-6*l^2+2*l)*s+2*l^3-4*l)*a^2+((l^3-2*l^2)*s+l^2)*a)+(l*a+1)^(3/a)*((l^4-l^3*yNow)*a^5+(3*l^3-3*l^2*yNow)*a^4+(3*l^2-3*l*yNow)*a^3+(l-yNow)*a^2)+(l*a+1)^(1/a)*((-3*l^3*yNow+l^5*s+l^4)*a^5+((-6*l^3-9*l^2)*yNow+(3*l^5+8*l^4-4*l^3)*s+7*l^3)*a^4+((-3*l^3-12*l^2-9*l)*yNow+(3*l^5+7*l^4+13*l^3-8*l^2)*s-2*l^4+3*l^3+11*l^2)*a^3+((-3*l^2-6*l-3)*yNow+(l^5+4*l^4+6*l^3+6*l^2-4*l)*s-l^4-3*l^3+3*l^2+5*l)*a^2+((l^4+l^3+2*l^2)*s-l^3-l^2)*a)+l^3*yNow*a^5+((3*l^3+3*l^2)*yNow+2*l^3*s-2*l^3)*a^4+((3*l^3+6*l^2+3*l)*yNow+4*l^2*s-3*l^3-4*l^2)*a^3+((l^3+3*l^2+3*l+1)*yNow+2*l*s-l^3-3*l^2-2*l)*a^2)/(a^2*(l*a+1)^2*((l*a+1)^(1/a+1)-l*a-l-1)^3)
           d33.33 <- s*((2*(l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^3-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2)/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+(2*l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))+(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))^2/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))^2/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))^2-(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))+l^2/(a*(l*a+1)^2))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-1))/(l*a+1)^2))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)-(2*log(l*a+1))/a^3+(2*l)/(a^2*(l*a+1))-(l^2*(-1/a-yNow))/(l*a+1)^2-yNow/a^2+(2*digamma(1/a+yNow))/a^3-(2*digamma(1/a))/a^3+trigamma(1/a+yNow)/a^4-trigamma(1/a)/a^4
           
-          f2 <- 2*c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s der
-                    s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda der
+          f2 <- 2*c(((l-l*(a*l+1)^(-1/a-1))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)-yNow) ,# s derivative
+                    s*((-(a*l+1)^(-1/a-1)-(-1/a-1)*a*l*(a*l+1)^(-1/a-2)+1)/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2)*(l-l*(a*l+1)^(-1/a-1)))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)^2)+((-1/a-1)*a*l*(a*l+1)^(-1/a-2))/(-1/(a*l+1)^(1/a)-l*(a*l+1)^(-1/a-1)+1)+(a*(-yNow-1/a))/(a*l+1)+yNow/l,# lambda derivative
                     s*(-((l-l*(l*a+1)^(-1/a-1))*(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1))))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)^2-(l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1))-(-(log(l*a+1)/a^2-l/(a*(l*a+1)))/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)*(log(l*a+1)/a^2+(l*(-1/a-1))/(l*a+1)))/(-1/(l*a+1)^(1/a)-l*(l*a+1)^(-1/a-1)+1)+log(l*a+1)/a^2+(l*(-1/a-yNow))/(l*a+1)+yNow/a-digamma(1/a+yNow)/a^2+digamma(1/a)/a^2)
           
           c(sum(f2 * c(0, d12.21, d13.31)),
@@ -791,6 +783,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       (lambda ^ 2 * alpha ^ 2 + 2 * lambda * alpha + 1) * log(lambda * alpha + 1) +
       (lambda * alpha + 1) ^ (1 / alpha) * (-lambda ^ 2 * alpha ^ 2 - lambda * alpha) -lambda ^ 2 * alpha ^ 2) /
       (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) + (PI - 1) * lambda * alpha - lambda + PI - 1) ^ 2)
+    
     bigTheta2 <- pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
       (PI - 1) * ((alpha * lambda + 1) ^ (1 / alpha + 1) - 1) /
       ((alpha * lambda + 1) ^ (1 / alpha + 1) + ((PI - 1) * alpha - 1) * lambda + PI - 1) ^ 2
@@ -858,7 +851,6 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       etaStart <- cbind(
         pmin(family$links[[1]](observed), family$links[[1]](12)),
         family$links[[2]](ifelse(init < -.5, .1, init + .55)),
-        #(sizeObserved * (observed == 1) + .5) / (sizeObserved * sum(observed == 1) + 1)
         family$links[[3]](weighted.mean(observed == 1, priorWeights) * (.5 + .5 * (observed == 1)) + .01)
       ) + offset
     } else if (method == "optim") {

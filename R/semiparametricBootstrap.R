@@ -51,7 +51,6 @@ semparBoot <- function(family, formulas, y, X, beta,
       
       ystrap       <- y[as.numeric(strap)]
       weightsStrap <- weights[as.numeric(strap)]
-      #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
       offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
       Xstrap       <- modelFrame[strap, , drop = FALSE]
     }
@@ -93,7 +92,6 @@ semparBoot <- function(family, formulas, y, X, beta,
       
       if (visT) graphics::points(k - 1, est, pch = 1)
       if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
-      #if (visT) graphics::points(k - 1, est, pch = 1)
       
       strappedStatistic[k - 1] <- est
     }
@@ -152,7 +150,6 @@ semparBootMultiCore <- function(family, formulas, y, X, modelFrame,
           
           ystrap       <- y[as.numeric(strap)]
           weightsStrap <- weights[as.numeric(strap)]
-          #etaStrap     <- eta[as.numeric(strap), , drop = FALSE]
           offsetStrap  <- offset[as.numeric(strap), , drop = FALSE]
           Xstrap       <- modelFrame[strap, , drop = FALSE]
         }

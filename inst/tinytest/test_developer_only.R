@@ -2,7 +2,6 @@
 # package GitHub page not on CRAN (they take too long)
 
 if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
-#if (TRUE) {
   expect_error(
     estimatePopsize(
       formula = TOTAL_SUB ~ .,

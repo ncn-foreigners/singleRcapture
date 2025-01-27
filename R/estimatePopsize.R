@@ -421,6 +421,7 @@ NULL
 #' @export
 estimatePopsize <- function(formula, 
                             ...) {
+  # For future development
   UseMethod("estimatePopsize")
 }
 #' @rdname estimatePopsize
@@ -466,7 +467,7 @@ estimatePopsize.default <- function(formula,
   
   if (!is.logical(subset)) {subset <- eval(subset, data)}
   if (is.null(subset)) {subset <- TRUE}
-  # subset is often in conflict with some common packages hence explicit call
+  # subset is often in conflict with some common packages hence the explicit call
   data <- base::subset(data, subset = subset)
   
   family <- model
@@ -480,8 +481,6 @@ estimatePopsize.default <- function(formula,
   returnElements <- list(y, x, modelFrame)
   
   if (!ratioReg) {
-    # adding control parameters that may possibly be missing
-    # since passing simple lists as control arguments is allowed
     m1 <- controlPopVar
     m1 <- m1[sapply(m1, is.null) == FALSE]
     m2 <- controlPopVar(
@@ -512,7 +511,6 @@ estimatePopsize.default <- function(formula,
     m2 <- m2[names(m2) %in% names(m1) == FALSE]
     controlModel <- append(m1, m2)
     
-    #this may be changed for formula to be a list later
     formulas <- list(formula)
     
     if ("alpha" %in% family$etaNames) {
@@ -539,11 +537,6 @@ estimatePopsize.default <- function(formula,
     contrasts <- attr(variables, "contrasts")
     observed  <- model.response(modelFrame)
     
-    # It is both necessary and sufficient to check X_lm matrix to know whether
-    # X_vlm matrix is full rank
-    ## TODO:: Either start using Matrix package everywhere or use QR
-    ## in fitting
-    
     if (NCOL(observed) > 1) 
       stop("Single source capture-recapture models support only single dependent variable.")
   
@@ -563,9 +556,8 @@ estimatePopsize.default <- function(formula,
     if (!all(observed > 0)) {
       stop("Error in function estimatePopsize, data contains zero-counts.")
     }
-    # wch was here and is now deleted
+    
     Xvlm <- singleRinternalGetXvlmMatrix(
-      # this preserves terms attribute
       X = modelFrame,
       formulas = formulas, 
       parNames = family$etaNames
@@ -660,9 +652,6 @@ estimatePopsize.default <- function(formula,
     )
     colnames(fitt) <- c("truncated", "nontruncated")
     
-    # (Real square) Matrix is negative define iff all eigen values have 
-    # negative sign. This is very fast. 
-    # We only use eigen values so only.values is set to true.
     eig <- eigen(hessian(coefficients), symmetric = TRUE, only.values = TRUE)
     if (!all(sign(eig$values) == -1)) {
       warningMessage <- paste0(
@@ -673,10 +662,9 @@ estimatePopsize.default <- function(formula,
         "Additionally in one inflated and hurdle models second ",
         "derivative test often fails even on valid arguments."
       )
-      if (!isTRUE(controlMethod$silent)) warning(warningMessage)
-      #cat("The eigen values were: ", eig$values) 
-      # Add some option that will give much more 
-      # information everywhere including here.
+      if (!isTRUE(controlMethod$silent)) {
+        warning(warningMessage)
+      }
       if (controlPopVar$covType == "observedInform") {
         if (!isTRUE(controlMethod$silent)) 
           warning(paste0(
@@ -691,14 +679,16 @@ estimatePopsize.default <- function(formula,
     LOG          <- -logLike(coefficients)
     resRes       <- priorWeights * (observed - fitt)
     
-    if (family$family %in% c("zelterman", "chao")) {resRes <- resRes - priorWeights}
+    if (family$family %in% c("zelterman", "chao")) {
+      resRes <- resRes - priorWeights
+    }
   
     deviance <- sum(family$devResids(y   = observed, 
                                      wt  = priorWeights,
                                      eta = eta + offset) ^ 2)
     
     if (popVar == "noEst") {
-      Pop <- NULL #TODO:: make sure methods are prepared for this
+      Pop <- NULL
     } else {
       POP <- singleRcaptureinternalpopulationEstimate(
         y = observed,
@@ -727,7 +717,7 @@ estimatePopsize.default <- function(formula,
     
     structure(
       list(
-        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
+        y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # droping names
         X                = if(isTRUE(returnElements[[2]])) variables else NULL,
         modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
         formula          = formulas,
@@ -758,92 +748,6 @@ estimatePopsize.default <- function(formula,
       class = c("singleRStaticCountData", "glm", "lm")
     )
   } else {
-    stop("Ratio regression is not yet implemented")
-    # ff <- formula
-    # # TODO make this inherit from family
-    # a <- function(x) {x+1}
-    # if (length(ff) == 3) {ff[[3]] <- 1}
-    # modelFrame <- stats::model.frame(ff, data, ...)
-    # 
-    # observed <- modelFrame |>
-    #   model.response() |>
-    #   as.vector() # dropping names, won't be needed
-    # 
-    # delete <- modelFrame |>
-    #   attr("names")
-    # 
-    # ff <- log(r) ~ 1
-    # ff[[3]] <- formula[[3]]
-    # 
-    # counts <- table(observed)
-    # 
-    # if (TRUE) {
-    #   r <- sapply(1:(max(observed)-1), function(x) {
-    #     family$ratioFunc(x) * counts[as.character(x+1)] / counts[as.character(x)]
-    #   }) |> as.vector()
-    #   
-    #   if (!is.null(weights)) {
-    #     priorWeights <- as.numeric(weights)
-    #   } else {
-    #     priorWeights <- rep(1, nrow(modelFrame))
-    #   }
-    #   
-    #   if (TRUE) {
-    #     weights <- (1/counts[1:(max(observed)-1)] + 1/counts[2:max(observed)]) ^ -1
-    #     #weights <- priorWeights * weights
-    #   } else {
-    #     # weighting outgh to be optional
-    #   }
-    #   
-    #   # maybe include data here
-    #   linearModel <- lm(ff, data = data.frame(
-    #                     r = r, x = 1:(max(observed) - 1)
-    #                     ), weights = weights, ...)
-    #   
-    #   fitRatio <- predict(linearModel, data.frame(x = 0:(max(observed)-1)))
-    #   fitRatio <- exp(fitRatio)
-    #   
-    #   # first est for N
-    #   N <- sum(counts) / (1 - 1 / sum(c(1, cumprod(fitRatio))))
-    #   # second est for N
-    #   N <- c(N, sum(counts) + family$ratioFunc(0)*counts["1"] / fitRatio[1])
-    #   names(N) <- c("ht", "reg")
-    #   f0 <- N - sum(counts)
-    #   
-    #   # TODO:: idk if this applies to HT estimate
-    #   variation <- model.matrix(ff, model.frame(ff, data.frame(x = 0, r = 0)))
-    #   variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
-    #   ## TODO -- this is an approximation
-    #   # we're assuming var(counts["1"]) ~~ counts["1"]
-    #   # this can be made better
-    #   variation <- variation + counts["1"] * (a(0) ^ 2) * 
-    #     exp(-predict(linearModel, data.frame(x = 0))) ^ 2
-    #   
-    #   sd <- sqrt(variation)
-    #   sc <- qnorm(p = 1 - .05 / 2)
-    #   
-    #   
-    #   confidenceInterval <- 
-    #     data.frame(lowerBound = pmax(N - sc * sd, sum(counts)), 
-    #                upperBound = N + sc * sd)
-    #   print(N)
-    #   print(confidenceInterval)
-    #   
-    # } else {
-    #   ### TODO
-    #   # put observed likelihood method here
-    # }
-    # 
-    # structure(
-    #   list(
-    #     y                = if(isTRUE(returnElements[[1]])) as.numeric(observed) else NULL, # drop names
-    #     X                = if(isTRUE(returnElements[[2]])) variables else NULL,
-    #     modelFrame       = if (isTRUE(returnElements[[3]])) modelFrame else NULL,
-    #     formula          = formula,
-    #     call             = match.call(),
-    #     coefficients     = coefficients
-    #   ),
-    #   class = c("singleRRatioReg", "singleR", "glm", "lm")
-    # )
+    stop("Ratio regression is out of the scope of current versions, but will be implemented at some point.")
   }
 }
