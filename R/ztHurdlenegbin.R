@@ -549,8 +549,8 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       if (yNow < 3) return(0)
       
       xx <- findL(yNow)
-      a <- xx$par[3] |> exp()
-      l <- xx$par[2] |> exp()
+      a <- exp(xx$par[3])
+      l <- exp(xx$par[2])
       
       lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a))
     }
