@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   singleRcapture: singleRcapture.html
-last_built: 2025-01-30T12:33Z
+last_built: 2025-01-30T19:28Z
 urls:
   reference: https://ncn-foreigners.github.io/singleRcapture/reference
   article: https://ncn-foreigners.github.io/singleRcapture/articles
