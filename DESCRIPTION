@@ -7,12 +7,14 @@ Authors@R:
              family = "Chlebicki",
              role = c("aut", "ctb"),
              email = "piotrek.pecet@gmail.com",
-             comment = c(ORCID = "0009-0006-4867-7434")),
+             comment = c(ORCID = "0009-0006-4867-7434",
+                         ROR = "05f0yaq80")),
       person(given = "Maciej",
              family = "Beręsewicz",
              role = c("aut", "cre"),
              email = "maciej.beresewicz@ue.poznan.pl",
-             comment = c(ORCID = "0000-0002-8281-4301")))
+             comment = c(ORCID = "0000-0002-8281-4301",
+                         ROR = "0532c1x92")))
 Description: Implementation of single-source capture-recapture methods for population size estimation using zero-truncated, zero-one truncated and zero-truncated one-inflated Poisson, Geometric and Negative Binomial regression as well as Zelterman's and Chao's regression. Package includes point and interval estimators for the population size with variances estimated using analytical or bootstrap method. Details can be found in: van der Heijden et all. (2003) <doi:10.1191/1471082X03st057oa>, Böhning and van der Heijden (2019) <doi:10.1214/18-AOAS1232>, Böhning et al. (2020) Capture-Recapture Methods for the Social and Medical Sciences or Böhning and Friedl (2021) <doi:10.1007/s10260-021-00556-8>.
 License: MIT + file LICENSE
 Encoding: UTF-8
