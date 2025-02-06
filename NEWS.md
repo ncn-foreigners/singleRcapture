@@ -1,3 +1,5 @@
+# singleRcapture (development version)
+
 # singleRcapture 0.2.2
 
 * Fixing documentation typos and errors
