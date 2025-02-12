@@ -65,11 +65,11 @@
 <li>Three types of bootstrap parametric, semi-parametric and nonparametric.</li>
 <li>And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.</li>
 </ul>
-<p>For more details we see the <code>singleRcapture: An R Package for Single-Source Capture-Recapture Models</code> vignette on <a href="https://cran.r-project.org/web/packages/singleRcapture/vignettes/singleRcapture.html" class="external-link">CRAN</a> or <a href="https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html">pkgdown website</a>.</p>
+<p>For more details we see the <code>singleRcapture: An R Package for Single-Source Capture-Recapture Models</code> vignette on <a href="https://cran.r-project.org/package=singleRcapture" class="external-link">CRAN</a> or <a href="https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html">pkgdown website</a>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the current version of singleRcapture from main branch <a href="https://github.com/ncn-foreigners/singleRcapture" class="external-link">GitHub</a> with:</p>
+<p>You can install the current version of the <code>singleRcapture</code> package from main branch <a href="https://github.com/ncn-foreigners/singleRcapture" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ncn-foreigners/singleRcapture"</span><span class="op">)</span></span></code></pre></div>
@@ -184,7 +184,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"dfpopContr"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot-example-1.png" width="75%"></p>
 <p>it is easy to deduce from the plot above that we have influential observations in our dataset (one in particular).</p>
-<p>Lastly <code>singleRcapture</code> offers some posthoc procedures for example a function <code>stratifyPopsize</code> that estimates sizes of user specified sub populations and returns them in a <code>data.frame</code>:</p>
+<p>Lastly <code>singleRcapture</code> offers some post-hoc procedures for example a function <code>stratifyPopsize</code> that estimates sizes of user specified sub populations and returns them in a <code>data.frame</code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.05</span><span class="op">)</span>, <span class="co"># different significance level for each sub population</span></span>
 <span>    strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
