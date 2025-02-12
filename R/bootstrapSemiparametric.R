@@ -1,4 +1,4 @@
-# semi parametric
+# semiparametric
 #' @importFrom graphics points
 semparBoot <- function(family, formulas, y, X, beta,
                        weights, trcount, numboot, eta,

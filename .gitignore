@@ -9,7 +9,6 @@ docs
 inst/doc
 singleRcapture.Rcheck
 *.html
-*.R
 *.log
 *.tex
 *.pdf

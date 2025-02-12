@@ -22,11 +22,11 @@ population size in situations when observing only a part of such
 population is feasible. In recent years these types of experiments have
 seen more interest.
 
-Single source models are distinct from other capture-recapture models
+Single-source models are distinct from other capture-recapture models
 because we cannot estimate the population size based on how many units
 were observed in two or three sources which is the standard approach.
 
-Instead in single source models we utilize count data regression models
+Instead in single-source models we utilize count data regression models
 on positive distributions (i.e. on counts greater than 0) where the
 dependent variable is the number of times a particular unit was observed
 in source data.
@@ -35,19 +35,26 @@ This package aims to implement already existing and introduce new
 methods of estimating population size from single source to simplify the
 research process.
 
-Currently we have implemented most of the frequentist approaches used in
-literature such as:
+Currently, we have implemented most of the frequentist approaches used
+in literature such as:
 
-- Zero truncated Poisson, geometric and negative binomial regression.
-- Zero truncated one inflated and one inflated zero truncated Poisson
-  and geometric models. (Negative binomial is currently in development.)
-- Zero one truncated Poisson geometric and negative binomial models.
+- Zero-truncated Poisson, geometric and negative binomial regression.
+- Zero-truncated one-inflated and one-inflated zero-truncated Poisson
+  and geometric model.
+- Zero-one-truncated Poisson geometric and negative binomial models.
 - Generalized Chao’s and Zelterman’s models based on logistic
   regression.
-- Three types of bootstrap parametric, semi-parametric and non
-  parametric.
+- Three types of bootstrap parametric, semi-parametric and
+  nonparametric.
 - And a wide range of additional functionalities associated with
   (vector) generalized linear models relevant to the topic.
+
+For more details we see the
+`singleRcapture: An R Package for Single-Source Capture-Recapture Models`
+vignette on
+[CRAN](https://cran.r-project.org/web/packages/singleRcapture/vignettes/singleRcapture.html)
+or [pkgdown
+website](https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html).
 
 ## Installation
 
@@ -72,10 +79,12 @@ The main function of this package is `estimatePopsize` which fitts
 regression on specified distribution and then uses fitted regression to
 estimate the population size.
 
-Lets look at a model from 2003 publication : Point and interval
-estimation of the population size using the truncated Poisson regression
-model Heijden, Peter GM van der et al. The call to `estimatePopsize`
-will look very similar to anyone who used the `stats::glm` function:
+Lets look at a model from 2003 publication (Van Der Heijden, P. G.,
+Bustami, R., Cruyff, M. J., Engbersen, G., & Van Houwelingen, H. C.
+(2003). Point and interval estimation of the population size using the
+truncated Poisson regression model. Statistical Modelling, 3(4),
+305-322.). The call to `estimatePopsize` will look very similar to
+anyone who used the `stats::glm` function:
 
 ``` r
 library(singleRcapture)
@@ -146,24 +155,25 @@ plot(model, plotType = "rootogram")
 
 The possible values for `plotType` argument are:
 
-- `qq` - the normal quantile-quantile plot for pearson residuals.
+- `qq` - the normal quantile-quantile plot for pearson residuals
+  (default),
 - `marginal` - a `matplot` comparing fitted and observed marginal
-  frequencies.
+  frequencies,
 - `fitresid` - plot of linear predictor values contrasted with pearson
-  residuals.
-- `bootHist` - histogram of bootstrap sample.
-- `rootogram` - rootogram, example presented above.
+  residuals,
+- `bootHist` - histogram of bootstrap sample,
+- `rootogram` - rootogram, example presented above,
 - `dfpopContr` - contrasting two deletion effects to identify presence
-  of influential observations.
-- `dfpopBox` - boxplot of results from dfpopsize function see its
-  documentation.
-- `scaleLoc` - scale-location plot.
+  of influential observations,
+- `dfpopBox` - boxplot of results from `dfpopsize` function see its
+  documentation,
+- `scaleLoc` - scale-location plot,
 - `cooks` - plot of `cooks.values` for distributions for which it is
-  defined.
-- `hatplot` - plot of `hatvalues`.
+  defined,
+- `hatplot` - plot of `hatvalues`,
 - `strata` - plot of confidence intervals for selected such populations.
 
-a user can also pass arguments to specify additional information such as
+User can also pass arguments to specify additional information such as
 plot title, subtitle etc. similar to calling `plot` on some data. For
 more info check `plot.singleR` method documentation.
 
@@ -324,7 +334,7 @@ summary(estimatePopsize(
 Methods such as regression diagnostics will be adjusted (values of
 weights will be reduced instead of rows being removed etc.)
 
-We also included option to use common non standardargument such as
+We also included option to use common non standard argument such as
 significance levels different from usual 5%:
 
 ``` r

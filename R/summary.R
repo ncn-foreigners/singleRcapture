@@ -1,5 +1,5 @@
 #' \loadmathjax
-#' @title Summary statistics for model of singleRStaticCountData class.
+#' @title Summary statistics for model of singleRStaticCountData class
 #' 
 #' @description
 #' A \code{summary} method for \code{singleRStaticCountData} class

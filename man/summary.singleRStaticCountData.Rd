@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary.singleRStaticCountData}
 \alias{summary.singleRStaticCountData}
-\title{Summary statistics for model of singleRStaticCountData class.}
+\title{Summary statistics for model of singleRStaticCountData class}
 \usage{
 \method{summary}{singleRStaticCountData}(
   object,
