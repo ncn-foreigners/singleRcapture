@@ -1,9 +1,0 @@
-.Rproj.user     # RStudio user-specific files
-.Rhistory       # R command history
-.RData          # Saved R data
-.Ruserdata      # User-specific R data
-.httr-oauth     # OAuth tokens for web APIs
-.DS_Store       # Mac system files
-inst/doc        # Built vignettes
-*.log          # Log files
-docs            # GitHub Pages for pkgdown
