@@ -48,11 +48,11 @@ Currently, we have implemented most of the frequentist approaches used in litera
 - Three types of bootstrap parametric, semi-parametric and nonparametric.
 - And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
 
-For more details we see the `singleRcapture: An R Package for Single-Source Capture-Recapture Models` vignette on [CRAN](https://cran.r-project.org/web/packages/singleRcapture/vignettes/singleRcapture.html) or [pkgdown website](https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html).
+For more details we see the `singleRcapture: An R Package for Single-Source Capture-Recapture Models` vignette on [CRAN](https://cran.r-project.org/package=singleRcapture) or [pkgdown website](https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html).
 
 ## Installation
 
-You can install the current version of singleRcapture from main branch [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
+You can install the current version of the `singleRcapture` package from main branch [GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
 
 ```{r, eval=FALSE}
 # install.packages("devtools")

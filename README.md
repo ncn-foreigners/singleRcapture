@@ -51,15 +51,15 @@ in literature such as:
 
 For more details we see the
 `singleRcapture: An R Package for Single-Source Capture-Recapture Models`
-vignette on
-[CRAN](https://cran.r-project.org/web/packages/singleRcapture/vignettes/singleRcapture.html)
-or [pkgdown
+vignette on [CRAN](https://cran.r-project.org/package=singleRcapture) or
+[pkgdown
 website](https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html).
 
 ## Installation
 
-You can install the current version of singleRcapture from main branch
-[GitHub](https://github.com/ncn-foreigners/singleRcapture) with:
+You can install the current version of the `singleRcapture` package from
+main branch [GitHub](https://github.com/ncn-foreigners/singleRcapture)
+with:
 
 ``` r
 # install.packages("devtools")
@@ -214,7 +214,7 @@ plot(model, plotType = "dfpopContr")
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
 
-Lastly `singleRcapture` offers some posthoc procedures for example a
+Lastly `singleRcapture` offers some post-hoc procedures for example a
 function `stratifyPopsize` that estimates sizes of user specified sub
 populations and returns them in a `data.frame`:
 
