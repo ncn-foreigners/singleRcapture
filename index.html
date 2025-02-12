@@ -53,18 +53,19 @@
 <!-- badges: start -->
 
 <p>Capture-recapture type experiments are used to estimate the total population size in situations when observing only a part of such population is feasible. In recent years these types of experiments have seen more interest.</p>
-<p>Single source models are distinct from other capture-recapture models because we cannot estimate the population size based on how many units were observed in two or three sources which is the standard approach.</p>
-<p>Instead in single source models we utilize count data regression models on positive distributions (i.e. on counts greater than 0) where the dependent variable is the number of times a particular unit was observed in source data.</p>
+<p>Single-source models are distinct from other capture-recapture models because we cannot estimate the population size based on how many units were observed in two or three sources which is the standard approach.</p>
+<p>Instead in single-source models we utilize count data regression models on positive distributions (i.e. on counts greater than 0) where the dependent variable is the number of times a particular unit was observed in source data.</p>
 <p>This package aims to implement already existing and introduce new methods of estimating population size from single source to simplify the research process.</p>
-<p>Currently we have implemented most of the frequentist approaches used in literature such as:</p>
+<p>Currently, we have implemented most of the frequentist approaches used in literature such as:</p>
 <ul>
-<li>Zero truncated Poisson, geometric and negative binomial regression.</li>
-<li>Zero truncated one inflated and one inflated zero truncated Poisson and geometric models. (Negative binomial is currently in development.)</li>
-<li>Zero one truncated Poisson geometric and negative binomial models.</li>
+<li>Zero-truncated Poisson, geometric and negative binomial regression.</li>
+<li>Zero-truncated one-inflated and one-inflated zero-truncated Poisson and geometric model.</li>
+<li>Zero-one-truncated Poisson geometric and negative binomial models.</li>
 <li>Generalized Chao’s and Zelterman’s models based on logistic regression.</li>
-<li>Three types of bootstrap parametric, semi-parametric and non parametric.</li>
+<li>Three types of bootstrap parametric, semi-parametric and nonparametric.</li>
 <li>And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.</li>
 </ul>
+<p>For more details we see the <code>singleRcapture: An R Package for Single-Source Capture-Recapture Models</code> vignette on <a href="https://cran.r-project.org/web/packages/singleRcapture/vignettes/singleRcapture.html" class="external-link">CRAN</a> or <a href="https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html">pkgdown website</a>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -79,7 +80,7 @@
 <h3 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
 </h3>
 <p>The main function of this package is <code>estimatePopsize</code> which fitts regression on specified distribution and then uses fitted regression to estimate the population size.</p>
-<p>Lets look at a model from 2003 publication : Point and interval estimation of the population size using the truncated Poisson regression model Heijden, Peter GM van der et al. The call to <code>estimatePopsize</code> will look very similar to anyone who used the <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm</a></code> function:</p>
+<p>Lets look at a model from 2003 publication (Van Der Heijden, P. G., Bustami, R., Cruyff, M. J., Engbersen, G., &amp; Van Houwelingen, H. C. (2003). Point and interval estimation of the population size using the truncated Poisson regression model. Statistical Modelling, 3(4), 305-322.). The call to <code>estimatePopsize</code> will look very similar to anyone who used the <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm</a></code> function:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ncn-foreigners/singleRcapture" class="external-link">singleRcapture</a></span><span class="op">)</span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
@@ -142,29 +143,29 @@
 <p>The possible values for <code>plotType</code> argument are:</p>
 <ul>
 <li>
-<code>qq</code> - the normal quantile-quantile plot for pearson residuals.</li>
+<code>qq</code> - the normal quantile-quantile plot for pearson residuals (default),</li>
 <li>
-<code>marginal</code> - a <code>matplot</code> comparing fitted and observed marginal frequencies.</li>
+<code>marginal</code> - a <code>matplot</code> comparing fitted and observed marginal frequencies,</li>
 <li>
-<code>fitresid</code> - plot of linear predictor values contrasted with pearson residuals.</li>
+<code>fitresid</code> - plot of linear predictor values contrasted with pearson residuals,</li>
 <li>
-<code>bootHist</code> - histogram of bootstrap sample.</li>
+<code>bootHist</code> - histogram of bootstrap sample,</li>
 <li>
-<code>rootogram</code> - rootogram, example presented above.</li>
+<code>rootogram</code> - rootogram, example presented above,</li>
 <li>
-<code>dfpopContr</code> - contrasting two deletion effects to identify presence of influential observations.</li>
+<code>dfpopContr</code> - contrasting two deletion effects to identify presence of influential observations,</li>
 <li>
-<code>dfpopBox</code> - boxplot of results from dfpopsize function see its documentation.</li>
+<code>dfpopBox</code> - boxplot of results from <code>dfpopsize</code> function see its documentation,</li>
 <li>
-<code>scaleLoc</code> - scale-location plot.</li>
+<code>scaleLoc</code> - scale-location plot,</li>
 <li>
-<code>cooks</code> - plot of <code>cooks.values</code> for distributions for which it is defined.</li>
+<code>cooks</code> - plot of <code>cooks.values</code> for distributions for which it is defined,</li>
 <li>
-<code>hatplot</code> - plot of <code>hatvalues</code>.</li>
+<code>hatplot</code> - plot of <code>hatvalues</code>,</li>
 <li>
 <code>strata</code> - plot of confidence intervals for selected such populations.</li>
 </ul>
-<p>a user can also pass arguments to specify additional information such as plot title, subtitle etc. similar to calling <code>plot</code> on some data. For more info check <code>plot.singleR</code> method documentation.</p>
+<p>User can also pass arguments to specify additional information such as plot title, subtitle etc. similar to calling <code>plot</code> on some data. For more info check <code>plot.singleR</code> method documentation.</p>
 <p>As we have seen there are some significant differences between fitted and observed marginal frequencies. To check our intuition let’s perform goodness of fit test between fitted and observed marginal frequencies.</p>
 <p>To do it we call a <code>summary</code> function of <code>marginalFreq</code> function which computes marginal frequencies for the fitted <code>singleR</code> class object:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -288,7 +289,7 @@
 <span><span class="co">#&gt; normal     10.332927   26.16037</span></span>
 <span><span class="co">#&gt; logNormal   9.534281   22.29793</span></span></code></pre></div>
 <p>Methods such as regression diagnostics will be adjusted (values of weights will be reduced instead of rows being removed etc.)</p>
-<p>We also included option to use common non standardargument such as significance levels different from usual 5%:</p>
+<p>We also included option to use common non standard argument such as significance levels different from usual 5%:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">modelInflated</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>

@@ -38,7 +38,7 @@ estimatePopsize function."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Family functions in singleRcapture package</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/Chao.R" class="external-link"><code>R/Chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/Hurdleztgeom.R" class="external-link"><code>R/Hurdleztgeom.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/Hurdleztnegbin.R" class="external-link"><code>R/Hurdleztnegbin.R</code></a>, and 18 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/chao.R" class="external-link"><code>R/chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/documentationFiles.R" class="external-link"><code>R/documentationFiles.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/hurdleztgeom.R" class="external-link"><code>R/hurdleztgeom.R</code></a>, and 18 more</small>
       <div class="d-none name"><code>singleRmodels.Rd</code></div>
     </div>
 
@@ -294,7 +294,7 @@ instead of  to emphasize this connection.
 Also will not be hard to see that <strong>all</strong> estimators derived from
 modifying the "base" distribution are unbiased if assumptions
 made by respective models are not violated.</p>
-<p>The <strong>zero truncated</strong> models corresponding to "base" distributions are
+<p>The <strong>zero-truncated</strong> models corresponding to "base" distributions are
 characterized by relation:
 P(Y=y|Y&gt;0)=
 arraycc
@@ -312,13 +312,13 @@ N &amp;= _k=1^N_obs11-(1+\alpha_k_k)^-_k^-1 &amp;
 N &amp;= _k=1^N_obs1+_k_k &amp;
  For geometric distribution
 aligned</p>
-<p>One common way in which assumptions of zero truncated models are violated is
-presence of <strong>one inflation</strong> the presence of which is somewhat similar in
-single source capture-recapture models to zero inflation in usual count data
-analysis. There are two ways in which one inflation may be understood,
+<p>One common way in which assumptions of zero-truncated models are violated is
+presence of <strong>one-inflation</strong> the presence of which is somewhat similar in
+single source capture-recapture models to zero-inflation in usual count data
+analysis. There are two ways in which one-inflation may be understood,
 they relate to whether P(Y=0) is
 modified by inflation. The first approach is inflate
-( parameter) zero truncated distribution as:
+( parameter) zero-truncated distribution as:
 
 P_new(Y=y|Y&gt;0) = arraycc
  + (1 - )P_old(Y=1|Y&gt;0)&amp; when:  y = 1 <br>
@@ -332,9 +332,9 @@ P_old(Y=0) &amp; when:  y = 0 <br>
 (1 - ) P_old(Y=y) &amp; when:  y &gt; 1
 array.
 
-before zero truncation. Models that utilize this
-approach are commonly referred to as <em>zero truncated one inflated models</em>.
-Another way of accommodating one inflation in SSCR is by putting inflation
+before zero-truncation. Models that utilize this
+approach are commonly referred to as <em>zero-truncated one-inflated models</em>.
+Another way of accommodating one-inflation in SSCR is by putting inflation
 parameter on base distribution as:
 
 P_new(Y=y) = arraycc
@@ -354,11 +354,11 @@ It was shown by Böhning in 2022 paper that these approaches are equivalent
 in terms of maximizing likelihoods if we do not put formula on
 . They can however lead to different
 population size estimates.</p>
-<p>For <em>zero truncated one inflated models</em> the formula for population size
+<p>For <em>zero-truncated one-inflated models</em> the formula for population size
 estimate N does not change since
 P(y=0) remains the same but estimation of parameters
 changes all calculations.</p>
-<p>For <em>one inflated zero truncated models</em> population size estimates are
+<p>For <em>one-inflated zero-truncated models</em> population size estimates are
 expressed, respectively by:
 
 aligned
@@ -366,27 +366,27 @@ N &amp;= _k=1^N_obs11-(1-_k)(-_k) &amp; For base Poisson distribution <br>
 N &amp;= _k=1^N_obs11-(1-_k)(1+\alpha_k_k)^-_k^-1 &amp; For base negative binomial distribution <br>
 N &amp;= _k=1^N_obs1+_k_k + _k &amp; For base geometric distribution
 aligned</p>
-<p><strong>Zero one truncated</strong> models ignore one counts instead of accommodating
-one inflation by utilizing the identity
+<p><strong>Zero-one-truncated</strong> models ignore one counts instead of accommodating
+one-inflation by utilizing the identity
 
 _ztoi=f_1f_1N_obs
 +(N_obs-f_1)(1-f_1N_obs
 ) + _zot
 
 where _zot is the log likelihood
-of zero one truncated distribution characterized by probability mass function:
+of zero-one-truncated distribution characterized by probability mass function:
 P(Y=y|Y&gt;1)=
 arraycc
 P(Y=y)1-P(Y=0)-P(Y=1) &amp; when y &gt; 1 <br>
 0 &amp; when y 0, 1
 array.
 where P(Y) is the probability mass function of
-the "base" distribution. The identity above justifies use of zero one truncated,
+the "base" distribution. The identity above justifies use of zero-one-truncated,
 unfortunately it was only proven for intercept only models, however
 numerical simulations seem to indicate that even if the theorem cannot be
 extended for (non trivial) regression population size estimation is still
 possible.</p>
-<p>For <em>zero one truncated models</em> population size estimates are expressed by:
+<p>For <em>zero-one-truncated models</em> population size estimates are expressed by:
 
 aligned
 N &amp;= f_1 + _k=1^N_obs
