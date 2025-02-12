@@ -3,7 +3,7 @@
 \docType{data}
 \name{farmsubmission}
 \alias{farmsubmission}
-\title{British farm submissions data}
+\title{The British farm submissions data}
 \format{
 Data frame with 12,036 rows and 4 columns.
 \describe{

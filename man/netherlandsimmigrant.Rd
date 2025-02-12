@@ -3,7 +3,7 @@
 \docType{data}
 \name{netherlandsimmigrant}
 \alias{netherlandsimmigrant}
-\title{Data on immigration in the Netherlands}
+\title{Immigration data in the Netherlands}
 \format{
 Data frame with 1,880 rows and 5 columns.
 \describe{

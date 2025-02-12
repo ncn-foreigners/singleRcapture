@@ -3,7 +3,7 @@
 \name{stratifyPopsize}
 \alias{stratifyPopsize}
 \alias{stratifyPopsize.singleRStaticCountData}
-\title{Estimate size of sub populations.}
+\title{Estimate size of sub-populations}
 \usage{
 stratifyPopsize(object, strata, alpha, ...)
 
