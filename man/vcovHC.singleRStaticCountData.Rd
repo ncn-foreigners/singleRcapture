@@ -4,7 +4,7 @@
 \alias{estfun.singleRStaticCountData}
 \alias{bread.singleRStaticCountData}
 \alias{vcovHC.singleRStaticCountData}
-\title{Heteroscedasticity-Consistent Covariance Matrix Estimation for singleRStaticCountData class}
+\title{Heteroscedasticity-consistent covariance matrix estimation for singleRStaticCountData class}
 \usage{
 \method{estfun}{singleRStaticCountData}(x, ...)
 

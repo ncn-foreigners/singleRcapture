@@ -2,7 +2,7 @@
 % Please edit documentation in R/miscDiagnostics.R
 \name{confint.singleRStaticCountData}
 \alias{confint.singleRStaticCountData}
-\title{Confidence Intervals for Model Parameters}
+\title{Confidence intervals for model parameters}
 \usage{
 \method{confint}{singleRStaticCountData}(object, parm, level = 0.95, ...)
 }

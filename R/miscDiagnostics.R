@@ -1,6 +1,6 @@
 #' \loadmathjax
 
-#' @title Obtain Covariance Matrix estimation
+#' @title Obtain covariance matrix estimation
 #' 
 #' @description A \code{vcov} method for \code{singleRStaticCountData} class.
 #' 
@@ -60,7 +60,7 @@ vcov.singleRStaticCountData <- function(object,
   res
 }
 
-#' @title Confidence Intervals for Model Parameters
+#' @title Confidence intervals for model parameters
 #' 
 #' @description A function that computes studentized confidence intervals
 #' for model coefficients.

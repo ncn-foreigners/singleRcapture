@@ -1,4 +1,7 @@
 
+
+# working methods ---------------------------------------------------------
+
 eps <- if (capabilities("long.double")) sqrt(.Machine$double.eps) else 0.01
 
 # test simulate
@@ -512,3 +515,33 @@ expect_equivalent(
   c(1619, 232, 28, 1),
   tolerance = eps
 )
+
+
+# not working methods ---------------------------------------------------------
+
+expect_error(
+  add1(mod1),
+  "The add1 method for singleRStaticCountData class doesn't work yet"
+)
+
+expect_error(
+  profile(mod1),
+  "The profile method for singleRStaticCountData class doesn't work yet"
+)
+
+expect_error(
+  drop1(mod1),
+  "The drop1 method for singleRStaticCountData class doesn't work yet"
+)
+
+expect_error(
+  anova(mod1),
+  "The custom anova method for singleRStaticCountData class is not yet implemented. If the goal is to compare models we recommend using `lmtest::lrtest` instead."
+)
+
+
+
+
+
+
+

@@ -52,7 +52,7 @@ bread.singleRStaticCountData <- function(x,...) {
   stats::vcov(x, ...) * nobs(x)
 }
 
-#' @title Heteroscedasticity-Consistent Covariance Matrix Estimation for singleRStaticCountData class
+#' @title Heteroscedasticity-consistent covariance matrix estimation for singleRStaticCountData class
 #' @author Piotr Chlebicki, Maciej Beręsewicz
 #' 
 #' @description S3 method for \code{vcovHC} to handle \code{singleRStaticCountData} class objects. 

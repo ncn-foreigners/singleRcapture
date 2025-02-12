@@ -1,5 +1,11 @@
 # singleRcapture (development version)
 
+# singleRcapture 0.2.3
+
+* BugFix for anova and other not working methods
+* Tests for not working methods added
+* Small changes to the documentation
+
 # singleRcapture 0.2.2
 
 * Fixing documentation typos and errors
