@@ -1,6 +1,6 @@
 #' \loadmathjax
 
-#' @title Estimate size of sub populations.
+#' @title Estimate size of sub-populations
 #' 
 #' @description A function that estimates sizes of specific sub populations 
 #' based on a capture-recapture model for the whole population.

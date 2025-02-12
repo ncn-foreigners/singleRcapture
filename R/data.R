@@ -1,4 +1,4 @@
-#' @title British farm submissions data
+#' @title The British farm submissions data
 #' @description Data on British animal farms submissions to AHVLA. British farms 
 #' are able to submit samples to AHVLA if cause of death for an animal
 #' cannot be determined and private veterinary surgeon decides to submit them, 
@@ -23,7 +23,7 @@
 #' @usage data("farmsubmission")
 "farmsubmission"
 
-#' @title Data on immigration in the Netherlands
+#' @title Immigration data in the Netherlands
 #' @description  This data set contains information about immigrants in four
 #' cities (Amsterdam, Rotterdam, The Hague and Utrecht) in Netherlands that have
 #' been staying in the country illegally in 1995 and have appeared in police
@@ -47,7 +47,7 @@
 #' @usage data("netherlandsimmigrant")
 "netherlandsimmigrant"
 
-#' @title British farm carcass submissions data
+#' @title The British farm carcass submissions data
 #' @description Data on British animal farms submissions to AHVLA. British farms 
 #' are able to submit samples to AHVLA if cause of death for an animal
 #' cannot be determined and private veterinary surgeon decides to submit them, 
