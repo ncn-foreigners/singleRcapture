@@ -21,7 +21,6 @@ NULL
 #' data for the regression and population size estimation.
 #' @param formula a formula for the model to be fitted, only applied to the "main" 
 #' linear predictor. Only single response models are available.
-#' @param ratioReg Not yet implemented
 #' @param model a model for regression and population estimate full description in [singleRmodels()]. 
 #' @param weights an optional object of prior weights used in fitting the model. 
 #' Can be used to specify number of occurrences of rows in data see [controlModel()]
@@ -454,7 +453,6 @@ estimatePopsize.default <- function(formula,
                                     x             = FALSE,
                                     y             = TRUE,
                                     contrasts     = NULL,
-                                    ratioReg      = FALSE,
                                     offset,
                                     ...) {
   if (missing(method)) method <- "IRLS"
@@ -481,7 +479,6 @@ estimatePopsize.default <- function(formula,
   
   returnElements <- list(y, x, modelFrame)
   
-  if (!ratioReg) {
     m1 <- controlPopVar
     m1 <- m1[sapply(m1, is.null) == FALSE]
     m2 <- controlPopVar(
@@ -748,7 +745,5 @@ estimatePopsize.default <- function(formula,
       ),
       class = c("singleRStaticCountData", "glm", "lm")
     )
-  } else {
-    stop("Ratio regression is out of the scope of current versions, but will be implemented at some point.")
   }
 }
