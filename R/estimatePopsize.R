@@ -746,4 +746,3 @@ estimatePopsize.default <- function(formula,
       class = c("singleRStaticCountData", "glm", "lm")
     )
   }
-}
