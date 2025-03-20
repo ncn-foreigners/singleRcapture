@@ -18,8 +18,7 @@ ratioReg(data, formula, weights = NULL, useWeights = TRUE, ...)
 \item{...}{Additional arguments.
 
 TODO: Handle optional weighting properly (not yet implemented).
-TODO: Investigate warnings regarding 'newdata' in predict().
-TODO: Fix multiple confidence intervals.}
+TODO: Investigate warnings regarding object length in variance estimation.}
 }
 \value{
 A list containing:

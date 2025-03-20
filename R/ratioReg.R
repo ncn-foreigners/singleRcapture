@@ -34,8 +34,7 @@
 #' @param ... Additional arguments.
 #' 
 #' TODO: Handle optional weighting properly (not yet implemented).
-#' TODO: Investigate warnings regarding 'newdata' in predict().
-#' TODO: Fix multiple confidence intervals.
+#' TODO: Investigate warnings regarding object length in variance estimation.
 #' 
 #' @return A list containing:
 #' \itemize{
@@ -65,19 +64,16 @@
 ratioReg <- function(data, formula, weights = NULL, useWeights = TRUE, ...) {
   
   modelFrame <- stats::model.frame(formula, data, ...)
-  observed <- model.response(modelFrame) |> as.vector()
-  
-  # Check for negative values
+  observed <- as.vector(model.response(modelFrame))
+
   if (any(observed < 0)) {
     stop("Negative values in 'observed' data are not allowed.")
   }
-  
-  counts <- table(observed)
-  
-  # Check for zero counts
-  if (any(counts == 0)) {
+  if (any(observed == 0)) {
     stop("Zero counts in the data are not allowed.")
   }
+  
+  counts <- table(observed)
   
   if (length(counts) < 2) {
     stop("Ratio regression requires at least two observed capture counts.")
@@ -89,28 +85,27 @@ ratioReg <- function(data, formula, weights = NULL, useWeights = TRUE, ...) {
     } else {
       return(NA)
     }
-  }) |> as.vector()
+  })
+  
+  r <- as.vector(r)
   
   r <- na.omit(r)
-  
+
   ff <- log(r) ~ I(seq_len(length(r)))
   model_data <- data.frame(r = r, x = seq_len(length(r))) 
-  
   linearModel <- lm(ff, data = model_data, ...)
-  
-  # TODO: fix problems with structure
   
   new_data <- data.frame(x = seq_len(length(r)))  
   fitRatio <- exp(predict(linearModel, newdata = new_data))  
-  
-  # TODO: implement weighting option
   
   N <- sum(counts) / (1 - 1 / sum(c(1, cumprod(fitRatio))))
   N <- c(N, sum(counts) + counts["1"] / fitRatio[1])
   names(N) <- c("ht", "reg")
   
-  f0 <- N - sum(counts)
+  # TODO: Handle optional weighting properly (not yet implemented).
+  # TODO: Investigate warnings regarding object length.
   
+  f0 <- N - sum(counts)
   variation <- model.matrix(ff, model.frame(ff, new_data))
   variation <- f0^2 * as.vector(variation %*% vcov(linearModel) %*% t(variation))
   
@@ -118,13 +113,13 @@ ratioReg <- function(data, formula, weights = NULL, useWeights = TRUE, ...) {
   
   sd <- sqrt(variation)
   sc <- qnorm(p = 1 - .05 / 2)
-  
-  # TODO: fix computing multiple interval
-  
+
   confidenceInterval <- data.frame(
-    lowerBound = pmax(N - sc * sd, sum(counts)),
-    upperBound = N + sc * sd
+    lowerBound = pmax(N[1] - sc * sd, sum(counts)),
+    upperBound = N[1] + sc * sd
   )
+  
+  confidenceInterval <- confidenceInterval[1, , drop = FALSE]
   
   structure(
     list(
