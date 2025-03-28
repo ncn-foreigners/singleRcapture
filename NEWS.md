@@ -2,8 +2,8 @@
 
 # singleRcapture 0.2.3.1
 
-* Added 'oichao' model
-* Added 'ratioReg()' function - implements ratio regression for population size estimation
+* Added `oichao` model
+* Added `ratioReg()` function - implements ratio regression for population size estimation
 * Added unit tests and examples for both `oichao` and `ratioReg()`
 
 # singleRcapture 0.2.3
