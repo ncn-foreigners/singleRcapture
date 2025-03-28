@@ -249,7 +249,7 @@ NULL
 #' Cruyff, Maarten J. L. F. and Peter G. M. van der Heijden (2008). ‘Point and 
 #' Interval Estimation of the Population Size Using a Zero-Truncated Negative 
 #' Binomial Regression Model’. In: Biometrical Journal 50.6, pp. 1035–1050. 
-#' doi: 10.1002/bimj.200810455
+#' doi: 10.1002/bimj.200810455.
 #' 
 #' Böhning, Dankmar and Peter G. M. van der Heijden (2009). ‘A covariate adjustment 
 #' for zero-truncated approaches to estimating the size of hidden and 
@@ -258,7 +258,7 @@ NULL
 #' 
 #' Böhning, Dankmar, Alberto Vidal-Diez et al. (2013). ‘A Generalization of 
 #' Chao’s Estimator for Covariate Information’. In: Biometrics 69.4, pp. 1033– 
-#' 1042. doi: 10.1111/biom.12082
+#' 1042. doi: 10.1111/biom.12082.
 #' 
 #' Böhning, Dankmar and Peter G. M. van der Heijden (2019). ‘The identity of the 
 #' zero-truncated, one-inflated likelihood and the zero-one-truncated likelihood 
@@ -275,7 +275,11 @@ NULL
 #' 
 #' Böhning, D., Friedl, H. Population size estimation based upon zero-truncated, 
 #' one-inflated and sparse count data. Stat Methods Appl 30, 1197–1217 (2021). 
-#' doi: 10.1007/s10260-021-00556-8
+#' doi: 10.1007/s10260-021-00556-8.
+#' 
+#' Böhning, D., Kaskasamkul, P. & van der Heijden, P.G.M. A modification of Chao’s 
+#' lower bound estimator in the case of one-inflation. Metrika 82, 361–384 (2019). 
+#' doi: 10.1007/s00184-018-0689-5.
 #' 
 #' Bootstrap:
 #' 
@@ -436,7 +440,7 @@ estimatePopsize.default <- function(formula,
                                       "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
                                       "Hurdleztnegbin", "zotgeom", "ztoigeom",
                                       "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
-                                      "zelterman", "chao"
+                                      "zelterman", "chao", "oichao"
                                     ),
                                     weights  = NULL,
                                     subset   = NULL,
@@ -677,7 +681,7 @@ estimatePopsize.default <- function(formula,
     LOG          <- -logLike(coefficients)
     resRes       <- priorWeights * (observed - fitt)
     
-    if (family$family %in% c("zelterman", "chao")) {
+    if (family$family %in% c("zelterman", "chao", "oichao")) {
       resRes <- resRes - priorWeights
     }
   
