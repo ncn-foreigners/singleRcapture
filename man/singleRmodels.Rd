@@ -54,7 +54,7 @@ Hurdleztpoisson(
   ...
 )
 
-oichao(lambdaLink = "log", ...)
+oichao(lambdaLink = "log", bias_corr = FALSE, ...)
 
 oiztgeom(
   lambdaLink = c("log", "neglog"),

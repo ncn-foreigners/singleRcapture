@@ -1,7 +1,7 @@
 #' @rdname singleRmodels
 #' @importFrom stats dbinom
 #' @export
-oichao <- function(lambdaLink = "log",
+oichao <- function(lambdaLink = "log", bias_corr = FALSE,
                  ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   
@@ -133,21 +133,26 @@ oichao <- function(lambdaLink = "log",
     ((-1)^y) * sqrt((-2 * wt * diff) * (y %in% 2:3))
   }
   
-  # TODO: Check if N and observed_total are corresponding to theory
-  
-  pointEst <- function(pw, eta, contr = FALSE, y, ...) {
+  pointEst <- function(pw, eta, contr = FALSE, y, bias_corr = FALSE , ...) {
     lambda <- lambdaLink(eta, inverse = TRUE)
     iddx <- y %in% 2:3
     f2 <- sum(pw[y == 2])
     f3 <- sum(pw[y == 3])
     
-    # TODO: Possible version with bias-corrected estimator
-    
     if (all(lambda == lambda[1])) {  # No covariate case
       observed_total <- sum(pw)
-      f0_est <- if (f3 > 0) (2/9) * (f2^3 / f3^2) else 0
+      if (f3 == 0) {
+        f0_est <- 0
+      } else if (bias_corr) {
+        f0_est <- (2/9) * ((f2^3 - 3*f2^2 + 2*f2) / ((f3+1)*(f3+2)))
+      } else {
+        f0_est <- (2/9) * (f2^3 / f3^2)
+      }
       N <- observed_total + f0_est
     } else {  # Covariate case
+      if (bias_corr) {
+        message("Bias correction is currently available only for the no-covariate case. Using the original estimator.")
+      }
       N <- ((1 + iddx * 6 / (lambda^2 * (3 + lambda))) * pw)
       if (!contr) N <- sum(N)
     }
@@ -156,23 +161,40 @@ oichao <- function(lambdaLink = "log",
   
   # TODO: Check if variance is calculated correctly
   
-  popVar <- function(pw, eta, cov, Xvlm, y, ...) {
-    lambda <- lambdaLink(eta, inverse = TRUE)
+  popVar <- function(pw, eta, cov, Xvlm, y, bias_corr = FALSE, ...) {
     iddx <- y %in% 2:3
-    f2 <- sum(pw[iddx & y == 2])
-    f3 <- sum(pw[iddx & y == 3])
+    lambda <- lambdaLink(eta, inverse = TRUE)
+    f2 <- sum(pw[y == 2])
+    f3 <- sum(pw[y == 3])
+    
     if (all(lambda == lambda[1])) {  # No covariates
       if (f3 == 0) return(0)
-      variance <- (2/9)^2 * ( (3 * f2^2 / f3^2)^2 * f2 + (2 * f2^3 / f3^3)^2 * f3 )
+      if (bias_corr) {
+        v <- (f2^3 - 3 * f2^2 + 2 * f2) / ((f3 + 1) * (f3 + 2))
+        du_df2 <- (2/9) * (6 * f3 / f2^2)
+        du_df3 <- (-2/9) * (6 / f2)
+        dv_df2 <- (3 * f2^2 - 6 * f2 + 2) / ((f3 + 1) * (f3 + 2))
+        dv_df3 <- (f2^3 - 3 * f2^2 + 2 * f2) * (-1 / ((f3 + 1)^2 * (f3 + 2)) - 1 / ((f3 + 1) * (f3 + 2)^2))
+        
+        df0_df2 <- du_df2 * v + 2/9 * dv_df2
+        df0_df3 <- du_df3 * v + 2/9 * dv_df3
+        variance <- (df0_df2^2 * f2) + (df0_df3^2 * f3)
+      } else {
+        variance <- (2/9)^2 * ( (3 * f2^2 / f3^2)^2 * f2 + (2 * f2^3 / f3^3)^2 * f3 )
+      }
     } else {  # Covariate case
       Xvlm <- as.matrix(Xvlm)
       prob <- (lambda^2 / 2) * exp(-lambda) + (lambda^3 / 6) * exp(-lambda)
-      f1 <- t((-lambdaLink(eta[,1], inverse = TRUE, deriv = 1) * pw * 
-                 as.numeric(6 * exp(-lambda) * (lambda^2 + 3 * lambda + 3) / 
-                              (lambda^2 * (3 + lambda))^2))[iddx] %*% Xvlm[iddx, , drop = FALSE])
+      
+      f0_contrib <- 6 / (lambda^2 * (3 + lambda))
+      deriv_term <- -18 * (2 + lambda) / (lambda^2 * (3 + lambda)^2)
+      deriv_term <- deriv_term * lambda
+      f1 <- t((deriv_term * pw)[iddx] %*% Xvlm[iddx, , drop = FALSE])
       f1 <- t(f1) %*% as.matrix(cov) %*% f1
-      f2 <- sum((pw * (1 - prob) * ((1 + 6 * exp(-lambda) / prob / (lambda^2 * (3 + lambda))) ^ 2))[iddx])
-      variance <- f1 + f2
+      
+      f2 <- sum((pw * (1 - prob) * ((1 + f0_contrib) ^ 2))[iddx], na.rm = TRUE)
+      
+      variance <- as.numeric(f1) + f2
     }
     variance
   }
