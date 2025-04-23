@@ -1,6 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# `singleRcapture`: Single-Source Capture-Recapture Models <img src="man/figures/logo.png" align="right" width="150"/>
+
 # Overview
 
 <!-- badges: start -->

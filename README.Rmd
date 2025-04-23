@@ -13,6 +13,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+# `singleRcapture`: Single-Source Capture-Recapture Models <img src="man/figures/logo.png" align="right" width="150"/>
+
 # Overview
 
 <!-- badges: start -->
