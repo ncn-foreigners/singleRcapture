@@ -2,7 +2,7 @@
 #' @importFrom stats dbinom
 #' @export
 oichao <- function(lambdaLink = "log", bias_corr = FALSE,
-                 ...) {
+                   ...) {
   if (missing(lambdaLink)) lambdaLink <- "log"
   
   links <- list()
@@ -133,7 +133,7 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
     ((-1)^y) * sqrt((-2 * wt * diff) * (y %in% 2:3))
   }
   
-  pointEst <- function(pw, eta, contr = FALSE, y, bias_corr = FALSE , ...) {
+  pointEst <- function(pw, eta, contr = FALSE, y, bias = bias_corr , ...) {
     lambda <- lambdaLink(eta, inverse = TRUE)
     iddx <- y %in% 2:3
     f2 <- sum(pw[y == 2])
@@ -143,14 +143,14 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
       observed_total <- sum(pw)
       if (f3 == 0) {
         f0_est <- 0
-      } else if (bias_corr) {
+      } else if (bias) {
         f0_est <- (2/9) * ((f2^3 - 3*f2^2 + 2*f2) / ((f3+1)*(f3+2)))
       } else {
         f0_est <- (2/9) * (f2^3 / f3^2)
       }
       N <- observed_total + f0_est
     } else {  # Covariate case
-      if (bias_corr) {
+      if (bias) {
         message("Bias correction is currently available only for the no-covariate case. Using the original estimator.")
       }
       N <- ((1 + iddx * 6 / (lambda^2 * (3 + lambda))) * pw)
@@ -161,7 +161,7 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
   
   # TODO: Check if variance is calculated correctly
   
-  popVar <- function(pw, eta, cov, Xvlm, y, bias_corr = FALSE, ...) {
+  popVar <- function(pw, eta, cov, Xvlm, y, bias = bias_corr, ...) {
     iddx <- y %in% 2:3
     lambda <- lambdaLink(eta, inverse = TRUE)
     f2 <- sum(pw[y == 2])
@@ -169,7 +169,7 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
     
     if (all(lambda == lambda[1])) {  # No covariates
       if (f3 == 0) return(0)
-      if (bias_corr) {
+      if (bias) {
         v <- (f2^3 - 3 * f2^2 + 2 * f2) / ((f3 + 1) * (f3 + 2))
         du_df2 <- (2/9) * (6 * f3 / f2^2)
         du_df3 <- (-2/9) * (6 / f2)
