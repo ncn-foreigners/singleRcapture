@@ -2,9 +2,9 @@
 # Helper function to compute expected OIChao by hand
 compute_oichao <- function(f2, f3, n, bias_corr = FALSE) {
   if (f3 == 0) {
-    f0 <- 0
-    variance <- 0
-  } else if (bias_corr) {
+    stop("Counts of 3 (f3) must be greater than 0.")
+  }
+  if (bias_corr) {
     # Bias-corr point estimate from the latest oichao function
     f0 <- (2/9) * ((f2^3 - 3*f2^2 + 2*f2) / ((f3+1)*(f3+2)))
     # Variance for bias-corr estimator (matches popVar in oichao)
@@ -88,23 +88,27 @@ expect_equal(fit_synthetic$populationSize$pointEstimate, expected_synthetic$N, t
 expect_true(abs(sqrt(fit_synthetic$populationSize$variance) - expected_synthetic$se) < 5,
             info = "Synthetic Data: SE should be ~48.2")
 
-# # 2. Edge Cases
-# # 2.1 f3 = 0 (should return f0 = 0)
-# edge_f3_zero <- data.frame(
-#   y = c(rep(1, 100), rep(2, 10), rep(3, 2))
-# )
-# 
-# unique(edge_f3_zero$y)
-# 
-# fit_f3_zero <- estimatePopsize(y ~ 1, data = edge_f3_zero, 
-#                                model = oichao(bias_corr = F), 
-#                                method = "IRLS")
-# 
-# # Hand calculation
-# expect_equal(fit_f3_zero$populationSize$pointEstimate, 110, tolerance = 0.1,
-#              info = "Edge Case (f3 = 0): Point estimate should be 110")
-# expect_equal(fit_f3_zero$populationSize$variance, 0, tolerance = 0.1,
-#              info = "Edge Case (f3 = 0): Variance should be 0")
+# 2. Edge Cases
+# 2.1 f3 = 0 (should throw error for both bias_corr = FALSE and TRUE)
+edge_f3_zero <- data.frame(
+  y = c(rep(1, 100), rep(2, 10))  # f1 = 100, f2 = 10, f3 = 0
+)
+
+expect_error(
+  estimatePopsize(y ~ 1, data = edge_f3_zero, 
+                  model = oichao(bias_corr = FALSE), 
+                  method = "IRLS"),
+  pattern = "Counts of 3 \\(f3\\) must be greater than 0.",
+  info = "Edge Case (f3 = 0, bias_corr = FALSE): Should throw error"
+)
+
+expect_error(
+  estimatePopsize(y ~ 1, data = edge_f3_zero, 
+                  model = oichao(bias_corr = TRUE), 
+                  method = "IRLS"),
+  pattern = "Counts of 3 \\(f3\\) must be greater than 0.",
+  info = "Edge Case (f3 = 0, bias_corr = TRUE): Should throw error"
+)
 # 
 # # 2.2 Small Sample Size
 # edge_small <- data.frame(

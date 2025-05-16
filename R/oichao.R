@@ -133,17 +133,18 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
     ((-1)^y) * sqrt((-2 * wt * diff) * (y %in% 2:3))
   }
   
-  pointEst <- function(pw, eta, contr = FALSE, y, bias = bias_corr , ...) {
+  pointEst <- function(pw, eta, contr = FALSE, y, bias = bias_corr, ...) {
     lambda <- lambdaLink(eta, inverse = TRUE)
     iddx <- y %in% 2:3
     f2 <- sum(pw[y == 2])
     f3 <- sum(pw[y == 3])
     
     if (all(lambda == lambda[1])) {  # No covariate case
-      observed_total <- sum(pw)
       if (f3 == 0) {
-        f0_est <- 0
-      } else if (bias) {
+        stop("Counts of 3 (f3) must be greater than 0.")
+      }
+      observed_total <- sum(pw)
+      if (bias) {
         f0_est <- (2/9) * ((f2^3 - 3*f2^2 + 2*f2) / ((f3+1)*(f3+2)))
       } else {
         f0_est <- (2/9) * (f2^3 / f3^2)
@@ -159,8 +160,6 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
     N
   }
   
-  # TODO: Check if variance is calculated correctly
-  
   popVar <- function(pw, eta, cov, Xvlm, y, bias = bias_corr, ...) {
     iddx <- y %in% 2:3
     lambda <- lambdaLink(eta, inverse = TRUE)
@@ -168,7 +167,9 @@ oichao <- function(lambdaLink = "log", bias_corr = FALSE,
     f3 <- sum(pw[y == 3])
     
     if (all(lambda == lambda[1])) {  # No covariates
-      if (f3 == 0) return(0)
+      if (f3 == 0) {
+        stop("Counts of 3 (f3) must be greater than 0.")
+      }
       if (bias) {
         v <- (f2^3 - 3 * f2^2 + 2 * f2) / ((f3 + 1) * (f3 + 2))
         du_df2 <- (2/9) * (6 * f3 / f2^2)
