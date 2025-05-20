@@ -55,15 +55,15 @@ fit_perpetrators_bc <- estimatePopsize(y ~ 1, data = perpetrators_data,
                                        model = oichao(bias_corr = TRUE), 
                                        method = "IRLS")
 
-expected_perpetrators_bc <- compute_oichao(f2 = 15, f3 = 1, n = 734, bias_corr = TRUE)
+expected_perpetrators_bc <- compute_oichao(f2 = 1957, f3 = 393, n = 17662, bias_corr = TRUE)
 
 expect_equal(fit_perpetrators_bc$populationSize$pointEstimate, 
              expected_perpetrators_bc$N, 
              tolerance = 1,
-             info = "Perpetrators (2009, Bias-corr): Point estimate should be ~18910.84")
+             info = "Perpetrators (2009, Bias-corr): Point estimate should be ~28347.64")
 
 expect_true(abs(sqrt(fit_perpetrators_bc$populationSize$variance) - expected_perpetrators_bc$se) < 10,
-            info = "Perpetrators (2009, Bias-corr): SE should be ~356.87")
+            info = "Perpetrators (2009, Bias-corr): SE should be ~2000.629")
 
 # 1.2 Synthetic Data
 synthetic_data <- data.frame(

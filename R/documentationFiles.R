@@ -25,6 +25,8 @@ NULL
 #' (e.g. \code{"ztnegbin"}), default varies depending on a function.
 #' Higher value usually means faster convergence but may potentially cause
 #' issues with convergence.
+#' @param bias_corr a logical indicating whether to use the bias-corrected version
+#' of the estimator, \code{FALSE} by default.
 #' @param ... Additional arguments, not used for now.
 #' 
 #' @details Most of these functions are based on some "base" distribution with
@@ -202,6 +204,19 @@ NULL
 #' \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
 #' \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
 #' }
+#' 
+#' The **oichao** model, for one-inflated data, uses:
+#' \mjsdeqn{
+#' Z = \left\lbrace\begin{array}{cc}
+#' 0     & \text{if } Y_k = 2  \cr
+#' 1     & \text{if } Y_k = 3
+#' \end{array}\right.}
+#' with \mjseqn{\hat{\lambda}_k = \exp(\boldsymbol{\beta}^\top \mathbf{x}_k)}.
+#' Its estimator is:
+#' \mjsdeqn{
+#' \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+#' \frac{6}{\lambda_{k}^{2}+(3+\lambda_{k})}}
+#' A no-covariate bias-corrected version (\code{bias_corr = TRUE}) is experimental.
 #' 
 #' @seealso [estimatePopsize()]
 #'

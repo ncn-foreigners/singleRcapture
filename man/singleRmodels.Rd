@@ -172,6 +172,9 @@ issues with convergence.}
 
 \item{alphaLink}{a link for dispersion parameter, \code{"log"} by default}
 
+\item{bias_corr}{a logical indicating whether to use the bias-corrected version
+of the estimator, \code{FALSE} by default.}
+
 \item{omegaLink}{a link for inflation parameter, \code{"logit"} by default}
 }
 \value{
@@ -405,6 +408,19 @@ and \emph{chao} estimator has the form:
 \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
 \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
 }
+
+The \strong{oichao} model, for one-inflated data, uses:
+\mjsdeqn{
+Z = \left\lbrace\begin{array}{cc}
+0     & \text{if } Y_k = 2  \cr
+1     & \text{if } Y_k = 3
+\end{array}\right.}
+with \mjseqn{\hat{\lambda}_k = \exp(\boldsymbol{\beta}^\top \mathbf{x}_k)}.
+Its estimator is:
+\mjsdeqn{
+\hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+\frac{6}{\lambda_{k}^{2}+(3+\lambda_{k})}}
+A no-covariate bias-corrected version (\code{bias_corr = TRUE}) is experimental.
 }
 \seealso{
 \code{\link[=estimatePopsize]{estimatePopsize()}}

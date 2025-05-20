@@ -1,5 +1,6 @@
 #' @title Estimate population size using ratio regression
 #' @author Cyprian Jurkowski, Piotr Chlebicki
+#' @importFrom stats na.omit
 #'
 #' @description
 #' Estimates population size using ratio regression, an alternative method 
