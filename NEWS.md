@@ -4,7 +4,7 @@
 
 + fixed mixed up `ztoi*` and `oizt*` families
 + fixed documentation [!!!TODO!!!!]
-+ `CITATION` file added with the JSS paper
++ `CITATION` file added with reference to the JSS paper
 
 # singleRcapture 0.2.3
 
