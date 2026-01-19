@@ -5,7 +5,7 @@ glm class or are not relevant to context of singleRcapture
 are omitted."><meta property="og:description" content="List of some regression diagnostics implemented for
 singleRStaticCountData class. Functions that either require no changes from
 glm class or are not relevant to context of singleRcapture
-are omitted."></head><body>
+are omitted."><meta property="og:image" content="https://ncn-foreigners.github.io/singleRcapture/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -13,7 +13,7 @@ are omitted."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,8 +34,7 @@ are omitted."></head><body>
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Regression diagnostics in singleRcapture</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Regression diagnostics in singleRcapture</h1>
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/documentationFiles.R" class="external-link"><code>R/documentationFiles.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/leave-one-out.R" class="external-link"><code>R/leave-one-out.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/miscDiagnostics.R" class="external-link"><code>R/miscDiagnostics.R</code></a>, and 1 more</small>
       <div class="d-none name"><code>regDiagSingleR.Rd</code></div>
     </div>
@@ -105,7 +104,7 @@ them into function so that they need not be computed for the second time.</p></d
 
 <dt id="arg-maxitnew">maxitNew<a class="anchor" aria-label="anchor" href="#arg-maxitnew"></a></dt>
 <dd><p>the maximal number of iterations for regressions with starting
-points  on data
+points <em></em>\(\hat{\boldsymbol{\beta}}\) on data
 specified at call for <code>model</code> after the removal of k'th row. By default 1.</p></dd>
 
 
@@ -142,8 +141,8 @@ removal of k'th unit from the data set.</p></li>
 <li><p>For <code>dfbeta</code> – A matrix with n rows and p observations where p
 is a number of units in data and p is the number of regression parameters.
 K'th row of this matrix corresponds to
--_-k
-where _-k is a vector of estimates for
+<em></em>\(\hat{\boldsymbol{\beta}}-\hat{\boldsymbol{\beta}}_{-k}\)
+where <em></em>\(\hat{\boldsymbol{\beta}}_{-k}\) is a vector of estimates for
 regression parameters after the removal of k'th row from the data.</p></li>
 <li><p><code>cooks.distance</code> – A matrix with a single columns with
 values of cooks distance for every unit in <code>model.matrix</code></p></li>
@@ -152,7 +151,7 @@ with chosen residuals.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p></p>
+    <p><script>MathJax = {output: {font: "mathjax-newcm", fontPath: "../../mathjaxr/doc/mathjax/font",}};</script><script defer src="../../mathjaxr/doc/mathjax/tex-chtml.js"></script></p>
 <p><code>dfpopsize</code> and <code>dfbeta</code> are closely related. <code>dfbeta</code>
 fits a regression after removing a specific row from the data and returns the
 difference between regression coefficients estimated on full data set and
@@ -182,35 +181,35 @@ class for extracting diagonal elements of projection matrix.</p>
 of linear predictors in a model, where kth column corresponds to elements of
 the diagonal of projection matrix associated with kth linear predictor.
 For glm's
-W^12X
-(X^TWX)^-1
-X^TW^12
-where: W=E(Diag
-(^2^T
-))
-and X is a model (lm) matrix.
+\[\boldsymbol{W}^{\frac{1}{2}}\boldsymbol{X}
+\left(\boldsymbol{X}^{T}\boldsymbol{W}\boldsymbol{X}\right)^{-1}
+\boldsymbol{X}^{T}\boldsymbol{W}^{\frac{1}{2}}\]
+where: <em></em>\(\boldsymbol{W}=\mathbb{E}\left(\text{Diag}
+\left(\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}^{T}
+\partial\boldsymbol{\eta}}\right)\right)\)
+and <em></em>\(\boldsymbol{X}\) is a model (lm) matrix.
 For vglm's present in the package it is instead :
-X_vlm
-(X_vlm^TWX_vlm)^-1
-X_vlm^TW
+\[\boldsymbol{X}_{vlm}
+\left(\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{X}_{vlm}\right)^{-1}
+\boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\]
 where:
-
-W = E(bmatrix
-Diag(^2_1^T_1) &amp;
-Diag(^2_1^T_2) &amp;
- &amp; Diag(^2_1^T_p)<br>
-Diag(^2_2^T_1) &amp;
-Diag(^2_2^T_2) &amp;
- &amp; Diag(^2_2^T_p)<br>
- &amp;  &amp;  &amp; <br>
-Diag(^2_p^T_1) &amp;
-Diag(^2_p^T_2) &amp;
- &amp; Diag(^2_p^T_p)
-bmatrix)
+\[
+\boldsymbol{W} = \mathbb{E}\left(\begin{bmatrix}
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{1}}\right) &amp;
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{2}}\right) &amp;
+\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{1}^{T}\partial\eta_{p}}\right)\cr
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{1}}\right) &amp;
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{2}}\right) &amp;
+\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{2}^{T}\partial\eta_{p}}\right)\cr
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{1}}\right) &amp;
+\text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{2}}\right) &amp;
+\dotso &amp; \text{Diag}\left(\frac{\partial^{2}\ell}{\partial\eta_{p}^{T}\partial\eta_{p}}\right)
+\end{bmatrix}\right)\]
 is a block matrix constructed by taking the expected  value from diagonal
 matrixes corresponding to second derivatives with respect to each linear
 predictor (and mixed derivatives) and
-X_vlm is a model (vlm)
+<em></em>\(\boldsymbol{X}_{vlm}\) is a model (vlm)
 matrix constructed using specifications in <code>controlModel</code> and
 call to <code>estimatePopsize</code>.</p>
 <p><code>influence</code> works like <code>glm</code> counterpart computing the most important
@@ -244,7 +243,7 @@ influence measures.</p>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">dfpopsize</span><span class="op">(</span><span class="va">Model</span>, dfbeta <span class="op">=</span> <span class="va">dfb</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -4236.412     2.664     2.664     5.448    17.284   117.448 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -4236.412     2.663     2.663     5.448    17.284   117.448 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="regDiagSingleR-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># see vaious types of residuals:</span></span></span>
@@ -275,7 +274,7 @@ influence measures.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

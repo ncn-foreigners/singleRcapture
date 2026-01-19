@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,12 +50,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>singleRcapture: An R Package for Single-Source Capture-Recapture Models</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>singleRcapture: An R Package for Single-Source Capture-Recapture Models</h1>
                         <h4 data-toc-skip class="author">Piotr
 Chlebicki, Maciej Beręsewicz</h4>
             
-            <h4 data-toc-skip class="date">2025-02-13</h4>
+            <h4 data-toc-skip class="date">2026-01-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/vignettes/singleRcapture.Rmd" class="external-link"><code>vignettes/singleRcapture.Rmd</code></a></small>
       <div class="d-none name"><code>singleRcapture.Rmd</code></div>
@@ -247,7 +246,7 @@ giving additional mass
 to singletons denoted as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{I}_{\{1\}}(y)</annotation></semantics></math><span class="citation">(cf. <a href="#ref-bohning2024one">Böhning and
 Friedl 2024</a>)</span>. In other words they considered a new random
-varialbe
+variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
 that corresponds to the data collection process which exhibits one
 inflation:</p>
@@ -405,6 +404,21 @@ the non-truncated distribution is parameterized as:</li>
 (<code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
 modifications, where the count data variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
+is defined as:</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathbb{P}\left[Y^{\ast}=y\right] = \omega \mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y],
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><mfrac><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right] = 
+\omega\frac{\mathcal{I}_{\{1\}}(y)}{1-(1-\omega)\mathbb{P}[Y=0]}+
+(1-\omega)\frac{\mathbb{P}[Y=y]}{1-(1-\omega)\mathbb{P}[Y=0]}.
+</annotation></semantics></math></p>
+<ul>
+<li>One-inflated zero-truncated
+(<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
+modifications, where the count data variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
 is defined such that its distribution statisfies:</li>
 </ul>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
@@ -417,21 +431,6 @@ is defined such that its distribution statisfies:</li>
 </annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right]=\omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y&gt;0].
-</annotation></semantics></math></p>
-<ul>
-<li>One-inflated zero-truncated
-(<code>oizt</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>)
-modifications, where the count data variable
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
-is defined as:</li>
-</ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\mathbb{P}\left[Y^{\ast}=y\right] = \omega \mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y],
-</annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><mfrac><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right] = 
-\omega\frac{\mathcal{I}_{\{1\}}(y)}{1-(1-\omega)\mathbb{P}[Y=0]}+
-(1-\omega)\frac{\mathbb{P}[Y=y]}{1-(1-\omega)\mathbb{P}[Y=0]}.
 </annotation></semantics></math></p>
 <p>Note that
 <code>ztoi</code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>*</mo></msup><annotation encoding="application/x-tex">^\ast</annotation></semantics></math>
@@ -529,7 +528,7 @@ for the probability mass function
 The boundary of this set is then a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>−</mo></mrow><annotation encoding="application/x-tex">2-</annotation></semantics></math>dimentional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>−</mo></mrow><annotation encoding="application/x-tex">2-</annotation></semantics></math>dimensional
 manifold, transforming this parameter space into
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mn>3</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^{3}</annotation></semantics></math>
 would require using <code>link</code> functions that depend on more than
@@ -560,7 +559,7 @@ distribution (respectively geometric or negative binomial) with the
 parameter (or
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>,</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">\lambda,\alpha</annotation></semantics></math>);
 no such interpretation exists for hurdle models. Interestingly,
-estimates from hurdle zero-truncated and one-inflated zero-truncated
+estimates from hurdle zero-truncated and zero-truncated one-inflated
 models tend to be quite close to one another, although more rigorous
 studies are required to confirm this observation.</p>
 </div>
@@ -776,8 +775,8 @@ are given in Table below; the obligatory ones are
 <code>formula, data, model</code>.</p>
 <table class="table">
 <colgroup>
-<col width="25%">
-<col width="75%">
+<col width="27%">
+<col width="72%">
 </colgroup>
 <thead><tr class="header">
 <th>Argument</th>
@@ -916,7 +915,7 @@ using <code>covType</code> for the analytical variance estimator
 (observed or the Fisher information matrix).</p>
 <p>In the next sections we present a case study involving the use of a
 simple zero-truncated Poisson regression and a more advanced model:
-one-inflated zero-truncated geometric regression with the
+zero-truncated one-inflated geometric regression with the
 <code>cloglog</code> link function. First, we present the example
 dataset, then we describe how to estimate the population size and assess
 the quality and diagnostics measures. Finally, we show how to estimate
@@ -1048,13 +1047,13 @@ observed in the register.</p>
 unit in the dataset may lead to undesirable consequences for the person
 concerned (in this case, a possible deportation, detention or something
 similar). For these reasons, the user may consider one-inflated models,
-such as one-inflated zero-truncated geometric model (specified by
-<code>oiztgeom</code> family) and those presented below.</p>
+such as zero-truncated one-inflated geometric model (specified by
+<code>ztoigeom</code> family) and those presented below.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
 <span><span class="va">modelInflated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">nation</span>,</span>
-<span>    model   <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span>omegaLink <span class="op">=</span> <span class="st">"cloglog"</span><span class="op">)</span>,</span>
+<span>    model   <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span>omegaLink <span class="op">=</span> <span class="st">"cloglog"</span><span class="op">)</span>,</span>
 <span>    data    <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
 <span>    controlModel <span class="op">=</span> <span class="fu"><a href="../reference/controlModel.html">controlModel</a></span><span class="op">(</span></span>
 <span>        omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span></span>
@@ -1067,14 +1066,14 @@ such as one-inflated zero-truncated geometric model (specified by
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Call:</span></span>
 <span><span class="co">## estimatePopsize.default(formula = capture ~ nation, data = netherlandsimmigrant, </span></span>
-<span><span class="co">##     model = oiztgeom(omegaLink = "cloglog"), popVar = "bootstrap", </span></span>
+<span><span class="co">##     model = ztoigeom(omegaLink = "cloglog"), popVar = "bootstrap", </span></span>
 <span><span class="co">##     controlModel = controlModel(omegaFormula = ~gender + age), </span></span>
 <span><span class="co">##     controlPopVar = controlPopVar(bootType = "semiparametric", </span></span>
 <span><span class="co">##         B = 50))</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Pearson Residuals:</span></span>
 <span><span class="co">##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span></span>
-<span><span class="co">## -0.41643 -0.41643 -0.30127  0.00314 -0.18323 13.88376 </span></span>
+<span><span class="co">## -0.41643 -0.41643 -0.30127  0.00314 -0.18323 13.88375 </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Coefficients:</span></span>
 <span><span class="co">## -----------------------</span></span>
@@ -1118,7 +1117,7 @@ such as one-inflated zero-truncated geometric model (specified by
 <p>According to this approach, the population size is about 7,000, which
 is about 5,000 less than in the case of the naive Poisson approach. A
 comparison of AIC and BIC suggests that the one-inflation model fits the
-data better with BIC for <code>oiztgeom</code> 1727 and 1757 for
+data better with BIC for <code>ztoigeom</code> 1727 and 1757 for
 <code>ztpoisson</code>.</p>
 <p>We can access population size estimates using the following code,
 which returns a list with numerical results.</p>
@@ -1137,12 +1136,13 @@ which returns a list with numerical results.</p>
 <span><span class="co">## 95% confidence intervals:</span></span>
 <span><span class="co">## lowerBound upperBound </span></span>
 <span><span class="co">##   5107.533  10738.242</span></span></code></pre>
-<p>The decision whether to use a zero-truncated Poisson or one-inflated
-zero-truncated geometric model should be based on the assessment of the
-model and the assumptions regarding the data generation process. One
-possible method of selection is based on the likelihood ratio test,
-which can be computed quickly and conveniently with the
-<strong>lmtest</strong> (<span class="citation">Zeileis and Hothorn (<a href="#ref-lmtest">2002</a>)</span>) interface:</p>
+<p>The decision whether to use a zero-truncated Poisson or
+zero-truncated one-inflated geometric model should be based on the
+assessment of the model and the assumptions regarding the data
+generation process. One possible method of selection is based on the
+likelihood ratio test, which can be computed quickly and conveniently
+with the <strong>lmtest</strong> (<span class="citation">Zeileis and
+Hothorn (<a href="#ref-lmtest">2002</a>)</span>) interface:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">lmtest</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
@@ -1226,13 +1226,13 @@ and Zeileis 2016</a>)</span>, for comparing fitted and marginal
 frequencies, which can be generated with the following syntax:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>   <span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"ZT Poisson model"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"OI ZT Geometric model"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span>, main <span class="op">=</span> <span class="st">"ZTOI Geometric model"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="singleRcapture_files/figure-html/rootogram-1.png" alt="Rootograms for ztpoisson (left) and oiztgeom (right) models" width="480"><img src="singleRcapture_files/figure-html/rootogram-2.png" alt="Rootograms for ztpoisson (left) and oiztgeom (right) models" width="480"><p class="caption">
-Rootograms for ztpoisson (left) and oiztgeom (right) models
+<img src="singleRcapture_files/figure-html/rootogram-1.png" class="r-plt" alt="Rootograms for ztpoisson (left) and ztoigeom (right) models" width="480"><img src="singleRcapture_files/figure-html/rootogram-2.png" class="r-plt" alt="Rootograms for ztpoisson (left) and ztoigeom (right) models" width="480"><p class="caption">
+Rootograms for ztpoisson (left) and ztoigeom (right) models
 </p>
 </div>
-<p>The above plots suggest that the <code>oiztgeom</code> model fits the
+<p>The above plots suggest that the <code>ztoigeom</code> model fits the
 data better. Another important issue in population size estimation is to
 conduct model diagnostics in order to verify whether influential
 observations are present in the data. For this purpose the leave-one-out
@@ -1273,11 +1273,11 @@ estimation is applied.</p>
 <span><span class="va">dfi_pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/regDiagSingleR.html">dfpopsize</a></span><span class="op">(</span><span class="va">modelInflated</span>, dfbeta <span class="op">=</span> <span class="va">dfi</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">dfb_pop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span></span>
-<span><span class="co">## -4236.412     2.664     2.664     5.448    17.284   117.448</span></span></code></pre>
+<span><span class="co">## -4236.412     2.663     2.663     5.448    17.284   117.448</span></span></code></pre>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">dfi_pop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span></span>
-<span><span class="co">## -456.6443   -3.1121   -0.7243    3.4333    5.1535  103.5949</span></span></code></pre>
+<span><span class="co">## -456.6443   -3.1121   -0.7242    3.4333    5.1535  103.5949</span></span></code></pre>
 <p>Figure 2 shows a comparison of the effect of deleting an observation
 on the population size estimate and inverse probability weights, which
 refer to the contribution of a given observation to the population size
@@ -1288,14 +1288,14 @@ estimate:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"dfpopContr"</span>, </span>
 <span>     dfpop <span class="op">=</span> <span class="va">dfi_pop</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4500</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="singleRcapture_files/figure-html/dfpopsize_plot-1.png" alt="Results for ztpoisson (left) and oiztgeom (right) model" width="480"><img src="singleRcapture_files/figure-html/dfpopsize_plot-2.png" alt="Results for ztpoisson (left) and oiztgeom (right) model" width="480"><p class="caption">
-Results for ztpoisson (left) and oiztgeom (right) model
+<img src="singleRcapture_files/figure-html/dfpopsize_plot-1.png" class="r-plt" alt="Results for ztpoisson (left) and ztoigeom (right) model" width="480"><img src="singleRcapture_files/figure-html/dfpopsize_plot-2.png" class="r-plt" alt="Results for ztpoisson (left) and ztoigeom (right) model" width="480"><p class="caption">
+Results for ztpoisson (left) and ztoigeom (right) model
 </p>
 </div>
 <p>These plots show how the population size changes if a given
 observation is removed. For instance, if we remove observation 542, then
 the population size will increase by about 4236 for the
-<code>ztpoisson</code> model. In the case of <code>oiztgeom</code>, the
+<code>ztpoisson</code> model. In the case of <code>ztoigeom</code>, the
 largest change is equal to 457 for observation 900.</p>
 <p>The full list of plot types along with the list of optional arguments
 that can be passed from the call to the <code>plot</code> method down to
@@ -1313,7 +1313,7 @@ particular age groups). For this reason we have created the
 <code>stratifyPopsize</code> function, which estimates the size by
 strata defined by the coefficients in the model (the default option).
 The following output presents results based on the
-<code>ztpoisson</code> and <code>oiztgeom</code> models.</p>
+<code>ztpoisson</code> and <code>ztoigeom</code> models.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">popSizestrata</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">basicModel</span><span class="op">)</span></span>
 <span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"Observed"</span>, <span class="st">"Estimated"</span>, <span class="st">"logNormalLowerBound"</span>, </span>
@@ -1391,7 +1391,7 @@ rows in the dataset, in which case only one stratum will be created
 (e.g. <code>netherlandsimmigrant$gender == "male"</code>),</li>
 <li>a vector of names of explanatory variables, which will result in
 every level of the explanatory variable having its own sub-population
-for each variable specified (e.g. <code>c("gender", "age")</code>),</li>
+for each variable specified (e.g. <code>c("gender", "age")</code>),</li>
 <li>not supplied at all, in which case strata will correspond to levels
 of each factor in the data without any interactions (string vectors will
 be converted to factors for the convenience of the user),</li>
@@ -1413,8 +1413,8 @@ estimates of the population size.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">basicModel</span>, plotType <span class="op">=</span> <span class="st">"strata"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated</span>, plotType <span class="op">=</span> <span class="st">"strata"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="singleRcapture_files/figure-html/strata_plot-1.png" alt="Population size by covariates for ztpoisson (left) and oiztgeom (right) model" width="576"><img src="singleRcapture_files/figure-html/strata_plot-2.png" alt="Population size by covariates for ztpoisson (left) and oiztgeom (right) model" width="576"><p class="caption">
-Population size by covariates for ztpoisson (left) and oiztgeom (right)
+<img src="singleRcapture_files/figure-html/strata_plot-1.png" class="r-plt" alt="Population size by covariates for ztpoisson (left) and ztoigeom (right) model" width="576"><img src="singleRcapture_files/figure-html/strata_plot-2.png" class="r-plt" alt="Population size by covariates for ztpoisson (left) and ztoigeom (right) model" width="576"><p class="caption">
+Population size by covariates for ztpoisson (left) and ztoigeom (right)
 model
 </p>
 </div>
@@ -1484,8 +1484,8 @@ controls used to obtain the object.</li>
 <code>simulate</code> methods. Example usage is presented below</p>
 <table class="table">
 <colgroup>
-<col width="23%">
-<col width="76%">
+<col width="26%">
+<col width="73%">
 </colgroup>
 <thead><tr class="header">
 <th>Function</th>
@@ -1649,7 +1649,8 @@ function, which may be useful to some users, e.g. those wishing to make
 modifications to the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>
 estimate or to the bootstrap. In order to show how to apply the function
-we will fit a zero truncated geometric model on the data from <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> with covariate
+we will fit a one-inflated zero-truncated geometric model on the data
+from <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> with covariate
 dependency:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>4</mn></mrow></msub><mtext mathvariant="normal">log_size</mtext><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
   \log(\lambda) &amp;=
@@ -1664,7 +1665,7 @@ call:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>  <span class="va">TOTAL_SUB</span> <span class="op">~</span> <span class="va">.</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">farmsubmission</span>,</span>
-<span>  model <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  model <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="../reference/controlModel.html">controlModel</a></span><span class="op">(</span></span>
 <span>    omegaFormula <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">log_size</span> <span class="op">+</span> <span class="va">C_TYPE</span></span>
 <span>  <span class="op">)</span></span>
@@ -1718,7 +1719,7 @@ specified in the <code>family</code> argument.</li>
 <span>  X            <span class="op">=</span> <span class="va">X</span>, </span>
 <span>  method       <span class="op">=</span> <span class="st">"IRLS"</span>, </span>
 <span>  priorWeights <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>  family       <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span>
+<span>  family       <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span><span class="op">)</span>, </span>
 <span>  control      <span class="op">=</span> <span class="fu"><a href="../reference/controlMethod.html">controlMethod</a></span><span class="op">(</span>silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
 <span>  coefStart    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
 <span>  etaStart     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
@@ -1730,14 +1731,14 @@ specified in the <code>family</code> argument.</li>
 <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim</a></code> function.</li>
 </ol>
 <div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">makeMinusLogLike</span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">makeMinusLogLike</span><span class="op">(</span>y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePopsizeFit.html">estimatePopsizeFit</a></span><span class="op">(</span></span>
 <span>  y <span class="op">=</span> <span class="va">farmsubmission</span><span class="op">$</span><span class="va">TOTAL_SUB</span>, </span>
 <span>  X <span class="op">=</span> <span class="va">X</span>, </span>
 <span>  method <span class="op">=</span> <span class="st">"optim"</span>, </span>
 <span>  priorWeights <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span><span class="op">)</span>, </span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="../reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span><span class="op">)</span>, </span>
 <span>  coefStart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../reference/controlMethod.html">controlMethod</a></span><span class="op">(</span>silent <span class="op">=</span> <span class="cn">TRUE</span>, maxiter <span class="op">=</span> <span class="fl">10000</span><span class="op">)</span>,</span>
 <span>  offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">farmsubmission</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -1780,8 +1781,8 @@ contains additional parameters in comparison to the standard
 <code>family</code> object from the <code>stats</code> package.</p>
 <table class="table">
 <colgroup>
-<col width="19%">
-<col width="80%">
+<col width="25%">
+<col width="75%">
 </colgroup>
 <thead><tr class="header">
 <th>Function</th>
@@ -2314,7 +2315,7 @@ links up to the third order:</p>
 <span><span class="co">##     }</span></span>
 <span><span class="co">##     res</span></span>
 <span><span class="co">## }</span></span>
-<span><span class="co">## &lt;bytecode: 0x55f812f82f50&gt;</span></span>
+<span><span class="co">## &lt;bytecode: 0x55f54fa7d3d0&gt;</span></span>
 <span><span class="co">## &lt;environment: namespace:singleRcapture&gt;</span></span></code></pre>
 <p>One could, of course, include the code for computing them
 manually.</p>
@@ -2549,7 +2550,7 @@ Covariates.”</span> <em>Statistics &amp; Probability Letters</em> 65
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

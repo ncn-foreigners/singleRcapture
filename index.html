@@ -13,6 +13,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Single-Source Capture-Recapture Models">
 <meta name="description" content="Implementation of single-source capture-recapture methods for population size estimation using zero-truncated, zero-one truncated and zero-truncated one-inflated Poisson, Geometric and Negative Binomial regression as well as Zeltermans and Chaos regression. Package includes point and interval estimators for the population size with variances estimated using analytical or bootstrap method. Details can be found in: van der Heijden et all. (2003) &lt;doi:10.1191/1471082X03st057oa&gt;, Böhning and van der Heijden (2019) &lt;doi:10.1214/18-AOAS1232&gt;, Böhning et al. (2020) Capture-Recapture Methods for the Social and Medical Sciences or Böhning and Friedl (2021) &lt;doi:10.1007/s10260-021-00556-8&gt;.">
 <meta property="og:description" content="Implementation of single-source capture-recapture methods for population size estimation using zero-truncated, zero-one truncated and zero-truncated one-inflated Poisson, Geometric and Negative Binomial regression as well as Zeltermans and Chaos regression. Package includes point and interval estimators for the population size with variances estimated using analytical or bootstrap method. Details can be found in: van der Heijden et all. (2003) &lt;doi:10.1191/1471082X03st057oa&gt;, Böhning and van der Heijden (2019) &lt;doi:10.1214/18-AOAS1232&gt;, Böhning et al. (2020) Capture-Recapture Methods for the Social and Medical Sciences or Böhning and Friedl (2021) &lt;doi:10.1007/s10260-021-00556-8&gt;.">
+<meta property="og:image" content="https://ncn-foreigners.github.io/singleRcapture/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,8 +49,11 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="singlercapture-an-r-package-for-single-source-capture-recapture-models-">
+<code>singleRcapture</code>: An R Package for Single-Source Capture-Recapture Models <a class="anchor" aria-label="anchor" href="#singlercapture-an-r-package-for-single-source-capture-recapture-models-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <p>Capture-recapture type experiments are used to estimate the total population size in situations when observing only a part of such population is feasible. In recent years these types of experiments have seen more interest.</p>
@@ -59,8 +63,8 @@
 <p>Currently, we have implemented most of the frequentist approaches used in literature such as:</p>
 <ul>
 <li>Zero-truncated Poisson, geometric and negative binomial regression.</li>
-<li>Zero-truncated one-inflated and one-inflated zero-truncated Poisson and geometric model.</li>
-<li>Zero-one-truncated Poisson geometric and negative binomial models.</li>
+<li>Zero-truncated one-inflated and one-inflated zero-truncated Poisson, geometric and negative binomial model.</li>
+<li>Zero-one-truncated Poisson, geometric and negative binomial models.</li>
 <li>Generalized Chao’s and Zelterman’s models based on logistic regression.</li>
 <li>Three types of bootstrap parametric, semi-parametric and nonparametric.</li>
 <li>And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.</li>
@@ -139,7 +143,7 @@
 <p>We implemented a method for <code>plot</code> function to visualise the model fit and other useful diagnostic information. One of which is <code>rootogram</code>, a type of plot that compares fitted and observed marginal frequencies:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot-1.png" width="75%"></p>
+<p><img src="reference/figures/README-plot-1.png" alt="" width="75%"></p>
 <p>The possible values for <code>plotType</code> argument are:</p>
 <ul>
 <li>
@@ -182,7 +186,7 @@
 <p>Finally let us check if we have any influential observations. We will do this by comparing the deletion effect of every observation on population size estimate by removing it entirely from the model (from population size estimate and regression) and by only omitting it in pop size estimation (this is what is called the contribution of an observation). If observation is not influential these two actions should have the approximately the same effect:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"dfpopContr"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot-example-1.png" width="75%"></p>
+<p><img src="reference/figures/README-plot-example-1.png" alt="" width="75%"></p>
 <p>it is easy to deduce from the plot above that we have influential observations in our dataset (one in particular).</p>
 <p>Lastly <code>singleRcapture</code> offers some post-hoc procedures for example a function <code>stratifyPopsize</code> that estimates sizes of user specified sub populations and returns them in a <code>data.frame</code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -295,7 +299,7 @@
 <span><span class="va">modelInflated</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
-<span>    model <span class="op">=</span> <span class="st">"oiztgeom"</span>,</span>
+<span>    model <span class="op">=</span> <span class="st">"ztoigeom"</span>,</span>
 <span>    method <span class="op">=</span> <span class="st">"IRLS"</span>,</span>
 <span>    <span class="co"># control parameters for population size estimation check documentation of controlPopVar</span></span>
 <span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span></span>
@@ -306,7 +310,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; estimatePopsize.default(formula = capture ~ gender + age, data = netherlandsimmigrant, </span></span>
-<span><span class="co">#&gt;     model = "oiztgeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, </span></span>
+<span><span class="co">#&gt;     model = "ztoigeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, </span></span>
 <span><span class="co">#&gt;         ))</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pearson Residuals:</span></span>
@@ -352,7 +356,7 @@
 <span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">age</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
 <span>    popVar <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
-<span>    model <span class="op">=</span> <span class="fu"><a href="reference/singleRmodels.html">oiztgeom</a></span><span class="op">(</span>omegaLink <span class="op">=</span> <span class="st">"cloglog"</span><span class="op">)</span>,</span>
+<span>    model <span class="op">=</span> <span class="fu"><a href="reference/singleRmodels.html">ztoigeom</a></span><span class="op">(</span>omegaLink <span class="op">=</span> <span class="st">"cloglog"</span><span class="op">)</span>,</span>
 <span>    method <span class="op">=</span> <span class="st">"IRLS"</span>,</span>
 <span>    controlPopVar <span class="op">=</span> <span class="fu"><a href="reference/controlPopVar.html">controlPopVar</a></span><span class="op">(</span></span>
 <span>        B <span class="op">=</span> <span class="fl">500</span>,<span class="co"># number of boostrap samples</span></span>
@@ -389,7 +393,7 @@
 <span>     labels <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">175</span><span class="op">)</span>,</span>
 <span>     breaks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot-inflated-1.png" width="75%"></p>
+<p><img src="reference/figures/README-plot-inflated-1.png" alt="" width="75%"></p>
 <p>and information criteria support the second model:</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co">#&gt;  First model: AIC = 1736.854 BIC = 1759.01</span></span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt; Second model: AIC = 1734.803 BIC = 1756.959</span></span></code></pre></div>
@@ -429,8 +433,8 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Piotr Chlebicki <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0009-0006-4867-7434" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Maciej Beręsewicz <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-8281-4301" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Piotr Chlebicki <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0009-0006-4867-7434" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Maciej Beręsewicz <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-8281-4301" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
@@ -455,7 +459,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

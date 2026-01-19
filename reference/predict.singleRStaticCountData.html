@@ -3,7 +3,7 @@
 but gives the possibility to get standard errors of
 mean/distribution parameters and directly get pop size estimates for new data."><meta property="og:description" content="A method for predict function, works analogous to predict.glm
 but gives the possibility to get standard errors of
-mean/distribution parameters and directly get pop size estimates for new data."></head><body>
+mean/distribution parameters and directly get pop size estimates for new data."><meta property="og:image" content="https://ncn-foreigners.github.io/singleRcapture/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -11,7 +11,7 @@ mean/distribution parameters and directly get pop size estimates for new data.">
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,8 +32,7 @@ mean/distribution parameters and directly get pop size estimates for new data.">
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Predict method for singleRStaticCountData class</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Predict method for singleRStaticCountData class</h1>
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/predict.R" class="external-link"><code>R/predict.R</code></a></small>
       <div class="d-none name"><code>predict.singleRStaticCountData.Rd</code></div>
     </div>
@@ -75,8 +74,8 @@ mean/distribution parameters and directly get pop size estimates for new data.</
 <dd><p>the type of prediction required, possible values are:</p><ul><li><p><code>"response"</code>– For matrix containing estimated distributions
 parameters.</p></li>
 <li><p><code>"link"</code>    – For matrix of linear predictors.</p></li>
-<li><p><code>"mean"</code>    – For fitted values of both Y and
-Y|Y&gt;0.</p></li>
+<li><p><code>"mean"</code>    – For fitted values of both <em></em>\(Y\) and
+<em></em>\(Y|Y&gt;0\).</p></li>
 <li><p><code>"contr"</code>   – For inverse probability weights (here named for
 observation contribution to population size estimate).</p></li>
 <li><p><code>"popSize"</code> – For population size estimation. Note
@@ -120,13 +119,13 @@ population size estimation results.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p></p>
+    <p><script>MathJax = {output: {font: "mathjax-newcm", fontPath: "../../mathjaxr/doc/mathjax/font",}};</script><script defer src="../../mathjaxr/doc/mathjax/tex-chtml.js"></script></p>
 <p>Standard errors are computed with assumption of regression
 coefficients being asymptotically normally distributed, if this assumption
 holds then each of linear predictors i.e. each row of
-=X_vlm
+<em></em>\(\boldsymbol{\eta}=\boldsymbol{X}_{vlm}\boldsymbol{\beta}\)
 is asymptotically normally distributed and their variances are expressed by
-well known formula. The mean  and distribution parameters
+well known formula. The mean <em></em>\(\mu\) and distribution parameters
 are then differentiable functions of asymptotically normally distributed
 variables and therefore their variances can be computed using (multivariate)
 delta method.</p>
@@ -145,7 +144,7 @@ delta method.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

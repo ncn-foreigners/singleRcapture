@@ -5,19 +5,19 @@ In this types of models it is assumed that the response vector
 (i.e. the dependent variable) corresponds to the number of times a given unit
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:
-N = _k=1^NI_kP(Y_k&amp;gt;0) =
-_k=1^N_obs11-P(Y_k=0)
-where I_k=I_Y_k &amp;gt; 0 are indicator
+\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]
+where \(I_{k}=I_{Y_{k} &gt; 0}\) are indicator
 variables, with value 1 if kth unit was observed at least once and 0 otherwise."><meta property="og:description" content="estimatePopsize first fits appropriate (v)glm model and
 then estimates full (observed and unobserved) population size.
 In this types of models it is assumed that the response vector
 (i.e. the dependent variable) corresponds to the number of times a given unit
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:
-N = _k=1^NI_kP(Y_k&amp;gt;0) =
-_k=1^N_obs11-P(Y_k=0)
-where I_k=I_Y_k &amp;gt; 0 are indicator
-variables, with value 1 if kth unit was observed at least once and 0 otherwise."></head><body>
+\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]
+where \(I_{k}=I_{Y_{k} &gt; 0}\) are indicator
+variables, with value 1 if kth unit was observed at least once and 0 otherwise."><meta property="og:image" content="https://ncn-foreigners.github.io/singleRcapture/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -25,7 +25,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise."
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,8 +46,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise."
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Single-source capture-recapture models</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Single-source capture-recapture models</h1>
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/estimatePopsize.R" class="external-link"><code>R/estimatePopsize.R</code></a></small>
       <div class="d-none name"><code>estimatePopsize.Rd</code></div>
     </div>
@@ -59,9 +58,9 @@ In this types of models it is assumed that the response vector
 (i.e. the dependent variable) corresponds to the number of times a given unit
 was observed in the source.
 Population size is then usually estimated by Horvitz-Thompson type estimator:</p>
-<p>N = _k=1^NI_kP(Y_k&gt;0) =
-_k=1^N_obs11-P(Y_k=0)</p>
-<p>where I_k=I_Y_k &gt; 0 are indicator
+<p>\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
+<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator
 variables, with value 1 if kth unit was observed at least once and 0 otherwise.</p>
     </div>
 
@@ -216,28 +215,29 @@ with type <code>list</code> containing:<br></p><ul><li><p><code>y</code> – Vec
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The generalized linear model is characterized by equation
-=X
-where X is the (lm) model matrix.
+\[\boldsymbol{\eta}=\boldsymbol{X}\boldsymbol{\beta}\]
+where <em></em>\(\boldsymbol{X}\) is the (lm) model matrix.
 The vector generalized linear model is similarly characterized by equations
-_k=X_k_k
-where X_k is a (lm) model
+\[\boldsymbol{\eta}_{k}=\boldsymbol{X}_{k}\boldsymbol{\beta}_{k}\]
+where <em></em>\(\boldsymbol{X}_{k}\) is a (lm) model
 matrix constructed from appropriate formula
 (specified in <code>controlModel</code> parameter).</p>
-<p>The  is then a vector constructed as:</p>
-<p>=pmatrix
-_1 <br>
-_2 <br><br>
-_p
-pmatrix^T</p>
+<p>The <em></em>\(\boldsymbol{\eta}\) is then a vector constructed as:</p>
+<p>\[\boldsymbol{\eta}=\begin{pmatrix}
+\boldsymbol{\eta}_{1} \cr
+\boldsymbol{\eta}_{2} \cr
+\dotso \cr
+\boldsymbol{\eta}_{p}
+\end{pmatrix}^{T}\]</p>
 <p>and in cases of models in our package the (vlm) model matrix
 is constructed as a block matrix:</p>
-<p>X_vlm=
-pmatrix
-X_1 &amp; 0 &amp; &amp;0<br>
-0 &amp; X_2 &amp; &amp;0<br>
- &amp;  &amp;  &amp; <br>
-0 &amp; 0 &amp; &amp;X_p
-pmatrix</p>
+<p>\[\boldsymbol{X}_{vlm}=
+\begin{pmatrix}
+\boldsymbol{X}_{1} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{0}\cr
+\boldsymbol{0} &amp; \boldsymbol{X}_{2} &amp;\dotso &amp;\boldsymbol{0}\cr
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots\cr
+\boldsymbol{0} &amp; \boldsymbol{0} &amp;\dotso &amp;\boldsymbol{X}_{p}
+\end{pmatrix}\]</p>
 <p>this differs from convention in <code>VGAM</code> package (if we only consider our
 special cases of vglm models) but this is just a convention and does not
 affect the model, this convention is taken because it makes fitting with
@@ -247,11 +247,11 @@ use the <code>vglm</code> model matrix differs with respect to order of
 <code>kronecker</code> multiplication of <code>X</code> and <code>constraints</code>.)
 In this package we use observed likelihood to fit regression models.</p>
 <p>As mentioned above usually the population size estimation is done via:
-N = _k=1^NI_kP(Y_k&gt;0) =
-_k=1^N_obs11-P(Y_k=0)</p>
-<p>where I_k=I_Y_k &gt; 0 are indicator variables,
+\[\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)} =
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}\]</p>
+<p>where <em></em>\(I_{k}=I_{Y_{k} &gt; 0}\) are indicator variables,
 with value 1 if kth unit was observed at least once and 0 otherwise.
-The P(Y_k&gt;0) are estimated by maximum likelihood.</p>
+The <em></em>\(\mathbb{P}(Y_{k}&gt;0)\) are estimated by maximum likelihood.</p>
 <p>The following assumptions are usually present when using
 the method of estimation described above:</p><ol><li><p>The specified regression model is correct. This entails linear
 relationship between independent variables and dependent ones and
@@ -261,96 +261,97 @@ are some possible (admittedly imperfect) workarounds see details in
 <code><a href="singleRmodels.html">singleRmodels()</a></code>.</p></li>
 <li><p>The population size is constant in relevant time frame.</p></li>
 <li><p>Depending on confidence interval construction (asymptotic) normality
-of N statistic is assumed.</p></li>
-</ol><p>There are two ways of estimating variance of estimate N,
+of <em></em>\(\hat{N}\) statistic is assumed.</p></li>
+</ol><p>There are two ways of estimating variance of estimate <em></em>\(\hat{N}\),
 the first being <code>"analytic"</code> usually done by application of
-law of total variance to N:</p>
-<p>var(N)=E(var
-(N|I_1,...,I_n))+
-var(E(N|I_1,...,I_n))</p>
-<p>and then by  method to
-N|I_1,... I_N:</p>
-<p>E(var
-(N|I_1,...,I_n))=
-.((N|I_1,...,I_N))^T
-cov()
-((N|I_1,...,I_N))
-|_=</p>
-<p>and the var(E(N|I_1,...,I_n))
+law of total variance to <em></em>\(\hat{N}\):</p>
+<p>\[\text{var}(\hat{N})=\mathbb{E}\left(\text{var}
+\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)+
+\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)\]</p>
+<p>and then by <em></em>\(\delta\) method to
+<em></em>\(\hat{N}|I_{1},\dots I_{N}\):</p>
+<p>\[\mathbb{E}\left(\text{var}
+\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
+\left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
+\text{cov}\left(\boldsymbol{\beta}\right)
+\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
+\right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}\]</p>
+<p>and the <em></em>\(\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)\)
 term may be derived analytically (if we assume independence of
-observations) since N|I_1,...,I_n
+observations) since <em></em>\(\hat{N}|I_{1},\dots,I_{n}\)
 is just a constant.</p>
 <p>In general this gives us:
-
-aligned
-var(E(N|I_1,...,I_n))&amp;=
-var(_k=1^NI_kP(Y_k&gt;0))<br>
-&amp;=_k=1^Nvar(I_kP(Y_k&gt;0))<br>
-&amp;=_k=1^N1P(Y_k&gt;0)^2var(I_k)<br>
-&amp;=_k=1^N1P(Y_k&gt;0)^2P(Y_k&gt;0)(1-P(Y_k&gt;0))<br>
-&amp;=_k=1^N1P(Y_k&gt;0)(1-P(Y_k&gt;0))<br>
-&amp;_k=1^NI_kP(Y_k&gt;0)^2(1-P(Y_k&gt;0))<br>
-&amp;=_k=1^N_obs1-P(Y_k&gt;0)P(Y_k&gt;0)^2
-aligned</p>
+\[
+\begin{aligned}
+\text{var}\left(\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right)&amp;=
+\text{var}\left(\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\right)\cr
+&amp;=\sum_{k=1}^{N}\text{var}\left(\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\right)\cr
+&amp;=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}&gt;0)^{2}}\text{var}(I_{k})\cr
+&amp;=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}&gt;0)^{2}}\mathbb{P}(Y_{k}&gt;0)(1-\mathbb{P}(Y_{k}&gt;0))\cr
+&amp;=\sum_{k=1}^{N}\frac{1}{\mathbb{P}(Y_{k}&gt;0)}(1-\mathbb{P}(Y_{k}&gt;0))\cr
+&amp;\approx\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)^{2}}(1-\mathbb{P}(Y_{k}&gt;0))\cr
+&amp;=\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}&gt;0)}{\mathbb{P}(Y_{k}&gt;0)^{2}}
+\end{aligned}
+\]</p>
 <p>Where the approximation on 6th line appears because in 5th line we sum over
-all units, that includes unobserved units, since I_k are
-independent and I_k b(P(Y_k&gt;0)) the 6th line
+all units, that includes unobserved units, since <em></em>\(I_{k}\) are
+independent and <em></em>\(I_{k}\sim b(\mathbb{P}(Y_{k}&gt;0))\) the 6th line
 is an unbiased estimator of the 5th line.</p>
 <p>The other method for estimating variance is <code>"bootstrap"</code>, but since
-N_obs=_k=1^NI_k is also a random variable bootstrap
-will not be as simple as just drawing N_obs units from data
-with replacement and just computing N.</p>
+<em></em>\(N_{obs}=\sum_{k=1}^{N}I_{k}\) is also a random variable bootstrap
+will not be as simple as just drawing <em></em>\(N_{obs}\) units from data
+with replacement and just computing <em></em>\(\hat{N}\).</p>
 <p>Method described above is referred to in literature as <code>"nonparametric"</code>
 bootstrap (see <code><a href="controlPopVar.html">controlPopVar()</a></code>), due to ignoring variability in observed
 sample size it is likely to underestimate variance.</p>
 <p>A more sophisticated bootstrap procedure may be described as follows:</p><ol><li><p>Compute the probability distribution as:
-
-f_0N,
-f_1N,
-...,
-f_yN
-where f_n denotes observed
+\[
+\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}},
+\frac{\boldsymbol{f}_{1}}{\hat{N}},
+\dots,
+\frac{\boldsymbol{f}_{\max{y}}}{\hat{N}}\]
+where <em></em>\(\boldsymbol{f}_{n}\) denotes observed
 marginal frequency of units being observed exactly n times.</p></li>
-<li><p>Draw N units from the distribution above
-(if N is not an integer than draw
-N + b(N-N)),
-where  is the floor function.</p></li>
-<li><p>Truncated units with y=0.</p></li>
+<li><p>Draw <em></em>\(\hat{N}\) units from the distribution above
+(if <em></em>\(\hat{N}\) is not an integer than draw
+<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)),
+where <em></em>\(\lfloor\cdot\rfloor\) is the floor function.</p></li>
+<li><p>Truncated units with <em></em>\(y=0\).</p></li>
 <li><p>If there are covariates draw them from original data with replacement from
 uniform distribution. For example if unit drawn to new data has
-y=2 choose one of covariate vectors from original data that
+<em></em>\(y=2\) choose one of covariate vectors from original data that
 was associated with unit for which was observed 2 times.</p></li>
-<li><p>Regress y_new on X_vlm new
-and obtain _new, with starting point
- to make it slightly faster, use them
-to compute N_new.</p></li>
+<li><p>Regress <em></em>\(\boldsymbol{y}_{new}\) on <em></em>\(\boldsymbol{X}_{vlm new}\)
+and obtain <em></em>\(\hat{\boldsymbol{\beta}}_{new}\), with starting point
+<em></em>\(\hat{\boldsymbol{\beta}}\) to make it slightly faster, use them
+to compute <em></em>\(\hat{N}_{new}\).</p></li>
 <li><p>Repeat 2-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code>.</p></li>
 </ol><p>To do step 1 in procedure above it is convenient to first draw binary vector of length
-N + b(N-N) with probability
-1-f_0N, sum elements in that vector to
+<em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\) with probability
+<em></em>\(1-\frac{\hat{\boldsymbol{f}}_{0}}{\hat{N}}\), sum elements in that vector to
 determine the sample size and then draw sample of this size uniformly from the data.</p>
 <p>This procedure is known in literature as <code>"semiparametric"</code> bootstrap
 it is necessary to assume that the have a correct estimate
-N in order to use this type of bootstrap.</p>
+<em></em>\(\hat{N}\) in order to use this type of bootstrap.</p>
 <p>Lastly there is <code>"paramteric"</code> bootstrap where we assume that the
-probabilistic model used to obtain N is correct the
-bootstrap procedure may then be described as:</p><ol><li><p>Draw N + b(N-N)
+probabilistic model used to obtain <em></em>\(\hat{N}\) is correct the
+bootstrap procedure may then be described as:</p><ol><li><p>Draw <em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)
 covariate information vectors with replacement from data according to
-probability distribution that is proportional to: N_k,
-where N_k is the contribution of kth unit i.e.
-1P(Y_k&gt;0).</p></li>
-<li><p>Determine  matrix using estimate
-.</p></li>
-<li><p>Generate y (dependent variable)
-vector using  and
+probability distribution that is proportional to: <em></em>\(N_{k}\),
+where <em></em>\(N_{k}\) is the contribution of kth unit i.e.
+<em></em>\(\dfrac{1}{\mathbb{P}(Y_{k}&gt;0)}\).</p></li>
+<li><p>Determine <em></em>\(\boldsymbol{\eta}\) matrix using estimate
+<em></em>\(\hat{\boldsymbol{\beta}}\).</p></li>
+<li><p>Generate <em></em>\(\boldsymbol{y}\) (dependent variable)
+vector using <em></em>\(\boldsymbol{\eta}\) and
 probability mass function associated with chosen model.</p></li>
-<li><p>Truncated units with y=0 and construct
-y_new and X_vlm new.</p></li>
-<li><p>Regress y_new on X_vlm new
-and obtain _new
-use them to compute N_new.</p></li>
+<li><p>Truncated units with <em></em>\(y=0\) and construct
+<em></em>\(\boldsymbol{y}_{new}\) and <em></em>\(\boldsymbol{X}_{vlm new}\).</p></li>
+<li><p>Regress <em></em>\(\boldsymbol{y}_{new}\) on <em></em>\(\boldsymbol{X}_{vlm new}\)
+and obtain <em></em>\(\hat{\boldsymbol{\beta}}_{new}\)
+use them to compute <em></em>\(\hat{N}_{new}\).</p></li>
 <li><p>Repeat 1-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code></p></li>
@@ -359,9 +360,9 @@ only uses "standard" covariance matrix estimation. It is possible that improper
 covariance matrix estimate is the only part of estimation that has its assumptions
 violated. In such cases post-hoc procedures are implemented in this package
 to address this issue.</p>
-<p>Lastly confidence intervals for N are computed
+<p>Lastly confidence intervals for <em></em>\(\hat{N}\) are computed
 (in analytic case) either by assuming that it follows a normal distribution
-or that variable (N-N)
+or that variable <em></em>\(\ln(N-\hat{N})\)
 follows a normal distribution.</p>
 <p>These estimates may be found using either <code>summary.singleRStaticCountData</code>
 method or <code>popSizeEst.singleRStaticCountData</code> function. They're labelled as
@@ -431,7 +432,7 @@ between observed and fitted quantities.</p>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p>Piotr Chlebicki, Maciej Beręsewicz</p>
-<p></p>
+<p><script>MathJax = {output: {font: "mathjax-newcm", fontPath: "../../mathjaxr/doc/mathjax/font",}};</script><script defer src="../../mathjaxr/doc/mathjax/tex-chtml.js"></script></p>
     </div>
 
     <div class="section level2">
@@ -525,8 +526,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     model = ztnegbin, method = "optim")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.71322 -0.33627 -0.14256  0.00001  0.14745  7.01427 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.7132180 -0.3362719 -0.1425626  0.0000101  0.1474530  7.0142742 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
@@ -749,8 +750,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Test for Goodness of fit of a regression model:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                  Test statistics df P(&gt;X^2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chi-squared test           54.98 11 7.8e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> G-test                     23.06 11 1.7e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chi-squared test           52.66 11 2.1e-07</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> G-test                     22.74 11 1.9e-02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------------------------------------------- </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Cells with fitted frequencies of &lt; 5 have been dropped </span>
@@ -766,44 +767,44 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pearson Residuals:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.891103 -0.644972 -0.443066  0.005967  0.295374 20.809832 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.894863 -0.642966 -0.439570  0.005459  0.290211 20.554330 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: lambda </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  P(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -2.76388    0.23858 -11.585  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log_size      0.62734    0.01787  35.110  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log_distance -0.07200    0.02004  -3.593 0.000327 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy   0.50965    0.04032  12.640  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -2.67980    0.25196 -10.636  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_size      0.61258    0.02003  30.591  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_distance -0.07270    0.02080  -3.495 0.000474 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy   0.54628    0.04181  13.066  &lt; 2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> For linear predictors associated with: omega </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value  P(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -5.0973     0.8268  -6.165 7.03e-10 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy  -1.4002     0.3700  -3.784 0.000154 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log_size      0.4461     0.1330   3.354 0.000795 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value P(&gt;|z|)   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -1.70568    0.78564  -2.171 0.02993 * </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C_TYPEDairy -0.91361    0.28104  -3.251 0.00115 **</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log_size    -0.04029    0.13728  -0.293 0.76918   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 34579.91</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 34631.68</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 12327.24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 34572</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 34623.77</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Residual deviance: 12319.33</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -17282.96 on 24065 Degrees of freedom </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Number of iterations: 13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -17279 on 24065 Degrees of freedom </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of iterations: 20</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Population size estimation results: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 27249.03</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observed proportion: 44.2% (N obs = 12036)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Std. Error 972.0123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point estimate 28562.26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observed proportion: 42.1% (N obs = 12036)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Std. Error 713.9346</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the population size:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> normal      25343.92   29154.13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   25460.09   29276.36</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      27162.98   29961.55</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   27221.18   30021.78</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 95% CI for the share of observed population:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           lowerBound upperBound</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> normal      41.28402   47.49069</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   41.11166   47.27399</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> normal      40.17149   44.31032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> logNormal   40.09089   44.21558</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -816,7 +817,7 @@ between observed and fitted quantities.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
