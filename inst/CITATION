@@ -1,0 +1,17 @@
+bibentry(bibtype = "Article",
+  title        = "{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models",
+  author       = c(person(given = "Piotr",
+                          family = "Chlebicki",
+                          email = "piotr.chlebicki@math.su.se"),
+                   person(given = "Maciej",
+                          family = "Ber\\c{e}sewicz",
+                          email = "maciej.beresewicz@ue.poznan.pl")),
+  journal      = "Journal of Statistical Software",
+  year         = "2025",
+  volume       = "115",
+  number       = "1",
+  pages        = "1--30",
+  doi          = "10.18637/jss.v115.i01",
+  header       = "To cite singleRcapture in publications use:"
+)
+

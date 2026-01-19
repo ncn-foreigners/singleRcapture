@@ -1,5 +1,11 @@
 # singleRcapture (development version)
 
+# singleRcapture 1.0.0
+
++ fixed mixed up `ztoi*` and `oizt*` families
++ fixed documentation [!!!TODO!!!!]
++ `CITATION` file added with the JSS paper
+
 # singleRcapture 0.2.3
 
 * BugFix for anova and other not working methods
