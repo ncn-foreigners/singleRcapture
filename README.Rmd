@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Overview
+# `singleRcapture`: An R Package for Single-Source Capture-Recapture Models  <img src="man/figures/logo.png" align="right" width="150"/>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcapture/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/singleRcapture/actions)
@@ -42,8 +42,8 @@ of estimating population size from single source to simplify the research proces
 Currently, we have implemented most of the frequentist approaches used in literature such as:
 
 - Zero-truncated Poisson, geometric and negative binomial regression.
-- Zero-truncated one-inflated and one-inflated zero-truncated Poisson and geometric model.
-- Zero-one-truncated Poisson geometric and negative binomial models.
+- Zero-truncated one-inflated and one-inflated zero-truncated Poisson, geometric and negative binomial model.
+- Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao's and Zelterman's models based on logistic regression.
 - Three types of bootstrap parametric, semi-parametric and nonparametric.
 - And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
@@ -187,7 +187,7 @@ set.seed(123)
 modelInflated <- estimatePopsize(
     formula = capture ~ gender + age,
     data = netherlandsimmigrant,
-    model = "oiztgeom",
+    model = "ztoigeom",
     method = "IRLS",
     # control parameters for population size estimation check documentation of controlPopVar
     controlPopVar = controlPopVar(
@@ -206,7 +206,7 @@ modelInflated2 <- estimatePopsize(
     formula = capture ~ age,
     data = netherlandsimmigrant,
     popVar = "bootstrap",
-    model = oiztgeom(omegaLink = "cloglog"),
+    model = ztoigeom(omegaLink = "cloglog"),
     method = "IRLS",
     controlPopVar = controlPopVar(
         B = 500,# number of boostrap samples

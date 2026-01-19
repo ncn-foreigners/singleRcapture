@@ -305,7 +305,7 @@ which corresponds to:
 \end{array}\right.
 }
 before zero-truncation. Models that utilize this
-approach are commonly referred to as \emph{zero-truncated one-inflated models}.
+approach are commonly referred to as \emph{one-inflated zero-truncated models} (\verb{oizt*()} family).
 Another way of accommodating one-inflation in SSCR is by putting inflation
 parameter on base distribution as:
 \mjsdeqn{
@@ -321,18 +321,18 @@ which then becomes:
 \frac{(1 - \omega)}{1 - (1-\omega)\mathbb{P}_{old}(Y=0)}\mathbb{P}_{old}(Y=y) & \text{when: } y > 1
 \end{array}\right.
 }
-after truncation.
+after truncation and are commonly referred to as \emph{zero-truncated one-inflated models} (\verb{ztoi*()} family).
 It was shown by Böhning in 2022 paper that these approaches are equivalent
 in terms of maximizing likelihoods if we do not put formula on
 \mjseqn{\omega}. They can however lead to different
 population size estimates.
 
-For \emph{zero-truncated one-inflated models} the formula for population size
+For \emph{one-inflated zero-truncated models} the formula for population size
 estimate \mjseqn{\hat{N}} does not change since
 \mjseqn{\mathbb{P}(y=0)} remains the same but estimation of parameters
 changes all calculations.
 
-For \emph{one-inflated zero-truncated models} population size estimates are
+For \emph{zero-truncated one-inflated models} population size estimates are
 expressed, respectively by:
 \mjsdeqn{
 \begin{aligned}

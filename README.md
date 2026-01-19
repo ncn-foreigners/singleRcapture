@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Overview
+# `singleRcapture`: An R Package for Single-Source Capture-Recapture Models <img src="man/figures/logo.png" align="right" width="150"/>
 
 <!-- badges: start -->
 
@@ -39,9 +39,9 @@ Currently, we have implemented most of the frequentist approaches used
 in literature such as:
 
 - Zero-truncated Poisson, geometric and negative binomial regression.
-- Zero-truncated one-inflated and one-inflated zero-truncated Poisson
-  and geometric model.
-- Zero-one-truncated Poisson geometric and negative binomial models.
+- Zero-truncated one-inflated and one-inflated zero-truncated Poisson,
+  geometric and negative binomial model.
+- Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao’s and Zelterman’s models based on logistic
   regression.
 - Three types of bootstrap parametric, semi-parametric and
@@ -151,7 +151,7 @@ type of plot that compares fitted and observed marginal frequencies:
 plot(model, plotType = "rootogram")
 ```
 
-<img src="man/figures/README-plot-1.png" width="75%" />
+<img src="man/figures/README-plot-1.png" alt="" width="75%" />
 
 The possible values for `plotType` argument are:
 
@@ -209,7 +209,7 @@ approximately the same effect:
 plot(model, plotType = "dfpopContr")
 ```
 
-<img src="man/figures/README-plot-example-1.png" width="75%" />
+<img src="man/figures/README-plot-example-1.png" alt="" width="75%" />
 
 it is easy to deduce from the plot above that we have influential
 observations in our dataset (one in particular).
@@ -342,7 +342,7 @@ set.seed(123)
 modelInflated <- estimatePopsize(
     formula = capture ~ gender + age,
     data = netherlandsimmigrant,
-    model = "oiztgeom",
+    model = "ztoigeom",
     method = "IRLS",
     # control parameters for population size estimation check documentation of controlPopVar
     controlPopVar = controlPopVar(
@@ -353,7 +353,7 @@ summary(modelInflated)
 #> 
 #> Call:
 #> estimatePopsize.default(formula = capture ~ gender + age, data = netherlandsimmigrant, 
-#>     model = "oiztgeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, 
+#>     model = "ztoigeom", method = "IRLS", controlPopVar = controlPopVar(alpha = 0.01, 
 #>         ))
 #> 
 #> Pearson Residuals:
@@ -405,7 +405,7 @@ modelInflated2 <- estimatePopsize(
     formula = capture ~ age,
     data = netherlandsimmigrant,
     popVar = "bootstrap",
-    model = oiztgeom(omegaLink = "cloglog"),
+    model = ztoigeom(omegaLink = "cloglog"),
     method = "IRLS",
     controlPopVar = controlPopVar(
         B = 500,# number of boostrap samples
@@ -451,7 +451,7 @@ plot(modelInflated2,
      breaks = 15)
 ```
 
-<img src="man/figures/README-plot-inflated-1.png" width="75%" />
+<img src="man/figures/README-plot-inflated-1.png" alt="" width="75%" />
 
 and information criteria support the second model:
 
