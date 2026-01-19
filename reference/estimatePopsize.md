@@ -689,7 +689,7 @@ pseudoHurdleModel <- estimatePopsize(
 #> Parameter vector:  -1.28179260 -0.65559457  0.16445074 -0.51702724 -1.22154349 -0.89783555 -0.52232876 -0.64032726 -0.52639838
 #> log-likelihood reduction:  0.011729135
 #> Value of gradient at current step:
-#>   0.01965800195 -0.00376668640  0.02342526604  0.00085753707 -0.00131148043  0.00040402353 -0.00468611749 -0.01113423867 -0.00978879207
+#>   0.01965800194 -0.00376668640  0.02342526603  0.00085753707 -0.00131148043  0.00040402353 -0.00468611749 -0.01113423866 -0.00978879207
 #> Algorithm will terminate if one of following conditions will be met:
 #> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
 #> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
@@ -697,9 +697,9 @@ pseudoHurdleModel <- estimatePopsize(
 #> ----
 #> Iteration number 5 log-likelihood: -827.01868
 #> Parameter vector:  -1.28177518 -0.65568959  0.16449297 -0.51701807 -1.22190483 -0.89779857 -0.52262758 -0.64032669 -0.52640250
-#> log-likelihood reduction:  0.0000018094989
+#> log-likelihood reduction:  0.0000018094992
 #> Value of gradient at current step:
-#>  -0.0001561899387  0.0000207886459 -0.0000413107753 -0.0000259493362  0.0000040518562 -0.0000068413444 -0.0000222504320  0.0000011784080  0.0000010016067
+#>  -0.0001561899482  0.0000207886454 -0.0000413107798 -0.0000259493361  0.0000040518562 -0.0000068413444 -0.0000222504318  0.0000011784004  0.0000010016085
 #> Algorithm will terminate if one of following conditions will be met:
 #> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
 #> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
@@ -707,13 +707,13 @@ pseudoHurdleModel <- estimatePopsize(
 #> ----
 #> Iteration number 6 log-likelihood: -827.01868
 #> Parameter vector:  -1.28177959 -0.65568717  0.16449471 -0.51701668 -1.22190170 -0.89779724 -0.52262830 -0.64033172 -0.52640214
-#> log-likelihood reduction:  0.00000000032207481
+#> log-likelihood reduction:  0.00000000032196112
 #> Value of gradient at current step:
-#>   0.00000138172839925 -0.00000029541573543  0.00000194942825438  0.00000005064943620 -0.00000001912655101  0.00000005032669892 -0.00000167462238743 -0.00000000020190338 -0.00000000017657165
+#>   0.00000138172519115 -0.00000029541583935  0.00000194941637766  0.00000005064906938 -0.00000001912659731  0.00000005032678174 -0.00000167462252754 -0.00000000020150170 -0.00000000017882029
 #> Algorithm will terminate if one of following conditions will be met:
 #> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
 #> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
-#> At current step the highest change was: 0.0000050277134
+#> At current step the highest change was: 0.0000050277145
 #> ----
 #> Value of analytically computed hessian at fitted regression coefficients:
 #>              [,1]       [,2]       [,3]        [,4]      [,5]       [,6]
