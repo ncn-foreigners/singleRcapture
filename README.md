@@ -53,7 +53,7 @@ For more details we see the
 `singleRcapture: An R Package for Single-Source Capture-Recapture Models`
 vignette on [CRAN](https://cran.r-project.org/package=singleRcapture) or
 [pkgdown
-website](https://ncn-foreigners.github.io/singleRcapture/articles/singleRcapture.html).
+website](https://ncn-foreigners.ue.poznan.pl/singleRcapture/articles/singleRcapture.html).
 
 ## Installation
 
