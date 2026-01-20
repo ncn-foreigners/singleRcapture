@@ -3,10 +3,10 @@
 # singleRcapture 1.0.0
 
 -   Fixed mixed up `ztoi*` and `oizt*` families
--   Fixed documentation for `estimatePopsize()`
+-   Fixed documentation for the `estimatePopsize()` function
 -   Fixed vignette
 -   Fixed README.Rmd
--   Logo added [thanks to [Oliwia Awuku](https://www.instagram.com/abenakrzywo/) ]
+-   Logo added [thanks to [Oliwia Awuku](https://www.instagram.com/abenakrzywo/)]
 -   A `CITATION` file added with reference to the JSS paper
 
 # singleRcapture 0.2.3
