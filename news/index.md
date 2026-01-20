@@ -5,12 +5,13 @@
 ## singleRcapture 1.0.0
 
 - Fixed mixed up `ztoi*` and `oizt*` families
-- Fixed documentation for
+- Fixed documentation for the
   [`estimatePopsize()`](https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsize.md)
+  function
 - Fixed vignette
 - Fixed README.Rmd
 - Logo added \[thanks to [Oliwia
-  Awuku](https://www.instagram.com/abenakrzywo/) \]
+  Awuku](https://www.instagram.com/abenakrzywo/)\]
 - A `CITATION` file added with reference to the JSS paper
 
 ## singleRcapture 0.2.3
