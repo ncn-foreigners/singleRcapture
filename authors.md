@@ -11,7 +11,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/ncn-foreigners/singleRcapture/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/ncn-foreigners/singleRcapture/blob/1.0.0/inst/CITATION)
 
 Chlebicki P, Ber\c{e}sewicz M (2025). “singleRcapture: An R Package for
 Single-Source Capture-Recapture Models.” *Journal of Statistical

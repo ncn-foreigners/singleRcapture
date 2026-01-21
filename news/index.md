@@ -4,6 +4,8 @@
 
 ## singleRcapture 1.0.0
 
+CRAN release: 2026-01-21
+
 - Fixed mixed up `ztoi*` and `oizt*` families
 - Fixed documentation for the
   [`estimatePopsize()`](https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsize.md)

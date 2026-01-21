@@ -1855,7 +1855,7 @@ singleRcapture:::singleRinternalcloglogLink
     ##     }
     ##     res
     ## }
-    ## <bytecode: 0x55c973a59600>
+    ## <bytecode: 0x5614f2844558>
     ## <environment: namespace:singleRcapture>
 
 One could, of course, include the code for computing them manually.
