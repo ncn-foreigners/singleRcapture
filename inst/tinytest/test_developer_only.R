@@ -1,7 +1,7 @@
 # These tests are only supposed to be run on developer's machine and 
 # package GitHub page not on CRAN (they take too long)
 
-if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER", unset = "FALSE")) == "true")) {
   expect_error(
     estimatePopsize(
       formula = TOTAL_SUB ~ .,
