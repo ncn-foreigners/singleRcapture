@@ -13,14 +13,14 @@
 Source:
 [`inst/CITATION`](https://github.com/ncn-foreigners/singleRcapture/blob/main/inst/CITATION)
 
-Chlebicki P, Ber\c{e}sewicz M (2025). “singleRcapture: An R Package for
+Chlebicki P, Beręsewicz M (2025). “singleRcapture: An R Package for
 Single-Source Capture-Recapture Models.” *Journal of Statistical
 Software*, **115**(1), 1–30.
-\Sexpr\[results=rd\]{tools:::Rd_expr_doi("10.18637/jss.v115.i01")}.
+[doi:10.18637/jss.v115.i01](https://doi.org/10.18637/jss.v115.i01).
 
     @Article{,
       title = {{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models},
-      author = {Piotr Chlebicki and Maciej Ber\c{e}sewicz},
+      author = {Piotr Chlebicki and Maciej Ber\k{e}sewicz},
       journal = {Journal of Statistical Software},
       year = {2025},
       volume = {115},
