@@ -2,6 +2,10 @@
 
 ## singleRcapture (development version)
 
+## singleRcapture 1.0.1
+
+- fixed checks of the variables
+
 ## singleRcapture 1.0.0
 
 CRAN release: 2026-01-21
