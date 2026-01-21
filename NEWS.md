@@ -1,5 +1,9 @@
 # singleRcapture (development version)
 
+# singleRcapture 1.0.1
+
+-   fixed checks of the variables
+
 # singleRcapture 1.0.0
 
 -   Fixed mixed up `ztoi*` and `oizt*` families
