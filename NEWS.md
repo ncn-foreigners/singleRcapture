@@ -132,7 +132,7 @@ tests will only be performed after
     -   More options in control functions
     -   Corrected/implemented deviance residuals for more models
 -   changes:
-    -   Now the whole package uses `cammelCase`
+    -   Now the whole package uses `camelCase`
     -   Performance upgrades
     -   Corrected some miss calculated moments
     -   Change exported data so that factors are actually factors not

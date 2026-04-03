@@ -36,7 +36,7 @@ in short it is a \code{barplot} where height is the square root of observed marg
 frequencies adjusted by difference between square root of observed and fitted marginal
 frequencies connected by line representing fitted marginal frequencies.
 The less of a difference there is between the 0 line and beginning of a bar
-the more accurate fitt was produced by the model.
+the more accurate fit was produced by the model.
 \item \code{dfpopContr} -- Plot of \code{dfpopsize} against unit contribution.
 On the plot is y = x line i.e. what deletion effect would be if removing the
 unit from the model didn't effect regression coefficients. The further away
@@ -58,7 +58,7 @@ Currently supported values are \code{"normal"} and \code{"logNormal"}.}
 \item{histKernels}{logical value indicating whether to add density lines
 to histogram.}
 
-\item{dfpop}{TODO}
+\item{dfpop}{an optional pre-computed result of \code{dfpopsize()} to avoid recomputation when using \code{plotType = "dfpopContr"} or \code{plotType = "dfpopBox"}.}
 
 \item{...}{additional optional arguments passed to the following functions:
 \itemize{

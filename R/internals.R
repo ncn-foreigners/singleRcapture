@@ -132,7 +132,7 @@ singleRcaptureinternalpopulationEstimate <- function(y, X, grad,
       sd <- sd / (sqrt(2 / (sizeObserved - 1)) * exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved- 1) / 2)))
     }
     
-    if (control$confType == "percentilic") {
+    if (control$confType == "percentile") {
       confidenceInterval <- stats::quantile(strappedStatistic,
                                             c(siglevel / 2,
                                               1 - siglevel / 2))
@@ -243,14 +243,14 @@ singleRcaptureinternalIRLSmultipar <- function(dependent,
     if (trace > 4) {
       cat(sep = " ", "\nAlgorithm will terminate if one of following conditions will be met:\n")
       if ("abstol" %in% crit) {
-        cat("The increase to minus log-likelihood will be bellow chosen value of epsilon", eps, "\n")
+        cat("The increase to minus log-likelihood will be below chosen value of epsilon", eps, "\n")
       }
       if ("reltol" %in% crit) {
-        cat("The relative increase to minus log-likelihood will be bellow chosen value of epsilon", eps, 
+        cat("The relative increase to minus log-likelihood will be below chosen value of epsilon", eps, 
             "value at current step", format((L - LPrev) / LPrev, scientific = FALSE, digits = dg), "\n")
       }
       if ("coef" %in% crit) {
-        cat("Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.\nAt current step the highest change was:", 
+        cat("Maximum change to the vector of regression parameters will be below the chosen value of epsilon.\nAt current step the highest change was:", 
             format(max(abs(beta - betaPrev)), scientific = FALSE, digits = dg))
       }
     }

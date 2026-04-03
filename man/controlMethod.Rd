@@ -86,7 +86,7 @@ the update will be made as:
 \item{saveIRLSlogs}{a logical value indicating if information specified in
 \code{verbose} should be saved to output object, by default \code{FALSE}.}
 
-\item{momentumActivation}{the value of log-likelihood reduction bellow
+\item{momentumActivation}{the value of log-likelihood reduction below
 which momentum will apply.}
 
 \item{criterion}{a criterion used to determine convergence in \code{IRLS},

@@ -346,7 +346,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     yUnq <- unique(y)
     
     if (any(yUnq > 77)) {
-      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+      warning("Currently numerical deviance is unreliable for counts greater than 78.")
     }
     
     findL <- function(t) {
@@ -391,7 +391,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     diff <- logLikIdeal - logLikFit
     
     if (any(logLikFit > 0)) {
-      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      warning("Dispersion parameter values are on the boundary of parameter space. Deviance residuals will be assigned 0 on these observations.")
       diff[logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")

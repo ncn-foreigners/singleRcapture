@@ -305,11 +305,11 @@ estimatePopsizeFit <- function(y, X,
     iter <- FITT$counts
     beta <- FITT$par
   } else {
-    stop("Method implemented.")
+    stop("Method not implemented.")
   }
   if (is.null(FITT)) {
     stop("fitting error try another model
-          (negative binomial models are highly volitile)")
+          (negative binomial models are highly volatile)")
   }
   
   beta <- as.vector(beta)

@@ -462,3 +462,22 @@ and information criteria support the second model:
 
 Work on this package is supported by the the National Science Centre,
 OPUS 20 grant no. 2020/39/B/HS4/00941.
+
+## Citation
+
+Chlebicki, P., & Beręsewicz, M. (2026). singleRcapture: An R Package for
+Single-Source Capture-Recapture Models. Journal of Statistical Software,
+115(1), 1–30. <https://doi.org/10.18637/jss.v115.i01>
+
+``` bibtex
+ @Article{,
+    title = {{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models},
+    author = {Piotr Chlebicki and Maciej Ber\c{e}sewicz},
+    journal = {Journal of Statistical Software},
+    year = {2025},
+    volume = {115},
+    number = {1},
+    pages = {1--30},
+    doi = {10.18637/jss.v115.i01},
+  }
+```

@@ -10,7 +10,7 @@ Data frame with 1,880 rows and 5 columns.
 \item{\code{capture}}{Number of times a person has been captured by police.}
 \item{\code{gender}}{Factor describing gender of the apprehended person.}
 \item{\code{age}}{Factor describing age of apprehended person.
-Either bellow or above 40 years old.}
+Either below or above 40 years old.}
 \item{\code{reason}}{Factor describing reason for being apprehended by
 police either illegal stay in Netherlands or other reasons.}
 \item{\code{nation}}{Factor with nation of origin of the captured person.

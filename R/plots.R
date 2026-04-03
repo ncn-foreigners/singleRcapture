@@ -4,7 +4,7 @@
 #' @description Simple diagnostic plots for \code{singleRStaticCountData} class objects.
 #'
 #' @param x object of \code{singleRStaticCountData} class.
-#' @param dfpop TODO
+#' @param dfpop an optional pre-computed result of \code{dfpopsize()} to avoid recomputation when using \code{plotType = "dfpopContr"} or \code{plotType = "dfpopBox"}.
 #' @param confIntStrata confidence interval type to use for strata plot.
 #' Currently supported values are \code{"normal"} and \code{"logNormal"}.
 #' @param plotType character parameter (default \code{"qq"}) specifying type of plot to be made.
@@ -26,7 +26,7 @@
 #'   frequencies adjusted by difference between square root of observed and fitted marginal 
 #'   frequencies connected by line representing fitted marginal frequencies. 
 #'   The less of a difference there is between the 0 line and beginning of a bar 
-#'   the more accurate fitt was produced by the model.
+#'   the more accurate fit was produced by the model.
 #'   \item \code{dfpopContr} -- Plot of \code{dfpopsize} against unit contribution.
 #'   On the plot is y = x line i.e. what deletion effect would be if removing the
 #'   unit from the model didn't effect regression coefficients. The further away

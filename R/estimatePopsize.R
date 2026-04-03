@@ -186,7 +186,7 @@ NULL
 #' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting point 
 #' \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, use them 
 #' to compute \mjseqn{\hat{N}_{new}}.
-#' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
+#' 6. Repeat 2-5 until there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
@@ -199,7 +199,7 @@ NULL
 #' it is necessary to assume that the have a correct estimate 
 #' \mjseqn{\hat{N}} in order to use this type of bootstrap.
 #' 
-#' Lastly there is \code{"paramteric"} bootstrap where we assume that the 
+#' Lastly there is \code{"parametric"} bootstrap where we assume that the 
 #' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
 #' bootstrap procedure may then be described as:
 #' 
@@ -218,7 +218,7 @@ NULL
 #' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}} 
 #' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}
 #' use them to compute \mjseqn{\hat{N}_{new}}.
-#' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
+#' 6. Repeat 1-5 until there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType}
 #' specified in [controlPopVar()]
 #' 
@@ -336,7 +336,7 @@ NULL
 #' [controlModel()] -- For control parameters related to model specification.
 #' 
 #' [estimatePopsizeFit()] -- For more information on fitting procedure in
-#' \code{esitmate_popsize}.
+#' \code{estimate_popsize}.
 #' 
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
 #' estimation results are applying post-hoc procedures.
@@ -436,7 +436,7 @@ estimatePopsize.default <- function(formula,
                                       "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
                                       "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
                                       "Hurdleztnegbin", "zotgeom", "ztoigeom",
-                                      "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
+                                      "oiztgeom", "ztHurdlegeom", "Hurdleztgeom",
                                       "zelterman", "chao"
                                     ),
                                     weights  = NULL,
