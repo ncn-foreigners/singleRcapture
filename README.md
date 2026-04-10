@@ -542,7 +542,7 @@ and information criteria support the second model:
 
 ## Funding
 
-Work on this package is supported by the the National Science Centre,
+Work on this package is supported by the National Science Centre through
 OPUS 20 grant no. 2020/39/B/HS4/00941.
 
 ## Citation

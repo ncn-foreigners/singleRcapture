@@ -292,7 +292,7 @@ cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
 
 ## Funding
 
-Work on this package is supported by the the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941.   
+Work on this package is supported by the National Science Centre through OPUS 20 grant no. 2020/39/B/HS4/00941.   
 
 ## Citation
 
