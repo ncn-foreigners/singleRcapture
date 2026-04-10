@@ -14,8 +14,10 @@ NULL
 #' arguments specify maximum number of simulations allowed and
 #' precision level for finding them numerically respectively.
 #' @param lambdaLink a link for Poisson parameter, \code{"log"} 
-#' by default except for zelterman's and chao's models where only 
-#' \mjseqn{\ln\left(\frac{x}{2}\right)} is possible.
+#' by default except for rare-count Poisson models such as
+#' \code{zelterman()} and \code{chao()} where only
+#' \mjseqn{\ln\left(\frac{x}{2}\right)} is possible and \code{oichao()}
+#' where only \mjseqn{\ln\left(\frac{x}{3}\right)} is possible.
 #' @param alphaLink a link for dispersion parameter, \code{"log"} by default
 #' @param omegaLink a link for inflation parameter, \code{"logit"} by default 
 #' @param piLink a link for probability parameter,  \code{"logit"} by default
@@ -201,6 +203,23 @@ NULL
 #' \mjsdeqn{
 #' \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
 #' \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
+#' }
+#' The *oichao* estimator is the modified Chao analogue robust to one-inflation
+#' and is based on the dummy variable
+#' \mjsdeqn{
+#' Z = \left\lbrace\begin{array}{cc}
+#' 0     & \text{if }Y = 2  \cr
+#' 1     & \text{if }Y = 3
+#' \end{array}\right.}
+#' with equation:
+#' \mjsdeqn{
+#' \text{logit}(p_{k})=
+#' \ln\left(\frac{\lambda_{k}}{3}\right)=
+#' \boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}}
+#' and population size estimator:
+#' \mjsdeqn{
+#' \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+#' \frac{1}{\frac{\lambda_{k}^{2}}{2}+ \frac{\lambda_{k}^{3}}{6}}
 #' }
 #' 
 #' @seealso [estimatePopsize()]

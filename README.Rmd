@@ -45,6 +45,7 @@ Currently, we have implemented most of the frequentist approaches used in litera
 - Zero-truncated one-inflated and one-inflated zero-truncated Poisson, geometric and negative binomial model.
 - Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao's and Zelterman's models based on logistic regression.
+- Modified Chao's one-inflation-robust `oichao()` model based on counts 2 and 3.
 - Three types of bootstrap parametric, semi-parametric and nonparametric.
 - And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
 
@@ -85,6 +86,21 @@ model <- estimatePopsize(
   controlMethod = controlMethod(silent = TRUE) # ignore convergence at half step warning
 )
 summary(model) # a summary method for singleR class with standard glm-like output and population size estimation results
+```
+
+The package also includes `oichao()`, a modified Chao family that uses the
+counts `2` and `3` instead of `1` and `2`, which makes it more robust when
+one-inflation is a concern:
+
+```{r oichao-example}
+oichaoModel <- estimatePopsize(
+  formula = capture ~ gender + age,
+  data = netherlandsimmigrant,
+  model = "oichao",
+  method = "IRLS",
+  controlMethod = controlMethod(silent = TRUE)
+)
+popSizeEst(oichaoModel)
 ```
 
 We implemented a method for `plot` function to visualise the model fit and other
@@ -265,4 +281,3 @@ Chlebicki, P., & Beręsewicz, M. (2026). singleRcapture: An R Package for Single
     doi = {10.18637/jss.v115.i01},
   }
 ```
-

@@ -155,8 +155,6 @@ predict.singleRStaticCountData <- function(object,
   }
   
   if (isTRUE(se.fit)) {
-    cov <- vcov(object, ...)
-    
     #### beta is asymptotically normal and each eta is just a linear
     #### combination of beta so it is also asymptotically normal
     #### and its variance is computed by quadratic form

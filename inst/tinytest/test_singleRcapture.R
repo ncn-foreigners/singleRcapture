@@ -113,6 +113,91 @@ expect_equivalent(
   tolerance = .005
 )
 
+oi_theory_data <- data.frame(
+  y = c(rep(2, 95), rep(3, 32))
+)
+
+expect_silent(
+  oi_theory <- estimatePopsize(
+    formula = y ~ 1,
+    model = "oichao",
+    data = oi_theory_data,
+    method = "IRLS",
+    popVar = "analytic",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_equivalent(
+  3 * exp(unname(coef(oi_theory))[1]),
+  3 * 32 / 95,
+  tolerance = .005
+)
+
+expect_equivalent(
+  oi_theory$populationSize$pointEstimate,
+  127 + (2 / 9) * 95 ^ 3 / 32 ^ 2,
+  tolerance = .005
+)
+
+set.seed(2024)
+oi_covariate_data <- data.frame(
+  x = rnorm(500)
+)
+oi_covariate_data$lambda <- exp(0.2 + 0.35 * oi_covariate_data$x)
+oi_covariate_data$y <- rpois(nrow(oi_covariate_data), oi_covariate_data$lambda)
+oi_covariate_data <- subset(oi_covariate_data, y > 0)
+
+expect_silent(
+  oi_irls <- estimatePopsize(
+    formula = y ~ x,
+    model = "oichao",
+    data = oi_covariate_data,
+    method = "IRLS",
+    popVar = "analytic",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_silent(
+  oi_opt <- estimatePopsize(
+    formula = y ~ x,
+    model = oichao(),
+    data = oi_covariate_data,
+    method = "optim",
+    popVar = "analytic",
+    controlMethod = controlMethod(
+      silent = TRUE,
+      optimMethod = "BFGS",
+      maxiter = 500
+    )
+  )
+)
+
+expect_true(
+  max(abs(coef(oi_irls) - coef(oi_opt))) < 1e-3
+)
+
+expect_true(
+  abs(oi_irls$populationSize$pointEstimate - oi_opt$populationSize$pointEstimate) < 0.25
+)
+
+expect_silent(
+  predict(
+    oi_irls,
+    type = "response",
+    se.fit = TRUE
+  )
+)
+
+expect_silent(
+  summary(oi_irls)
+)
+
+expect_silent(
+  popSizeEst(oi_irls)
+)
+
 # on netherlandsimmigrant
 # confint
 
@@ -290,4 +375,3 @@ expect_error(
   estimatePopsize(formula = cbind(TOTAL_SUB, log_size) ~ log_distance, 
                   data = farmsubmission, model = ztpoisson)
 )
-

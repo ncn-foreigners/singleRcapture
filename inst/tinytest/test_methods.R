@@ -458,6 +458,31 @@ expect_equivalent(
   tolerance = eps
 )
 
+pred_data <- data.frame(
+  y = c(1, 2, 3, 1, 2),
+  x = c(1, 2, 3, 4, 5)
+)
+
+expect_silent(
+  pred_mod <- estimatePopsize(
+    formula = y ~ x,
+    data = pred_data,
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+custom_cov <- diag(c(1.5, 2.5))
+custom_pred <- predict(pred_mod, type = "link", se.fit = TRUE, cov = custom_cov)
+custom_se_col <- paste0("se:", family(pred_mod)$etaNames)
+
+expect_equal(
+  as.numeric(custom_pred[, custom_se_col]),
+  sqrt(diag(model.matrix(pred_mod, type = "vlm") %*% custom_cov %*%
+              t(model.matrix(pred_mod, type = "vlm")))),
+  tolerance = eps
+)
+
 expect_silent(
   residuals(Model, type = "all")
 )
@@ -465,6 +490,25 @@ expect_silent(
 expect_equal(
   logLik(Model),
   logLik(Model6),
+  tolerance = eps
+)
+
+offset_data <- data.frame(y = c(1, 2, 3, 1, 2))
+offset_matrix <- matrix(log(c(1, 2, 1, 2, 1)), ncol = 1)
+
+expect_silent(
+  offset_mod <- estimatePopsize(
+    formula = y ~ 1,
+    data = offset_data,
+    model = "ztpoisson",
+    offset = offset_matrix,
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_equal(
+  -logLik(offset_mod, type = "function")(coef(offset_mod)),
+  as.numeric(logLik(offset_mod)),
   tolerance = eps
 )
 
@@ -516,6 +560,133 @@ expect_equivalent(
   tolerance = eps
 )
 
+weight_data <- data.frame(
+  y = c(1, 2, 3, 1, 2),
+  x = c(1, 2, NA, 4, 5)
+)
+
+expect_error(
+  estimatePopsize(
+    formula = y ~ x,
+    data = pred_data[-5, ],
+    weights = c(1, 2),
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_silent(
+  weight_mod <- estimatePopsize(
+    formula = y ~ x,
+    data = weight_data,
+    weights = c(1, 2, 3, 4, 5),
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_silent(
+  weight_mod_complete <- estimatePopsize(
+    formula = y ~ x,
+    data = na.omit(weight_data),
+    weights = c(1, 2, 4, 5),
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_equal(
+  weight_mod$priorWeights,
+  weight_mod_complete$priorWeights,
+  tolerance = eps
+)
+
+expect_equal(
+  weight_mod$sizeObserved,
+  nrow(model.frame(weight_mod)),
+  tolerance = eps
+)
+
+expect_equal(
+  weight_mod$sizeObserved,
+  weight_mod_complete$sizeObserved,
+  tolerance = eps
+)
+
+expect_equal(
+  weight_mod$populationSize$confidenceInterval,
+  weight_mod_complete$populationSize$confidenceInterval,
+  tolerance = eps
+)
+
+set.seed(321)
+oichao_y <- sample(c(1, 2, 3, 4), 20, replace = TRUE)
+oichao_X <- cbind(1, rnorm(20))
+oichao_beta <- c(-0.3, 0.2)
+oichao_family <- oichao()
+oichao_fn <- oichao_family$makeMinusLogLike(
+  y = oichao_y,
+  X = oichao_X,
+  weight = rep(1, 20),
+  deriv = 0
+)
+oichao_grad <- oichao_family$makeMinusLogLike(
+  y = oichao_y,
+  X = oichao_X,
+  weight = rep(1, 20),
+  deriv = 1
+)
+oichao_hess <- oichao_family$makeMinusLogLike(
+  y = oichao_y,
+  X = oichao_X,
+  weight = rep(1, 20),
+  deriv = 2
+)
+eps_fd <- 1e-6
+fd_grad <- sapply(1:2, function(j) {
+  beta_plus <- oichao_beta
+  beta_minus <- oichao_beta
+  beta_plus[j] <- beta_plus[j] + eps_fd
+  beta_minus[j] <- beta_minus[j] - eps_fd
+  (oichao_fn(beta_plus) - oichao_fn(beta_minus)) / (2 * eps_fd)
+})
+fd_hess <- matrix(0, 2, 2)
+for (i in 1:2) {
+  for (j in 1:2) {
+    ei <- rep(0, 2)
+    ej <- rep(0, 2)
+    ei[i] <- eps_fd
+    ej[j] <- eps_fd
+    fd_hess[i, j] <- (
+      oichao_fn(oichao_beta + ei + ej) -
+        oichao_fn(oichao_beta + ei - ej) -
+        oichao_fn(oichao_beta - ei + ej) +
+        oichao_fn(oichao_beta - ei - ej)
+    ) / (4 * eps_fd ^ 2)
+  }
+}
+
+expect_true(
+  max(abs(as.numeric(-oichao_grad(oichao_beta)) - fd_grad)) < 1e-5
+)
+
+expect_true(
+  max(abs(-oichao_hess(oichao_beta) - fd_hess)) < 1e-3
+)
+
+expect_silent(
+  oichao_fit <- estimatePopsize(
+    formula = y ~ 1,
+    data = data.frame(y = c(rep(2, 20), rep(3, 10))),
+    model = "oichao",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_true(
+  all(as.matrix(simulate(oichao_fit, nsim = 4, seed = 1)) %in% 2:3)
+)
+
 
 # not working methods ---------------------------------------------------------
 
@@ -538,8 +709,6 @@ expect_error(
   anova(mod1),
   "The custom anova method for singleRStaticCountData class is not yet implemented. If the goal is to compare models we recommend using `lmtest::lrtest` instead."
 )
-
-
 
 
 

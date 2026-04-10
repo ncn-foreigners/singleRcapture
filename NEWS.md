@@ -1,5 +1,12 @@
 # singleRcapture (development version)
 
+-   Added the `oichao()` family, a modified Chao estimator based on
+    counts 2 and 3 for improved robustness to one-inflation.
+-   Updated rare-count-family simulation support so `oichao()` works
+    correctly through the public `simulate()` methods.
+-   Updated README and package documentation to describe the new
+    `oichao()` model.
+
 # singleRcapture 1.0.1
 
 -   fixed checks of the variables

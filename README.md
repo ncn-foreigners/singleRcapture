@@ -44,6 +44,8 @@ in literature such as:
 - Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao’s and Zelterman’s models based on logistic
   regression.
+- Modified Chao’s one-inflation-robust `oichao()` model based on counts
+  2 and 3.
 - Three types of bootstrap parametric, semi-parametric and
   nonparametric.
 - And a wide range of additional functionalities associated with
@@ -70,16 +72,16 @@ or install the stable version from
 [CRAN](https://cran.r-project.org/package=singleRcapture) with:
 
 ``` r
-install.packages(singleRcapture)
+install.packages("singleRcapture")
 ```
 
 ### Examples
 
-The main function of this package is `estimatePopsize` which fitts
+The main function of this package is `estimatePopsize` which fits
 regression on specified distribution and then uses fitted regression to
 estimate the population size.
 
-Lets look at a model from 2003 publication (Van Der Heijden, P. G.,
+Let’s look at a model from 2003 publication (Van Der Heijden, P. G.,
 Bustami, R., Cruyff, M. J., Engbersen, G., & Van Houwelingen, H. C.
 (2003). Point and interval estimation of the population size using the
 truncated Poisson regression model. Statistical Modelling, 3(4),
@@ -96,7 +98,7 @@ model <- estimatePopsize(
   method = "IRLS", # fitting method one of three currently supported
   controlMethod = controlMethod(silent = TRUE) # ignore convergence at half step warning
 )
-summary(model) # a summary method for singleR class with standard glm-like output and population size estimation resutls
+summary(model) # a summary method for singleR class with standard glm-like output and population size estimation results
 #> 
 #> Call:
 #> estimatePopsize.default(formula = capture ~ gender + age + nation, 
@@ -141,6 +143,27 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 #>           lowerBound upperBound
 #> normal     10.332933   26.16035
 #> logNormal   9.534288   22.29793
+```
+
+The package also includes `oichao()`, a modified Chao family that uses
+the counts `2` and `3` instead of `1` and `2`, which makes it more
+robust when one-inflation is a concern:
+
+``` r
+oichaoModel <- estimatePopsize(
+  formula = capture ~ gender + age,
+  data = netherlandsimmigrant,
+  model = "oichao",
+  method = "IRLS",
+  controlMethod = controlMethod(silent = TRUE)
+)
+popSizeEst(oichaoModel)
+#> Point estimate: 5.299589e+15
+#> Variance: 1.164916e+39
+#> 95% confidence intervals:
+#>             lowerBound   upperBound
+#> normal    1.880000e+03 6.690058e+19
+#> logNormal 1.443035e+12 1.946291e+19
 ```
 
 We implemented a method for `plot` function to visualise the model fit

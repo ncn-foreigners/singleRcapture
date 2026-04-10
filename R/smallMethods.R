@@ -47,10 +47,11 @@ logLik.singleRStaticCountData <- function(object,
     val
   } else {
     object$model$makeMinusLogLike(
-      y = as.numeric(model.response(model.frame(object))),
+      y = if (is.null(object$y)) as.numeric(model.response(model.frame(object))) else object$y,
       X = model.matrix(object, type = "vlm"),
       weight = object$priorWeights,
-      deriv = deriv
+      deriv = deriv,
+      offset = object$offset
     )
   }
 }

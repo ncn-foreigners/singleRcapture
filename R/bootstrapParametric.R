@@ -13,10 +13,10 @@ parBoot <- function(family, formulas, y, X, beta, weights,
     weights <- rep(1, length(y))
   }
   
-  if (family$family %in% c("chao", "zelterman")) {
+  if (family$family %in% c("chao", "zelterman", "oichao")) {
     message(paste(
       "Probability model will be taken as given by poisson distribution",
-      "since zelterman and chao models are based on mixture of poisson",
+      "since rare-count chao-type models are based on mixture of poisson",
       "distribution semi-parametric bootstrap may be a better choice.", 
       sep = "\n"
     ))
@@ -162,9 +162,9 @@ parBootMultiCore <- function(family, formulas, y, X, modelFrame,
     weights <- rep(1, length(y))
   }
   
-  if (family$family %in% c("chao", "zelterman")) {
+  if (family$family %in% c("chao", "zelterman", "oichao")) {
     message(paste("Probability model will be taken as given by poisson distribution",
-                  "since zelterman and chao models are based on mixture of poisson",
+                  "since rare-count chao-type models are based on mixture of poisson",
                   "distribution semi-parametric bootstrap may be a better choice.", 
                   sep = "\n"))
   }

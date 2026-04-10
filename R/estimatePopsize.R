@@ -437,7 +437,7 @@ estimatePopsize.default <- function(formula,
                                       "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
                                       "Hurdleztnegbin", "zotgeom", "ztoigeom",
                                       "oiztgeom", "ztHurdlegeom", "Hurdleztgeom",
-                                      "zelterman", "chao"
+                                      "zelterman", "chao", "oichao"
                                     ),
                                     weights  = NULL,
                                     subset   = NULL,
@@ -465,6 +465,7 @@ estimatePopsize.default <- function(formula,
   if (!is.data.frame(data)) {
     data <- data.frame(data)
   }
+  fullDataRows <- rownames(data)
   
   if (!is.logical(subset)) {subset <- eval(subset, data)}
   if (is.null(subset)) {subset <- TRUE}
@@ -542,7 +543,32 @@ estimatePopsize.default <- function(formula,
       stop("Single source capture-recapture models support only single dependent variable.")
   
     if (!is.null(weights)) {
-      priorWeights <- as.numeric(weights)
+      weights <- as.numeric(weights)
+      modelFrameRows <- rownames(modelFrame)
+      dataRows <- rownames(data)
+      
+      if (length(weights) == 1L) {
+        priorWeights <- rep(weights, nrow(modelFrame))
+      } else if (length(weights) == nrow(modelFrame)) {
+        priorWeights <- weights
+      } else if (length(weights) == nrow(data)) {
+        alignedRows <- match(modelFrameRows, dataRows)
+        if (anyNA(alignedRows)) {
+          stop("Unable to align argument weights with rows used in fitting.")
+        }
+        priorWeights <- weights[alignedRows]
+      } else if (length(weights) == length(fullDataRows)) {
+        alignedRows <- match(modelFrameRows, fullDataRows)
+        if (anyNA(alignedRows)) {
+          stop("Unable to align argument weights with rows used in fitting.")
+        }
+        priorWeights <- weights[alignedRows]
+      } else {
+        stop(
+          "Argument weights must have length 1, the number of rows used in fitting, ",
+          "the number of rows in data after subsetting, or the number of rows in the original data."
+        )
+      }
     } else {
       priorWeights <- rep(1, nrow(modelFrame))
     }
@@ -551,7 +577,7 @@ estimatePopsize.default <- function(formula,
     if (controlModel$weightsAsCounts) {
       sizeObserved <- sum(priorWeights)
     } else {
-      sizeObserved <- nrow(data)
+      sizeObserved <- nrow(modelFrame)
     }
     
     if (!all(observed > 0)) {
@@ -682,6 +708,8 @@ estimatePopsize.default <- function(formula,
     
     if (family$family %in% c("zelterman", "chao")) {
       resRes <- resRes - priorWeights
+    } else if (family$family == "oichao") {
+      resRes <- resRes - 2 * priorWeights
     }
   
     deviance <- sum(family$devResids(y   = observed, 

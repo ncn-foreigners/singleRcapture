@@ -13,7 +13,7 @@ estimatePopsize(formula, ...)
   model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
     "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
     "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
-    "ztHurdlegeom", "Hurdleztgeom", "zelterman", "chao"),
+    "ztHurdlegeom", "Hurdleztgeom", "zelterman", "chao", "oichao"),
   weights = NULL,
   subset = NULL,
   naAction = NULL,
