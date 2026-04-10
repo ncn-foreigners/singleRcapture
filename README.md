@@ -46,6 +46,8 @@ in literature such as:
   regression.
 - Modified Chao’s one-inflation-robust `oichao()` model based on counts
   2 and 3.
+- Standalone `ratioReg()` support for ratio regression with optional
+  one-inflation model selection.
 - Three types of bootstrap parametric, semi-parametric and
   nonparametric.
 - And a wide range of additional functionalities associated with
@@ -165,6 +167,63 @@ popSizeEst(oichaoModel)
 #> normal    1.880000e+03 6.690058e+19
 #> logNormal 1.443035e+12 1.946291e+19
 ```
+
+The package also includes a standalone `ratioReg()` function for the
+ratio-regression approach. It is separate from `singleRmodels()` because
+it works on neighbouring marginal-frequency ratios rather than on
+unit-level count likelihoods:
+
+``` r
+toyRatio <- data.frame(
+  observed = c(rep(1, 50), rep(2, 30), rep(3, 15), rep(4, 6), rep(5, 2))
+)
+
+ratioModel <- ratioReg(
+  observed ~ 1,
+  data = toyRatio,
+  model = "auto",
+  estimator = "SM",
+  confint = "none"
+)
+
+summary(ratioModel)
+#> 
+#> Call:
+#> ratioReg(formula = observed ~ 1, data = toyRatio, model = "auto", 
+#>     estimator = "SM", confint = "none")
+#> 
+#> Selected ratio regression model: M1 
+#> Selection criterion: AIC 
+#> Primary population estimator: SM 
+#> Observed population size: 103 
+#> 
+#> Model selection table:
+#>    model available logLik     AIC    BIC selected
+#> M0    M0      TRUE   7.85  -9.701 -11.54    FALSE
+#> M1    M1      TRUE  20.14 -32.284 -34.74     TRUE
+#> 
+#> Coefficients for M0 :
+#> (Intercept)  log(k + 1) 
+#>     -0.1035     -0.5724 
+#> 
+#> Coefficients for M1 :
+#>  (Intercept)   log(k + 1) oneInflation 
+#>       0.1714      -0.7865      -0.1371 
+#> 
+#> Population size estimates:
+#>  estimator pointEstimate variance lowerBound upperBound
+#>         HT      139.7316       NA         NA         NA
+#>         SM      139.7308       NA         NA         NA
+```
+
+The default ratio-regression plot shows the observed log-ratios together
+with the fitted `M0` and `M1` curves:
+
+``` r
+plot(ratioModel)
+```
+
+<img src="man/figures/README-ratioReg-plot-1.png" alt="" width="75%" />
 
 We implemented a method for `plot` function to visualise the model fit
 and other useful diagnostic information. One of which is `rootogram`, a

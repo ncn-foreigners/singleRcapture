@@ -79,7 +79,8 @@ dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{not yet implemented.}
 
-\item{ratioReg}{Not yet implemented}
+\item{ratioReg}{deprecated placeholder for ratio regression. Use
+\code{\link[=ratioReg]{ratioReg()}} instead.}
 
 \item{offset}{a matrix of offset values with the number of columns matching the
 number of distribution parameters providing offset values to each of

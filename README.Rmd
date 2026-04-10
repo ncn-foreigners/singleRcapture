@@ -46,6 +46,7 @@ Currently, we have implemented most of the frequentist approaches used in litera
 - Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao's and Zelterman's models based on logistic regression.
 - Modified Chao's one-inflation-robust `oichao()` model based on counts 2 and 3.
+- Standalone `ratioReg()` support for ratio regression with optional one-inflation model selection.
 - Three types of bootstrap parametric, semi-parametric and nonparametric.
 - And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
 
@@ -101,6 +102,34 @@ oichaoModel <- estimatePopsize(
   controlMethod = controlMethod(silent = TRUE)
 )
 popSizeEst(oichaoModel)
+```
+
+The package also includes a standalone `ratioReg()` function for the
+ratio-regression approach. It is separate from `singleRmodels()` because it
+works on neighbouring marginal-frequency ratios rather than on unit-level
+count likelihoods:
+
+```{r ratioReg-example}
+toyRatio <- data.frame(
+  observed = c(rep(1, 50), rep(2, 30), rep(3, 15), rep(4, 6), rep(5, 2))
+)
+
+ratioModel <- ratioReg(
+  observed ~ 1,
+  data = toyRatio,
+  model = "auto",
+  estimator = "SM",
+  confint = "none"
+)
+
+summary(ratioModel)
+```
+
+The default ratio-regression plot shows the observed log-ratios together with
+the fitted `M0` and `M1` curves:
+
+```{r ratioReg-plot, fig.show="hold", out.width="75%"}
+plot(ratioModel)
 ```
 
 We implemented a method for `plot` function to visualise the model fit and other

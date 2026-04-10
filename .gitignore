@@ -8,3 +8,4 @@ inst/doc
 *.log
 docs
 singleRcapture.Rcheck
+playground

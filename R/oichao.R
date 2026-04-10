@@ -1,4 +1,5 @@
 #' @rdname singleRmodels
+#' @author Cyprian Jurkowski, Piotr Chlebicki, Maciej Beręsewicz
 #' @importFrom stats dbinom
 #' @export
 oichao <- function(lambdaLink = "logthird",
@@ -192,12 +193,38 @@ oichao <- function(lambdaLink = "logthird",
   }
   
   simulate <- function(n, eta, lower = 1, upper = 3) {
-    lambda <- lambdaLink(eta, inverse = TRUE)
-    
-    lb <- stats::ppois(lower, lambda)
-    ub <- stats::ppois(upper, lambda)
-    p_u <- stats::runif(n, lb, ub)
-    stats::qpois(p_u, lambda)
+    lambda <- as.numeric(lambdaLink(eta, inverse = TRUE))
+    lambda <- rep_len(lambda, n)
+
+    if (is.infinite(upper)) {
+      return(stats::rpois(n = n, lambda = lambda))
+    }
+
+    lower <- as.integer(floor(lower)) + 1L
+    upper <- as.integer(floor(upper))
+    lower <- max(lower, 0L)
+
+    if (lower > upper) {
+      stop("Simulation support must contain at least one integer value.")
+    }
+
+    support <- seq.int(lower, upper)
+    probs <- vapply(
+      X = support,
+      FUN = function(x) stats::dpois(x = x, lambda = lambda),
+      FUN.VALUE = numeric(length(lambda))
+    )
+    probs <- probs / rowSums(probs)
+
+    if (length(support) == 1L) {
+      return(rep.int(support, n))
+    }
+
+    as.numeric(apply(
+      X = probs,
+      MARGIN = 1L,
+      FUN = function(prob) sample(x = support, size = 1L, prob = prob)
+    ))
   }
   
   dFun <- function(x, eta, type = "trunc") {

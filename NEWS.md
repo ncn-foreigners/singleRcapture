@@ -1,11 +1,16 @@
 # singleRcapture (development version)
 
+-   Added standalone `ratioReg()` support for weighted ratio regression,
+    optional one-inflation model selection, bootstrap intervals, and
+    diagnostic plots.
 -   Added the `oichao()` family, a modified Chao estimator based on
     counts 2 and 3 for improved robustness to one-inflation.
 -   Updated rare-count-family simulation support so `oichao()` works
     correctly through the public `simulate()` methods.
 -   Updated README and package documentation to describe the new
     `oichao()` model.
+-   `Cyprian Jurkowski` contributed the first implementations of
+    `oichao()` and `ratioReg()`.
 
 # singleRcapture 1.0.1
 

@@ -11,5 +11,6 @@
 ^README\.Rmd$
 ^.DS_Store
 ^\.github$
+^\.claude$
 ^codecov\.yml$
 ^cran-comments\.md$

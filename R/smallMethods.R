@@ -4,6 +4,9 @@
 #' important information regarding pop size estimate.
 #'
 #' @param object object with population size estimates.
+#' @param estimator for \code{singleRRatioReg} objects, which population-size
+#'   estimator to return. The default \code{"primary"} returns the estimator
+#'   selected when calling [ratioReg()].
 #' @param ... additional optional arguments, currently not used in \code{singleRStaticCountData} class method. 
 #'
 #' @return An object of class \code{popSizeEstResults} containing population size estimation results.

@@ -430,4 +430,6 @@ and population size estimator:
 }
 \author{
 Piotr Chlebicki, Maciej Beręsewicz
+
+Cyprian Jurkowski, Piotr Chlebicki, Maciej Beręsewicz
 }

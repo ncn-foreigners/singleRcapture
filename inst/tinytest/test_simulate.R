@@ -107,6 +107,7 @@ expect_silent(
     oichao = simulate(
       oichao(),
       eta = cbind(etaLambda),
+      truncated = TRUE,
       seed = 1
     ),
     zelterman = simulate(
