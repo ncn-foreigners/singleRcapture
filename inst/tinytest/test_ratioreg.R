@@ -257,3 +257,241 @@ expect_error(
   ),
   pattern = "Use ratioReg"
 )
+
+# input validation -----------------------------------------------------------
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = data.frame(observed = c(1, -1, 2)),
+    confint = "none"
+  ),
+  pattern = "strictly positive"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = data.frame(observed = c(1, 2.5, 3)),
+    confint = "none"
+  ),
+  pattern = "whole numbers"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = data.frame(observed = c(1, 2, Inf)),
+    confint = "none"
+  ),
+  pattern = "finite"
+)
+
+expect_error(
+  ratioReg(
+    ~ 1,
+    data = data.frame(observed = c(1, 2, 3)),
+    confint = "none"
+  ),
+  pattern = "response variable"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 0,
+    data = data.frame(observed = c(1, 2, 3)),
+    confint = "none"
+  ),
+  pattern = "~ 1"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = ratio_raw,
+    confint = "bootstrap",
+    B = -1
+  ),
+  pattern = "non-negative"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = ratio_raw,
+    confint = "bootstrap",
+    B = 0
+  ),
+  pattern = "at least 1"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = data.frame(observed = c(rep(1, 10), rep(2, 5))),
+    confint = "none",
+    maxCount = 1
+  ),
+  pattern = "at least 2"
+)
+
+expect_error(
+  ratioReg(
+    observed ~ 1,
+    data = ratio_raw,
+    weights = c(1, -1, rep(1, nrow(ratio_raw) - 2)),
+    confint = "none"
+  ),
+  pattern = "non-negative"
+)
+
+# maxCount truncates the support ---------------------------------------------
+
+mc_counts <- data.frame(
+  observed = c(rep(1, 100), rep(2, 80), rep(3, 48), rep(4, 19), rep(5, 5))
+)
+mc_full <- ratioReg(
+  observed ~ 1,
+  data = mc_counts,
+  model = "M0",
+  confint = "none"
+)
+mc_capped <- ratioReg(
+  observed ~ 1,
+  data = mc_counts,
+  model = "M0",
+  confint = "none",
+  maxCount = 3
+)
+
+expect_identical(
+  names(mc_full$counts),
+  as.character(1:5)
+)
+expect_identical(
+  names(mc_capped$counts),
+  as.character(1:3)
+)
+expect_identical(mc_capped$ratioData$k, c(1L, 2L))
+
+# subset works with both a bare expression and a precomputed logical ---------
+
+set.seed(11)
+subset_data <- data.frame(
+  observed = sample(1:5, 300, replace = TRUE, prob = c(.4, .3, .15, .1, .05)),
+  grp = sample(c("a", "b"), 300, replace = TRUE)
+)
+keep_a <- subset_data$grp == "a"
+
+fit_bare <- ratioReg(
+  observed ~ 1,
+  data = subset_data,
+  model = "M0",
+  confint = "none",
+  subset = grp == "a"
+)
+fit_pre <- ratioReg(
+  observed ~ 1,
+  data = subset_data,
+  model = "M0",
+  confint = "none",
+  subset = keep_a
+)
+
+expect_equal(fit_bare$sizeObserved, sum(keep_a))
+expect_equal(
+  unname(coef(fit_bare)),
+  unname(coef(fit_pre)),
+  tolerance = sqrt(.Machine$double.eps)
+)
+
+# method variants -----------------------------------------------------------
+
+method_fit <- ratioReg(
+  observed ~ 1,
+  data = ratio_raw,
+  model = "auto",
+  estimator = "SM",
+  confint = "none"
+)
+
+expect_equal(
+  nobs(method_fit),
+  nrow(method_fit$ratioData)
+)
+
+expect_equal(
+  unname(extractAIC(method_fit)),
+  unname(AIC(method_fit)),
+  tolerance = sqrt(.Machine$double.eps)
+)
+
+expect_equal(
+  unname(coef(method_fit, model = "M0")),
+  unname(coef(method_fit, model = "M0", component = "full")),
+  tolerance = sqrt(.Machine$double.eps)
+)
+
+m1_base <- coef(method_fit, model = "M1", component = "base")
+expect_false("oneInflation" %in% names(m1_base))
+
+expect_equal(
+  popSizeEst(method_fit)$pointEstimate,
+  popSizeEst(method_fit, estimator = method_fit$primaryEstimator)$pointEstimate,
+  tolerance = sqrt(.Machine$double.eps)
+)
+
+expect_true(
+  popSizeEst(method_fit, estimator = "HT")$pointEstimate >=
+    method_fit$sizeObserved
+)
+expect_true(
+  popSizeEst(method_fit, estimator = "SM")$pointEstimate >=
+    method_fit$sizeObserved
+)
+
+# fitted frequencies sum to the observed total ------------------------------
+
+expect_equal(
+  unname(sum(method_fit$fittedFrequencies)),
+  method_fit$sizeObserved,
+  tolerance = 1e-8
+)
+
+# fitted base probabilities form a proper distribution ----------------------
+
+expect_equal(
+  unname(sum(method_fit$fittedProbabilities)),
+  1,
+  tolerance = 1e-10
+)
+expect_true(all(method_fit$fittedProbabilities >= 0))
+
+# custom ratioFormula -------------------------------------------------------
+
+custom_fit <- ratioReg(
+  observed ~ 1,
+  data = ratio_raw,
+  ratioFormula = ~ k,
+  model = "M0",
+  confint = "none"
+)
+expect_identical(
+  names(coef(custom_fit, model = "M0")),
+  c("(Intercept)", "k")
+)
+
+# bootstrap with model = "M0" exercises the f0-imputation branch ------------
+
+set.seed(0)
+boot_m0 <- ratioReg(
+  observed ~ 1,
+  data = ratio_raw,
+  model = "M0",
+  estimator = "HT",
+  confint = "bootstrap",
+  B = 15,
+  seed = 17
+)
+expect_true(length(popSizeEst(boot_m0)$boot) == 15)
+expect_true(is.finite(popSizeEst(boot_m0)$variance))

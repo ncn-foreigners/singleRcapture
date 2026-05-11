@@ -1,5 +1,7 @@
-# singleRcapture (development version)
 
+# singleRcapture 1.1.0
+
+-   Fixing CRAN errors.
 -   Added standalone `ratioReg()` support for weighted ratio regression,
     optional one-inflation model selection, bootstrap intervals, and
     diagnostic plots.
@@ -9,6 +11,15 @@
     correctly through the public `simulate()` methods.
 -   Updated README and package documentation to describe the new
     `oichao()` model.
+-   `ratioReg()`: fixed `subset` so that bare expressions like
+    `subset = grp == "a"` evaluate inside `data` as documented.
+-   `ratioReg()`: fixed bootstrap with `model = "M0"` or `model = "M1"`,
+    which previously errored because the primary population estimate
+    was not yet attached when resampling started.
+-   Expanded test coverage for `oichao()` (mu, variance, density, deviance
+    residuals, analytic population variance) and for `ratioReg()`
+    (validation paths, `maxCount`, `subset`, alternative estimators,
+    `extractAIC`/`nobs`, custom `ratioFormula`, fixed-model bootstrap).
 -   `Cyprian Jurkowski` contributed the first implementations of
     `oichao()` and `ratioReg()`.
 

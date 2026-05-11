@@ -687,6 +687,90 @@ expect_true(
   all(as.matrix(simulate(oichao_fit, nsim = 4, seed = 1)) %in% 2:3)
 )
 
+# oichao family math sanity checks -------------------------------------------
+
+oichao_fam <- oichao()
+oichao_eta <- matrix(oichao_fam$links[[1]](1.7))
+
+expect_equal(
+  as.numeric(oichao_fam$mu.eta(oichao_eta, type = "trunc")),
+  1.7 / (3 + 1.7),
+  tolerance = 1e-10
+)
+
+expect_equal(
+  as.numeric(oichao_fam$mu.eta(oichao_eta, type = "nontrunc")),
+  1.7,
+  tolerance = 1e-10
+)
+
+expect_equal(
+  as.numeric(oichao_fam$variance(oichao_eta, type = "trunc")),
+  (1.7 / (3 + 1.7)) * (3 / (3 + 1.7)),
+  tolerance = 1e-10
+)
+
+# density: dFun returns truncated Poisson by default
+expect_equal(
+  as.numeric(oichao_fam$densityFunction(2, oichao_eta, type = "trunc")),
+  dpois(2, 1.7) / (1 - dpois(0, 1.7)),
+  tolerance = 1e-10
+)
+
+expect_equal(
+  as.numeric(oichao_fam$densityFunction(3, oichao_eta, type = "nontrunc")),
+  dpois(3, 1.7),
+  tolerance = 1e-10
+)
+
+# deviance residual: sign tracks y, value is small near the appropriate boundary
+oichao_dev_y3 <- as.numeric(oichao_fam$devResids(
+  y = 3, eta = matrix(oichao_fam$links[[1]](100)), wt = 1
+))
+oichao_dev_y2 <- as.numeric(oichao_fam$devResids(
+  y = 2, eta = matrix(oichao_fam$links[[1]](0.01)), wt = 1
+))
+expect_true(is.finite(oichao_dev_y3))
+expect_true(is.finite(oichao_dev_y2))
+expect_true(oichao_dev_y3 > 0)
+expect_true(oichao_dev_y2 < 0)
+# residual shrinks toward zero as lambda approaches the perfect-fit boundary
+expect_true(abs(oichao_dev_y3) < 1)
+expect_true(abs(oichao_dev_y2) < 1)
+# devResids is zero for y outside {2,3} (multiplied by indicator)
+expect_equal(
+  as.numeric(oichao_fam$devResids(y = 1, eta = oichao_eta, wt = 1)),
+  0,
+  tolerance = 1e-10
+)
+expect_equal(
+  as.numeric(oichao_fam$devResids(y = 4, eta = oichao_eta, wt = 1)),
+  0,
+  tolerance = 1e-10
+)
+
+# popVar is non-negative on the intercept-only example used elsewhere
+oichao_pop_fit <- estimatePopsize(
+  formula = y ~ 1,
+  data = data.frame(y = c(rep(2, 95), rep(3, 32))),
+  model = "oichao",
+  popVar = "analytic",
+  controlMethod = controlMethod(silent = TRUE)
+)
+expect_true(is.finite(oichao_pop_fit$populationSize$variance))
+expect_true(oichao_pop_fit$populationSize$variance > 0)
+expect_true(
+  oichao_pop_fit$populationSize$confidenceInterval[1, "lowerBound"] <=
+    oichao_pop_fit$populationSize$pointEstimate
+)
+expect_true(
+  oichao_pop_fit$populationSize$confidenceInterval[1, "upperBound"] >=
+    oichao_pop_fit$populationSize$pointEstimate
+)
+
+# unsupported link is rejected
+expect_error(oichao(lambdaLink = "log"), pattern = "logthird")
+
 
 # not working methods ---------------------------------------------------------
 

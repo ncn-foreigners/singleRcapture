@@ -12,7 +12,7 @@ ratioReg(
   criterion = c("AIC", "BIC"),
   estimator = c("SM", "HT"),
   weights = NULL,
-  subset = NULL,
+  subset,
   confint = c("bootstrap", "none"),
   B = 1000,
   seed = NULL,

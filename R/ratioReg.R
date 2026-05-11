@@ -95,7 +95,7 @@ ratioReg <- function(formula,
                      criterion = c("AIC", "BIC"),
                      estimator = c("SM", "HT"),
                      weights = NULL,
-                     subset = NULL,
+                     subset,
                      confint = c("bootstrap", "none"),
                      B = 1000,
                      seed = NULL,
@@ -126,15 +126,20 @@ ratioReg <- function(formula,
   ratioFormula <- singleRratioRegInternalCheckRatioFormula(ratioFormula)
 
   fullDataRows <- rownames(data)
+  subsetExpr <- if (missing(subset)) NULL else substitute(subset)
   modelFrameArgs <- list(
     formula = formula,
     data = data,
     ...
   )
-  if (!is.null(subset)) {
-    modelFrameArgs$subset <- substitute(subset)
+  if (!is.null(subsetExpr)) {
+    modelFrameArgs$subset <- subsetExpr
   }
-  modelFrame <- do.call(stats::model.frame, modelFrameArgs)
+  modelFrame <- do.call(
+    stats::model.frame,
+    modelFrameArgs,
+    envir = parent.frame()
+  )
   observed <- stats::model.response(modelFrame)
 
   if (NCOL(observed) > 1L) {
@@ -726,7 +731,10 @@ singleRratioRegInternalFitCounts <- function(counts,
         yObserved = ratioData$logRatio
       ),
       populationSize = NULL,
-      populationSizeAll = NULL,
+      populationSizeAll = list(
+        HT = singleRratioRegInternalMakePopResult(pointEstimate = popEstimates$HT),
+        SM = singleRratioRegInternalMakePopResult(pointEstimate = popEstimates$SM)
+      ),
       bootstrap = NULL
     ),
     class = "singleRRatioReg"

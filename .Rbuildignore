@@ -14,3 +14,9 @@
 ^\.claude$
 ^codecov\.yml$
 ^cran-comments\.md$
+^playground$
+^README\.html$
+^singleRcapture\.html$
+^.*\.tar\.gz$
+^\.\.Rcheck$
+^vignettes/singleRcapture_cache$
