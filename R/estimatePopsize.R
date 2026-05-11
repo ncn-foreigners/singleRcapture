@@ -704,7 +704,7 @@ estimatePopsize.default <- function(formula,
     }
     
     nullDeviance <- as.numeric(NULL)
-    LOG          <- -logLike(coefficients)
+    LOG          <- suppressWarnings(-logLike(coefficients))
     resRes       <- priorWeights * (observed - fitt)
     
     if (family$family %in% c("zelterman", "chao")) {
