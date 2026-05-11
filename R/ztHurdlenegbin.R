@@ -294,6 +294,13 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     y <- as.numeric(y)
     z <- as.numeric(y == 1)
     X <- as.matrix(X)
+
+    logProbGe2 <- function(lambda, alpha) {
+      logP0 <- -(1 / alpha) * log1p(lambda * alpha)
+      logP1 <- log(lambda) + (-1 / alpha - 1) * log1p(lambda * alpha)
+      logP01 <- pmax(logP0, logP1) + log1p(exp(-abs(logP0 - logP1)))
+      log(pmax(-expm1(pmin(logP01, 0)), .Machine$double.xmin))
+    }
     
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
@@ -311,8 +318,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI) + (1 - z) *
               (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
               lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) +
-              y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
-              lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))))
+              y * log(lambda * alpha) - logProbGe2(lambda, alpha))))
             },
             function(beta) {
               eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
