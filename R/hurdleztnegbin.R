@@ -672,12 +672,13 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     PI     <-     piLink(eta[, 3], inverse = TRUE)
     mu <- mu.eta(eta = eta)
     
+    prob_trunc <- pmax(1 - (1 - PI) * (1 + alpha * lambda) ^ (- 1 / alpha) - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1), .Machine$double.xmin)
     logLikFit <- (
-      (y==1) * (log(PI) + log(1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))) +
+      (y==1) * (log(PI) + log(pmax(1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1), .Machine$double.xmin))) +
       (y!=1) * (log(1 - PI) + lgamma(y + 1 / alpha) - lgamma(y + 1) -
       lgamma(1 / alpha) - log(1 + alpha * lambda) / alpha +
       y * log(lambda) - y * log(lambda + 1 / alpha)) -
-      log(1 - (1 - PI) * (1 + alpha * lambda) ^ (- 1 / alpha) - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+      log(prob_trunc)
     )
     
     yUnq <- unique(y)

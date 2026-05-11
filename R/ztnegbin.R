@@ -337,10 +337,11 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     mu <- mu.eta(eta = eta)
     
+    prob_ge1 <- pmax(1 - (1 + alpha * lambda) ^ (-1 / alpha), .Machine$double.xmin)
     logLikFit <- (
-      lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
+      lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) -
       (y + 1 / alpha) * log(1 + alpha * lambda) +
-      y * log(lambda * alpha) - log(1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      y * log(lambda * alpha) - log(prob_ge1)
     )
     
     yUnq <- unique(y)

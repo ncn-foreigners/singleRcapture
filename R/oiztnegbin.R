@@ -654,11 +654,12 @@ oiztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     z <- (y == 1)
     mu <- mu.eta(eta = eta)
     
+    prob_ge1 <- pmax(1 - (1 + lambda * alpha) ^ (-1 / alpha), .Machine$double.xmin)
     logLikFit <- (
-      z * log(omega + (1 - omega) * lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1) / 
-      (1 - (1 + lambda * alpha) ^ (-1 / alpha))) + (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
-      lgamma(1 / alpha) - lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
-      log(1 - (1 + lambda * alpha) ^ (-1 / alpha)))
+      z * log(omega + (1 - omega) * lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1) /
+      prob_ge1) + (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) -
+      lgamma(1 / alpha) - lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) -
+      log(prob_ge1))
     )
     
     yUnq <- unique(y)

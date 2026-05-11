@@ -498,11 +498,12 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     PI     <-     piLink(eta[, 3], inverse = TRUE)
     mu <- mu.eta(eta = eta)
     
+    prob_ge2 <- pmax(1 - (1 + lambda * alpha) ^ (-1 / alpha) - lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha), .Machine$double.xmin)
     logLikFit <- (
       (y == 1) * log(PI) + (y>1) * log(1 - PI) + (y>1) *
-      (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
-      (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
-      log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))
+      (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) -
+      (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) -
+      log(prob_ge2))
     )
     
     yUnq <- unique(y)
