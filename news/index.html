@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,8 +33,21 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="singlercapture-development-version">singleRcapture (development version)<a class="anchor" aria-label="anchor" href="#singlercapture-development-version"></a></h2>
-</div>
+<h2 class="pkg-version" data-toc-text="1.1.0" id="singlercapture-110">singleRcapture 1.1.0<a class="anchor" aria-label="anchor" href="#singlercapture-110"></a></h2>
+<ul><li>Fixing CRAN errors.</li>
+<li>Added standalone <code><a href="../reference/ratioReg.html">ratioReg()</a></code> support for weighted ratio regression, optional one-inflation model selection, bootstrap intervals, and diagnostic plots.</li>
+<li>Added the <code><a href="../reference/singleRmodels.html">oichao()</a></code> family, a modified Chao estimator based on counts 2 and 3 for improved robustness to one-inflation.</li>
+<li>Updated rare-count-family simulation support so <code><a href="../reference/singleRmodels.html">oichao()</a></code> works correctly through the public <code><a href="../reference/simulate.html">simulate()</a></code> methods.</li>
+<li>Updated README and package documentation to describe the new <code><a href="../reference/singleRmodels.html">oichao()</a></code> model.</li>
+<li>
+<code><a href="../reference/ratioReg.html">ratioReg()</a></code>: fixed <code>subset</code> so that bare expressions like <code>subset = grp == "a"</code> evaluate inside <code>data</code> as documented.</li>
+<li>
+<code><a href="../reference/ratioReg.html">ratioReg()</a></code>: fixed bootstrap with <code>model = "M0"</code> or <code>model = "M1"</code>, which previously errored because the primary population estimate was not yet attached when resampling started.</li>
+<li>Expanded test coverage for <code><a href="../reference/singleRmodels.html">oichao()</a></code> (mu, variance, density, deviance residuals, analytic population variance) and for <code><a href="../reference/ratioReg.html">ratioReg()</a></code> (validation paths, <code>maxCount</code>, <code>subset</code>, alternative estimators, <code>extractAIC</code>/<code>nobs</code>, custom <code>ratioFormula</code>, fixed-model bootstrap).</li>
+<li>Split family tests into dedicated <code>test_fam_*</code> files and added focused family files for <code><a href="../reference/singleRmodels.html">chao()</a></code> and <code><a href="../reference/singleRmodels.html">oichao()</a></code> to make CI failures identify the affected model directly.</li>
+<li>
+<code>Cyprian Jurkowski</code> contributed the first implementations of <code><a href="../reference/singleRmodels.html">oichao()</a></code> and <code><a href="../reference/ratioReg.html">ratioReg()</a></code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.1" id="singlercapture-101">singleRcapture 1.0.1<a class="anchor" aria-label="anchor" href="#singlercapture-101"></a></h2>
 <ul><li>fixed checks of the variables</li>
@@ -156,7 +169,7 @@
 <li>Corrected/implemented deviance residuals for more models</li>
 </ul></li>
 <li>changes:
-<ul><li>Now the whole package uses <code>cammelCase</code>
+<ul><li>Now the whole package uses <code>camelCase</code>
 </li>
 <li>Performance upgrades</li>
 <li>Corrected some miss calculated moments</li>

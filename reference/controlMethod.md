@@ -126,8 +126,7 @@ controlMethod(
 
 - momentumActivation:
 
-  the value of log-likelihood reduction bellow which momentum will
-  apply.
+  the value of log-likelihood reduction below which momentum will apply.
 
 - criterion:
 

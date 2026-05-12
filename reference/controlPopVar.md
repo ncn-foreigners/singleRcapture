@@ -10,7 +10,7 @@ controlPopVar(
   alpha = 0.05,
   bootType = c("parametric", "semiparametric", "nonparametric"),
   B = 500,
-  confType = c("percentilic", "normal", "basic"),
+  confType = c("percentile", "normal", "basic"),
   keepbootStat = TRUE,
   traceBootstrapSize = FALSE,
   bootstrapVisualTrace = FALSE,

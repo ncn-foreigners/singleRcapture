@@ -6,6 +6,9 @@ extracting important information regarding pop size estimate.
 ## Usage
 
 ``` r
+# S3 method for class 'singleRRatioReg'
+popSizeEst(object, estimator = c("primary", "HT", "SM"), ...)
+
 popSizeEst(object, ...)
 
 # S3 method for class 'singleRStaticCountData'
@@ -17,6 +20,13 @@ popSizeEst(object, ...)
 - object:
 
   object with population size estimates.
+
+- estimator:
+
+  for `singleRRatioReg` objects, which population-size estimator to
+  return. The default `"primary"` returns the estimator selected when
+  calling
+  [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md).
 
 - ...:
 

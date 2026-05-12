@@ -25,7 +25,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise."
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,7 +75,7 @@ variables, with value 1 if kth unit was observed at least once and 0 otherwise.<
 <span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ztpoisson"</span>, <span class="st">"ztnegbin"</span>, <span class="st">"ztgeom"</span>, <span class="st">"zotpoisson"</span>, <span class="st">"ztoipoisson"</span>,</span>
 <span>    <span class="st">"oiztpoisson"</span>, <span class="st">"ztHurdlepoisson"</span>, <span class="st">"Hurdleztpoisson"</span>, <span class="st">"zotnegbin"</span>, <span class="st">"ztoinegbin"</span>,</span>
 <span>    <span class="st">"oiztnegbin"</span>, <span class="st">"ztHurdlenegbin"</span>, <span class="st">"Hurdleztnegbin"</span>, <span class="st">"zotgeom"</span>, <span class="st">"ztoigeom"</span>, <span class="st">"oiztgeom"</span>,</span>
-<span>    <span class="st">"ztHurdlegeom"</span>, <span class="st">"ztHurdlegeom"</span>, <span class="st">"zelterman"</span>, <span class="st">"chao"</span><span class="op">)</span>,</span>
+<span>    <span class="st">"ztHurdlegeom"</span>, <span class="st">"Hurdleztgeom"</span>, <span class="st">"zelterman"</span>, <span class="st">"chao"</span>, <span class="st">"oichao"</span><span class="op">)</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subset <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  naAction <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -174,7 +174,8 @@ dependent vector and model matrix as a part of output.</p></dd>
 
 
 <dt id="arg-ratioreg">ratioReg<a class="anchor" aria-label="anchor" href="#arg-ratioreg"></a></dt>
-<dd><p>Not yet implemented</p></dd>
+<dd><p>deprecated placeholder for ratio regression. Use
+<code><a href="ratioReg.html">ratioReg()</a></code> instead.</p></dd>
 
 
 <dt id="arg-offset">offset<a class="anchor" aria-label="anchor" href="#arg-offset"></a></dt>
@@ -325,7 +326,7 @@ was associated with unit for which was observed 2 times.</p></li>
 and obtain <em></em>\(\hat{\boldsymbol{\beta}}_{new}\), with starting point
 <em></em>\(\hat{\boldsymbol{\beta}}\) to make it slightly faster, use them
 to compute <em></em>\(\hat{N}_{new}\).</p></li>
-<li><p>Repeat 2-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
+<li><p>Repeat 2-5 until there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code>.</p></li>
 </ol><p>To do step 1 in procedure above it is convenient to first draw binary vector of length
@@ -335,7 +336,7 @@ determine the sample size and then draw sample of this size uniformly from the d
 <p>This procedure is known in literature as <code>"semiparametric"</code> bootstrap
 it is necessary to assume that the have a correct estimate
 <em></em>\(\hat{N}\) in order to use this type of bootstrap.</p>
-<p>Lastly there is <code>"paramteric"</code> bootstrap where we assume that the
+<p>Lastly there is <code>"parametric"</code> bootstrap where we assume that the
 probabilistic model used to obtain <em></em>\(\hat{N}\) is correct the
 bootstrap procedure may then be described as:</p><ol><li><p>Draw <em></em>\(\lfloor\hat{N}\rfloor + b(\hat{N}-\lfloor\hat{N}\rfloor)\)
 covariate information vectors with replacement from data according to
@@ -352,7 +353,7 @@ probability mass function associated with chosen model.</p></li>
 <li><p>Regress <em></em>\(\boldsymbol{y}_{new}\) on <em></em>\(\boldsymbol{X}_{vlm new}\)
 and obtain <em></em>\(\hat{\boldsymbol{\beta}}_{new}\)
 use them to compute <em></em>\(\hat{N}_{new}\).</p></li>
-<li><p>Repeat 1-5 unit there are at least <code>B</code> statistics are obtained.</p></li>
+<li><p>Repeat 1-5 until there are at least <code>B</code> statistics are obtained.</p></li>
 <li><p>Compute confidence intervals based on <code>alpha</code> and <code>confType</code>
 specified in <code><a href="controlPopVar.html">controlPopVar()</a></code></p></li>
 </ol><p>It is also worth noting that in the <code>"analytic"</code> method <code>estimatePopsize</code>
@@ -419,7 +420,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.</p
 <p><code><a href="controlPopVar.html">controlPopVar()</a></code> – For control parameters related to population size estimation.</p>
 <p><code><a href="controlModel.html">controlModel()</a></code> – For control parameters related to model specification.</p>
 <p><code><a href="estimatePopsizeFit.html">estimatePopsizeFit()</a></code> – For more information on fitting procedure in
-<code>esitmate_popsize</code>.</p>
+<code>estimate_popsize</code>.</p>
 <p><code><a href="popSizeEst.html">popSizeEst()</a></code> <code><a href="redoPopEstimation.html">redoPopEstimation()</a></code> – For extracting population size
 estimation results are applying post-hoc procedures.</p>
 <p><code><a href="summary.singleRStaticCountData.html">summary.singleRStaticCountData()</a></code> – For summarizing important information about the
@@ -590,8 +591,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  142.04204576   8.81177229 108.34506498   9.81769037  -0.39315787   1.30854693   2.40548998 -74.87532567 -61.35856914</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 1.524359</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 2 log-likelihood: -828.37292</span>
@@ -600,8 +601,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  -30.198518684  -2.367348700 -20.882807839  -2.990134863  -0.033406007  -0.236178150  -0.291286777  12.908733472   8.061651997</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.41969914</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 3 log-likelihood: -827.03041</span>
@@ -610,8 +611,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  -0.399477106 -0.125534668 -0.025207083 -0.124263770 -0.012272383 -0.001036293 -0.037255028 -0.402440790 -0.559697165</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.15139687</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 4 log-likelihood: -827.01868</span>
@@ -620,8 +621,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   0.01965800195 -0.00376668640  0.02342526604  0.00085753707 -0.00131148043  0.00040402353 -0.00468611749 -0.01113423867 -0.00978879207</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.026743552</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 5 log-likelihood: -827.01868</span>
@@ -630,8 +631,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0001561899387  0.0000207886459 -0.0000413107753 -0.0000259493362  0.0000040518562 -0.0000068413444 -0.0000222504320  0.0000011784080  0.0000010016067</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.00036133989</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration number 6 log-likelihood: -827.01868</span>
@@ -640,8 +641,8 @@ between observed and fitted quantities.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of gradient at current step:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   0.00000138172839925 -0.00000029541573543  0.00000194942825438  0.00000005064943620 -0.00000001912655101  0.00000005032669892 -0.00000167462238743 -0.00000000020190338 -0.00000000017657165</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Algorithm will terminate if one of following conditions will be met:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At current step the highest change was: 0.0000050277134</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Value of analytically computed hessian at fitted regression coefficients:</span>

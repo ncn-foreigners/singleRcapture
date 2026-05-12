@@ -8,6 +8,8 @@
 - **Maciej Beręsewicz**. Author, maintainer.
   [](https://orcid.org/0000-0002-8281-4301)
 
+- **Cyprian Jurkowski**. Contributor.
+
 ## Citation
 
 Source:

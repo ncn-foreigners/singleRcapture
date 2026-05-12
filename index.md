@@ -27,6 +27,13 @@ in literature such as:
 - Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao’s and Zelterman’s models based on logistic
   regression.
+- Modified Chao’s one-inflation-robust
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  model based on counts 2 and 3.
+- Standalone
+  [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
+  support for ratio regression with optional one-inflation model
+  selection.
 - Three types of bootstrap parametric, semi-parametric and
   nonparametric.
 - And a wide range of additional functionalities associated with
@@ -45,6 +52,7 @@ main branch [GitHub](https://github.com/ncn-foreigners/singleRcapture)
 with:
 
 ``` r
+
 # install.packages("devtools")
 remotes::install_github("ncn-foreigners/singleRcapture")
 ```
@@ -53,16 +61,17 @@ or install the stable version from
 [CRAN](https://cran.r-project.org/package=singleRcapture) with:
 
 ``` r
-install.packages(singleRcapture)
+
+install.packages("singleRcapture")
 ```
 
 ### Examples
 
-The main function of this package is `estimatePopsize` which fitts
+The main function of this package is `estimatePopsize` which fits
 regression on specified distribution and then uses fitted regression to
 estimate the population size.
 
-Lets look at a model from 2003 publication (Van Der Heijden, P. G.,
+Let’s look at a model from 2003 publication (Van Der Heijden, P. G.,
 Bustami, R., Cruyff, M. J., Engbersen, G., & Van Houwelingen, H. C.
 (2003). Point and interval estimation of the population size using the
 truncated Poisson regression model. Statistical Modelling, 3(4),
@@ -71,6 +80,7 @@ anyone who used the [`stats::glm`](https://rdrr.io/r/stats/glm.html)
 function:
 
 ``` r
+
 library(singleRcapture)
 model <- estimatePopsize(
   formula = capture ~ gender + age + nation, # specify formula
@@ -80,7 +90,7 @@ model <- estimatePopsize(
   method = "IRLS", # fitting method one of three currently supported
   controlMethod = controlMethod(silent = TRUE) # ignore convergence at half step warning
 )
-summary(model) # a summary method for singleR class with standard glm-like output and population size estimation resutls
+summary(model) # a summary method for singleR class with standard glm-like output and population size estimation results
 #> 
 #> Call:
 #> estimatePopsize.default(formula = capture ~ gender + age + nation, 
@@ -127,11 +137,96 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 #> logNormal   9.534288   22.29793
 ```
 
+The package also includes
+[`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md),
+a modified Chao family that uses the counts `2` and `3` instead of `1`
+and `2`, which makes it more robust when one-inflation is a concern:
+
+``` r
+
+oichaoModel <- estimatePopsize(
+  formula = capture ~ gender + age,
+  data = netherlandsimmigrant,
+  model = "oichao",
+  method = "IRLS",
+  controlMethod = controlMethod(silent = TRUE)
+)
+popSizeEst(oichaoModel)
+#> Point estimate: 5.299589e+15
+#> Variance: 1.164916e+39
+#> 95% confidence intervals:
+#>             lowerBound   upperBound
+#> normal    1.880000e+03 6.690058e+19
+#> logNormal 1.443035e+12 1.946291e+19
+```
+
+The package also includes a standalone
+[`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
+function for the ratio-regression approach. It is separate from
+[`singleRmodels()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+because it works on neighbouring marginal-frequency ratios rather than
+on unit-level count likelihoods:
+
+``` r
+
+toyRatio <- data.frame(
+  observed = c(rep(1, 50), rep(2, 30), rep(3, 15), rep(4, 6), rep(5, 2))
+)
+
+ratioModel <- ratioReg(
+  observed ~ 1,
+  data = toyRatio,
+  model = "auto",
+  estimator = "SM",
+  confint = "none"
+)
+
+summary(ratioModel)
+#> 
+#> Call:
+#> ratioReg(formula = observed ~ 1, data = toyRatio, model = "auto", 
+#>     estimator = "SM", confint = "none")
+#> 
+#> Selected ratio regression model: M1 
+#> Selection criterion: AIC 
+#> Primary population estimator: SM 
+#> Observed population size: 103 
+#> 
+#> Model selection table:
+#>    model available logLik     AIC    BIC selected
+#> M0    M0      TRUE   7.85  -9.701 -11.54    FALSE
+#> M1    M1      TRUE  20.14 -32.284 -34.74     TRUE
+#> 
+#> Coefficients for M0 :
+#> (Intercept)  log(k + 1) 
+#>     -0.1035     -0.5724 
+#> 
+#> Coefficients for M1 :
+#>  (Intercept)   log(k + 1) oneInflation 
+#>       0.1714      -0.7865      -0.1371 
+#> 
+#> Population size estimates:
+#>  estimator pointEstimate variance lowerBound upperBound
+#>         HT      139.7316       NA         NA         NA
+#>         SM      139.7308       NA         NA         NA
+```
+
+The default ratio-regression plot shows the observed log-ratios together
+with the fitted `M0` and `M1` curves:
+
+``` r
+
+plot(ratioModel)
+```
+
+![](reference/figures/README-ratioReg-plot-1.png)
+
 We implemented a method for `plot` function to visualise the model fit
 and other useful diagnostic information. One of which is `rootogram`, a
 type of plot that compares fitted and observed marginal frequencies:
 
 ``` r
+
 plot(model, plotType = "rootogram")
 ```
 
@@ -169,6 +264,7 @@ To do it we call a `summary` function of `marginalFreq` function which
 computes marginal frequencies for the fitted `singleR` class object:
 
 ``` r
+
 summary(marginalFreq(model), df = 2, dropl5 = "group")
 #> Test for Goodness of fit of a regression model:
 #> 
@@ -190,6 +286,7 @@ If observation is not influential these two actions should have the
 approximately the same effect:
 
 ``` r
+
 plot(model, plotType = "dfpopContr")
 ```
 
@@ -203,6 +300,7 @@ function `stratifyPopsize` that estimates sizes of user specified sub
 populations and returns them in a `data.frame`:
 
 ``` r
+
 stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance level for each sub population
     strata = list(
     "Females from Surinam" = netherlandsimmigrant$gender == "female" & netherlandsimmigrant$nation == "Surinam",
@@ -230,6 +328,7 @@ stratifyPopsize(model, alpha = c(.01, .02, .03, .05), # different significance l
 `strata` argument may be specified in various ways for example:
 
 ``` r
+
 stratifyPopsize(model, strata = ~ gender / age)
 #>                     name Observed Estimated ObservedPercentage  StdError
 #> 1         gender==female      398 3811.0911          10.443203 1153.9733
@@ -259,6 +358,7 @@ possible to specify that weights provided on call are to be interpreted
 as number of occurrences of units in each row:
 
 ``` r
+
 df <- netherlandsimmigrant[, c(1:3,5)]
 df$ww <- 0
 ### this is dplyr::count without dependencies
@@ -322,6 +422,7 @@ We also included option to use common non standard argument such as
 significance levels different from usual 5%:
 
 ``` r
+
 set.seed(123)
 modelInflated <- estimatePopsize(
     formula = capture ~ gender + age,
@@ -385,6 +486,7 @@ dependent on covariates and some non standard link functions for
 example:
 
 ``` r
+
 modelInflated2 <- estimatePopsize(
     formula = capture ~ age,
     data = netherlandsimmigrant,
@@ -428,6 +530,7 @@ optimal regression coefficients it’s here to provide more information to
 the user):
 
 ``` r
+
 plot(modelInflated2, 
      plotType = "bootHist", 
      labels = TRUE, 
@@ -446,5 +549,24 @@ and information criteria support the second model:
 
 ## Funding
 
-Work on this package is supported by the the National Science Centre,
+Work on this package is supported by the National Science Centre through
 OPUS 20 grant no. 2020/39/B/HS4/00941.
+
+## Citation
+
+Chlebicki, P., & Beręsewicz, M. (2026). singleRcapture: An R Package for
+Single-Source Capture-Recapture Models. Journal of Statistical Software,
+115(1), 1–30. <https://doi.org/10.18637/jss.v115.i01>
+
+``` bibtex
+ @Article{,
+    title = {{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models},
+    author = {Piotr Chlebicki and Maciej Ber\c{e}sewicz},
+    journal = {Journal of Statistical Software},
+    year = {2025},
+    volume = {115},
+    number = {1},
+    pages = {1--30},
+    doi = {10.18637/jss.v115.i01},
+  }
+```

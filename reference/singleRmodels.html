@@ -15,7 +15,7 @@ estimatePopsize function."><meta property="og:image" content="https://ncn-foreig
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +37,7 @@ estimatePopsize function."><meta property="og:image" content="https://ncn-foreig
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Family functions in singleRcapture package</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/chao.R" class="external-link"><code>R/chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/documentationFiles.R" class="external-link"><code>R/documentationFiles.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/hurdleztgeom.R" class="external-link"><code>R/hurdleztgeom.R</code></a>, and 18 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/chao.R" class="external-link"><code>R/chao.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/documentationFiles.R" class="external-link"><code>R/documentationFiles.R</code></a>, <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/R/hurdleztgeom.R" class="external-link"><code>R/hurdleztgeom.R</code></a>, and 19 more</small>
       <div class="d-none name"><code>singleRmodels.Rd</code></div>
     </div>
 
@@ -74,6 +74,8 @@ on the model. These functions are used as <code>model</code> argument in
 <span>  piLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">oichao</span><span class="op">(</span>lambdaLink <span class="op">=</span> <span class="st">"logthird"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">oiztgeom</span><span class="op">(</span></span>
 <span>  lambdaLink <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log"</span>, <span class="st">"neglog"</span><span class="op">)</span>,</span>
@@ -176,8 +178,10 @@ on the model. These functions are used as <code>model</code> argument in
 
 <dl><dt id="arg-lambdalink">lambdaLink<a class="anchor" aria-label="anchor" href="#arg-lambdalink"></a></dt>
 <dd><p>a link for Poisson parameter, <code>"log"</code>
-by default except for zelterman's and chao's models where only
-<em></em>\(\ln\left(\frac{x}{2}\right)\) is possible.</p></dd>
+by default except for rare-count Poisson models such as
+<code>zelterman()</code> and <code>chao()</code> where only
+<em></em>\(\ln\left(\frac{x}{2}\right)\) is possible and <code>oichao()</code>
+where only <em></em>\(\ln\left(\frac{x}{3}\right)\) is possible.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -422,6 +426,23 @@ and <em>chao</em> estimator has the form:
 \[
 \hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
 \frac{1}{\lambda_{k}+ \frac{\lambda_{k}^{2}}{2}}
+\]
+The <em>oichao</em> estimator is the modified Chao analogue robust to one-inflation
+and is based on the dummy variable
+\[
+Z = \left\lbrace\begin{array}{cc}
+0     &amp; \text{if }Y = 2  \cr
+1     &amp; \text{if }Y = 3
+\end{array}\right.\]
+with equation:
+\[
+\text{logit}(p_{k})=
+\ln\left(\frac{\lambda_{k}}{3}\right)=
+\boldsymbol{\beta}\mathbf{x}_{k}=\eta_{k}\]
+and population size estimator:
+\[
+\hat{N}=N_{obs}+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+\frac{1}{\frac{\lambda_{k}^{2}}{2}+ \frac{\lambda_{k}^{3}}{6}}
 \]</p>
     </div>
     <div class="section level2">
@@ -431,6 +452,7 @@ and <em>chao</em> estimator has the form:
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p>Piotr Chlebicki, Maciej Beręsewicz</p>
+<p>Cyprian Jurkowski, Piotr Chlebicki, Maciej Beręsewicz</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

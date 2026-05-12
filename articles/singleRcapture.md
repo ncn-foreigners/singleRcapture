@@ -4,13 +4,13 @@
 
 Population size estimation is a methodological approach employed across
 multiple scientific disciplines, which serves as the basis for research,
-policy formulation, and decision-making processes (cf. [Böhning, Bunge,
-and Heijden 2018](#ref-bohning2018capture)). In the field of statistics,
+policy formulation, and decision-making processes (cf. [Böhning et al.
+2018](#ref-bohning2018capture)). In the field of statistics,
 particularly official statistics, precise population estimates are
 essential in order to develop robust economic models, optimize resource
-allocation, and inform evidence-based policy (cf. [Baffour, King, and
-Valente 2013](#ref-baffour2013modern)). Social scientists utilize
-advanced population estimation techniques to investigate *hard-to-reach*
+allocation, and inform evidence-based policy (cf. [Baffour et al.
+2013](#ref-baffour2013modern)). Social scientists utilize advanced
+population estimation techniques to investigate *hard-to-reach*
 populations, such as homeless individuals or illicit drug users in an
 effort to overcome the inherent limitations of conventional census
 methodologies. These techniques are crucial for obtaining accurate data
@@ -53,16 +53,16 @@ While methods for two or more sources are implemented in various
 open-source software packages, for instance **CARE-4** ([Yang and Chao
 2006](#ref-yang2006care4)) (in **GAUSS**), **Rcapture** ([Baillargeon
 and Rivest 2007](#ref-baillargeon2007rcapture)), **marked** ([Laake et
-al. 2013](#ref-laake2013marked)) or **VGAM** ([Thomas W. Yee, Stoklosa,
-and Huggins 2015](#ref-yee2015vgam)) (all in **R**), single-source
-capture-recapture (SSCR) methods are either not available at all or are
-only partially implemented in existing **R** packages or other software.
-Therefore, the paper attempts to bridge this gap by introducing the
-**singleRcapture** package, which implement *state-of-the-art* SSCR
-methods and offer a user friendly API resembling existing **R**
-functions (e.g., `glm`). In the next subsection we describe existing
-**R** packages and other software that could be used for estimating
-population size using SSCR methods.
+al. 2013](#ref-laake2013marked)) or **VGAM** ([Yee et al.
+2015](#ref-yee2015vgam)) (all in **R**), single-source capture-recapture
+(SSCR) methods are either not available at all or are only partially
+implemented in existing **R** packages or other software. Therefore, the
+paper attempts to bridge this gap by introducing the **singleRcapture**
+package, which implement *state-of-the-art* SSCR methods and offer a
+user friendly API resembling existing **R** functions (e.g., `glm`). In
+the next subsection we describe existing **R** packages and other
+software that could be used for estimating population size using SSCR
+methods.
 
 ### Software for capture-recapture with a single source
 
@@ -71,7 +71,7 @@ their extensions (e.g., inclusion of one-inflation). The
 **Distributions.jl** ([Besançon et al. 2021](#ref-Distributionsjl)) (in
 **Julia**), **StatsModels** ([Seabold and Perktold
 2010](#ref-seabold2010statsmodels)) (in **Python**), **countreg**
-([Zeileis, Kleiber, and Jackman 2008](#ref-countreg)), **VGAM** ([T. Yee
+([Zeileis et al. 2008](#ref-countreg)), **VGAM** ([Yee
 2015](#ref-VGAM-main)) or **distributions3** ([Hayes et al.
 2024](#ref-distributions3)) (in **R**) implement some of those truncated
 distributions (e.g. `distributions3::ZTPoisson` or
@@ -79,30 +79,29 @@ distributions (e.g. `distributions3::ZTPoisson` or
 Generally Altered, Inflated, Truncated and Deflated, can be found in the
 **VGAM** package (e.g.
 [`VGAM::gaitdpoisson`](https://rdrr.io/pkg/VGAM/man/gaitdpoisson.html)
-for the Poisson distribution, see Thomas W. Yee and Ma
-([2024](#ref-gaitdcount)) for a detailed description). However, the
-estimation of parameters of a given truncated (and possibly inflated)
-distribution is just the first step (as in the case of log-linear models
-in capture-recapture with two sources) and, to the best of our
-knowledge, there is no open-source software that can be used to estimate
-population size using on SSCR methods and includes variance estimators
-or diagnostics.
+for the Poisson distribution, see Yee and Ma ([2024](#ref-gaitdcount))
+for a detailed description). However, the estimation of parameters of a
+given truncated (and possibly inflated) distribution is just the first
+step (as in the case of log-linear models in capture-recapture with two
+sources) and, to the best of our knowledge, there is no open-source
+software that can be used to estimate population size using on SSCR
+methods and includes variance estimators or diagnostics.
 
 Therefore, the purpose of the **singleRcapture**, an **R** package, is
 to bridge this gap by providing scientists and other practitioners with
 a tool for estimating population size with SSCR methods. We have
-implemented state-of-the-art methods, as recently described by Böhning,
-Bunge, and Heijden ([2018](#ref-bohning2018capture)) or Böhning and
-Friedl ([2024](#ref-bohning2024one)) and provided their extensions
-(e.g., inclusion of covariates, different treatment of one-inflation),
-which will be covered in detail in Section 2. The package implements
-variance estimation based on various methods, can be used to create
-custom models and diagnostic plots (e.g. rootograms) with parameters
-estimated using a modified iteratively reweighted least squares (IRLS)
-algorithm we have implemented for estimation stability. To the best of
-our knowledge, no existing open-source package allows the estimation of
-population size by selecting an appropriate SSCR model, conducting the
-estimation, and providing informative diagnostics of the results.
+implemented state-of-the-art methods, as recently described by Böhning
+et al. ([2018](#ref-bohning2018capture)) or Böhning and Friedl
+([2024](#ref-bohning2024one)) and provided their extensions (e.g.,
+inclusion of covariates, different treatment of one-inflation), which
+will be covered in detail in Section 2. The package implements variance
+estimation based on various methods, can be used to create custom models
+and diagnostic plots (e.g. rootograms) with parameters estimated using a
+modified iteratively reweighted least squares (IRLS) algorithm we have
+implemented for estimation stability. To the best of our knowledge, no
+existing open-source package allows the estimation of population size by
+selecting an appropriate SSCR model, conducting the estimation, and
+providing informative diagnostics of the results.
 
 The remaining part of the paper is structured as follows. Section 2
 contains a brief description of the theoretical background and
@@ -121,24 +120,30 @@ apply any new bootstrap methods not implemented in the package.
 
 ### How to estimate population size with a single source?
 
-Let $Y_{k}$ represent the number of times the $k$-th unit was observed
-in a single source (e.g. register). Clearly, we only observe
-$k:Y_{k} > 0$ and do not know how many units have been missed
-(i.e. $Y_{k} = 0$), so the population size, denoted by $N$, needs to be
-estimated. In general, we assume that the conditional distribution of
-$Y_{k}$ given a vector of covariates $\mathbf{x}_{k}$ follows a version
-of the zero-truncated count data distribution (and its extensions). When
-we know the parameters of the distribution we can estimate the
-population size using a Horvitz-Thompson type estimator given by:
+Let $`Y_{k}`$ represent the number of times the $`k`$-th unit was
+observed in a single source (e.g. register). Clearly, we only observe
+$`k:Y_{k}>0`$ and do not know how many units have been missed
+(i.e. $`Y_{k}=0`$), so the population size, denoted by $`N`$, needs to
+be estimated. In general, we assume that the conditional distribution of
+$`Y_{k}`$ given a vector of covariates $`\boldsymbol{x}_{k}`$ follows a
+version of the zero-truncated count data distribution (and its
+extensions). When we know the parameters of the distribution we can
+estimate the population size using a Horvitz-Thompson type estimator
+given by:
 
-$$\widehat{N} = \sum\limits_{k = 1}^{N}\frac{I_{k}}{{\mathbb{P}}\left\lbrack Y_{k} > 0|\mathbf{X}_{k} \right\rbrack} = \sum\limits_{k = 1}^{N_{obs}}\frac{1}{{\mathbb{P}}\left\lbrack Y_{k} > 0|\mathbf{X}_{k} \right\rbrack},$$
+``` math
+\begin{equation}
+\hat{N}=
+\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}[Y_{k}>0|\boldsymbol{X}_{k}]}=
+\sum_{k=1}^{N_{obs}}\frac{1}{\mathbb{P}[Y_{k}>0|\boldsymbol{X}_{k}]},
+\end{equation}
+```
 
-where $I_{k}:=\mathcal{I}_{\mathbb{N}}\left( Y_{k} \right)$, $N_{obs}$
-is the number of observed units and $\mathcal{I}$ is the indicator
-function, while the maximum likelihood estimate of $N$ is obtained after
-substituting regression parameters $\mathbf{β}$ for
-${\mathbb{P}}\left\lbrack Y_{k} > 0|\mathbf{x}_{k} \right\rbrack$ in the
-above equation.
+where $`I_{k}:=\mathcal{I}_{\mathbb{N}}(Y_{k})`$, $`N_{obs}`$ is the
+number of observed units and $`\mathcal{I}`$ is the indicator function,
+while the maximum likelihood estimate of $`N`$ is obtained after
+substituting regression parameters $`\boldsymbol{\beta}`$ for
+$`\mathbb{P}[Y_{k}>0|\boldsymbol{x}_{k}]`$ in the above equation.
 
 The basic SSCR assumes independence between counts, which is a rather
 naive assumption, since the first capture may significantly influence
@@ -149,51 +154,85 @@ To solve these issues, Ryan T. Godwin and Böhning
 ([2017b](#ref-godwin2017estimation)) and Ryan T. Godwin and Böhning
 ([2017a](#ref-ztoi-oizt-poisson)) introduced one-inflated distributions,
 which explicitly model the probability of singletons by giving
-additional mass $\omega$ to singletons denoted as
-$\mathcal{I}_{\{ 1\}}(y)$(cf. [Böhning and Friedl
+additional mass $`\omega`$ to singletons denoted as
+$`\mathcal{I}_{\{1\}}(y)`$(cf. [Böhning and Friedl
 2024](#ref-bohning2024one)). In other words they considered a new random
-variable $Y^{*}$ that corresponds to the data collection process which
-exhibits one inflation:
+variable $`Y^{\ast}`$ that corresponds to the data collection process
+which exhibits one inflation:
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y|Y^{*} > 0 \right\rbrack = \omega\mathcal{I}_{\{ 1\}}(y) + (1 - \omega){\mathbb{P}}\left\lbrack Y = y|Y > 0 \right\rbrack.$$
+``` math
+\begin{equation*}
+  \mathbb{P}\left[Y^{\ast}=y|Y^{\ast}>0\right] =
+  \omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y>0].
+\end{equation*}
+```
 
 Analytic variance estimation is then performed by computing two parts of
 the decomposition according to the law of total variance given by:
 
-$$\text{var}\left\lbrack \widehat{N} \right\rbrack = {\mathbb{E}}\left\lbrack \text{var}\left\lbrack \widehat{N}|I_{1},\ldots,I_{n} \right\rbrack \right\rbrack + \text{var}\left\lbrack {\mathbb{E}}\left\lbrack \widehat{N}|I_{1},\ldots,I_{n} \right\rbrack \right\rbrack,$$
+``` math
+\begin{equation}\label{eq-law_of_total_variance_decomposition}
+  \text{var}[\hat{N}] = \mathbb{E}\left[\text{var}
+  \left[\hat{N}|I_{1},\dots,I_{n}\right]\right] + 
+  \text{var}\left[\mathbb{E}[\hat{N}|I_{1},\dots,I_{n}]\right],
+\end{equation}
+```
 
-where the first part can be estimated using the multivariate $\delta$
+where the first part can be estimated using the multivariate $`\delta`$
 method given by:
 
-$${\mathbb{E}}\left\lbrack \text{var}\left\lbrack \widehat{N}|I_{1},\ldots,I_{n} \right\rbrack \right\rbrack = \left. \left( \frac{\partial\left( N|I_{1},\ldots,I_{N} \right)}{\partial{\mathbf{β}}} \right)^{\top}\text{cov}\left\lbrack \widehat{\mathbf{β}} \right\rbrack\left( \frac{\partial\left( N|I_{1},\ldots,I_{N} \right)}{\partial{\mathbf{β}}} \right) \right|_{{\mathbf{β}} = \widehat{\mathbf{β}}},$$
+``` math
+\begin{equation*}
+  \mathbb{E}\left[\text{var} \left[\hat{N}|I_{1},\dots,I_{n}\right]\right] =
+  \left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^\top
+  \text{cov}\left[\hat{\boldsymbol{\beta}}\right]
+  \left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
+  \right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}},
+\end{equation*}
+```
 
 while the second part of the decomposition above, assuming independence
-of $I_{k}$’s and after some omitted simplifications, is optimally
+of $`I_{k}`$’s and after some omitted simplifications, is optimally
 estimated by:
 
-$$\text{var}\left\lbrack {\mathbb{E}}\left( \widehat{N}|I_{1},\ldots,I_{n} \right) \right\rbrack = \text{var}\left\lbrack \sum\limits_{k = 1}^{N}\frac{I_{k}}{{\mathbb{P}}\left( Y_{k} > 0 \right)} \right\rbrack \approx \sum\limits_{k = 1}^{N_{obs}}\frac{1 - {\mathbb{P}}\left( Y_{k} > 0 \right)}{{\mathbb{P}}\left( Y_{k} > 0 \right)^{2}},$$
+``` math
+\begin{equation*}
+  \text{var}\left[\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right] =
+  \text{var}\left[\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)}\right]
+  \approx\sum_{k=1}^{N_{obs}}\frac{1-\mathbb{P}(Y_{k}>0)}{\mathbb{P}(Y_{k}>0)^{2}},
+\end{equation*}
+```
 
 which serves as the basis for interval estimation. Confidence intervals
 are usually constructed under the assumption of (asymptotic) normality
-of $\widehat{N}$ or asymptotic normality of
-$\ln\left( \widehat{N} - N \right)$ (or log normality of $\widehat{N}$).
-The latter is an attempt to address a common criticism of student type
-confidence intervals in SSCR, namely a possibly skewed distribution of
-$\widehat{N}$, and results in the $1 - \alpha$ confidence interval given
-by:
+of $`\hat{N}`$ or asymptotic normality of $`\ln(\hat{N}-N)`$ (or log
+normality of $`\hat{N}`$). The latter is an attempt to address a common
+criticism of student type confidence intervals in SSCR, namely a
+possibly skewed distribution of $`\hat{N}`$, and results in the
+$`1-\alpha`$ confidence interval given by:
 
-$$\left( N_{obs} + \frac{\widehat{N} - N_{obs}}{\xi},N_{obs} + \left( \widehat{N} - N_{obs} \right)\xi \right),$$
+``` math
+\begin{equation*}
+  \left(N_{obs}+\frac{\hat{N}-N_{obs}}{\xi},N_{obs} +
+  \left(\hat{N}-N_{obs}\right)\xi\right),
+\end{equation*}
+```
 
 where:
 
-$$\xi = \exp\left( z\left( 1 - \frac{\alpha}{2} \right)\sqrt{\ln\left( 1 + \frac{\widehat{\text{Var}}\left( \widehat{N} \right)}{\left( \widehat{N} - N_{obs} \right)^{2}} \right)} \right),$$
+``` math
+\begin{equation*}
+  \xi = \exp\left(z\left(1-\frac{\alpha}{2}\right)
+  \sqrt{\ln\left(1+\frac{\widehat{\text{Var}}(\hat{N})}{\left(\hat{N}-N_{obs}\right)^{2}}\right)}\right),
+\end{equation*}
+```
 
-and where $z$ is the quantile function of the standard normal
-distribution. The estimator $\widehat{N}$ is best interpreted as being
-an estimator of the total number of units in the population, since we
-have no means of estimating the number of units in the population for
-which the probability of being included in the data is $0$([Heijden et
-al. 2003](#ref-ztpoisson)).
+and where $`z`$ is the quantile function of the standard normal
+distribution. The estimator $`\hat{N}`$ is best interpreted as being an
+estimator of the total number of units in the population, since we have
+no means of estimating the number of units in the population for which
+the probability of being included in the data is $`0`$([Heijden et al.
+2003](#ref-ztpoisson)).
 
 ### Available models
 
@@ -203,6 +242,7 @@ estimates can be found in the collective help file for all family
 functions:
 
 ``` r
+
 ?ztpoisson
 ```
 
@@ -214,53 +254,77 @@ The current list of these family functions includes:
 
 - Generalized Chao’s ([Chao 1987](#ref-chao1987estimating)) and
   Zelterman’s ([Zelterman 1988](#ref-zelterman1988robust)) estimators
-  via logistic regression on variable $Z$ defined as $Z = 1$ if $Y = 2$
-  and $Z = 0$ if $Y = 1$ with $Z \sim b(p)$ where $b( \cdot )$ is the
-  Bernoulli distribution and $p$ can be modeled for each unit $k$ by
-  $\text{logit}\left( p_{k} \right) = \ln\left( \lambda_{k}/2 \right)$
-  with Poisson parameter $\lambda_{k} = \mathbf{x}_{k}{\mathbf{β}}$ (for
-  a covariate extension see Böhning et al.
-  ([2013](#ref-chao-generalization)) and Böhning and Heijden
-  ([2009](#ref-zelterman))):
+  via logistic regression on variable $`Z`$ defined as $`Z=1`$ if
+  $`Y=2`$ and $`Z=0`$ if $`Y=1`$ with $`Z\sim b(p)`$ where $`b(\cdot)`$
+  is the Bernoulli distribution and $`p`$ can be modeled for each unit
+  $`k`$ by $`\text{logit}(p_k)=\ln(\lambda_k/2)`$ with Poisson parameter
+  $`\lambda_k=\boldsymbol{x}_{k}\boldsymbol{\beta}`$ (for a covariate
+  extension see Böhning et al. ([2013](#ref-chao-generalization)) and
+  Böhning and Heijden ([2009](#ref-zelterman))):
 
-$${\widehat{N}}_{\text{Chao}} = N_{obs} + \sum\limits_{k = 1}^{\mathbf{f}_{1} + \mathbf{f}_{2}}\left( 2\exp\left( \mathbf{x}_{k}\widehat{\mathbf{β}} \right) + 2\exp\left( 2\mathbf{x}_{k}\widehat{\mathbf{β}} \right) \right)^{- 1},$$
+``` math
+\hat{N}_{\text{Chao}} = N_{obs}+
+\sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
+\left(2\exp\left(\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)+
+2\exp\left(2\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)^{-1},
+\tag{Chao's estimator}
+```
 
-$${\widehat{N}}_{\text{Zelt}} = \sum\limits_{k = 1}^{N_{obs}}\left( 1 - \exp\left( - 2\exp\left( \mathbf{x}_{k}\widehat{\mathbf{β}} \right) \right) \right)^{- 1}.$$
+``` math
+\hat{N}_{\text{Zelt}}=\sum_{k=1}^{N_{obs}}
+\left(1-\exp\left(-2\exp\left(\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)\right)^{-1}.
+\tag{Zelterman's estimator}
+```
 
-where $\mathbf{f}_{1}$ and $\mathbf{f}_{2}$ denotes number of units
-observed once and twice.
+where $`\boldsymbol{f}_{1}`$ and $`\boldsymbol{f}_{2}`$ denotes number
+of units observed once and twice.
 
-- Zero-truncated (`zt`$^{*}$) and zero-one-truncated (`zot`$^{*}$)
+- Zero-truncated (`zt`$`^\ast`$) and zero-one-truncated (`zot`$`^\ast`$)
   Poisson ([Böhning and Heijden 2019](#ref-zotmodels)), geometric, NB
   type II (NB2) regression, where the non-truncated distribution is
   parameterized as:
 
-$${\mathbb{P}}\left\lbrack Y = y|\lambda,\alpha \right\rbrack = \frac{\Gamma\left( y + \alpha^{- 1} \right)}{\Gamma\left( \alpha^{- 1} \right)y!}\left( \frac{\alpha^{- 1}}{\alpha^{- 1} + \lambda} \right)^{\alpha^{- 1}}\left( \frac{\lambda}{\lambda + \alpha^{- 1}} \right)^{y}.$$
+``` math
+\mathbb{P}[Y=y|\lambda,\alpha] = \frac{\Gamma\left(y+\alpha^{-1}\right)}{\Gamma\left(\alpha^{-1}\right)y!}
+\left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
+\left(\frac{\lambda}{\lambda + \alpha^{-1}}\right)^{y}.
+```
 
-- Zero-truncated one-inflated (`ztoi`$^{*}$) modifications, where the
-  count data variable $Y^{*}$ is defined as:
+- Zero-truncated one-inflated (`ztoi`$`^\ast`$) modifications, where the
+  count data variable $`Y^{\ast}`$ is defined as:
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y \right\rbrack = \omega\mathcal{I}_{\{ 1\}}(y) + (1 - \omega){\mathbb{P}}\lbrack Y = y\rbrack,$$
+``` math
+\mathbb{P}\left[Y^{\ast}=y\right] = \omega \mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y],
+```
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y|Y^{*} > 0 \right\rbrack = \omega\frac{\mathcal{I}_{\{ 1\}}(y)}{1 - (1 - \omega){\mathbb{P}}\lbrack Y = 0\rbrack} + (1 - \omega)\frac{{\mathbb{P}}\lbrack Y = y\rbrack}{1 - (1 - \omega){\mathbb{P}}\lbrack Y = 0\rbrack}.$$
+``` math
+\mathbb{P}\left[Y^{\ast}=y|Y^{\ast}>0\right] = 
+\omega\frac{\mathcal{I}_{\{1\}}(y)}{1-(1-\omega)\mathbb{P}[Y=0]}+
+(1-\omega)\frac{\mathbb{P}[Y=y]}{1-(1-\omega)\mathbb{P}[Y=0]}.
+```
 
-- One-inflated zero-truncated (`oizt`$^{*}$) modifications, where the
-  count data variable $Y^{*}$ is defined such that its distribution
+- One-inflated zero-truncated (`oizt`$`^\ast`$) modifications, where the
+  count data variable $`Y^{\ast}`$ is defined such that its distribution
   statisfies:
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y \right\rbrack = \begin{cases}
-{{\mathbb{P}}\lbrack Y = 0\rbrack} & {y = 0,} \\
-{\omega\left( 1 - {\mathbb{P}}\lbrack Y = 0\rbrack \right) + (1 - \omega){\mathbb{P}}\lbrack Y = 1\rbrack} & {y = 1,} \\
-{(1 - \omega){\mathbb{P}}\lbrack Y = y\rbrack} & {y > 1,}
-\end{cases}$$
+``` math
+\mathbb{P}\left[Y^{\ast}=y\right]=
+\begin{cases}
+\mathbb{P}[Y=0] & y=0, \\
+\omega\left(1-\mathbb{P}[Y=0]\right)+(1-\omega)\mathbb{P}[Y=1] & y=1, \\
+(1-\omega)\mathbb{P}[Y=y] & y>1,
+\end{cases}
+```
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y|Y^{*} > 0 \right\rbrack = \omega\mathcal{I}_{\{ 1\}}(y) + (1 - \omega){\mathbb{P}}\left\lbrack Y = y|Y > 0 \right\rbrack.$$
+``` math
+\mathbb{P}\left[Y^{\ast}=y|Y^{\ast}>0\right]=\omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y>0].
+```
 
-Note that `ztoi`$^{*}$ and `oizt`$^{*}$ distributions are equivalent, in
-the sense that the maximum value of the likelihood function is equal for
-both of those distributions given any data, as shown by ([Böhning
-2023](#ref-bohning2023equivalence)) but population size estimators are
-different.
+Note that `ztoi`$`^\ast`$ and `oizt`$`^\ast`$ distributions are
+equivalent, in the sense that the maximum value of the likelihood
+function is equal for both of those distributions given any data, as
+shown by ([Böhning 2023](#ref-bohning2023equivalence)) but population
+size estimators are different.
 
 In addition, we propose two new approaches to model singletons in a
 similar way as in hurdle models. In particular, we have proposed the
@@ -269,68 +333,103 @@ following:
 - The zero-truncated hurdle model (`ztHurdle`\*) for Poisson, geometric
   and NB2 is defined as:
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y \right\rbrack = \begin{cases}
-\frac{{\mathbb{P}}\lbrack Y = 0\rbrack}{1 - {\mathbb{P}}\lbrack Y = 1\rbrack} & {y = 0,} \\
-{\pi\left( 1 - {\mathbb{P}}\lbrack Y = 1\rbrack \right)} & {y = 1,} \\
-{(1 - \pi)\frac{{\mathbb{P}}\lbrack Y = y\rbrack}{1 - {\mathbb{P}}\lbrack Y = 1\rbrack}} & {y > 1,}
-\end{cases}$$
+``` math
+\mathbb{P}[Y^{\ast}=y]=\begin{cases}
+\frac{\mathbb{P}[Y=0]}{1-\mathbb{P}[Y=1]} & y=0, \\
+\pi(1-\mathbb{P}[Y=1]) & y=1, \\
+(1-\pi) \frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=1]} & y>1,
+\end{cases}
+```
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y|Y^{*} > 0 \right\rbrack = \pi\mathbf{1}_{\{ 1\}}(y) + (1 - \pi)\mathbf{1}_{{\mathbb{N}}\backslash\{ 1\}}(y)\frac{{\mathbb{P}}\lbrack Y = y\rbrack}{1 - {\mathbb{P}}\lbrack Y = 0\rbrack - {\mathbb{P}}\lbrack Y = 1\rbrack}.$$
+``` math
+\mathbb{P}[Y^{\ast}=y|Y^{\ast}>0]=\pi\mathbf{1}_{\{1\}}(y)+
+(1-\pi)\mathbf{1}_{\mathbb{N}\setminus\{1\}}(y)\frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]}.
+```
 
-where $\pi$ denotes the conditional probability of observing singletons.
+where $`\pi`$ denotes the conditional probability of observing
+singletons.
 
 - The hurdle zero-truncated model (`Hurdlezt`\*) for Poisson, geometric
   and NB2 is defined as:
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y \right\rbrack = \begin{cases}
-\pi & {y = 1,} \\
-{(1 - \pi)\frac{{\mathbb{P}}\lbrack Y = y\rbrack}{1 - {\mathbb{P}}\lbrack Y = 1\rbrack}} & {y \neq 1,}
-\end{cases}$$
+``` math
+\mathbb{P}[Y^{\ast}=y]=\begin{cases}
+\pi & y=1, \\
+(1-\pi) \frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=1]} & y\neq1,
+\end{cases}
+```
 
-$${\mathbb{P}}\left\lbrack Y^{*} = y|Y^{*} > 0 \right\rbrack = \begin{cases}
-{\pi\frac{1 - {\mathbb{P}}\lbrack Y = 1\rbrack}{1 - {\mathbb{P}}\lbrack Y = 0\rbrack - {\mathbb{P}}\lbrack Y = 1\rbrack}} & {y = 1,} \\
-{(1 - \pi)\frac{{\mathbb{P}}\lbrack Y = y\rbrack}{1 - {\mathbb{P}}\lbrack Y = 0\rbrack - {\mathbb{P}}\lbrack Y = 1\rbrack}} & {y > 1,}
-\end{cases}$$
+``` math
+\mathbb{P}[Y^{\ast}=y|Y^{\ast}>0]=\begin{cases}
+\pi\frac{1-\mathbb{P}[Y=1]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]} & y=1,\\
+(1-\pi)\frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]} & y>1,
+\end{cases}
+```
 
-where $\pi$ denotes the unconditional probability of observing
+where $`\pi`$ denotes the unconditional probability of observing
 singletons.
+
+- A modified Chao estimator robust to one-inflation (`oichao`), which
+  discards singletons and runs logistic regression on the indicator
+  $`Z=1`$ if $`Y=3`$ and $`Z=0`$ if $`Y=2`$ with
+  $`\text{logit}(p_k)=\ln(\lambda_k/3)`$, so that
+  $`p_k=\lambda_k/(3+\lambda_k)`$ matches
+  $`\mathbb{P}[Y=3\mid Y\in\{2,3\}]`$ for
+  $`Y\sim\mathrm{Poisson}(\lambda_k)`$. The associated population-size
+  estimator is
+
+``` math
+\hat{N}_{\text{oiChao}} = N_{obs}+
+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+\left(\tfrac{9}{2}\exp\left(2\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)+
+\tfrac{9}{2}\exp\left(3\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)^{-1},
+\tag{oiChao estimator}
+```
+
+where $`\boldsymbol{f}_{2}`$ and $`\boldsymbol{f}_{3}`$ denote the
+number of units observed twice and three times. The inflation factor
+$`(\lambda_k^{2}/2+\lambda_k^{3}/6)^{-1}`$ equals
+$`\mathbb{P}[Y=0]/\mathbb{P}[Y\in\{2,3\}]`$ under
+$`\mathrm{Poisson}(\lambda_k)`$, so the estimator is unaffected by extra
+mass at $`Y=1`$.
 
 The approaches presented above differ in their assumptions,
 computational complexity, or in the way they treat heterogeneity of
-captures and singletons. For instance, the dispersion parameter $\alpha$
-in the NB2 type models is often interpreted as measuring the `severity`
-of unobserved heterogeneity in the underlying Poisson process ([Cruyff
-and Heijden 2008](#ref-ztnegbin)). When using any truncated NB model,
-the hope is that given the class of models considered, the consistency
-is not lost despite the lack of information.
+captures and singletons. For instance, the dispersion parameter
+$`\alpha`$ in the NB2 type models is often interpreted as measuring the
+`severity` of unobserved heterogeneity in the underlying Poisson process
+([Cruyff and Heijden 2008](#ref-ztnegbin)). When using any truncated NB
+model, the hope is that given the class of models considered, the
+consistency is not lost despite the lack of information.
 
 While not discussed in the literature, the interpretation of
-heterogeneous $\alpha$ across the population (specified in
+heterogeneous $`\alpha`$ across the population (specified in
 `controlModel`) would be that the unobserved heterogeneity affects the
-accuracy of the prediction for the dependent variable $Y$ more severely
-than others. The geometric model (NB with $\alpha = 1$) is singled out
-in the package and often considered in the literature because of
-inherent computational issues with NB models, which are exacerbated by
-the fact that data used for SSCR are usually of rather low quality. Data
-sparsity is a particularly common problem in SSCR and a big challenge
-for all numerical methods for fitting the (zero-truncated) NB model.
+accuracy of the prediction for the dependent variable $`Y`$ more
+severely than others. The geometric model (NB with $`\alpha=1`$) is
+singled out in the package and often considered in the literature
+because of inherent computational issues with NB models, which are
+exacerbated by the fact that data used for SSCR are usually of rather
+low quality. Data sparsity is a particularly common problem in SSCR and
+a big challenge for all numerical methods for fitting the
+(zero-truncated) NB model.
 
-The extra mass $\omega$ in one-inflated models is an important extension
-to the researcher’s toolbox for SSCR models, since the inflation at
-$y = 1$ is likely to occur in many types of applications. For example,
-when estimating the number of active people who committed criminal acts
-in a given time period, the fact of being captured for the first time
-following an arrest is associated with the risk of no longer being able
-to be captured a second time. One constraint present in modelling via
-inflated models is that attempts to include both the possibility of one
-inflation and one deflation lead to both numerical and inferential
-problems since the parameter space (of $(\omega,\lambda)$ or
-$(\omega,\lambda,\alpha)$) is then given by
-$\{(\omega,\lambda,\alpha)|\forall x \in {\mathbb{N}}:p\left( x|\omega,\lambda,\alpha \right) \geq 0\}$
-for the probability mass function $p$. The boundary of this set is then
-a $1$ or $2 -$dimensional manifold, transforming this parameter space
-into ${\mathbb{R}}^{3}$ would require using `link` functions that depend
-on more than one parameter.
+The extra mass $`\omega`$ in one-inflated models is an important
+extension to the researcher’s toolbox for SSCR models, since the
+inflation at $`y=1`$ is likely to occur in many types of applications.
+For example, when estimating the number of active people who committed
+criminal acts in a given time period, the fact of being captured for the
+first time following an arrest is associated with the risk of no longer
+being able to be captured a second time. One constraint present in
+modelling via inflated models is that attempts to include both the
+possibility of one inflation and one deflation lead to both numerical
+and inferential problems since the parameter space (of
+$`(\omega, \lambda)`$ or $`(\omega, \lambda, \alpha)`$) is then given by
+$`\{(\omega, \lambda, \alpha) | \forall x\in \mathbb{N}: p(x|\omega, \lambda, \alpha)\geq0\}`$
+for the probability mass function $`p`$. The boundary of this set is
+then a $`1`$ or $`2-`$dimensional manifold, transforming this parameter
+space into $`\mathbb{R}^{3}`$ would require using `link` functions that
+depend on more than one parameter.
 
 Hurdle models represent another approach to modelling one-inflation.
 They can also model deflation as well as inflation and deflation
@@ -339,86 +438,94 @@ zero-truncated models, appear to be more numerically stable.
 
 Although the question of how to interpret regression parameters tends to
 be somewhat overlooked in SSCR studies, we should point out that the
-interpretation of the $\omega$ inflation parameter (in `ztoi`$^{*}$ or
-`oizt`$^{*}$) is more convenient than the interpretation of the $\pi$
-probability parameter (in hurdle models). Additionally, the
-interpretation of the $\lambda$ parameter in (one) inflated models
-conforms to the following intuition: given that unit $k$ comes from the
-non-inflated part of the population, it follows a Poisson distribution
-(respectively geometric or negative binomial) with the $\lambda$
-parameter (or $\lambda,\alpha$); no such interpretation exists for
-hurdle models. Interestingly, estimates from hurdle zero-truncated and
-zero-truncated one-inflated models tend to be quite close to one
-another, although more rigorous studies are required to confirm this
-observation.
+interpretation of the $`\omega`$ inflation parameter (in `ztoi`$`^\ast`$
+or `oizt`$`^\ast`$) is more convenient than the interpretation of the
+$`\pi`$ probability parameter (in hurdle models). Additionally, the
+interpretation of the $`\lambda`$ parameter in (one) inflated models
+conforms to the following intuition: given that unit $`k`$ comes from
+the non-inflated part of the population, it follows a Poisson
+distribution (respectively geometric or negative binomial) with the
+$`\lambda`$ parameter (or $`\lambda,\alpha`$); no such interpretation
+exists for hurdle models. Interestingly, estimates from hurdle
+zero-truncated and zero-truncated one-inflated models tend to be quite
+close to one another, although more rigorous studies are required to
+confirm this observation.
 
 ### Fitting method
 
 As previously noted, the **singleRcapture** package can be used to model
 the (linear) dependence of all parameters on covariates. A modified IRLS
 algorithm is employed for this purpose as presented in Algorithm 1; full
-details are available in T. Yee ([2015](#ref-VGAM-main)). In order to
-apply the algorithm, a modified model matrix $\mathbf{X}_{\text{vlm}}$
+details are available in Yee ([2015](#ref-VGAM-main)). In order to apply
+the algorithm, a modified model matrix $`\boldsymbol{X}_{\text{vlm}}`$
 is created when the `estimatePopsize` function is called. In the context
 of the models implemented in **singleRcapture**, this matrix can be
 written as:
 
-$$\mathbf{X}_{\text{vlm}} = \begin{pmatrix}
-\mathbf{X}_{1} & \mathbf{0} & \ldots & \mathbf{0} \\
-\mathbf{0} & \mathbf{X}_{2} & \ldots & \mathbf{0} \\
-\vdots & \vdots & \ddots & \vdots \\
-\mathbf{0} & \mathbf{0} & \ldots & \mathbf{X}_{p}
-\end{pmatrix}$$
+``` math
+\begin{equation}\label{X_vlm-definition}
+  \boldsymbol{X}_{\text{vlm}}=
+  \begin{pmatrix}
+    \boldsymbol{X}_{1} & \boldsymbol{0} &\dotso &\boldsymbol{0}\\
+    \boldsymbol{0} & \boldsymbol{X}_{2} &\dotso &\boldsymbol{0}\\
+    \vdots & \vdots & \ddots & \vdots\\
+    \boldsymbol{0} & \boldsymbol{0} &\dotso &\boldsymbol{X}_{p}
+  \end{pmatrix}
+\end{equation}
+```
 
-where each $\mathbf{X}_{i}$ corresponds to a model matrix associated
-with a user specified formula.
+where each $`\boldsymbol{X}_{i}`$ corresponds to a model matrix
+associated with a user specified formula.
 
 #### Algorithm 1: The modified IRLS algorithm used in the **singleRcapture** package
 
-1.  Initialize with `iter` ← 1, $\mathbf{η}$ ← `start`, $\mathbf{W}$ ←
-    I, $\ell$ ← $\ell({\mathbf{β}})$
+1.  Initialize with `iter` ← 1, $`\boldsymbol{\eta}`$ ← `start`,
+    $`\boldsymbol{W}`$ ← I, $`\ell`$ ← $`\ell(\boldsymbol{\beta})`$
 
 2.  Store values from the previous step:  
-    $\ell_{-}$ ← $\ell$, $\mathbf{W}_{-}$ ← $\mathbf{W}$,
-    ${\mathbf{β}}_{-}$ ← $\mathbf{β}$ (the last assignment is omitted
-    during the first iteration), and assign values in the current
-    iteration:
+    $`\ell_{-}`$ ← $`\ell`$, $`\boldsymbol{W}_{-}`$ ←
+    $`\boldsymbol{W}`$, $`\boldsymbol{\beta}_{-}`$ ←
+    $`\boldsymbol{\beta}`$ (the last assignment is omitted during the
+    first iteration), and assign values in the current iteration:
 
-    $\mathbf{η}$ ← $\mathbf{X}_{\text{vlm}}{\mathbf{β}} + \mathbf{o}$
+    $`\displaystyle\boldsymbol{\eta}`$ ←
+    $`\boldsymbol{X}_{\text{vlm}}\boldsymbol{\beta}+\boldsymbol{o}`$
 
-    $\mathbf{W}_{(k)}$ ←
-    ${\mathbb{E}}\left\lbrack - \frac{\partial^{2}\ell}{\partial{\mathbf{η}}_{(k)}^{\top}\partial{\mathbf{η}}_{(k)}} \right\rbrack$
+    $`\boldsymbol{W}_{(k)}`$ ←
+    $`\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]`$
 
-    $\mathbf{Z}_{(k)}$ ←
-    ${\mathbf{η}}_{(k)} + \frac{\partial\ell}{\partial{\mathbf{η}}_{(k)}}\mathbf{W}_{(k)}^{- 1} - \mathbf{o}_{(k)}$
+    $`\boldsymbol{Z}_{(k)}`$ ←
+    $`\boldsymbol{\eta}_{(k)}+\frac{\partial\ell}{\partial\boldsymbol{\eta}_{(k)}}\boldsymbol{W}_{(k)}^{-1}-\boldsymbol{o}_{(k)}`$
 
-    where $\mathbf{o}$ denotes offset.
+    where $`\boldsymbol{o}`$ denotes offset.
 
 3.  Assign the current coefficient value:  
-    $\mathbf{β}$ ←
-    $\left( \mathbf{X}_{\text{vlm}}\mathbf{W}\mathbf{X}_{\text{vlm}} \right)^{- 1}\mathbf{X}_{\text{vlm}}\mathbf{W}\mathbf{Z}$
+    $`\boldsymbol{\beta}`$ ←
+    $`\left(\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{X}_{\text{vlm}}\right)^{-1}\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{Z}`$
 
-4.  If $\ell({\mathbf{β}}) < \ell\left( {\mathbf{β}}_{-} \right)$ try
-    selecting the smallest value $h$ such that for ${\mathbf{β}}_{h}$ ←
-    $2^{- h}\left( {\mathbf{β}} + {\mathbf{β}}_{-} \right)$ the
+4.  If $`\ell(\boldsymbol{\beta})<\ell(\boldsymbol{\beta}_{-})`$ try
+    selecting the smallest value $`h`$ such that for
+    $`\boldsymbol{\beta}_{h}`$ ←
+    $`2^{-h}\left(\boldsymbol{\beta}+\boldsymbol{\beta}_{-}\right)`$ the
     inequality
-    $\ell\left( {\mathbf{β}}_{h} \right) > \ell\left( {\mathbf{β}}_{-} \right)$
-    holds if this is successful $\mathbf{β}$ ← ${\mathbf{β}}_{h}$, else
-    stop the algorithm.
+    $`\ell(\boldsymbol{\beta}_{h})>\ell(\boldsymbol{\beta}_{-})`$ holds
+    if this is successful $`\boldsymbol{\beta}`$ ←
+    $`\boldsymbol{\beta}_{h}`$, else stop the algorithm.
 
 5.  If convergence is achieved or `iter` is higher than `maxiter`, stop
     the algorithm, else `iter` ← 1 + `iter` and return to step 2.
 
 In the case of multi-parameter families, we get a matrix of linear
-predictors $\mathbf{η}$ instead of a vector, with the number of columns
-matching the number of parameters in the distribution. “Weights” (matrix
-$\mathbf{W}$) are then modified to be information matrices
-${\mathbb{E}}\left\lbrack - \frac{\partial^{2}\ell}{\partial{\mathbf{η}}_{(k)}^{\top}\partial{\mathbf{η}}_{(k)}} \right\rbrack$,
-where $\ell$ is the log-likelihood function and ${\mathbf{η}}_{(k)}$ is
-the $k$-th row of $\mathbf{η}$, while in the typical IRLS they are
-scalars
-${\mathbb{E}}\left\lbrack - \frac{\partial^{2}\ell}{\partial\eta_{k}^{2}} \right\rbrack$,
-which is often just $- \frac{\partial^{2}\ell}{\partial\eta^{2}}$.
+predictors $`\boldsymbol{\eta}`$ instead of a vector, with the number of
+columns matching the number of parameters in the distribution. “Weights”
+(matrix $`\boldsymbol{W}`$) are then modified to be information matrices
+$`\displaystyle\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]`$,
+where $`\ell`$ is the log-likelihood function and
+$`\boldsymbol{\eta}_{(k)}`$ is the $`k`$-th row of
+$`\boldsymbol{\eta}`$, while in the typical IRLS they are scalars
+$`\displaystyle\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\eta_{k}^{2}}\right]`$,
+which is often just
+$`\displaystyle-\frac{\partial^{2}\ell}{\partial\eta^{2}}`$.
 
 ### Bootstrap variance estimators
 
@@ -428,8 +535,8 @@ Norris and Pollock ([1996](#ref-norrpoll)) for multiple source setting
 with covariates), semi-parametric (see e.g. Böhning and Friedl
 ([2021](#ref-BoehningFriedl2021))) and nonparametric. The nonparametric
 version is the usual bootstrap algorithm; which will typically
-underestimate the variance of $\widehat{N}$. In this section, the focus
-is on the first two approaches.
+underestimate the variance of $`\hat{N}`$. In this section, the focus is
+on the first two approaches.
 
 The idea of semi-parametric bootstrap is to modify the usual bootstrap
 to include the additional uncertainty resulting from the fact that the
@@ -439,37 +546,37 @@ steps listed in Algorithm 2.
 #### Algorithm 2: Semi-parametric bootstrap
 
 1.  Draw a sample of size
-    $N_{obs}\prime \sim \text{Binomial}\left( N\prime,\frac{N_{obs}}{N\prime} \right)$,
+    $`N_{obs}'\sim\text{Binomial}\left(N', \frac{N_{obs}}{N'}\right)`$,
     where
-    $N\prime = \lfloor\widehat{N}\rfloor + \text{Bernoulli}\left( \lfloor\widehat{N}\rfloor - \widehat{N} \right)$
-2.  Draw $N_{obs}\prime$ units from the data uniformly without
-    replacement
-3.  Obtain a new population size estimate $N_{b}$ using bootstrap data
-4.  Repeat 1-3 steps $B$ times
+    $`N'=\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)`$
+2.  Draw $`N_{obs}'`$ units from the data uniformly without replacement
+3.  Obtain a new population size estimate $`N_b`$ using bootstrap data
+4.  Repeat 1-3 steps $`B`$ times
 
 In other words, we first draw a sample size and then a sample
 conditional on the sample size. Note that when using the semi-parametric
 bootstrap one implicitly assumes that the population size estimate
-$\widehat{N}$ is accurate. The last implemented bootstrap type is the
+$`\hat{N}`$ is accurate. The last implemented bootstrap type is the
 parametric algorithm, which first draws a finite population of size
-$\approx \widehat{N}$ from the superpopulation model and then samples
-from this population according to the selected model, as described in
+$`\approx\hat{N}`$ from the superpopulation model and then samples from
+this population according to the selected model, as described in
 Algorithm 3.
 
 #### Algorithm 3: Parametric bootstrap
 
 1.  Draw the number of covariates equal to
-    $\lfloor\widehat{N}\rfloor + \text{Bernoulli}\left( \lfloor\widehat{N}\rfloor - \widehat{N} \right)$
+    $`\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)`$
     proportional to the estimated contribution
-    $\left( {\mathbb{P}}\left\lbrack Y_{k} > 0|\mathbf{x}_{k} \right\rbrack \right)^{- 1}$
-    with replacement
+    $`(\mathbb{P}\left[Y_{k}>0|\boldsymbol{x}_{k}\right])^{-1}`$ with
+    replacement
 2.  Using the fitted model and regression coefficients
-    $\widehat{\mathbf{β}}$ draw for each covariate the $Y$ value from
-    the corresponding probability measure on ${\mathbb{N}} \cup \{ 0\}$
-3.  Truncate units with the drawn $Y$ value equal to $0$
-4.  Obtain a population size estimate $N_{b}$ based on the truncated
+    $`\hat{\boldsymbol{\beta}}`$ draw for each covariate the $`Y`$ value
+    from the corresponding probability measure on
+    $`\mathbb{N}\cup\{0\}`$
+3.  Truncate units with the drawn $`Y`$ value equal to $`0`$
+4.  Obtain a population size estimate $`N_b`$ based on the truncated
     data
-5.  Repeat 1-4 steps $B$ times
+5.  Repeat 1-4 steps $`B`$ times
 
 Note that in order for this type of algorithm to result in consistent
 standard error estimates, it is imperative that the estimated model for
@@ -495,36 +602,37 @@ number of times a given unit was observed in the source. The most
 important arguments are given in Table below; the obligatory ones are
 `formula, data, model`.
 
-| Argument                                            | Description                                                                                                                                                                                                                                                                                                                               |
-|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `formula`                                           | The main formula (i.e., for the Poisson $\lambda$ parameter);                                                                                                                                                                                                                                                                             |
-| `data`                                              | A `data.frame` (or `data.frame` coercible) object;                                                                                                                                                                                                                                                                                        |
-| `model`                                             | Either a function, a string, or a family class object specifying which model should be used; possible values are listed in the documentation. The supplied argument should have the form `model = "ztpoisson"`, `model = ztpoisson`, or if a link function should be specified, then `model = ztpoisson(lambdaLink = "log")` can be used; |
-| `method`                                            | A numerical method used to fit regression `IRLS` or `optim`;                                                                                                                                                                                                                                                                              |
-| `popVar`                                            | A method for estimating variance of $\widehat{N}$ and creating confidence intervals (either bootstrap, analytic, or skipping the estimation entirely);                                                                                                                                                                                    |
-| `controlMethod`, `controlModel`, or `controlPopVar` | Control parameters for numerical fitting, specifying additional formulas (inflation, dispersion) and population size estimation, respectively;                                                                                                                                                                                            |
-| `offset`                                            | A matrix of offset values with the number of columns matching the number of distribution parameters, providing offset values to each of the linear predictors;                                                                                                                                                                            |
-| `...`                                               | Additional optional arguments passed to other methods, e.g., `estimatePopsizeFit`;                                                                                                                                                                                                                                                        |
+| Argument | Description |
+|----|----|
+| `formula` | The main formula (i.e., for the Poisson $`\lambda`$ parameter); |
+| `data` | A `data.frame` (or `data.frame` coercible) object; |
+| `model` | Either a function, a string, or a family class object specifying which model should be used; possible values are listed in the documentation. The supplied argument should have the form `model = "ztpoisson"`, `model = ztpoisson`, or if a link function should be specified, then `model = ztpoisson(lambdaLink = "log")` can be used; |
+| `method` | A numerical method used to fit regression `IRLS` or `optim`; |
+| `popVar` | A method for estimating variance of $`\hat{N}`$ and creating confidence intervals (either bootstrap, analytic, or skipping the estimation entirely); |
+| `controlMethod`, `controlModel`, or `controlPopVar` | Control parameters for numerical fitting, specifying additional formulas (inflation, dispersion) and population size estimation, respectively; |
+| `offset` | A matrix of offset values with the number of columns matching the number of distribution parameters, providing offset values to each of the linear predictors; |
+| `...` | Additional optional arguments passed to other methods, e.g., `estimatePopsizeFit`; |
 
 An important step in using `estimatePopsize` is specifying the `model`
 parameter, which indicates the type of model that will be used for
 estimating the *unobserved* part of the population. For instance, to fit
 Chao’s or Zelterman’s model one should select `chao` or `zelterman` and,
 assuming that one-inflation is present, one can select one of the
-zero-truncated one-inflated (`ztoi`$^{*}$) or one-inflated
-zero-truncated (`oizt`$^{*}$) models, such as `oiztpoisson` for Poisson
-or `ztoinegbin` for NB2.
+zero-truncated one-inflated (`ztoi`$`^\ast`$) or one-inflated
+zero-truncated (`oizt`$`^\ast`$) models, such as `oiztpoisson` for
+Poisson or `ztoinegbin` for NB2.
 
 If it is assumed that heterogeneity is observed for NB2 models, one can
 specify the formula in the `controlModel` argument with the
 `controlModel` function and the `alphaFormula` argument. This enables
 the user to provide a formula for the dispersion parameter in the NB2
-models. If heterogeneity is assumed for `ztoi`$^{*}$ or `oizt`$^{*}$,
-one can specify the `omegaFormula` argument, which corresponds to the
-$\omega$ parameter in these models. Finally, if covariates are assumed
-to be available for the hurdle models (`ztHurdle`$^{*}$ or
-`Hurdlezt`$^{*}$), then `piFormula` can be specified, as it provides a
-formula for the probability parameter in these models.
+models. If heterogeneity is assumed for `ztoi`$`^\ast`$ or
+`oizt`$`^\ast`$, one can specify the `omegaFormula` argument, which
+corresponds to the $`\omega`$ parameter in these models. Finally, if
+covariates are assumed to be available for the hurdle models
+(`ztHurdle`$`^\ast`$ or `Hurdlezt`$`^\ast`$), then `piFormula` can be
+specified, as it provides a formula for the probability parameter in
+these models.
 
 ### Controlling variance estimation with `controlPopVar`
 
@@ -538,8 +646,8 @@ arguments accepted by the `contorlPopVar` function, which are relevant
 to bootstrap, include:
 
 - `alpha`, `B` – the significance level and the number of bootstrap
-  samples to be performed, respectively, with $0.05$ and $500$ being the
-  default options.
+  samples to be performed, respectively, with $`0.05`$ and $`500`$ being
+  the default options.
 - `cores` – the number of process cores to be used in bootstrap (1 by
   default); parallel computing is enabled by **doParallel** ([Microsoft
   and Weston 2022a](#ref-doParallel)), **foreach** ([Microsoft and
@@ -572,12 +680,14 @@ user-specified sub-populations.
 The package can be installed in the standard manner using:
 
 ``` r
+
 install.packages("singleRcapture")
 ```
 
 Then, we need to load the package using the following code:
 
 ``` r
+
 library(singleRcapture)
 ```
 
@@ -591,6 +701,7 @@ year. This dataset is included in the package called
 `netherlandsimmigrant`:
 
 ``` r
+
 data(netherlandsimmigrant)
 head(netherlandsimmigrant)
 ```
@@ -609,6 +720,7 @@ in the `capture` variable. The available covariates include
 being captured and the region of the world a given person comes from:
 
 ``` r
+
 summary(netherlandsimmigrant)
 ```
 
@@ -632,6 +744,7 @@ disproportionately large number of individuals who were observed only
 once (i.e. 1645).
 
 ``` r
+
 table(netherlandsimmigrant$capture)
 ```
 
@@ -645,6 +758,7 @@ additional results of population size estimates (denoted as
 `Population size estimation results`).
 
 ``` r
+
 basicModel <- estimatePopsize(
   formula = capture ~ gender + age + nation,
   model   = ztpoisson(),
@@ -717,6 +831,7 @@ such as zero-truncated one-inflated geometric model (specified by
 `ztoigeom` family) and those presented below.
 
 ``` r
+
 set.seed(123456)
 modelInflated <- estimatePopsize(
     formula = capture ~ nation,
@@ -793,6 +908,7 @@ We can access population size estimates using the following code, which
 returns a list with numerical results.
 
 ``` r
+
 popSizeEst(basicModel)    # alternative: basicModel$populationSize
 ```
 
@@ -804,6 +920,7 @@ popSizeEst(basicModel)    # alternative: basicModel$populationSize
     ## logNormal   8431.275   19718.32
 
 ``` r
+
 popSizeEst(modelInflated) # alternative: modelInflated$populationSize
 ```
 
@@ -821,10 +938,12 @@ which can be computed quickly and conveniently with the **lmtest**
 (Zeileis and Hothorn ([2002](#ref-lmtest))) interface:
 
 ``` r
+
 library(lmtest)
 ```
 
 ``` r
+
 lrtest(basicModel, modelInflated, 
        name = function(x) {
     if (family(x)$family == "ztpoisson")
@@ -852,16 +971,17 @@ assess the results using standard statistical tests and diagnostics.
 A popular method of testing the model fit in single source
 capture-recapture studies consists in comparing the fitted marginal
 frequencies
-$\sum_{j = 1}^{N_{obs}}\widehat{\mathbb{P}}\left\lbrack Y_{j} = k|\mathbf{x}_{j},Y_{j} > 0 \right\rbrack$
+$`\displaystyle\sum_{j=1}^{N_{obs}}\hat{\mathbb{P}}\left[Y_{j}=k|\boldsymbol{x}_{j}, Y_{j} > 0\right]`$
 with the observed marginal frequencies
-$\sum_{j = 1}^{N}\mathcal{I}_{\{ k\}}\left( Y_{j} \right) = \sum_{j = 1}^{N_{obs}}\mathcal{I}_{\{ k\}}\left( Y_{j} \right)$
-for $k \geq 1$. If the fitted model bears sufficient resemblance to the
+$`\displaystyle\sum_{j=1}^{N}\mathcal{I}_{\{k\}}(Y_{j})=\sum_{j=1}^{N_{obs}}\mathcal{I}_{\{k\}}(Y_{j})`$
+for $`k\geq1`$. If the fitted model bears sufficient resemblance to the
 real data collection process, these quantities should be quite close and
-both $G$ and $\chi^{2}$ tests can be used to test the statistical
+both $`G`$ and $`\chi^{2}`$ tests can be used to test the statistical
 significance of the discrepancy with the following **singleRcapture**
 syntax for the Poisson model (rather poor fit):
 
 ``` r
+
 margFreq <- marginalFreq(basicModel)
 summary(margFreq, df = 1, dropl5 = "group")
 ```
@@ -879,6 +999,7 @@ summary(margFreq, df = 1, dropl5 = "group")
 and for the one-inflated model (better fit):
 
 ``` r
+
 margFreq_inf <- marginalFreq(modelInflated)
 summary(margFreq_inf, df = 1, dropl5 = "group")
 ```
@@ -894,7 +1015,7 @@ summary(margFreq_inf, df = 1, dropl5 = "group")
     ## Names of cells used in calculating test(s) statistic: 1 2 3 4
 
 where the `dropl5` argument is used to indicate how to handle cells with
-less than $5$ fitted observations. Note, however, that currently there
+less than $`5`$ fitted observations. Note, however, that currently there
 is no continuity correction.
 
 ### Diagnostics
@@ -905,6 +1026,7 @@ several types of quick demonstrative plots, such as the rootogram
 marginal frequencies, which can be generated with the following syntax:
 
 ``` r
+
 plot(   basicModel, plotType = "rootogram", main = "ZT Poisson model")
 plot(modelInflated, plotType = "rootogram", main = "ZTOI Geometric model")
 ```
@@ -925,6 +1047,7 @@ been adapted as shown below (multiplied by a factor of a hundred for
 better readability):
 
 ``` r
+
 dfb <- dfbeta(basicModel)
 round(t(apply(dfb, 2, quantile)*100), 4)
 ```
@@ -940,6 +1063,7 @@ round(t(apply(dfb, 2, quantile)*100), 4)
     ## nationTurkey         -9.6198 -0.0220  0.0079 0.0143 32.0980
 
 ``` r
+
 dfi <- dfbeta(modelInflated)
 round(t(apply(dfi, 2, quantile)*100), 4)
 ```
@@ -960,6 +1084,7 @@ function, which can be used to quantify LOO on the population size. Note
 the warning when the bootstap variance estimation is applied.
 
 ``` r
+
 dfb_pop <- dfpopsize(basicModel, dfbeta = dfb)
 dfi_pop <- dfpopsize(modelInflated, dfbeta = dfi)
 summary(dfb_pop)
@@ -969,6 +1094,7 @@ summary(dfb_pop)
     ## -4236.412     2.663     2.663     5.448    17.284   117.448
 
 ``` r
+
 summary(dfi_pop)
 ```
 
@@ -981,6 +1107,7 @@ refer to the contribution of a given observation to the population size
 estimate:
 
 ``` r
+
 plot(basicModel, plotType = "dfpopContr", 
      dfpop = dfb_pop, xlim = c(-4500, 150))
 plot(modelInflated, plotType = "dfpopContr", 
@@ -1006,6 +1133,7 @@ and **graphics** functions can be found in the help file of the `plot`
 method.
 
 ``` r
+
 ?plot.singleRStaticCountData
 ```
 
@@ -1019,6 +1147,7 @@ by the coefficients in the model (the default option). The following
 output presents results based on the `ztpoisson` and `ztoigeom` models.
 
 ``` r
+
 popSizestrata <- stratifyPopsize(basicModel)
 cols <- c("name", "Observed", "Estimated", "logNormalLowerBound", 
           "logNormalUpperBound")
@@ -1041,6 +1170,7 @@ popSizestrata_report
     ## 10                 nation==Turkey   93  1739.8592   638.0497   5068.959
 
 ``` r
+
 popSizestrata_inflated <- stratifyPopsize(modelInflated)
 popSizestrata_inflated_report <- popSizestrata_inflated[, cols]
 names(popSizestrata_inflated_report) <- cols_custom
@@ -1066,6 +1196,7 @@ significance levels and the covariance matrix to be used for computing
 standard errors. An example of the full call is presented below.
 
 ``` r
+
 library(sandwich)
 popSizestrataCustom <- stratifyPopsize(
   object  = basicModel,
@@ -1085,10 +1216,10 @@ popSizestrataCustom_report
     ## 3    age==<40yrs 1769 10506.899  7297.2057  15580.151  0.05
     ## 4    age==>40yrs  111  2183.454   787.0673   6464.016  0.05
 
-We have provided integration with the **sandwich** ([Zeileis, Köll, and
-Graham 2020](#ref-sandwich)) package to correct the variance-covariance
-matrix in the $\delta$ method. In the code we have used the `vcovHC`
-method for `singleRStaticCountData` class from the **sandwich** package,
+We have provided integration with the **sandwich** ([Zeileis et al.
+2020](#ref-sandwich)) package to correct the variance-covariance matrix
+in the $`\delta`$ method. In the code we have used the `vcovHC` method
+for `singleRStaticCountData` class from the **sandwich** package,
 different significance levels for confidence intervals in each stratum
 and a formula to specify that we want estimates for both males and
 females to be grouped by `nation` and `age`. The `strata` parameter can
@@ -1110,6 +1241,7 @@ be specified either as:
   for example:
 
 ``` r
+
 list(
   "Stratum 1" = netherlandsimmigrant$gender == "male"   & 
     netherlandsimmigrant$nation == "Suriname", 
@@ -1122,6 +1254,7 @@ One can also specify `plotType = "strata"` in the `plot` function, which
 results in a plot with point and CI estimates of the population size.
 
 ``` r
+
 plot(basicModel, plotType = "strata")
 plot(modelInflated, plotType = "strata")
 ```
@@ -1151,6 +1284,7 @@ For instance, the `popSizeEst` function can be used to extract
 information about the estimated size of the population as given below:
 
 ``` r
+
 (popEst <- popSizeEst(basicModel))
 ```
 
@@ -1168,7 +1302,7 @@ contains the following fields:
   and variance of this estimate.
 - `confidenceInterval` – a `data.frame` with confidence intervals.
 - `boot` – If the bootstrap was performed a numeric vector containing
-  the $\widehat{N}$ values from the bootstrap, a character vector with
+  the $`\hat{N}`$ values from the bootstrap, a character vector with
   value `"No bootstrap performed"` otherwise.
 - `control` – a `controlPopVar` object with controls used to obtain the
   object.
@@ -1179,6 +1313,7 @@ the `print` method, but the former one also accepts **R** primitives
 like `coef`:
 
 ``` r
+
 coef(summary(basicModel))
 ```
 
@@ -1196,24 +1331,25 @@ analogously to `glm` from **stats**. The `singleRfamily` inherits the
 `family` class from **stats** and has explicitly defined `print` and
 `simulate` methods. Example usage is presented below
 
-| Function                                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-|----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `fitted`                                                                                                                         | It works almost exactly like `glm` counterparts but returns more information, namely on fitted values for the truncated and non-truncated probability distribution;                                                                                                                                                                                                                                                                                                                                                                             |
-| `logLik`                                                                                                                         | Compared to `glm` method, it has the possibility of returning not just the value of the fitted log-likelihood but also the entire function (argument `type = "function"`) along with two first derivatives (argument `deriv = 0:2`);                                                                                                                                                                                                                                                                                                            |
-| `model.matrix`                                                                                                                   | It has the possibility of returning the $X_{\text{vlm}}$ matrix defined previously;                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `simulate`                                                                                                                       | It calls the `simulate` method for the chosen model and fitted $\mathbf{η}$;                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `predict`                                                                                                                        | It has the possibility of returning either fitted distribution parameters for each unit (`type = "response"`), or just linear predictors (`type = "link"`), or means of the fitted distributions of $Y$ and $Y|Y > 0$ (`type = "mean"`) or the inverse probability weights (`type = "contr"`). It is possible to set the `se.fit` argument to `TRUE` in order to obtain standard errors for each of those by using the $\delta$ method. Also, it is possible to use a custom covariance matrix for standard error computation (argument `cov`); |
-| `redoPopEstimation`                                                                                                              | A function that applies all post-hoc procedures that were performed (such as heteroscedastic consistent covariance matrix estimation via **countreg**) to estimate the population size and standard errors;                                                                                                                                                                                                                                                                                                                                     |
-| `residuals`                                                                                                                      | Used for obtaining residuals of several types, we refer interested readers to the manual `?singleRcapture:::residuals.singleRStaticCountData`;                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `stratifyPopsize, summary`                                                                                                       | Compared to the `glm` class, summary has the possibility of adding confidence intervals to the coefficient matrix (argument `confint = TRUE`) and using a custom covariance matrix (argument `cov = someMatrix`);                                                                                                                                                                                                                                                                                                                               |
-| `plot`                                                                                                                           | It has been discussed above;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `popSizeEst`                                                                                                                     | An extractor showcased above;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `cooks.distance`                                                                                                                 | It works only for single predictor models;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `dfbeta, dfpopsize`                                                                                                              | Multi-threading in `dfbeta` is available and `dfpopsize` calls `dfbeta` if no `dfbeta` object was provided in the call;                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `bread, estfun, vcovHC`                                                                                                          | For (almost) full **sandwich** compatibility;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `AIC, BIC, extractAIC, family, confint, df.residual, model.frame, hatvalues, nobs, print, sigma, influence, rstudent, rstandard` | These work exactly like `glm` counterparts.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Function | Description |
+|----|----|
+| `fitted` | It works almost exactly like `glm` counterparts but returns more information, namely on fitted values for the truncated and non-truncated probability distribution; |
+| `logLik` | Compared to `glm` method, it has the possibility of returning not just the value of the fitted log-likelihood but also the entire function (argument `type = "function"`) along with two first derivatives (argument `deriv = 0:2`); |
+| `model.matrix` | It has the possibility of returning the $`X_{\text{vlm}}`$ matrix defined previously; |
+| `simulate` | It calls the `simulate` method for the chosen model and fitted $`\boldsymbol{\eta}`$; |
+| `predict` | It has the possibility of returning either fitted distribution parameters for each unit (`type = "response"`), or just linear predictors (`type = "link"`), or means of the fitted distributions of $`Y`$ and $`Y|Y>0`$ (`type = "mean"`) or the inverse probability weights (`type = "contr"`). It is possible to set the `se.fit` argument to `TRUE` in order to obtain standard errors for each of those by using the $`\delta`$ method. Also, it is possible to use a custom covariance matrix for standard error computation (argument `cov`); |
+| `redoPopEstimation` | A function that applies all post-hoc procedures that were performed (such as heteroscedastic consistent covariance matrix estimation via **countreg**) to estimate the population size and standard errors; |
+| `residuals` | Used for obtaining residuals of several types, we refer interested readers to the manual `?singleRcapture:::residuals.singleRStaticCountData`; |
+| `stratifyPopsize, summary` | Compared to the `glm` class, summary has the possibility of adding confidence intervals to the coefficient matrix (argument `confint = TRUE`) and using a custom covariance matrix (argument `cov = someMatrix`); |
+| `plot` | It has been discussed above; |
+| `popSizeEst` | An extractor showcased above; |
+| `cooks.distance` | It works only for single predictor models; |
+| `dfbeta, dfpopsize` | Multi-threading in `dfbeta` is available and `dfpopsize` calls `dfbeta` if no `dfbeta` object was provided in the call; |
+| `bread, estfun, vcovHC` | For (almost) full **sandwich** compatibility; |
+| `AIC, BIC, extractAIC, family, confint, df.residual, model.frame, hatvalues, nobs, print, sigma, influence, rstudent, rstandard` | These work exactly like `glm` counterparts. |
 
 ``` r
+
 set.seed(1234567890)
 N <- 10000
 gender <- rbinom(N, 1, 0.2)
@@ -1254,9 +1390,9 @@ to integrate **singleRcapture** with these packages.
 In future work we plan to implement Bayesian estimation using **Stan**
 (e.g. via the **brms** package; Carpenter et al.
 ([2017](#ref-carpenter2017stan)), Bürkner ([2017](#ref-brms))) and for
-one-inflation models we can use the recent approach proposed by Tuoto,
-Di Cecco, and Tancredi ([2022](#ref-tuoto2022bayesian)) and implement
-our own families using the **brms** package.
+one-inflation models we can use the recent approach proposed by Tuoto et
+al. ([2022](#ref-tuoto2022bayesian)) and implement our own families
+using the **brms** package.
 
 ## Acknowledgements
 
@@ -1277,19 +1413,25 @@ the paper.
 In this section we provide a step-by-step description of how to prepare
 data in order to use the `estimatePopsizeFit` function, which may be
 useful to some users, e.g. those wishing to make modifications to the
-$\widehat{N}$ estimate or to the bootstrap. In order to show how to
-apply the function we will fit a one-inflated zero-truncated geometric
-model on the data from Böhning et al. ([2013](#ref-chao-generalization))
-with covariate dependency:
+$`\hat{N}`$ estimate or to the bootstrap. In order to show how to apply
+the function we will fit a one-inflated zero-truncated geometric model
+on the data from Böhning et al. ([2013](#ref-chao-generalization)) with
+covariate dependency:
 
-$$\begin{aligned}
-{\log(\lambda)} & {= \beta_{1,1} + \beta_{1,2}\text{log\_distance} + \beta_{1,3}\text{C\_TYPE} + \beta_{1,4}\text{log\_size},} \\
-{\text{logit}(\omega)} & {= \beta_{2,1} + \beta_{2,2}\text{log\_distance} + \beta_{2,3}\text{C\_TYPE}.}
-\end{aligned}$$
+``` math
+\begin{align*}
+  \log(\lambda) &=
+  \beta_{1, 1} + \beta_{1, 2} \text{log\_distance} + \beta_{1, 3} \text{C\_TYPE} +
+  \beta_{1, 4} \text{log\_size}, \\
+  \text{logit}(\omega) &=
+  \beta_{2, 1} + \beta_{2, 2} \text{log\_distance} + \beta_{2, 3} \text{C\_TYPE}.
+\end{align*}
+```
 
 This would be equivalent to the following `esimatePopsize` call:
 
 ``` r
+
 estimatePopsize(
   TOTAL_SUB ~ .,
   data = farmsubmission,
@@ -1300,19 +1442,21 @@ estimatePopsize(
 )
 ```
 
-1.  Create a data matrix $\mathbf{X}_{\text{vlm}}$
+1.  Create a data matrix $`\boldsymbol{X}_{\text{vlm}}`$
 
 ``` r
+
 X <- matrix(data = 0, nrow = 2 * NROW(farmsubmission), ncol = 7)
 ```
 
-2.  Fill the first $n$ rows with `model.matrix` according to the
+2.  Fill the first $`n`$ rows with `model.matrix` according to the
     specified formula and specify the attribute `attr(X, "hwm")` that
     informs the function which elements of the design matrix correspond
     to which linear predictor (covariates for counts and covariates for
     one-inflation)
 
 ``` r
+
 X[1:NROW(farmsubmission), 1:4] <- model.matrix(
   ~ 1 + log_size + log_distance + C_TYPE, 
   farmsubmission
@@ -1324,10 +1468,11 @@ X[-(1:NROW(farmsubmission)), 5:7] <- model.matrix(
 attr(X, "hwm") <- c(4, 3)
 ```
 
-3.  Obtain starting $\mathbf{β}$ parameters using the `glm.fit`
-    function.
+3.  Obtain starting $`\boldsymbol{\beta}`$ parameters using the
+    `glm.fit` function.
 
 ``` r
+
 start <- glm.fit(
   y = farmsubmission$TOTAL_SUB, 
   x = X[1:NROW(farmsubmission), 1:4], 
@@ -1343,6 +1488,7 @@ start
     the `family` argument.
 
 ``` r
+
 res <- estimatePopsizeFit(
   y            = farmsubmission$TOTAL_SUB, 
   X            = X, 
@@ -1361,10 +1507,12 @@ res <- estimatePopsizeFit(
     [`stats::optim`](https://rdrr.io/r/stats/optim.html) function.
 
 ``` r
+
 ll <- oiztgeom()$makeMinusLogLike(y = farmsubmission$TOTAL_SUB, X = X)
 ```
 
 ``` r
+
 res2 <- estimatePopsizeFit(
   y = farmsubmission$TOTAL_SUB, 
   X = X, 
@@ -1378,6 +1526,7 @@ res2 <- estimatePopsizeFit(
 ```
 
 ``` r
+
 data.frame(IRLS  = round(c(res$beta, -ll(res$beta), res$iter), 4),
            optim = round(c(res2$beta, -ll(res2$beta), res2$iter[1]), 4))
 ```
@@ -1393,8 +1542,8 @@ data.frame(IRLS  = round(c(res$beta, -ll(res$beta), res$iter), 4),
     ## 8 -17278.7613 -17280.1189
     ## 9     15.0000   1696.0000
 
-The default `maxiter` parameter for `"optim"` fitting is $1000$, but we
-needed to increase it since the `optim` does not converge in $1000$
+The default `maxiter` parameter for `"optim"` fitting is $`1000`$, but
+we needed to increase it since the `optim` does not converge in $`1000`$
 steps and “gets stuck” at a plateau, which results in a lower
 log-likelihood value compared to the standard `"IRLS"`.
 
@@ -1420,19 +1569,22 @@ Suppose we want to implement a very specific zero truncated family
 function in the **singleRcapture**, which corresponds to the following
 “untruncated” distribution:
 
-$${\mathbb{P}}\left\lbrack Y = y|\lambda,\pi \right\rbrack = \begin{cases}
-{1 - \frac{1}{2}\lambda - \frac{1}{2}\pi} & {{\text{when:}\mspace{6mu}}y = 0} \\
-{\frac{1}{2}\pi} & {{\text{when:}\mspace{6mu}}y = 1} \\
-{\frac{1}{2}\lambda} & {{\text{when:}\mspace{6mu}}y = 2,}
-\end{cases}$$
+``` math
+  \mathbb{P}[Y=y|\lambda, \pi] = \begin{cases}
+    1 - \frac{1}{2}\lambda - \frac{1}{2}\pi & \text{when: } y=0\\
+    \frac{1}{2}\pi & \text{when: } y=1\\
+    \frac{1}{2}\lambda & \text{when: } y=2,
+  \end{cases}
+```
 
-with $\lambda,\pi \in (0,1)$ being dependent on covariates.
+with $`\lambda, \pi\in\left(0, 1\right)`$ being dependent on covariates.
 
 Below we provide a possible way of implementing the above model, with
-`lambda, pi` meaning $\frac{1}{2}\lambda,\frac{1}{2}\pi$. We provide a
+`lambda, pi` meaning $`\frac{1}{2}\lambda,\frac{1}{2}\pi`$. We provide a
 simple example that shows that the proposed approach works as expected.
 
 ``` r
+
 myFamilyFunction <- function(lambdaLink = c("logit", "cloglog", "probit"),
                              piLink     = c("logit", "cloglog", "probit"),
                              ...) {
@@ -1771,6 +1923,7 @@ myFamilyFunction <- function(lambdaLink = c("logit", "cloglog", "probit"),
 A quick tests shows us that this implementation in fact works:
 
 ``` r
+
 set.seed(123)
 Y <- simulate(
   myFamilyFunction(lambdaLink = "logit", piLink = "logit"),
@@ -1836,6 +1989,7 @@ inverses and derivatives of both links and inverse links up to the third
 order:
 
 ``` r
+
 singleRcapture:::singleRinternalcloglogLink
 ```
 
@@ -1855,7 +2009,7 @@ singleRcapture:::singleRinternalcloglogLink
     ##     }
     ##     res
     ## }
-    ## <bytecode: 0x556fa0f665e8>
+    ## <bytecode: 0x559a22dcf9f8>
     ## <environment: namespace:singleRcapture>
 
 One could, of course, include the code for computing them manually.
@@ -1870,11 +2024,10 @@ Baillargeon, Sophie, and Louis-Paul Rivest. 2007. “Rcapture: Loglinear
 Models for Capture-Recapture in r.” *Journal of Statistical Software* 19
 (5): 1–31. <https://doi.org/10.18637/jss.v019.i05>.
 
-Besançon, Mathieu, Theodore Papamarkou, David Anthoff, Alex Arslan,
-Simon Byrne, Dahua Lin, and John Pearson. 2021. “Distributions.jl:
-Definition and Modeling of Probability Distributions in the JuliaStats
-Ecosystem.” *Journal of Statistical Software* 98 (16): 1–30.
-<https://doi.org/10.18637/jss.v098.i16>.
+Besançon, Mathieu, Theodore Papamarkou, David Anthoff, et al. 2021.
+“Distributions.jl: Definition and Modeling of Probability Distributions
+in the JuliaStats Ecosystem.” *Journal of Statistical Software* 98 (16):
+1–30. <https://doi.org/10.18637/jss.v098.i16>.
 
 Böhning, Dankmar. 2023. “On the Equivalence of One-Inflated
 Zero-Truncated and Zero-Truncated One-Inflated Count Data Likelihoods.”
@@ -1888,12 +2041,13 @@ Press Boca Raton.
 Böhning, Dankmar, and Herwig Friedl. 2021. “Population Size Estimation
 Based Upon Zero-Truncated, One-Inflated and Sparse Count Data:
 Estimating the Number of Dice Snakes in Graz and Flare Stars in the
-Pleiades.” *Statistical Methods & Applications*, January.
-<https://doi.org/10.1007/s10260-021-00556-8>.
+Pleiades.” *Statistical Methods & Applications*, ahead of print,
+January. <https://doi.org/10.1007/s10260-021-00556-8>.
 
-———. 2024. “One-Inflation and Zero-Truncation Count Data Modelling
-Revisited with a View on Horvitz–Thompson Estimation of Population
-Size.” *International Statistical Review* 92 (1): 148–65.
+Böhning, Dankmar, and Herwig Friedl. 2024. “One-Inflation and
+Zero-Truncation Count Data Modelling Revisited with a View on
+Horvitz–Thompson Estimation of Population Size.” *International
+Statistical Review* 92 (1): 148–65.
 <https://doi.org/10.1111/insr.12557>.
 
 Böhning, Dankmar, and Peter G. M. van der Heijden. 2009. “A Covariate
@@ -1901,10 +2055,11 @@ Adjustment for Zero-Truncated Approaches to Estimating the Size of
 Hidden and Elusive Populations.” *The Annals of Applied Statistics* 3
 (2): 595–610. <https://doi.org/10.1214/08-AOAS214>.
 
-———. 2019. “The Identity of the Zero-Truncated, One-Inflated Likelihood
-and the Zero-One-Truncated Likelihood for General Count Densities with
-an Application to Drink-Driving in Britain.” *The Annals of Applied
-Statistics* 13 (2): 1198–1211. <https://doi.org/10.1214/18-AOAS1232>.
+Böhning, Dankmar, and Peter G. M. van der Heijden. 2019. “The Identity
+of the Zero-Truncated, One-Inflated Likelihood and the
+Zero-One-Truncated Likelihood for General Count Densities with an
+Application to Drink-Driving in Britain.” *The Annals of Applied
+Statistics* 13 (2): 1198–211. <https://doi.org/10.1214/18-AOAS1232>.
 
 Böhning, Dankmar, Alberto Vidal-Diez, Rattana Lerdsuwansri, Chukiat
 Viwatwongkasem, and Mark Arnold. 2013. “A Generalization of Chao’s
@@ -1915,11 +2070,9 @@ Bürkner, Paul-Christian. 2017. “brms: An R Package for Bayesian
 Multilevel Models Using Stan.” *Journal of Statistical Software* 80 (1):
 1–28. <https://doi.org/10.18637/jss.v080.i01>.
 
-Carpenter, Bob, Andrew Gelman, Matthew D Hoffman, Daniel Lee, Ben
-Goodrich, Michael Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li,
-and Allen Riddell. 2017. “Stan: A Probabilistic Programming Language.”
-*Journal of Statistical Software* 76 (1): 1–32.
-<https://doi.org/10.18637/jss.v076.i01>.
+Carpenter, Bob, Andrew Gelman, Matthew D Hoffman, et al. 2017. “Stan: A
+Probabilistic Programming Language.” *Journal of Statistical Software*
+76 (1): 1–32. <https://doi.org/10.18637/jss.v076.i01>.
 
 Chao, Anne. 1987. “Estimating the Population Size for Capture-Recapture
 Data with Unequal Catchability.” *Biometrics* 43 (4): 783–91.
@@ -1969,8 +2122,8 @@ Microsoft, and Steve Weston. 2022a. *doParallel: Foreach Parallel
 Adaptor for the ’Parallel’ Package*.
 <https://CRAN.R-project.org/package=doParallel>.
 
-———. 2022b. *Foreach: Provides Foreach Looping Construct*.
-<https://CRAN.R-project.org/package=foreach>.
+Microsoft, and Steve Weston. 2022b. *Foreach: Provides Foreach Looping
+Construct*. <https://CRAN.R-project.org/package=foreach>.
 
 Norris, James L, and Kenneth H Pollock. 1996. “Including Model
 Uncertainty in Estimating Variances in Multiple Capture Studies.”
@@ -1978,11 +2131,11 @@ Uncertainty in Estimating Variances in Multiple Capture Studies.”
 <https://doi.org/10.1007/BF00569242>.
 
 R Core Team. 2023. *R: A Language and Environment for Statistical
-Computing*. Vienna, Austria: R Foundation for Statistical Computing.
+Computing*. R Foundation for Statistical Computing.
 <https://www.R-project.org/>.
 
 Seabold, Skipper, and Josef Perktold. 2010. “Statsmodels: Econometric
-and Statistical Modeling with Python.” In *9th Python in Science
+and Statistical Modeling with Python.” *9th Python in Science
 Conference*.
 
 Tuoto, Tiziana, Davide Di Cecco, and Andrea Tancredi. 2022. “Bayesian
@@ -1999,8 +2152,8 @@ Wolter, Kirk M. 1986. “Some Coverage Error Models for Census Data.”
 *Journal of the American Statistical Association* 81 (394): 337–46.
 <https://doi.org/10.1080/01621459.1986.10478277>.
 
-Yang, Hsing-Chen, and Anne Chao. 2006. “Program CARE-4 (for
-Capture-Recapture Part. 4).” <http://chao.stat.nthu.edu.tw>.
+Yang, Hsing-Chen, and Anne Chao. 2006. *Program CARE-4 (for
+Capture-Recapture Part. 4)*. <http://chao.stat.nthu.edu.tw>.
 
 Yee, Thomas. 2015. *Vector Generalized Linear and Additive Models: With
 an Implementation in r*. 1st ed. Springer Publishing Company,

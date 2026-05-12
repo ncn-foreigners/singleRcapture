@@ -22,12 +22,16 @@
   : Observed and fitted marginal frequencies
 - [`netherlandsimmigrant`](https://ncn-foreigners.github.io/singleRcapture/reference/netherlandsimmigrant.md)
   : Immigration data in the Netherlands
+- [`plot(`*`<singleRRatioReg>`*`)`](https://ncn-foreigners.github.io/singleRcapture/reference/plot.singleRRatioReg.md)
+  : Diagnostic Plots for Ratio Regression Fits
 - [`plot(`*`<singleRStaticCountData>`*`)`](https://ncn-foreigners.github.io/singleRcapture/reference/plot.singleRStaticCountData.md)
   : Diagnostic plots for regression and population size estimation
 - [`popSizeEst()`](https://ncn-foreigners.github.io/singleRcapture/reference/popSizeEst.md)
   : Extract population size estimation results
 - [`predict(`*`<singleRStaticCountData>`*`)`](https://ncn-foreigners.github.io/singleRcapture/reference/predict.singleRStaticCountData.md)
   : Predict method for singleRStaticCountData class
+- [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
+  : Estimate Population Size Using Ratio Regression
 - [`redoPopEstimation()`](https://ncn-foreigners.github.io/singleRcapture/reference/redoPopEstimation.md)
   : Updating population size estimation results
 - [`dfpopsize()`](https://ncn-foreigners.github.io/singleRcapture/reference/regDiagSingleR.md)
@@ -47,6 +51,7 @@
   [`Hurdleztgeom()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
   [`Hurdleztnegbin()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
   [`Hurdleztpoisson()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
   [`oiztgeom()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
   [`oiztnegbin()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
   [`oiztpoisson()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
@@ -66,6 +71,8 @@
   : Family functions in singleRcapture package
 - [`stratifyPopsize()`](https://ncn-foreigners.github.io/singleRcapture/reference/stratifyPopsize.md)
   : Estimate size of sub-populations
+- [`summary(`*`<singleRRatioReg>`*`)`](https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRRatioReg.md)
+  : Summary Statistics for Ratio Regression Fits
 - [`summary(`*`<singleRStaticCountData>`*`)`](https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRStaticCountData.md)
   : Summary statistics for model of singleRStaticCountData class
 - [`summary(`*`<singleRmargin>`*`)`](https://ncn-foreigners.github.io/singleRcapture/reference/summary.singleRmargin.md)

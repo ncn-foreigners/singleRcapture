@@ -25,7 +25,7 @@ Data frame with 1,880 rows and 5 columns.
 
 - `age`:
 
-  Factor describing age of apprehended person. Either bellow or above 40
+  Factor describing age of apprehended person. Either below or above 40
   years old.
 
 - `reason`:

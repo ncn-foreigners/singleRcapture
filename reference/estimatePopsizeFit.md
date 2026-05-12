@@ -135,9 +135,9 @@ Yee's description after changing some conventions):
 
 5.  Assign:
 
-    - `converged <- `\\ \ell(\boldsymbol{\beta})-\ell\_{-} \<
-      \varepsilon\cdot\ell\_{-}\\ or \\
-      \|\|\boldsymbol{\beta}-\boldsymbol{\beta}\_{-}\|\|\_{\infty} \<
+    - `converged <- `\\\ell(\boldsymbol{\beta})-\ell\_{-} \lt
+      \varepsilon\cdot\ell\_{-}\\ or
+      \\\|\|\boldsymbol{\beta}-\boldsymbol{\beta}\_{-}\|\|\_{\infty} \lt
       \varepsilon\\
 
     - `iter <- iter + 1`
@@ -220,8 +220,8 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>   1489.26417  8462.99644 15802.73557  1127.53995  -418.45144 -4455.57223  -253.63196
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 2.3761697
 #> ----
 #> Iteration number 2 log-likelihood: -17300.07
@@ -230,8 +230,8 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>   -28.899411 -315.159403 -298.325366 -121.257418  -45.032685 -482.019954  -20.096746
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 1.1431158
 #> ----
 #> Iteration number 3 log-likelihood: -17287.188
@@ -240,8 +240,8 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>   41.5353296 252.3498380 448.9046975  30.7496910  -8.7641682 -93.3640710  -5.3929815
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.12901981
 #> ----
 #> Iteration number 4 log-likelihood: -17286.557
@@ -250,18 +250,18 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>    1.65638471   9.43319152  16.29083146  -0.22561323  -1.22104226 -13.44032132  -0.49242892
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.44268569
 #> ----
 #> Iteration number 5 log-likelihood: -17286.527
 #> Parameter vector:  -2.589615777  0.583968034 -0.071694931  0.624101247 -3.331535027  0.010372891  0.146052220
 #> log-likelihood reduction:  0.030118595
 #> Value of gradient at current step:
-#>   0.0045622452  0.7724124445  0.4383942297  0.1410982952 -0.1743585631 -1.7157841593  0.0436948698
+#>   0.0045622452  0.7724124445  0.4383942295  0.1410982952 -0.1743585631 -1.7157841593  0.0436948698
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.23079079
 #> ----
 #> Iteration number 6 log-likelihood: -17286.524
@@ -270,18 +270,18 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>  -0.229287967 -1.254231939 -2.663094385 -0.136018786 -0.065501279 -0.875136888 -0.037830598
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.1381155
 #> ----
 #> Iteration number 7 log-likelihood: -17286.523
 #> Parameter vector:  -2.595282607  0.584455592 -0.071643641  0.626377284 -3.357657769  0.010243233  0.173254080
 #> log-likelihood reduction:  0.00058225262
 #> Value of gradient at current step:
-#>   0.01697688169  0.18152150469  0.30278294083  0.05491324450 -0.00954208534  0.00046176213  0.02942429986
+#>   0.01697688169  0.18152150462  0.30278294071  0.05491324447 -0.00954208534  0.00046176209  0.02942429986
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.11199276
 #> ----
 #> Iteration number 8 log-likelihood: -17286.523
@@ -290,8 +290,8 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>  -0.064034760 -0.379810901 -0.778700450 -0.045639365 -0.011572568 -0.203677953 -0.019963628
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.07406153
 #> ----
 #> Iteration number 9 log-likelihood: -17286.523
@@ -300,138 +300,138 @@ offset = cbind(rep(0, NROW(farmsubmission)), rep(0, NROW(farmsubmission)))
 #> Value of gradient at current step:
 #>  0.0284979151 0.1864404866 0.3666111521 0.0305300981 0.0016229304 0.0719860549 0.0142857723
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.054437356
 #> ----
 #> Iteration number 10 log-likelihood: -17286.523
 #> Parameter vector:  -2.600150970  0.584522770 -0.071267073  0.626938070 -3.415354274  0.015139829  0.179959991
 #> log-likelihood reduction:  0.000035001824
 #> Value of gradient at current step:
-#>  -0.0254323196 -0.1573738913 -0.3179746249 -0.0217129745 -0.0035760543 -0.0777211830 -0.0102459754
+#>  -0.0254323196 -0.1573738913 -0.3179746250 -0.0217129745 -0.0035760543 -0.0777211830 -0.0102459754
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.038072332
 #> ----
 #> Iteration number 11 log-likelihood: -17286.523
 #> Parameter vector:  -2.598008714  0.584514838 -0.071457541  0.626825132 -3.388080609  0.012664531  0.178504506
 #> log-likelihood reduction:  0.000017260521
 #> Value of gradient at current step:
-#>  0.0166844643 0.1053460426 0.2101040472 0.0156399950 0.0016132423 0.0451631907 0.0071883615
+#>  0.0166844643 0.1053460427 0.2101040472 0.0156399950 0.0016132423 0.0451631907 0.0071883615
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.027273665
 #> ----
 #> Iteration number 12 log-likelihood: -17286.523
 #> Parameter vector:  -2.599534056  0.584521813 -0.071323467  0.626914011 -3.407406275  0.014409036  0.179635638
 #> log-likelihood reduction:  0.0000087810295
 #> Value of gradient at current step:
-#>  -0.0121554909 -0.0761209122 -0.1529982539 -0.0109236603 -0.0015139582 -0.0360631619 -0.0051776855
+#>  -0.0121554909 -0.0761209122 -0.1529982539 -0.0109236604 -0.0015139582 -0.0360631619 -0.0051776855
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.019325666
 #> ----
 #> Iteration number 13 log-likelihood: -17286.523
 #> Parameter vector:  -2.598450181  0.584517321 -0.071419274  0.626853774 -3.393643298  0.013163381  0.178864482
 #> log-likelihood reduction:  0.0000044078333
 #> Value of gradient at current step:
-#>  0.00863941235 0.05422850142 0.10851025481 0.00789351520 0.00092550566 0.02403409764 0.00364208947
+#>  0.00863941235 0.05422850149 0.10851025483 0.00789351521 0.00092550567 0.02403409766 0.00364208948
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.013762977
 #> ----
 #> Iteration number 14 log-likelihood: -17286.523
 #> Parameter vector:  -2.599221083  0.584520680 -0.071351319  0.626897628 -3.403423424  0.014047410  0.179424307
 #> log-likelihood reduction:  0.0000022386557
 #> Value of gradient at current step:
-#>  -0.00609651399 -0.03826378502 -0.07677634455 -0.00553869224 -0.00072252915 -0.01776979990 -0.00261189222
+#>  -0.00609651399 -0.03826378501 -0.07677634468 -0.00553869225 -0.00072252915 -0.01776979990 -0.00261189222
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0097801258
 #> ----
 #> Iteration number 15 log-likelihood: -17286.523
 #> Parameter vector:  -2.598672961  0.584518350 -0.071399702  0.626866800 -3.396467246  0.013418234  0.179030220
 #> log-likelihood reduction:  0.0000011281627
 #> Value of gradient at current step:
-#>  0.00437552328 0.02744244081 0.05496756154 0.00397917475 0.00048523685 0.01233742716 0.00184538567
+#>  0.00437552327 0.02744244072 0.05496756152 0.00397917474 0.00048523685 0.01233742717 0.00184538567
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0069561777
 #> ----
 #> Iteration number 16 log-likelihood: -17286.523
 #> Parameter vector:  -2.599062724  0.584520028 -0.071365321  0.626888846 -3.401413268  0.013865450  0.179311848
 #> log-likelihood reduction:  0.00000057176658
 #> Value of gradient at current step:
-#>  -0.00308520077 -0.01936683164 -0.03883603649 -0.00280772877 -0.00035808186 -0.00890811713 -0.00131846263
+#>  -0.00308520078 -0.01936683169 -0.03883603651 -0.00280772877 -0.00035808186 -0.00890811714 -0.00131846263
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0049460217
 #> ----
 #> Iteration number 17 log-likelihood: -17286.523
 #> Parameter vector:  -2.598785568  0.584518843 -0.071389778  0.626873213 -3.397896233  0.013547389  0.179112085
 #> log-likelihood reduction:  0.00000028862269
 #> Value of gradient at current step:
-#>  0.00220900398 0.01385546526 0.02776312256 0.00200791788 0.00024850391 0.00627132383 0.00093429219
+#>  0.00220900397 0.01385546520 0.02776312222 0.00200791786 0.00024850391 0.00627132381 0.00093429218
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0035170353
 #> ----
 #> Iteration number 18 log-likelihood: -17286.523
 #> Parameter vector:  -2.598982644  0.584519689 -0.071372391  0.626884345 -3.400397179  0.013773541  0.179254311
 #> log-likelihood reduction:  0.00000014611214
 #> Value of gradient at current step:
-#>  -0.00156243814 -0.00980648384 -0.01966002003 -0.00142189173 -0.00017963917 -0.00448948244 -0.00066602383
+#>  -0.00156243811 -0.00980648388 -0.01966001978 -0.00142189173 -0.00017963917 -0.00448948244 -0.00066602382
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0025009461
 #> ----
 #> Iteration number 19 log-likelihood: -17286.523
 #> Parameter vector:  -2.598842504  0.584519089 -0.071384756  0.626876435 -3.398618850  0.013612726  0.179153243
 #> log-likelihood reduction:  0.00000007381459
 #> Value of gradient at current step:
-#>  0.00111546600 0.00699753811 0.01402367467 0.00101410800 0.00012631018 0.00317780227 0.00047274423
+#>  0.00111546600 0.00699753815 0.01402367461 0.00101410802 0.00012631018 0.00317780227 0.00047274423
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0017783286
 #> ----
 #> Iteration number 20 log-likelihood: -17286.523
 #> Parameter vector:  -2.598942153  0.584519516 -0.071375964  0.626882062 -3.399883416  0.013727078  0.179225136
 #> log-likelihood reduction:  0.00000003734749
 #> Value of gradient at current step:
-#>  -0.000790860150 -0.004963117716 -0.009948972121 -0.000719565560 -0.000090519732 -0.002266834445 -0.000336593619
+#>  -0.000790860146 -0.004963117704 -0.009948972244 -0.000719565570 -0.000090519732 -0.002266834455 -0.000336593621
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0012645652
 #> ----
 #> Iteration number 21 log-likelihood: -17286.523
 #> Parameter vector:  -2.598871294  0.584519212 -0.071382216  0.626878062 -3.398984225  0.013645765  0.179174024
 #> log-likelihood reduction:  0.000000018873834
 #> Value of gradient at current step:
-#>  0.000563568332 0.003535731060 0.007086435089 0.000512456788 0.000064017826 0.001608354191 0.000239124512
+#>  0.000563568326 0.003535731038 0.007086435023 0.000512456789 0.000064017827 0.001608354190 0.000239124511
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0008991904
 #> ----
 #> Iteration number 22 log-likelihood: -17286.523
 #> Parameter vector:  -2.598921680  0.584519428 -0.071377771  0.626880906 -3.399623632  0.013703585  0.179210372
 #> log-likelihood reduction:  0.0000000095496944
 #> Value of gradient at current step:
-#>  -0.000400125264 -0.002510830909 -0.005032906088 -0.000363998081 -0.000045696107 -0.001145438950 -0.000170148829
+#>  -0.000400125256 -0.002510830791 -0.005032906226 -0.000363998083 -0.000045696107 -0.001145438945 -0.000170148830
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.00063940667
 #> ----
 #> Value of analytically computed hessian at fitted regression coefficients:

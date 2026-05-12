@@ -50,7 +50,7 @@ plot(
     root of observed and fitted marginal frequencies connected by line
     representing fitted marginal frequencies. The less of a difference
     there is between the 0 line and beginning of a bar the more accurate
-    fitt was produced by the model.
+    fit was produced by the model.
 
   - `dfpopContr` – Plot of `dfpopsize` against unit contribution. On the
     plot is y = x line i.e. what deletion effect would be if removing
@@ -86,7 +86,10 @@ plot(
 
 - dfpop:
 
-  TODO
+  an optional pre-computed result of
+  [`dfpopsize()`](https://ncn-foreigners.github.io/singleRcapture/reference/regDiagSingleR.md)
+  to avoid recomputation when using `plotType = "dfpopContr"` or
+  `plotType = "dfpopBox"`.
 
 - ...:
 

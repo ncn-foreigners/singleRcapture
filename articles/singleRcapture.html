@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">singleRcapture</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@
                         <h4 data-toc-skip class="author">Piotr
 Chlebicki, Maciej Beręsewicz</h4>
             
-            <h4 data-toc-skip class="date">2026-01-21</h4>
+            <h4 data-toc-skip class="date">2026-05-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/singleRcapture/blob/main/vignettes/singleRcapture.Rmd" class="external-link"><code>vignettes/singleRcapture.Rmd</code></a></small>
       <div class="d-none name"><code>singleRcapture.Rmd</code></div>
@@ -76,18 +76,18 @@ pre code {
 </h2>
 <p>Population size estimation is a methodological approach employed
 across multiple scientific disciplines, which serves as the basis for
-research, policy formulation, and decision-making processes <span class="citation">(cf. <a href="#ref-bohning2018capture">Böhning, Bunge,
-and Heijden 2018</a>)</span>. In the field of statistics, particularly
-official statistics, precise population estimates are essential in order
-to develop robust economic models, optimize resource allocation, and
-inform evidence-based policy <span class="citation">(cf. <a href="#ref-baffour2013modern">Baffour, King, and Valente
-2013</a>)</span>. Social scientists utilize advanced population
-estimation techniques to investigate <em>hard-to-reach</em> populations,
-such as homeless individuals or illicit drug users in an effort to
-overcome the inherent limitations of conventional census methodologies.
-These techniques are crucial for obtaining accurate data on populations
-that are typically under-represented or difficult to access using
-traditional sampling methods <span class="citation">(cf. <a href="#ref-vincent2022estimating">Vincent and Thompson 2022</a>)</span>.
+research, policy formulation, and decision-making processes <span class="citation">(cf. <a href="#ref-bohning2018capture">Böhning et al.
+2018</a>)</span>. In the field of statistics, particularly official
+statistics, precise population estimates are essential in order to
+develop robust economic models, optimize resource allocation, and inform
+evidence-based policy <span class="citation">(cf. <a href="#ref-baffour2013modern">Baffour et al. 2013</a>)</span>. Social
+scientists utilize advanced population estimation techniques to
+investigate <em>hard-to-reach</em> populations, such as homeless
+individuals or illicit drug users in an effort to overcome the inherent
+limitations of conventional census methodologies. These techniques are
+crucial for obtaining accurate data on populations that are typically
+under-represented or difficult to access using traditional sampling
+methods <span class="citation">(cf. <a href="#ref-vincent2022estimating">Vincent and Thompson 2022</a>)</span>.
 In ecology and epidemiology, researchers focus on estimating the size of
 individual species or disease-affected populations within defined
 geographical regions as part of conservation efforts, ecosystem
@@ -124,12 +124,12 @@ open-source software packages, for instance <strong>CARE-4</strong>
 2006</a>)</span> (in <strong>GAUSS</strong>), <strong>Rcapture</strong>
 <span class="citation">(<a href="#ref-baillargeon2007rcapture">Baillargeon and Rivest
 2007</a>)</span>, <strong>marked</strong> <span class="citation">(<a href="#ref-laake2013marked">Laake et al. 2013</a>)</span> or
-<strong>VGAM</strong> <span class="citation">(<a href="#ref-yee2015vgam">Thomas W. Yee, Stoklosa, and Huggins
-2015</a>)</span> (all in <strong>R</strong>), single-source
-capture-recapture (SSCR) methods are either not available at all or are
-only partially implemented in existing <strong>R</strong> packages or
-other software. Therefore, the paper attempts to bridge this gap by
-introducing the <strong>singleRcapture</strong> package, which implement
+<strong>VGAM</strong> <span class="citation">(<a href="#ref-yee2015vgam">Yee et al. 2015</a>)</span> (all in
+<strong>R</strong>), single-source capture-recapture (SSCR) methods are
+either not available at all or are only partially implemented in
+existing <strong>R</strong> packages or other software. Therefore, the
+paper attempts to bridge this gap by introducing the
+<strong>singleRcapture</strong> package, which implement
 <em>state-of-the-art</em> SSCR methods and offer a user friendly API
 resembling existing <strong>R</strong> functions (e.g.,
 <code>glm</code>). In the next subsection we describe existing
@@ -143,27 +143,26 @@ their extensions (e.g., inclusion of one-inflation). The
 <strong>Distributions.jl</strong> <span class="citation">(<a href="#ref-Distributionsjl">Besançon et al. 2021</a>)</span> (in
 <strong>Julia</strong>), <strong>StatsModels</strong> <span class="citation">(<a href="#ref-seabold2010statsmodels">Seabold and
 Perktold 2010</a>)</span> (in <strong>Python</strong>),
-<strong>countreg</strong> <span class="citation">(<a href="#ref-countreg">Zeileis, Kleiber, and Jackman 2008</a>)</span>,
-<strong>VGAM</strong> <span class="citation">(<a href="#ref-VGAM-main">T. Yee 2015</a>)</span> or
+<strong>countreg</strong> <span class="citation">(<a href="#ref-countreg">Zeileis et al. 2008</a>)</span>,
+<strong>VGAM</strong> <span class="citation">(<a href="#ref-VGAM-main">Yee 2015</a>)</span> or
 <strong>distributions3</strong> <span class="citation">(<a href="#ref-distributions3">Hayes et al. 2024</a>)</span> (in
 <strong>R</strong>) implement some of those truncated distributions
 (e.g. <code>distributions3::ZTPoisson</code> or
 <code>countreg::zerotrunc</code>) and the most general distributions,
 such as Generally Altered, Inflated, Truncated and Deflated, can be
 found in the <strong>VGAM</strong> package (e.g.
-<code><a href="https://rdrr.io/pkg/VGAM/man/gaitdpoisson.html" class="external-link">VGAM::gaitdpoisson</a></code> for the Poisson distribution, see <span class="citation">Thomas W. Yee and Ma (<a href="#ref-gaitdcount">2024</a>)</span> for a detailed description).
-However, the estimation of parameters of a given truncated (and possibly
-inflated) distribution is just the first step (as in the case of
-log-linear models in capture-recapture with two sources) and, to the
-best of our knowledge, there is no open-source software that can be used
-to estimate population size using on SSCR methods and includes variance
-estimators or diagnostics.</p>
+<code><a href="https://rdrr.io/pkg/VGAM/man/gaitdpoisson.html" class="external-link">VGAM::gaitdpoisson</a></code> for the Poisson distribution, see <span class="citation">Yee and Ma (<a href="#ref-gaitdcount">2024</a>)</span>
+for a detailed description). However, the estimation of parameters of a
+given truncated (and possibly inflated) distribution is just the first
+step (as in the case of log-linear models in capture-recapture with two
+sources) and, to the best of our knowledge, there is no open-source
+software that can be used to estimate population size using on SSCR
+methods and includes variance estimators or diagnostics.</p>
 <p>Therefore, the purpose of the <strong>singleRcapture</strong>, an
 <strong>R</strong> package, is to bridge this gap by providing
 scientists and other practitioners with a tool for estimating population
 size with SSCR methods. We have implemented state-of-the-art methods, as
-recently described by <span class="citation">Böhning, Bunge, and Heijden
-(<a href="#ref-bohning2018capture">2018</a>)</span> or <span class="citation">Böhning and Friedl (<a href="#ref-bohning2024one">2024</a>)</span> and provided their
+recently described by <span class="citation">Böhning et al. (<a href="#ref-bohning2018capture">2018</a>)</span> or <span class="citation">Böhning and Friedl (<a href="#ref-bohning2024one">2024</a>)</span> and provided their
 extensions (e.g., inclusion of covariates, different treatment of
 one-inflation), which will be covered in detail in Section 2. The
 package implements variance estimation based on various methods, can be
@@ -215,7 +214,7 @@ follows a version of the zero-truncated count data distribution (and its
 extensions). When we know the parameters of the distribution we can
 estimate the population size using a Horvitz-Thompson type estimator
 given by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mn>1</mn><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mn>1</mn><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐗</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \begin{equation}
 \hat{N}=
 \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}[Y_{k}&gt;0|\boldsymbol{X}_{k}]}=
@@ -223,7 +222,7 @@ given by:</p>
 \end{equation}
 </annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>:=</mo><msub><mi>ℐ</mi><mi>ℕ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I_{k}:=\mathcal{I}_{\mathbb{N}}(Y_{k})</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>:=</mo><msub><mi>ℐ</mi><mi>ℕ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">I_{k}:=\mathcal{I}_{\mathbb{N}}(Y_{k})</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">N_{obs}</annotation></semantics></math>
 is the number of observed units and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℐ</mi><annotation encoding="application/x-tex">\mathcal{I}</annotation></semantics></math>
@@ -232,7 +231,7 @@ is the indicator function, while the maximum likelihood estimate of
 is obtained after substituting regression parameters
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
 for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y_{k}&gt;0|\boldsymbol{x}_{k}]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y_{k}&gt;0|\boldsymbol{x}_{k}]</annotation></semantics></math>
 in the above equation.</p>
 <p>The basic SSCR assumes independence between counts, which is a rather
 naive assumption, since the first capture may significantly influence
@@ -244,13 +243,13 @@ distributions, which explicitly model the probability of singletons by
 giving additional mass
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ω</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math>
 to singletons denoted as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{I}_{\{1\}}(y)</annotation></semantics></math><span class="citation">(cf. <a href="#ref-bohning2024one">Böhning and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{I}_{\{1\}}(y)</annotation></semantics></math><span class="citation">(cf. <a href="#ref-bohning2024one">Böhning and
 Friedl 2024</a>)</span>. In other words they considered a new random
 variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
 that corresponds to the data collection process which exhibits one
 inflation:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \begin{equation*}
   \mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right] =
   \omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y&gt;0].
@@ -259,7 +258,7 @@ inflation:</p>
 <p>Analytic variance estimation is then performed by computing two parts
 of the decomposition according to the law of total variance given
 by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mo stretchy="false" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mo stretchy="false" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">]</mo><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \begin{equation}\label{eq-law_of_total_variance_decomposition}
   \text{var}[\hat{N}] = \mathbb{E}\left[\text{var}
   \left[\hat{N}|I_{1},\dots,I_{n}\right]\right] + 
@@ -269,7 +268,7 @@ by:</p>
 <p>where the first part can be estimated using the multivariate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
 method given by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mtext mathvariant="normal">cov</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mi>𝛃</mi><mo>=</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mtext mathvariant="normal">cov</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>∂</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mi>𝛃</mi><mo>=</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \begin{equation*}
   \mathbb{E}\left[\text{var} \left[\hat{N}|I_{1},\dots,I_{n}\right]\right] =
   \left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^\top
@@ -282,7 +281,7 @@ method given by:</p>
 independence of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>k</mi></msub><annotation encoding="application/x-tex">I_{k}</annotation></semantics></math>’s
 and after some omitted simplifications, is optimally estimated by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mo>≈</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>ℙ</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>𝔼</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">|</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mfrac><msub><mi>I</mi><mi>k</mi></msub><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mo>≈</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \begin{equation*}
   \text{var}\left[\mathbb{E}(\hat{N}|I_{1},\dots,I_{n})\right] =
   \text{var}\left[\sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}&gt;0)}\right]
@@ -294,7 +293,7 @@ intervals are usually constructed under the assumption of (asymptotic)
 normality of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>
 or asymptotic normality of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ln(\hat{N}-N)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">ln</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>N</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\ln(\hat{N}-N)</annotation></semantics></math>
 (or log normality of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>N</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{N}</annotation></semantics></math>).
 The latter is an attempt to address a common criticism of student type
@@ -310,7 +309,7 @@ confidence interval given by:</p>
 \end{equation*}
 </annotation></semantics></math></p>
 <p>where:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ξ</mi><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mfrac><mi>α</mi><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msqrt><mrow><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mover><mtext mathvariant="normal">Var</mtext><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ξ</mi><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mfrac><mi>α</mi><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msqrt><mrow><mrow><mi mathvariant="normal">ln</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><mover><mtext mathvariant="normal">Var</mtext><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \begin{equation*}
   \xi = \exp\left(z\left(1-\frac{\alpha}{2}\right)
   \sqrt{\ln\left(1+\frac{\widehat{\text{Var}}(\hat{N})}{\left(\hat{N}-N_{obs}\right)^{2}}\right)}\right),
@@ -355,27 +354,27 @@ and
 if
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Y=1</annotation></semantics></math>
 with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>∼</mo><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Z\sim b(p)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>∼</mo><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Z\sim b(p)</annotation></semantics></math>
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">b(\cdot)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b(\cdot)</annotation></semantics></math>
 is the Bernoulli distribution and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
 can be modeled for each unit
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mi>k</mi></msub><mi>/</mi><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{logit}(p_k)=\ln(\lambda_k/2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logit</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">ln</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mi>k</mi></msub><mi>/</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{logit}(p_k)=\ln(\lambda_k/2)</annotation></semantics></math>
 with Poisson parameter
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mo>=</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mi>𝛃</mi></mrow><annotation encoding="application/x-tex">\lambda_k=\boldsymbol{x}_{k}\boldsymbol{\beta}</annotation></semantics></math>
 (for a covariate extension see <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> and <span class="citation">Böhning and Heijden (<a href="#ref-zelterman">2009</a>)</span>):</li>
 </ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">Chao</mtext></msub><mo>=</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><msub><mi>𝐟</mi><mn>1</mn></msub><mo>+</mo><msub><mi>𝐟</mi><mn>2</mn></msub></mrow></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">Chao</mtext></msub><mo>=</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><msub><mi>𝐟</mi><mn>1</mn></msub><mo>+</mo><msub><mi>𝐟</mi><mn>2</mn></msub></mrow></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mn>2</mn><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \hat{N}_{\text{Chao}} = N_{obs}+
 \sum_{k=1}^{\boldsymbol{f}_{1}+\boldsymbol{f}_{2}}
 \left(2\exp\left(\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)+
 2\exp\left(2\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)^{-1},
 \tag{Chao's estimator}
 </annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">Zelt</mtext></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">Zelt</mtext></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mn>2</mn><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \hat{N}_{\text{Zelt}}=\sum_{k=1}^{N_{obs}}
 \left(1-\exp\left(-2\exp\left(\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)\right)^{-1}.
 \tag{Zelterman's estimator}
@@ -394,7 +393,7 @@ Poisson <span class="citation">(<a href="#ref-zotmodels">Böhning and
 Heijden 2019</a>)</span>, geometric, NB type II (NB2) regression, where
 the non-truncated distribution is parameterized as:</li>
 </ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mfrac><mrow><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>+</mo><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi><mi>!</mi></mrow></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>+</mo><mi>λ</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>λ</mi><mrow><mi>λ</mi><mo>+</mo><msup><mi>α</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mfrac><mrow><mi mathvariant="normal">Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>+</mo><msup><mi>α</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi mathvariant="normal">Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>α</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi><mi>!</mi></mrow></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msup><mi>α</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><msup><mi>α</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo>+</mo><mi>λ</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>α</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup></msup><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>λ</mi><mrow><mi>λ</mi><mo>+</mo><msup><mi>α</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathbb{P}[Y=y|\lambda,\alpha] = \frac{\Gamma\left(y+\alpha^{-1}\right)}{\Gamma\left(\alpha^{-1}\right)y!}
 \left(\frac{\alpha^{-1}}{\alpha^{-1}+\lambda}\right)^{\alpha^{-1}}
 \left(\frac{\lambda}{\lambda + \alpha^{-1}}\right)^{y}.
@@ -406,10 +405,10 @@ modifications, where the count data variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
 is defined as:</li>
 </ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \mathbb{P}\left[Y^{\ast}=y\right] = \omega \mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y],
 </annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><mfrac><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><mfrac><mrow><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mn>1</mn><mo>−</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mfrac><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right] = 
 \omega\frac{\mathcal{I}_{\{1\}}(y)}{1-(1-\omega)\mathbb{P}[Y=0]}+
 (1-\omega)\frac{\mathbb{P}[Y=y]}{1-(1-\omega)\mathbb{P}[Y=0]}.
@@ -421,7 +420,7 @@ modifications, where the count data variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">Y^{\ast}</annotation></semantics></math>
 is defined such that its distribution statisfies:</li>
 </ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 \mathbb{P}\left[Y^{\ast}=y\right]=
 \begin{cases}
 \mathbb{P}[Y=0] &amp; y=0, \\
@@ -429,7 +428,7 @@ is defined such that its distribution statisfies:</li>
 (1-\omega)\mathbb{P}[Y=y] &amp; y&gt;1,
 \end{cases}
 </annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>ω</mi><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathbb{P}\left[Y^{\ast}=y|Y^{\ast}&gt;0\right]=\omega\mathcal{I}_{\{1\}}(y)+(1-\omega)\mathbb{P}[Y=y|Y&gt;0].
 </annotation></semantics></math></p>
 <p>Note that
@@ -447,14 +446,14 @@ following:</p>
 <li>The zero-truncated hurdle model (<code>ztHurdle</code>*) for
 Poisson, geometric and NB2 is defined as:</li>
 </ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mfrac><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 \mathbb{P}[Y^{\ast}=y]=\begin{cases}
 \frac{\mathbb{P}[Y=0]}{1-\mathbb{P}[Y=1]} &amp; y=0, \\
 \pi(1-\mathbb{P}[Y=1]) &amp; y=1, \\
 (1-\pi) \frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=1]} &amp; y&gt;1,
 \end{cases}
 </annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>π</mi><msub><mn>𝟏</mn><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mn>𝟏</mn><mrow><mi>ℕ</mi><mo>\</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>π</mi><msub><mn>𝟏</mn><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><msub><mn>𝟏</mn><mrow><mi>ℕ</mi><mo>\</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mfrac><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathbb{P}[Y^{\ast}=y|Y^{\ast}&gt;0]=\pi\mathbf{1}_{\{1\}}(y)+
 (1-\pi)\mathbf{1}_{\mathbb{N}\setminus\{1\}}(y)\frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]}.
 </annotation></semantics></math></p>
@@ -465,13 +464,13 @@ denotes the conditional probability of observing singletons.</p>
 <li>The hurdle zero-truncated model (<code>Hurdlezt</code>*) for
 Poisson, geometric and NB2 is defined as:</li>
 </ul>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>≠</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mfrac><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>≠</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 \mathbb{P}[Y^{\ast}=y]=\begin{cases}
 \pi &amp; y=1, \\
 (1-\pi) \frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=1]} &amp; y\neq1,
 \end{cases}
 </annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><msup><mi>Y</mi><mo>*</mo></msup><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>π</mi><mfrac><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>=</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mfrac><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">]</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>−</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mi>y</mi><mo>&gt;</mo><mn>1</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 \mathbb{P}[Y^{\ast}=y|Y^{\ast}&gt;0]=\begin{cases}
 \pi\frac{1-\mathbb{P}[Y=1]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]} &amp; y=1,\\
 (1-\pi)\frac{\mathbb{P}[Y=y]}{1-\mathbb{P}[Y=0]-\mathbb{P}[Y=1]} &amp; y&gt;1,
@@ -480,6 +479,47 @@ Poisson, geometric and NB2 is defined as:</li>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
 denotes the unconditional probability of observing singletons.</p>
+<ul>
+<li>A modified Chao estimator robust to one-inflation
+(<code>oichao</code>), which discards singletons and runs logistic
+regression on the indicator
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Z=1</annotation></semantics></math>
+if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">Y=3</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Z=0</annotation></semantics></math>
+if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">Y=2</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logit</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">ln</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mi>k</mi></msub><mi>/</mi><mn>3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{logit}(p_k)=\ln(\lambda_k/3)</annotation></semantics></math>,
+so that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>k</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>k</mi></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>3</mn><mo>+</mo><msub><mi>λ</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_k=\lambda_k/(3+\lambda_k)</annotation></semantics></math>
+matches
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>3</mn><mo>∣</mo><mi>Y</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo stretchy="false" form="postfix">}</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y=3\mid Y\in\{2,3\}]</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>∼</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y\sim\mathrm{Poisson}(\lambda_k)</annotation></semantics></math>.
+The associated population-size estimator is</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mtext mathvariant="normal">oiChao</mtext></msub><mo>=</mo><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><msub><mi>𝐟</mi><mn>2</mn></msub><mo>+</mo><msub><mi>𝐟</mi><mn>3</mn></msub></mrow></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><mstyle displaystyle="false"><mfrac><mn>9</mn><mn>2</mn></mfrac></mstyle><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mstyle displaystyle="false"><mfrac><mn>9</mn><mn>2</mn></mfrac></mstyle><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>3</mn><msub><mi>𝐱</mi><mi>k</mi></msub><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\hat{N}_{\text{oiChao}} = N_{obs}+
+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+\left(\tfrac{9}{2}\exp\left(2\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)+
+\tfrac{9}{2}\exp\left(3\boldsymbol{x}_{k}\hat{\boldsymbol{\beta}}\right)\right)^{-1},
+\tag{oiChao estimator}
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐟</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\boldsymbol{f}_{2}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐟</mi><mn>3</mn></msub><annotation encoding="application/x-tex">\boldsymbol{f}_{3}</annotation></semantics></math>
+denote the number of units observed twice and three times. The inflation
+factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>λ</mi><mi>k</mi><mn>2</mn></msubsup><mi>/</mi><mn>2</mn><mo>+</mo><msubsup><mi>λ</mi><mi>k</mi><mn>3</mn></msubsup><mi>/</mi><mn>6</mn><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">(\lambda_k^{2}/2+\lambda_k^{3}/6)^{-1}</annotation></semantics></math>
+equals
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mi>/</mi><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo stretchy="false" form="postfix">}</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y=0]/\mathbb{P}[Y\in\{2,3\}]</annotation></semantics></math>
+under
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{Poisson}(\lambda_k)</annotation></semantics></math>,
+so the estimator is unaffected by extra mass at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Y=1</annotation></semantics></math>.</p>
 <p>The approaches presented above differ in their assumptions,
 computational complexity, or in the way they treat heterogeneity of
 captures and singletons. For instance, the dispersion parameter
@@ -518,11 +558,11 @@ to be captured a second time. One constraint present in modelling via
 inflated models is that attempts to include both the possibility of one
 inflation and one deflation lead to both numerical and inferential
 problems since the parameter space (of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\omega, \lambda)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\omega, \lambda)</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\omega, \lambda, \alpha)</annotation></semantics></math>)
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\omega, \lambda, \alpha)</annotation></semantics></math>)
 is then given by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mo>∀</mo><mi>x</mi><mo>∈</mo><mi>ℕ</mi><mo>:</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">|</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≥</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{(\omega, \lambda, \alpha) | \forall x\in \mathbb{N}: p(x|\omega, \lambda, \alpha)\geq0\}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mo stretchy="false" form="prefix">(</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>∀</mo><mi>x</mi><mo>∈</mo><mi>ℕ</mi><mo>:</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">|</mo><mi>ω</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{(\omega, \lambda, \alpha) | \forall x\in \mathbb{N}: p(x|\omega, \lambda, \alpha)\geq0\}</annotation></semantics></math>
 for the probability mass function
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>.
 The boundary of this set is then a
@@ -569,7 +609,7 @@ studies are required to confirm this observation.</p>
 <p>As previously noted, the <strong>singleRcapture</strong> package can
 be used to model the (linear) dependence of all parameters on
 covariates. A modified IRLS algorithm is employed for this purpose as
-presented in Algorithm 1; full details are available in <span class="citation">T. Yee (<a href="#ref-VGAM-main">2015</a>)</span>. In
+presented in Algorithm 1; full details are available in <span class="citation">Yee (<a href="#ref-VGAM-main">2015</a>)</span>. In
 order to apply the algorithm, a modified model matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}</annotation></semantics></math>
 is created when the <code>estimatePopsize</code> function is called. In
@@ -600,13 +640,13 @@ formula.</p>
 ← <code>start</code>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐖</mi><annotation encoding="application/x-tex">\boldsymbol{W}</annotation></semantics></math>
 ← I,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>ℓ</mo><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
 ←
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})</annotation></semantics></math></p></li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})</annotation></semantics></math></p></li>
 <li>
-<p>Store values from the previous step:<br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>ℓ</mo><mo>−</mo></msub><annotation encoding="application/x-tex">\ell_{-}</annotation></semantics></math>
+<p>Store values from the previous step:<br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mo>−</mo></msub><annotation encoding="application/x-tex">\ell_{-}</annotation></semantics></math>
 ←
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>ℓ</mo><annotation encoding="application/x-tex">\ell</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐖</mi><mo>−</mo></msub><annotation encoding="application/x-tex">\boldsymbol{W}_{-}</annotation></semantics></math>
 ←
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐖</mi><annotation encoding="application/x-tex">\boldsymbol{W}</annotation></semantics></math>,
@@ -618,29 +658,29 @@ values in the current iteration:</p>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\displaystyle\boldsymbol{\eta}</annotation></semantics></math>
 ←
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝛃</mi><mo>+</mo><mi>𝐨</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}\boldsymbol{\beta}+\boldsymbol{o}</annotation></semantics></math></p>
-<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐖</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{W}_{(k)}</annotation></semantics></math>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐖</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{W}_{(k)}</annotation></semantics></math>
 ←
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msubsup><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msubsup><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]</annotation></semantics></math></p>
-<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐙</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{Z}_{(k)}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mi>ℓ</mi></mrow><mrow><mi>∂</mi><msubsup><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow><mi>⊤</mi></msubsup><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]</annotation></semantics></math></p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐙</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{Z}_{(k)}</annotation></semantics></math>
 ←
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><mo>+</mo><mfrac><mrow><mi>∂</mi><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow></mfrac><msubsup><mi>𝐖</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><mo>−</mo><msub><mi>𝐨</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{\eta}_{(k)}+\frac{\partial\ell}{\partial\boldsymbol{\eta}_{(k)}}\boldsymbol{W}_{(k)}^{-1}-\boldsymbol{o}_{(k)}</annotation></semantics></math></p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo>+</mo><mfrac><mrow><mi>∂</mi><mi>ℓ</mi></mrow><mrow><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub></mrow></mfrac><msubsup><mi>𝐖</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msubsup><mo>−</mo><msub><mi>𝐨</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{\eta}_{(k)}+\frac{\partial\ell}{\partial\boldsymbol{\eta}_{(k)}}\boldsymbol{W}_{(k)}^{-1}-\boldsymbol{o}_{(k)}</annotation></semantics></math></p>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐨</mi><annotation encoding="application/x-tex">\boldsymbol{o}</annotation></semantics></math>
 denotes offset.</p>
 </li>
 <li><p>Assign the current coefficient value:<br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
 ←
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝐖</mi><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝐖</mi><mi>𝐙</mi></mrow><annotation encoding="application/x-tex">\left(\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{X}_{\text{vlm}}\right)^{-1}\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{Z}</annotation></semantics></math></p></li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝐖</mi><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><mi>𝐖</mi><mi>𝐙</mi></mrow><annotation encoding="application/x-tex">\left(\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{X}_{\text{vlm}}\right)^{-1}\boldsymbol{X}_{\text{vlm}}\boldsymbol{W}\boldsymbol{Z}</annotation></semantics></math></p></li>
 <li><p>If
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>&lt;</mo><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})&lt;\ell(\boldsymbol{\beta}_{-})</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})&lt;\ell(\boldsymbol{\beta}_{-})</annotation></semantics></math>
 try selecting the smallest value
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
 such that for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛃</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\boldsymbol{\beta}_{h}</annotation></semantics></math>
 ←
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mrow><mo>−</mo><mi>h</mi></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo>+</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">2^{-h}\left(\boldsymbol{\beta}+\boldsymbol{\beta}_{-}\right)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mrow><mi>−</mi><mi>h</mi></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo>+</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">2^{-h}\left(\boldsymbol{\beta}+\boldsymbol{\beta}_{-}\right)</annotation></semantics></math>
 the inequality
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛃</mi><mi>h</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta}_{h})&gt;\ell(\boldsymbol{\beta}_{-})</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>𝛃</mi><mi>h</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>𝛃</mi><mo>−</mo></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta}_{h})&gt;\ell(\boldsymbol{\beta}_{-})</annotation></semantics></math>
 holds if this is successful
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
 ←
@@ -657,19 +697,19 @@ instead of a vector, with the number of columns matching the number of
 parameters in the distribution. “Weights” (matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐖</mi><annotation encoding="application/x-tex">\boldsymbol{W}</annotation></semantics></math>)
 are then modified to be information matrices
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msubsup><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msubsup><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mi>ℓ</mi></mrow><mrow><mi>∂</mi><msubsup><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow><mi>⊤</mi></msubsup><mi>∂</mi><msub><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\boldsymbol{\eta}_{(k)}^\top\partial\boldsymbol{\eta}_{(k)}}\right]</annotation></semantics></math>,
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>ℓ</mo><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
 is the log-likelihood function and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛈</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{\eta}_{(k)}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛈</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{\eta}_{(k)}</annotation></semantics></math>
 is the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-th
 row of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>,
 while in the typical IRLS they are scalars
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msubsup><mi>η</mi><mi>k</mi><mn>2</mn></msubsup></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\eta_{k}^{2}}\right]</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mi>ℓ</mi></mrow><mrow><mi>∂</mi><msubsup><mi>η</mi><mi>k</mi><mn>2</mn></msubsup></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\mathbb{E}\left[-\frac{\partial^{2}\ell}{\partial\eta_{k}^{2}}\right]</annotation></semantics></math>,
 which is often just
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msup><mi>η</mi><mn>2</mn></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\displaystyle-\frac{\partial^{2}\ell}{\partial\eta^{2}}</annotation></semantics></math>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mi>ℓ</mi></mrow><mrow><mi>∂</mi><msup><mi>η</mi><mn>2</mn></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\displaystyle-\frac{\partial^{2}\ell}{\partial\eta^{2}}</annotation></semantics></math>.</p>
 </div>
 </div>
 <div class="section level3">
@@ -693,12 +733,12 @@ performed in steps listed in Algorithm 2.</p>
 </h4>
 <ol style="list-style-type: decimal">
 <li>Draw a sample of size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mi>′</mi><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mi>′</mi><mo>,</mo><mfrac><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mrow><mi>N</mi><mi>′</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_{obs}'\sim\text{Binomial}\left(N', \frac{N_{obs}}{N'}\right)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow><mo>′</mo></msubsup><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mo>′</mo></msup><mo>,</mo><mfrac><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><msup><mi>N</mi><mo>′</mo></msup></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_{obs}'\sim\text{Binomial}\left(N', \frac{N_{obs}}{N'}\right)</annotation></semantics></math>,
 where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>′</mi><mo>=</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>+</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N'=\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>N</mi><mo>′</mo></msup><mo>=</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>+</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N'=\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)</annotation></semantics></math>
 </li>
 <li>Draw
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub><mi>′</mi></mrow><annotation encoding="application/x-tex">N_{obs}'</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow><mo>′</mo></msubsup><annotation encoding="application/x-tex">N_{obs}'</annotation></semantics></math>
 units from the data uniformly without replacement</li>
 <li>Obtain a new population size estimate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>b</mi></msub><annotation encoding="application/x-tex">N_b</annotation></semantics></math>
@@ -724,7 +764,7 @@ according to the selected model, as described in Algorithm 3.</p>
 <li>Draw the number of covariates equal to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>+</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">⌊</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">⌋</mo><mo>−</mo><mover><mi>N</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lfloor\hat{N}\rfloor+\text{Bernoulli}\left(\lfloor\hat{N}\rfloor-\hat{N}\right)</annotation></semantics></math>
 proportional to the estimated contribution
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">(\mathbb{P}\left[Y_{k}&gt;0|\boldsymbol{x}_{k}\right])^{-1}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">(\mathbb{P}\left[Y_{k}&gt;0|\boldsymbol{x}_{k}\right])^{-1}</annotation></semantics></math>
 with replacement</li>
 <li>Using the fitted model and regression coefficients
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\boldsymbol{\beta}}</annotation></semantics></math>
@@ -1174,7 +1214,7 @@ capture-recapture studies consists in comparing the fitted marginal
 frequencies
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></msubsup><mover><mi>ℙ</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>j</mi></msub><mo>=</mo><mi>k</mi><mo stretchy="false" form="prefix">|</mo><msub><mi>𝐱</mi><mi>j</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>j</mi></msub><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\sum_{j=1}^{N_{obs}}\hat{\mathbb{P}}\left[Y_{j}=k|\boldsymbol{x}_{j}, Y_{j} &gt; 0\right]</annotation></semantics></math>
 with the observed marginal frequencies
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></msubsup><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mi>k</mi><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></msubsup><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mi>k</mi><mo stretchy="false" form="postfix">}</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\sum_{j=1}^{N}\mathcal{I}_{\{k\}}(Y_{j})=\sum_{j=1}^{N_{obs}}\mathcal{I}_{\{k\}}(Y_{j})</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></msubsup><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mi>k</mi><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mrow><mi>o</mi><mi>b</mi><mi>s</mi></mrow></msub></msubsup><msub><mi>ℐ</mi><mrow><mo stretchy="false" form="prefix">{</mo><mi>k</mi><mo stretchy="false" form="postfix">}</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\displaystyle\sum_{j=1}^{N}\mathcal{I}_{\{k\}}(Y_{j})=\sum_{j=1}^{N_{obs}}\mathcal{I}_{\{k\}}(Y_{j})</annotation></semantics></math>
 for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>≥</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k\geq1</annotation></semantics></math>.
 If the fitted model bears sufficient resemblance to the real data
@@ -1372,7 +1412,7 @@ call is presented below.</p>
 <span><span class="co">## 2   gender==male 1482  8879.261  6261.5109  12930.760  0.10</span></span>
 <span><span class="co">## 3    age==&lt;40yrs 1769 10506.899  7297.2057  15580.151  0.05</span></span>
 <span><span class="co">## 4    age==&gt;40yrs  111  2183.454   787.0673   6464.016  0.05</span></span></code></pre>
-<p>We have provided integration with the <strong>sandwich</strong> <span class="citation">(<a href="#ref-sandwich">Zeileis, Köll, and Graham
+<p>We have provided integration with the <strong>sandwich</strong> <span class="citation">(<a href="#ref-sandwich">Zeileis et al.
 2020</a>)</span> package to correct the variance-covariance matrix in
 the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
@@ -1622,7 +1662,7 @@ can be used to integrate <strong>singleRcapture</strong> with these
 packages.</p>
 <p>In future work we plan to implement Bayesian estimation using
 <strong>Stan</strong> (e.g. via the <strong>brms</strong> package; <span class="citation">Carpenter et al. (<a href="#ref-carpenter2017stan">2017</a>)</span>, <span class="citation">Bürkner (<a href="#ref-brms">2017</a>)</span>) and for
-one-inflation models we can use the recent approach proposed by <span class="citation">Tuoto, Di Cecco, and Tancredi (<a href="#ref-tuoto2022bayesian">2022</a>)</span> and implement our own
+one-inflation models we can use the recent approach proposed by <span class="citation">Tuoto et al. (<a href="#ref-tuoto2022bayesian">2022</a>)</span> and implement our own
 families using the <strong>brms</strong> package.</p>
 </div>
 <div class="section level2">
@@ -1652,7 +1692,7 @@ estimate or to the bootstrap. In order to show how to apply the function
 we will fit a one-inflated zero-truncated geometric model on the data
 from <span class="citation">Böhning et al. (<a href="#ref-chao-generalization">2013</a>)</span> with covariate
 dependency:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>4</mn></mrow></msub><mtext mathvariant="normal">log_size</mtext><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>ω</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>λ</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>1</mn><mo>,</mo><mn>4</mn></mrow></msub><mtext mathvariant="normal">log_size</mtext><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mtext mathvariant="normal">logit</mtext><mo stretchy="false" form="prefix">(</mo><mi>ω</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mtext mathvariant="normal">log_distance</mtext><mo>+</mo><msub><mi>β</mi><mrow><mn>2</mn><mo>,</mo><mn>3</mn></mrow></msub><mtext mathvariant="normal">C_TYPE</mtext><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
   \log(\lambda) &amp;=
   \beta_{1, 1} + \beta_{1, 2} \text{log\_distance} + \beta_{1, 3} \text{C\_TYPE} +
   \beta_{1, 4} \text{log\_size}, \\
@@ -1791,9 +1831,9 @@ contains additional parameters in comparison to the standard
 <tbody>
 <tr class="odd">
 <td><code>makeMinusLogLike</code></td>
-<td>A factory function for creating the following functions: <br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><mi>∂</mi><mo>ℓ</mo></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial\ell}{\partial\boldsymbol{\beta}}</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msup><mi>𝛃</mi><mi>⊤</mi></msup><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^\top\partial\boldsymbol{\beta}}</annotation></semantics></math><br> from the
+<td>A factory function for creating the following functions: <br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><mi>𝛃</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\ell(\boldsymbol{\beta})</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><mi>∂</mi><mi>ℓ</mi></mrow><mrow><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial\ell}{\partial\boldsymbol{\beta}}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><msup><mi>∂</mi><mn>2</mn></msup><mi>ℓ</mi></mrow><mrow><mi>∂</mi><msup><mi>𝛃</mi><mi>⊤</mi></msup><mi>∂</mi><mi>𝛃</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial^{2}\ell}{\partial\boldsymbol{\beta}^\top\partial\boldsymbol{\beta}}</annotation></semantics></math><br> from the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\boldsymbol{y}</annotation></semantics></math>
 vector and the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mrow><mi>v</mi><mi>l</mi><mi>m</mi></mrow></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{vlm}</annotation></semantics></math>
@@ -1812,9 +1852,9 @@ log-likelihood.</td>
 variance. The <code>type</code> argument with 2 possible values
 (<code>"trunc"</code> and <code>"nontrunc"</code>) specifies whether to
 return
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[Y|Y&gt;0], \text{var}[Y|Y&gt;0]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mtext mathvariant="normal">var</mtext><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}[Y|Y&gt;0], \text{var}[Y|Y&gt;0]</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mtext mathvariant="normal">var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[Y], \text{var}[Y]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mtext mathvariant="normal">var</mtext><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}[Y], \text{var}[Y]</annotation></semantics></math>
 respectively. The <code>deriv</code> argument with values in
 <code>c(0, 1, 2)</code> is used for indicating the derivative with
 respect to the linear predictors, which is used for providing standard
@@ -1846,7 +1886,7 @@ weights of linear predictors and the response vector;</td>
 <td>Functions that return the point estimate for the population size and
 analytic estimation of its variance given prior weights of linear
 predictors and, in the latter case, also estimates of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{cov}(\hat{\boldsymbol{\beta}})</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">cov</mtext><mo stretchy="false" form="prefix">(</mo><mover><mi>𝛃</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{cov}(\hat{\boldsymbol{\beta}})</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mtext mathvariant="normal">vlm</mtext></msub><annotation encoding="application/x-tex">\boldsymbol{X}_{\text{vlm}}</annotation></semantics></math>
 matrix. There is an additional boolean parameter <code>contr</code> in
@@ -1862,9 +1902,9 @@ contribution of each unit.</td>
 <td>A function that returns the value of PMF at values of <code>x</code>
 given linear predictors. The <code>type</code> argument specifies
 whether to return
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y|Y&gt;0]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>Y</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y|Y&gt;0]</annotation></semantics></math>
 or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y]</annotation></semantics></math>;</td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{P}[Y]</annotation></semantics></math>;</td>
 </tr>
 <tr class="odd">
 <td><code>simulate</code></td>
@@ -1886,7 +1926,7 @@ function<a class="anchor" aria-label="anchor" href="#sec-custom"></a>
 <p>Suppose we want to implement a very specific zero truncated family
 function in the <strong>singleRcapture</strong>, which corresponds to
 the following “untruncated” distribution:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>π</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>2</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℙ</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>λ</mi><mo>,</mo><mi>π</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>π</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>λ</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">when: </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>=</mo><mn>2</mn><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
   \mathbb{P}[Y=y|\lambda, \pi] = \begin{cases}
     1 - \frac{1}{2}\lambda - \frac{1}{2}\pi &amp; \text{when: } y=0\\
     \frac{1}{2}\pi &amp; \text{when: } y=1\\
@@ -2315,7 +2355,7 @@ links up to the third order:</p>
 <span><span class="co">##     }</span></span>
 <span><span class="co">##     res</span></span>
 <span><span class="co">## }</span></span>
-<span><span class="co">## &lt;bytecode: 0x556fa0f665e8&gt;</span></span>
+<span><span class="co">## &lt;bytecode: 0x559a22dcf9f8&gt;</span></span>
 <span><span class="co">## &lt;environment: namespace:singleRcapture&gt;</span></span></code></pre>
 <p>One could, of course, include the code for computing them
 manually.</p>
@@ -2323,7 +2363,7 @@ manually.</p>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-baffour2013modern" class="csl-entry">
 Baffour, Bernard, Thomas King, and Paolo Valente. 2013. <span>“The
 Modern Census: Evolution, Examples and Evaluation.”</span>
@@ -2335,11 +2375,10 @@ Loglinear Models for Capture-Recapture in r.”</span> <em>Journal of
 Statistical Software</em> 19 (5): 1–31. <a href="https://doi.org/10.18637/jss.v019.i05" class="external-link">https://doi.org/10.18637/jss.v019.i05</a>.
 </div>
 <div id="ref-Distributionsjl" class="csl-entry">
-Besançon, Mathieu, Theodore Papamarkou, David Anthoff, Alex Arslan,
-Simon Byrne, Dahua Lin, and John Pearson. 2021. <span>“Distributions.jl:
-Definition and Modeling of Probability Distributions in the JuliaStats
-Ecosystem.”</span> <em>Journal of Statistical Software</em> 98 (16):
-1–30. <a href="https://doi.org/10.18637/jss.v098.i16" class="external-link">https://doi.org/10.18637/jss.v098.i16</a>.
+Besançon, Mathieu, Theodore Papamarkou, David Anthoff, et al. 2021.
+<span>“Distributions.jl: Definition and Modeling of Probability
+Distributions in the JuliaStats Ecosystem.”</span> <em>Journal of
+Statistical Software</em> 98 (16): 1–30. <a href="https://doi.org/10.18637/jss.v098.i16" class="external-link">https://doi.org/10.18637/jss.v098.i16</a>.
 </div>
 <div id="ref-bohning2023equivalence" class="csl-entry">
 Böhning, Dankmar. 2023. <span>“On the Equivalence of One-Inflated
@@ -2356,13 +2395,13 @@ Böhning, Dankmar, and Herwig Friedl. 2021. <span>“Population Size
 Estimation Based Upon Zero-Truncated, One-Inflated and Sparse Count
 Data: Estimating the Number of Dice Snakes in Graz and Flare Stars in
 the Pleiades.”</span> <em>Statistical Methods &amp; Applications</em>,
-January. <a href="https://doi.org/10.1007/s10260-021-00556-8" class="external-link">https://doi.org/10.1007/s10260-021-00556-8</a>.
+ahead of print, January. <a href="https://doi.org/10.1007/s10260-021-00556-8" class="external-link">https://doi.org/10.1007/s10260-021-00556-8</a>.
 </div>
 <div id="ref-bohning2024one" class="csl-entry">
-———. 2024. <span>“One-Inflation and Zero-Truncation Count Data Modelling
-Revisited with a View on Horvitz–Thompson Estimation of Population
-Size.”</span> <em>International Statistical Review</em> 92 (1): 148–65.
-<a href="https://doi.org/10.1111/insr.12557" class="external-link">https://doi.org/10.1111/insr.12557</a>.
+Böhning, Dankmar, and Herwig Friedl. 2024. <span>“One-Inflation and
+Zero-Truncation Count Data Modelling Revisited with a View on
+Horvitz–Thompson Estimation of Population Size.”</span>
+<em>International Statistical Review</em> 92 (1): 148–65. <a href="https://doi.org/10.1111/insr.12557" class="external-link">https://doi.org/10.1111/insr.12557</a>.
 </div>
 <div id="ref-zelterman" class="csl-entry">
 Böhning, Dankmar, and Peter G. M. van der Heijden. 2009. <span>“A
@@ -2371,10 +2410,11 @@ Size of Hidden and Elusive Populations.”</span> <em>The Annals of
 Applied Statistics</em> 3 (2): 595–610. <a href="https://doi.org/10.1214/08-AOAS214" class="external-link">https://doi.org/10.1214/08-AOAS214</a>.
 </div>
 <div id="ref-zotmodels" class="csl-entry">
-———. 2019. <span>“The Identity of the Zero-Truncated, One-Inflated
-Likelihood and the Zero-One-Truncated Likelihood for General Count
-Densities with an Application to Drink-Driving in Britain.”</span>
-<em>The Annals of Applied Statistics</em> 13 (2): 1198–1211. <a href="https://doi.org/10.1214/18-AOAS1232" class="external-link">https://doi.org/10.1214/18-AOAS1232</a>.
+Böhning, Dankmar, and Peter G. M. van der Heijden. 2019. <span>“The
+Identity of the Zero-Truncated, One-Inflated Likelihood and the
+Zero-One-Truncated Likelihood for General Count Densities with an
+Application to Drink-Driving in Britain.”</span> <em>The Annals of
+Applied Statistics</em> 13 (2): 1198–211. <a href="https://doi.org/10.1214/18-AOAS1232" class="external-link">https://doi.org/10.1214/18-AOAS1232</a>.
 </div>
 <div id="ref-chao-generalization" class="csl-entry">
 Böhning, Dankmar, Alberto Vidal-Diez, Rattana Lerdsuwansri, Chukiat
@@ -2389,11 +2429,9 @@ Using <span>Stan</span>.”</span> <em>Journal of Statistical
 Software</em> 80 (1): 1–28. <a href="https://doi.org/10.18637/jss.v080.i01" class="external-link">https://doi.org/10.18637/jss.v080.i01</a>.
 </div>
 <div id="ref-carpenter2017stan" class="csl-entry">
-Carpenter, Bob, Andrew Gelman, Matthew D Hoffman, Daniel Lee, Ben
-Goodrich, Michael Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li,
-and Allen Riddell. 2017. <span>“Stan: A Probabilistic Programming
-Language.”</span> <em>Journal of Statistical Software</em> 76 (1): 1–32.
-<a href="https://doi.org/10.18637/jss.v076.i01" class="external-link">https://doi.org/10.18637/jss.v076.i01</a>.
+Carpenter, Bob, Andrew Gelman, Matthew D Hoffman, et al. 2017.
+<span>“Stan: A Probabilistic Programming Language.”</span> <em>Journal
+of Statistical Software</em> 76 (1): 1–32. <a href="https://doi.org/10.18637/jss.v076.i01" class="external-link">https://doi.org/10.18637/jss.v076.i01</a>.
 </div>
 <div id="ref-chao1987estimating" class="csl-entry">
 Chao, Anne. 1987. <span>“Estimating the Population Size for
@@ -2451,7 +2489,8 @@ Microsoft, and Steve Weston. 2022a. <em>doParallel: Foreach Parallel
 Adaptor for the ’Parallel’ Package</em>. <a href="https://CRAN.R-project.org/package=doParallel" class="external-link">https://CRAN.R-project.org/package=doParallel</a>.
 </div>
 <div id="ref-foreach" class="csl-entry">
-———. 2022b. <em>Foreach: Provides Foreach Looping Construct</em>. <a href="https://CRAN.R-project.org/package=foreach" class="external-link">https://CRAN.R-project.org/package=foreach</a>.
+Microsoft, and Steve Weston. 2022b. <em>Foreach: Provides Foreach
+Looping Construct</em>. <a href="https://CRAN.R-project.org/package=foreach" class="external-link">https://CRAN.R-project.org/package=foreach</a>.
 </div>
 <div id="ref-norrpoll" class="csl-entry">
 Norris, James L, and Kenneth H Pollock. 1996. <span>“Including Model
@@ -2460,13 +2499,12 @@ Uncertainty in Estimating Variances in Multiple Capture Studies.”</span>
 </div>
 <div id="ref-parallel" class="csl-entry">
 R Core Team. 2023. <em>R: A Language and Environment for Statistical
-Computing</em>. Vienna, Austria: R Foundation for Statistical Computing.
-<a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
+Computing</em>. R Foundation for Statistical Computing. <a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
 </div>
 <div id="ref-seabold2010statsmodels" class="csl-entry">
 Seabold, Skipper, and Josef Perktold. 2010. <span>“Statsmodels:
-Econometric and Statistical Modeling with Python.”</span> In <em>9th
-Python in Science Conference</em>.
+Econometric and Statistical Modeling with Python.”</span> <em>9th Python
+in Science Conference</em>.
 </div>
 <div id="ref-tuoto2022bayesian" class="csl-entry">
 Tuoto, Tiziana, Davide Di Cecco, and Andrea Tancredi. 2022.
@@ -2485,9 +2523,8 @@ Data.”</span> <em>Journal of the American Statistical Association</em>
 81 (394): 337–46. <a href="https://doi.org/10.1080/01621459.1986.10478277" class="external-link">https://doi.org/10.1080/01621459.1986.10478277</a>.
 </div>
 <div id="ref-yang2006care4" class="csl-entry">
-Yang, Hsing-Chen, and Anne Chao. 2006. <span>“Program
-<span>CARE</span>-4 (for <span>Capture-Recapture</span> Part.
-4).”</span> <a href="http://chao.stat.nthu.edu.tw" class="external-link">http://chao.stat.nthu.edu.tw</a>.
+Yang, Hsing-Chen, and Anne Chao. 2006. <em>Program <span>CARE</span>-4
+(for <span>Capture-Recapture</span> Part. 4)</em>. <a href="http://chao.stat.nthu.edu.tw" class="external-link">http://chao.stat.nthu.edu.tw</a>.
 </div>
 <div id="ref-VGAM-main" class="csl-entry">
 Yee, Thomas. 2015. <em>Vector Generalized Linear and Additive Models:

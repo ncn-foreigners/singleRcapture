@@ -1,6 +1,48 @@
 # Changelog
 
-## singleRcapture (development version)
+## singleRcapture 1.1.0
+
+- Fixing CRAN errors.
+- Added standalone
+  [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
+  support for weighted ratio regression, optional one-inflation model
+  selection, bootstrap intervals, and diagnostic plots.
+- Added the
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  family, a modified Chao estimator based on counts 2 and 3 for improved
+  robustness to one-inflation.
+- Updated rare-count-family simulation support so
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  works correctly through the public
+  [`simulate()`](https://ncn-foreigners.github.io/singleRcapture/reference/simulate.md)
+  methods.
+- Updated README and package documentation to describe the new
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  model.
+- [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md):
+  fixed `subset` so that bare expressions like `subset = grp == "a"`
+  evaluate inside `data` as documented.
+- [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md):
+  fixed bootstrap with `model = "M0"` or `model = "M1"`, which
+  previously errored because the primary population estimate was not yet
+  attached when resampling started.
+- Expanded test coverage for
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  (mu, variance, density, deviance residuals, analytic population
+  variance) and for
+  [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
+  (validation paths, `maxCount`, `subset`, alternative estimators,
+  `extractAIC`/`nobs`, custom `ratioFormula`, fixed-model bootstrap).
+- Split family tests into dedicated `test_fam_*` files and added focused
+  family files for
+  [`chao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  and
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  to make CI failures identify the affected model directly.
+- `Cyprian Jurkowski` contributed the first implementations of
+  [`oichao()`](https://ncn-foreigners.github.io/singleRcapture/reference/singleRmodels.md)
+  and
+  [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md).
 
 ## singleRcapture 1.0.1
 
@@ -153,7 +195,7 @@ CRAN release: 2023-06-11
   - More options in control functions
   - Corrected/implemented deviance residuals for more models
 - changes:
-  - Now the whole package uses `cammelCase`
+  - Now the whole package uses `camelCase`
   - Performance upgrades
   - Corrected some miss calculated moments
   - Change exported data so that factors are actually factors not just

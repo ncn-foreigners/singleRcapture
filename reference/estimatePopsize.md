@@ -25,7 +25,7 @@ estimatePopsize(
   model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
     "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
     "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
-    "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
+    "ztHurdlegeom", "Hurdleztgeom", "zelterman", "chao", "oichao"),
   weights = NULL,
   subset = NULL,
   naAction = NULL,
@@ -130,7 +130,9 @@ estimatePopsize(
 
 - ratioReg:
 
-  Not yet implemented
+  deprecated placeholder for ratio regression. Use
+  [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
+  instead.
 
 - offset:
 
@@ -338,7 +340,7 @@ A more sophisticated bootstrap procedure may be described as follows:
     \\\hat{\boldsymbol{\beta}}\\ to make it slightly faster, use them to
     compute \\\hat{N}\_{new}\\.
 
-6.  Repeat 2-5 unit there are at least `B` statistics are obtained.
+6.  Repeat 2-5 until there are at least `B` statistics are obtained.
 
 7.  Compute confidence intervals based on `alpha` and `confType`
     specified in
@@ -355,7 +357,7 @@ This procedure is known in literature as `"semiparametric"` bootstrap it
 is necessary to assume that the have a correct estimate \\\hat{N}\\ in
 order to use this type of bootstrap.
 
-Lastly there is `"paramteric"` bootstrap where we assume that the
+Lastly there is `"parametric"` bootstrap where we assume that the
 probabilistic model used to obtain \\\hat{N}\\ is correct the bootstrap
 procedure may then be described as:
 
@@ -379,7 +381,7 @@ procedure may then be described as:
     and obtain \\\hat{\boldsymbol{\beta}}\_{new}\\ use them to compute
     \\\hat{N}\_{new}\\.
 
-6.  Repeat 1-5 unit there are at least `B` statistics are obtained.
+6.  Repeat 1-5 until there are at least `B` statistics are obtained.
 
 7.  Compute confidence intervals based on `alpha` and `confType`
     specified in
@@ -480,7 +482,7 @@ regression.
 – For control parameters related to model specification.
 
 [`estimatePopsizeFit()`](https://ncn-foreigners.github.io/singleRcapture/reference/estimatePopsizeFit.md)
-– For more information on fitting procedure in `esitmate_popsize`.
+– For more information on fitting procedure in `estimate_popsize`.
 
 [`popSizeEst()`](https://ncn-foreigners.github.io/singleRcapture/reference/popSizeEst.md)
 [`redoPopEstimation()`](https://ncn-foreigners.github.io/singleRcapture/reference/redoPopEstimation.md)
@@ -661,8 +663,8 @@ pseudoHurdleModel <- estimatePopsize(
 #> Value of gradient at current step:
 #>  142.04204576   8.81177229 108.34506498   9.81769037  -0.39315787   1.30854693   2.40548998 -74.87532567 -61.35856914
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 1.524359
 #> ----
 #> Iteration number 2 log-likelihood: -828.37292
@@ -671,8 +673,8 @@ pseudoHurdleModel <- estimatePopsize(
 #> Value of gradient at current step:
 #>  -30.198518684  -2.367348700 -20.882807839  -2.990134863  -0.033406007  -0.236178150  -0.291286777  12.908733472   8.061651997
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.41969914
 #> ----
 #> Iteration number 3 log-likelihood: -827.03041
@@ -681,8 +683,8 @@ pseudoHurdleModel <- estimatePopsize(
 #> Value of gradient at current step:
 #>  -0.399477106 -0.125534668 -0.025207083 -0.124263770 -0.012272383 -0.001036293 -0.037255028 -0.402440790 -0.559697165
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.15139687
 #> ----
 #> Iteration number 4 log-likelihood: -827.01868
@@ -691,8 +693,8 @@ pseudoHurdleModel <- estimatePopsize(
 #> Value of gradient at current step:
 #>   0.01965800195 -0.00376668640  0.02342526604  0.00085753707 -0.00131148043  0.00040402353 -0.00468611749 -0.01113423867 -0.00978879207
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.026743552
 #> ----
 #> Iteration number 5 log-likelihood: -827.01868
@@ -701,8 +703,8 @@ pseudoHurdleModel <- estimatePopsize(
 #> Value of gradient at current step:
 #>  -0.0001561899387  0.0000207886459 -0.0000413107753 -0.0000259493362  0.0000040518562 -0.0000068413444 -0.0000222504320  0.0000011784080  0.0000010016067
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.00036133989
 #> ----
 #> Iteration number 6 log-likelihood: -827.01868
@@ -711,8 +713,8 @@ pseudoHurdleModel <- estimatePopsize(
 #> Value of gradient at current step:
 #>   0.00000138172839925 -0.00000029541573543  0.00000194942825438  0.00000005064943620 -0.00000001912655101  0.00000005032669892 -0.00000167462238743 -0.00000000020190338 -0.00000000017657165
 #> Algorithm will terminate if one of following conditions will be met:
-#> The increase to minus log-likelihood will be bellow chosen value of epsilon 1e-08 
-#> Maximum change to the vector of regression parameters will be bellow the chosen value of epsilon.
+#> The increase to minus log-likelihood will be below chosen value of epsilon 1e-08 
+#> Maximum change to the vector of regression parameters will be below the chosen value of epsilon.
 #> At current step the highest change was: 0.0000050277134
 #> ----
 #> Value of analytically computed hessian at fitted regression coefficients:

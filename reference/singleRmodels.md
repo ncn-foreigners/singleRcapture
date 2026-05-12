@@ -33,6 +33,8 @@ Hurdleztpoisson(
   ...
 )
 
+oichao(lambdaLink = "logthird", ...)
+
 oiztgeom(
   lambdaLink = c("log", "neglog"),
   omegaLink = c("logit", "cloglog", "probit"),
@@ -132,9 +134,10 @@ ztpoisson(lambdaLink = c("log", "neglog"), ...)
 
 - lambdaLink:
 
-  a link for Poisson parameter, `"log"` by default except for
-  zelterman's and chao's models where only
-  \\\ln\left(\frac{x}{2}\right)\\ is possible.
+  a link for Poisson parameter, `"log"` by default except for rare-count
+  Poisson models such as `zelterman()` and `chao()` where only
+  \\\ln\left(\frac{x}{2}\right)\\ is possible and `oichao()` where only
+  \\\ln\left(\frac{x}{3}\right)\\ is possible.
 
 - ...:
 
@@ -360,7 +363,16 @@ The *zelterman* estimator of population size is expressed as:
 \\\hat{N}=\sum\_{k=1}^{N\_{obs}}{1-\exp\left(-\lambda\_{k}\right)}\\ and
 *chao* estimator has the form: \\
 \hat{N}=N\_{obs}+\sum\_{k=1}^{\boldsymbol{f}\_{1}+\boldsymbol{f}\_{2}}
-\frac{1}{\lambda\_{k}+ \frac{\lambda\_{k}^{2}}{2}} \\
+\frac{1}{\lambda\_{k}+ \frac{\lambda\_{k}^{2}}{2}} \\ The *oichao*
+estimator is the modified Chao analogue robust to one-inflation and is
+based on the dummy variable \\ Z = \left\lbrace\begin{array}{cc} 0 &
+\text{if }Y = 2 \cr 1 & \text{if }Y = 3 \end{array}\right.\\ with
+equation: \\ \text{logit}(p\_{k})=
+\ln\left(\frac{\lambda\_{k}}{3}\right)=
+\boldsymbol{\beta}\mathbf{x}\_{k}=\eta\_{k}\\ and population size
+estimator: \\
+\hat{N}=N\_{obs}+\sum\_{k=1}^{\boldsymbol{f}\_{2}+\boldsymbol{f}\_{3}}
+\frac{1}{\frac{\lambda\_{k}^{2}}{2}+ \frac{\lambda\_{k}^{3}}{6}} \\
 
 ## See also
 
@@ -369,3 +381,5 @@ The *zelterman* estimator of population size is expressed as:
 ## Author
 
 Piotr Chlebicki, Maciej Beręsewicz
+
+Cyprian Jurkowski, Piotr Chlebicki, Maciej Beręsewicz
