@@ -4,6 +4,9 @@
 #' important information regarding pop size estimate.
 #'
 #' @param object object with population size estimates.
+#' @param estimator for \code{singleRRatioReg} objects, which population-size
+#'   estimator to return. The default \code{"primary"} returns the estimator
+#'   selected when calling [ratioReg()].
 #' @param ... additional optional arguments, currently not used in \code{singleRStaticCountData} class method. 
 #'
 #' @return An object of class \code{popSizeEstResults} containing population size estimation results.
@@ -47,10 +50,11 @@ logLik.singleRStaticCountData <- function(object,
     val
   } else {
     object$model$makeMinusLogLike(
-      y = as.numeric(model.response(model.frame(object))),
+      y = if (is.null(object$y)) as.numeric(model.response(model.frame(object))) else object$y,
       X = model.matrix(object, type = "vlm"),
       weight = object$priorWeights,
-      deriv = deriv
+      deriv = deriv,
+      offset = object$offset
     )
   }
 }

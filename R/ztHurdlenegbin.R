@@ -32,19 +32,51 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   links[1:3] <- c(lambdaLink, alphaLink, piLink)
   
+  nbLogP0 <- function(lambda, alpha) {
+    -(1 / alpha) * log1p(lambda * alpha)
+  }
+
+  nbLogP1 <- function(lambda, alpha) {
+    log(lambda) + (-1 / alpha - 1) * log1p(lambda * alpha)
+  }
+
+  nbP0 <- function(lambda, alpha) {
+    exp(nbLogP0(lambda, alpha))
+  }
+
+  nbP1 <- function(lambda, alpha) {
+    exp(nbLogP1(lambda, alpha))
+  }
+
+  probGe2 <- function(lambda, alpha) {
+    logP0 <- nbLogP0(lambda, alpha)
+    logP1 <- nbLogP1(lambda, alpha)
+    logP01 <- pmax(logP0, logP1) + log1p(exp(-abs(logP0 - logP1)))
+    pmax(-expm1(pmin(logP01, 0)), .Machine$double.xmin)
+  }
+
+  logProbGe2 <- function(lambda, alpha) {
+    log(probGe2(lambda, alpha))
+  }
+
+  probGe2Scaled <- function(lambda, alpha) {
+    (1 + alpha * lambda) ^ (1 / alpha + 1) * probGe2(lambda, alpha)
+  }
+
   
   mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
+    P1 <- nbP1(lambda, alpha)
+    prob_ge2 <- probGe2(lambda, alpha)
+    prob_ge2_scaled <- probGe2Scaled(lambda, alpha)
     
     if (!deriv) {
       switch (type,
         "nontrunc" = (1 - (1 + alpha * lambda) ^ (-1 / alpha)) * (PI + (1 - PI) * lambda),
         "trunc" = PI + (1 - PI) * 
-        (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
-        (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
-        lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
+        (lambda - P1) / prob_ge2
       )
     } else {
       switch (
@@ -65,18 +97,16 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
           ), ncol = 3)
         },
         "trunc" = {
-          matrix(c(
-            (1 - PI) * ((alpha * lambda + 1) ^ (2 / alpha) * (alpha ^ 2 * lambda ^ 2 + 2 * alpha * lambda + 1) +
-            (alpha * lambda + 1) ^ (1 / alpha) * ((-alpha ^ 2 - 2 * alpha - 1) * lambda ^ 2 - 2 * alpha * lambda - 2) + 1) /
-            ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2,
-            (1 - PI) * lambda ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) * 
-            (lambda * alpha ^ 2 + (lambda + 1) * alpha + 1) * log(lambda * alpha + 1) +
-            (lambda * alpha + 1) ^ (1 / alpha) * ((1 - 2 * lambda) * alpha ^ 2 - lambda * alpha) - alpha ^ 2) /
-            (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) - lambda * alpha - lambda - 1) ^ 2),
-            1 - (lambda - lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
-            (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
-            lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
-          ) * c(
+	          matrix(c(
+	            (1 - PI) * ((alpha * lambda + 1) ^ (2 / alpha) * (alpha ^ 2 * lambda ^ 2 + 2 * alpha * lambda + 1) +
+	            (alpha * lambda + 1) ^ (1 / alpha) * ((-alpha ^ 2 - 2 * alpha - 1) * lambda ^ 2 - 2 * alpha * lambda - 2) + 1) /
+	            prob_ge2_scaled ^ 2,
+	            (1 - PI) * lambda ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha) *
+	            (lambda * alpha ^ 2 + (lambda + 1) * alpha + 1) * log(lambda * alpha + 1) +
+	            (lambda * alpha + 1) ^ (1 / alpha) * ((1 - 2 * lambda) * alpha ^ 2 - lambda * alpha) - alpha ^ 2) /
+	            (alpha ^ 2 * prob_ge2_scaled ^ 2),
+	            1 - (lambda - P1) / prob_ge2
+	          ) * c(
             lambdaLink(eta[, 1], inverse = TRUE, deriv = 1),
              alphaLink(eta[, 2], inverse = TRUE, deriv = 1),
                 piLink(eta[, 3], inverse = TRUE, deriv = 1)
@@ -90,15 +120,17 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
+    P0 <- nbP0(lambda, alpha)
+    P1 <- nbP1(lambda, alpha)
+    prob_ge2 <- probGe2(lambda, alpha)
     
-    switch (type,
+    res <- switch (type,
       nontrunc = (1 - P0) * (PI + (1 - PI) * lambda + (1 + alpha) * lambda ^ 2),
       trunc = PI + (1 - PI) * (lambda * (1 + alpha * lambda) + lambda ^ 2 - 
-      lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha))) / 
-      (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
-      lambda * ((1 + alpha * lambda) ^ (-1 - 1 / alpha)))
+      P1) / prob_ge2
     ) - mu.eta(eta = eta, type = type) ^ 2
+
+    pmax(res, 0)
   }
   
   compdigamma <- function(y, alpha) {
@@ -118,8 +150,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-  piLink(eta[, 3], inverse = TRUE)
     
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
+    prob_ge2 <- probGe2(lambda, alpha)
     res <- rep(0, NROW(eta))
     
     # 1 is the first possible y value for 0 truncated hurdle distribution
@@ -128,12 +159,12 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
       prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
-        (1 - PI) * stats::dnbinom(
-          x = x, 
-          size = 1 / alpha, 
-          mu = lambda
-        ) / (1 - P0 - P1)
-      })
+	        (1 - PI) * stats::dnbinom(
+	          x = x,
+	          size = 1 / alpha,
+	          mu = lambda
+	        ) / prob_ge2
+	      })
       trg <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
         comptrigamma(y = x, alpha = alpha)
       })
@@ -152,6 +183,8 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
+    prob_ge2 <- probGe2(lambda, alpha)
+    prob_ge2_scaled <- probGe2Scaled(lambda, alpha)
     
     z  <- PI
     
@@ -169,22 +202,22 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     G02 <- rep(0, NROW(eta))
     
     # alpha
-    G11 <- Etrig + (1 - z) * (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
-    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 / 
-    (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) ^ 2 -
-    (1 - z) * (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) ^ 2 / 
-    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
+	    G11 <- Etrig + (1 - z) * (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+	    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+	    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 /
+	    prob_ge2 ^ 2 -
+	    (1 - z) * (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) ^ 2 /
+	    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+	    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
     (lambda * alpha + 1)) ^ 2 - (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
     (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) + lambda ^ 2 / 
     (alpha * (lambda * alpha + 1) ^ 2)) / (lambda * alpha + 1) ^ (1 / alpha) -
-    lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * 
-    (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
-    (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) / 
-    (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) -
-    (1 - z) * (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (1 - z) * (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
-    (lambda ^ 2 * (-(1 - z) / alpha - XXX)) / (lambda * alpha + 1) ^ 2 - XXX / alpha ^ 2
+	    lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+	    (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
+	    (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) /
+	    prob_ge2 -
+	    (1 - z) * (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (1 - z) * (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
+	    (lambda ^ 2 * (-(1 - z) / alpha - XXX)) / (lambda * alpha + 1) ^ 2 - XXX / alpha ^ 2
     
     G11 <- G11 * alphaLink(eta[, 2], inverse = TRUE, deriv = 1) ^ 2
     
@@ -196,12 +229,12 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     ((-2 * alpha ^ 4 - 2 * alpha ^ 3) * XXX + (1 - z) * 4 * alpha ^ 3 - 
     (1 - z) *  alpha ^ 2 - (1 - z) *  alpha) * lambda ^ 2 + 
     ((-4 * alpha ^ 3 - 2 * alpha ^ 2) * XXX + (1 - z) *  3 * alpha ^ 2) * lambda - 
-    2 * alpha ^ 2 * XXX) + (alpha * lambda + 1) ^ (2 / alpha) * (-(1 - z) * alpha ^ 4 * lambda ^ 3 + 
-    (alpha ^ 4 * XXX - (1 - z) * 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * XXX - 
-    (1 - z) * alpha ^ 2) * lambda + alpha ^ 2 * XXX) + ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * XXX - 
+	    2 * alpha ^ 2 * XXX) + (alpha * lambda + 1) ^ (2 / alpha) * (-(1 - z) * alpha ^ 4 * lambda ^ 3 +
+	    (alpha ^ 4 * XXX - (1 - z) * 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * XXX -
+	    (1 - z) * alpha ^ 2) * lambda + alpha ^ 2 * XXX) + ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * XXX -
     (1 - z) * 2 * alpha ^ 3 - (1 - z) * alpha ^ 2) * lambda ^ 2 +
-    ((2 * alpha ^ 3 + 2 * alpha ^ 2) * XXX - (1 - z) * 2 * alpha ^ 2) * lambda + alpha ^ 2 * XXX) /
-    (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+	    ((2 * alpha ^ 3 + 2 * alpha ^ 2) * XXX - (1 - z) * 2 * alpha ^ 2) * lambda + alpha ^ 2 * XXX) /
+	    (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * prob_ge2_scaled ^ 2)
     
     G12 <- G12 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                   alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
@@ -214,10 +247,10 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     ((4 * alpha ^ 3 + 4 * alpha ^ 2) * XXX - (1 - z) * 4 * alpha ^ 2 - (1 - z) * alpha + (1 - z)) * lambda ^ 3 +
     ((10 * alpha ^ 2 + 6 * alpha) * XXX - (1 - z) * 3 * alpha - (1 - z)) * lambda ^ 2 + 
     (8 * alpha + 2) * XXX * lambda + 2 * XXX) + 
-    ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * XXX + (1 - z) * 2 * alpha ^ 2 + 
-    (1 - z) *  2 * alpha) * lambda ^ 3 + ((-5 * alpha ^ 2 - 6 * alpha - 1) * XXX + 
-    (1 - z) * 2 * alpha + (1 - z)) * lambda ^ 2 + (-4 * alpha - 2) * XXX * lambda - XXX) / 
-    (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+	    ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * XXX + (1 - z) * 2 * alpha ^ 2 +
+	    (1 - z) *  2 * alpha) * lambda ^ 3 + ((-5 * alpha ^ 2 - 6 * alpha - 1) * XXX +
+	    (1 - z) * 2 * alpha + (1 - z)) * lambda ^ 2 + (-4 * alpha - 2) * XXX * lambda - XXX) /
+	    (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * prob_ge2_scaled ^ 2)
     
     G22 <- G22 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2
     
@@ -241,21 +274,22 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     PI     <-     piLink(eta[, 3], inverse = TRUE)
     z <- as.numeric(y == 1)
     weight <- weight / prior
+    prob_ge2 <- probGe2(lambda, alpha)
     
     dig <- compdigamma(y = y, alpha = alpha)
     
     G0 <- z / PI - (1 - z) / (1 - PI)
     
-    G1 <- (1 - z) * (y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2  +
-    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1) -
-    (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
-    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
-    (-(lambda * alpha + 1) ^ (-1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1))
+	    G1 <- (1 - z) * (y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2  +
+	    log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1) -
+	    (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+	    (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+	    (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+	    prob_ge2)
     
-    G2 <- (1 - z) * (y / lambda  + (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1) -
-    ((1 / alpha + 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
-    (-(alpha * lambda + 1) ^ (-1 / alpha) - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1))
+	    G2 <- (1 - z) * (y / lambda  + (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1) -
+	    ((1 / alpha + 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) /
+	    prob_ge2)
     
     G0 <- G0 *  piLink(eta[, 3], inverse = TRUE, deriv = 1)
     G1 <- G1 *  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
@@ -294,7 +328,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     y <- as.numeric(y)
     z <- as.numeric(y == 1)
     X <- as.matrix(X)
-    
+
     if (!(deriv %in% c(0, 1, 2))) 
       stop("Only score function and derivatives up to 2 are supported.")
     
@@ -311,29 +345,29 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               -sum(weight * (z * log(PI) + (1 - z) * log(1 - PI) + (1 - z) *
               (lgamma(y + 1 / alpha) - lgamma(1 / alpha) -
               lgamma(y + 1) - (y + 1 / alpha) * log(1 + lambda * alpha) +
-              y * log(lambda * alpha) - log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - 
-              lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))))
+              y * log(lambda * alpha) - logProbGe2(lambda, alpha))))
             },
             function(beta) {
               eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
-              lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-              alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-              PI     <-     piLink(eta[, 3], inverse = TRUE)
+	              lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+	              alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+	              PI     <-     piLink(eta[, 3], inverse = TRUE)
+	              prob_ge2 <- probGe2(lambda, alpha)
               
-              dig <- compdigamma(y = y, alpha = alpha)
+	              dig <- compdigamma(y = y, alpha = alpha)
               
               G0 <- z / PI - (1 - z) / (1 - PI)
               
-              G1 <- (1 - z) * (y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2  +
-              log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1) -
-              (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
-              (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
-              (-(lambda * alpha + 1) ^ (-1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1))
+	              G1 <- (1 - z) * (y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2  +
+	              log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1) -
+	              (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+	              (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+	              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+	              prob_ge2)
               
-              G2 <- (1 - z) * (y / lambda  + (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1) -
-              ((1 / alpha + 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
-              (-(alpha * lambda + 1) ^ (-1 / alpha) - lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1))
+	              G2 <- (1 - z) * (y / lambda  + (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1) -
+	              ((1 / alpha + 1) * alpha * lambda * (alpha * lambda + 1) ^ (-1 / alpha - 2)) /
+	              prob_ge2)
               
               G0 <- G0 * weight *     piLink(eta[, 3], inverse = TRUE, deriv = 1)
               G1 <- G1 * weight *  alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
@@ -364,9 +398,11 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
             function(beta) {
               predNumbers <- attr(X, "hwm")
               eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
-              lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-              alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-              PI     <-     piLink(eta[, 3], inverse = TRUE)
+	              lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+	              alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+	              PI     <-     piLink(eta[, 3], inverse = TRUE)
+	              prob_ge2 <- probGe2(lambda, alpha)
+	              prob_ge2_scaled <- probGe2Scaled(lambda, alpha)
               
               res <- matrix(
                 nrow = length(beta), 
@@ -386,29 +422,29 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
                       G0 * piLink(eta[, 3], inverse = TRUE, deriv = 2)
               
               # alpha
-              G1 <- (1 - z) * (y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2 -
-              (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
-              (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
-              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
-              (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) +
-              log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1))
+	              G1 <- (1 - z) * (y / alpha + (digamma(1 / alpha) - digamma(1 / alpha + y)) / alpha ^ 2 -
+	              (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) /
+	              (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
+	              (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) /
+	              prob_ge2 +
+	              log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - y)) / (lambda * alpha + 1))
               
               G11 <- (1 - z) * ((2 * digamma(1 / alpha + y)) / alpha ^ 3 - 
               (2 * digamma(1 / alpha)) / alpha ^ 3 + trigamma(1 / alpha + y) / alpha ^ 4 - 
               trigamma(1 / alpha) / alpha ^ 4 + (-(log(lambda * alpha + 1) / alpha ^ 2 - 
-              lambda / (alpha * (lambda * alpha + 1))) /(lambda * alpha + 1) ^ (1 / alpha) - 
-              lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * (log(lambda * alpha + 1) / alpha ^ 2 + 
-              (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 / 
-              (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) ^ 2 -
+	              lambda / (alpha * (lambda * alpha + 1))) /(lambda * alpha + 1) ^ (1 / alpha) -
+	              lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * (log(lambda * alpha + 1) / alpha ^ 2 +
+	              (lambda * (-1 / alpha - 1)) / (lambda * alpha + 1))) ^ 2 /
+	              prob_ge2 ^ 2 -
               (-(log(lambda * alpha + 1) / alpha ^ 2 - lambda / (alpha * (lambda * alpha + 1))) ^ 2 / 
               (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) *
               (log(lambda * alpha + 1) / alpha ^ 2 + (lambda * (-1 / alpha - 1)) /
               (lambda * alpha + 1)) ^ 2 - (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
               (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) + lambda ^ 2 / 
               (alpha * (lambda * alpha + 1) ^ 2)) / (lambda * alpha + 1) ^ (1 / alpha) -
-              lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 + 
-              (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) - (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) / 
-              (-1 / (lambda * alpha + 1) ^ (1 / alpha) - lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) + 1) -
+	              lambda * (lambda * alpha + 1) ^ (-1 / alpha - 1) * (-(2 * log(lambda * alpha + 1)) / alpha ^ 3 +
+	              (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) - (lambda ^ 2 * (-1 / alpha - 1)) / (lambda * alpha + 1) ^ 2)) /
+	              prob_ge2 -
               (2 * log(lambda * alpha + 1)) / alpha ^ 3 + (2 * lambda) / (alpha ^ 2 * (lambda * alpha + 1)) -
               (lambda ^ 2 * (-1 / alpha - y)) / (lambda * alpha + 1) ^ 2 - y / alpha ^ 2)
               
@@ -422,21 +458,20 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               ((alpha ^ 4 - alpha ^ 3 - alpha ^ 2) * lambda ^ 3 + 
               ((-2 * alpha ^ 4 - 2 * alpha ^ 3) * y + 4 * alpha ^ 3 - alpha ^ 2 - alpha) * lambda ^ 2 + 
               ((-4 * alpha ^ 3 - 2 * alpha ^ 2) * y + 3 * alpha ^ 2) * lambda - 2 * alpha ^ 2 * y) +
-              (alpha * lambda + 1) ^ (2 / alpha) * (-alpha ^ 4 * lambda ^ 3 + 
-              (alpha ^ 4 * y - 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * y - alpha ^ 2) * lambda + alpha ^ 2 * y) +
-              ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * y - 2 * alpha ^ 3 - alpha ^ 2) * lambda ^ 2 +
-              ((2 * alpha ^ 3 + 2 * alpha ^ 2) * y - 2 * alpha ^ 2) * lambda + alpha ^ 2 * y) /
-              (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+	              (alpha * lambda + 1) ^ (2 / alpha) * (-alpha ^ 4 * lambda ^ 3 +
+	              (alpha ^ 4 * y - 2 * alpha ^ 3) * lambda ^ 2 + (2 * alpha ^ 3 * y - alpha ^ 2) * lambda + alpha ^ 2 * y) +
+	              ((alpha ^ 4 + 2 * alpha ^ 3 + alpha ^ 2) * y - 2 * alpha ^ 3 - alpha ^ 2) * lambda ^ 2 +
+	              ((2 * alpha ^ 3 + 2 * alpha ^ 2) * y - 2 * alpha ^ 2) * lambda + alpha ^ 2 * y) /
+	              (alpha ^ 2 * (alpha * lambda + 1) ^ 2 * prob_ge2_scaled ^ 2)
               
               G12 <- G12 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) *
                             alphaLink(eta[, 2], inverse = TRUE, deriv = 1)
               
               #lambda
-              G2 <- (1 - z) * (y / lambda + ((-1 / alpha-1) * alpha * lambda * 
-              (alpha * lambda + 1) ^ (-1 / alpha - 2)) / 
-              (-1 / (alpha * lambda + 1) ^ (1 / alpha) - 
-              lambda * (alpha * lambda + 1) ^ (-1 / alpha - 1) + 1) + 
-              (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1))
+	              G2 <- (1 - z) * (y / lambda + ((-1 / alpha-1) * alpha * lambda *
+	              (alpha * lambda + 1) ^ (-1 / alpha - 2)) /
+	              prob_ge2 +
+	              (alpha * (-y - 1 / alpha)) / (alpha * lambda + 1))
               
               G22 <- (1 - z) * ((alpha * lambda + 1) ^ (2 / alpha) * 
               (alpha ^ 3 * lambda ^ 4 + (2 * alpha ^ 2 - 2 * alpha ^ 3 * y) * lambda ^ 3 +
@@ -445,10 +480,10 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               ((4 * alpha ^ 3 + 4 * alpha ^ 2) * y - 4 * alpha ^ 2 - alpha + 1) * lambda ^ 3 +
               ((10 * alpha ^ 2 + 6 * alpha) * y - 3 * alpha - 1) * lambda ^ 2 + 
               (8 * alpha + 2) * y * lambda + 2 * y) + 
-              ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * y + 2 * alpha ^ 2 + 2 * alpha) * lambda ^ 3 +
-              ((-5 * alpha ^ 2 - 6 * alpha - 1) * y + 2 * alpha + 1) * lambda ^ 2 + 
-              (-4 * alpha - 2) * y * lambda - y) / (lambda ^ 2 * (alpha * lambda + 1) ^ 2 * 
-              ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2)
+	              ((-2 * alpha ^ 3 - 4 * alpha ^ 2 - 2 * alpha) * y + 2 * alpha ^ 2 + 2 * alpha) * lambda ^ 3 +
+	              ((-5 * alpha ^ 2 - 6 * alpha - 1) * y + 2 * alpha + 1) * lambda ^ 2 +
+	              (-4 * alpha - 2) * y * lambda - y) / (lambda ^ 2 * (alpha * lambda + 1) ^ 2 *
+	              prob_ge2_scaled ^ 2)
               
               G22 <- G22 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) ^ 2 + 
                       G2 * lambdaLink(eta[, 1], inverse = TRUE, deriv = 2)
@@ -500,15 +535,15 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     
     logLikFit <- (
       (y == 1) * log(PI) + (y>1) * log(1 - PI) + (y>1) *
-      (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
-      (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) - 
-      log(1 - (1 + lambda * alpha) ^ (-1 / alpha) - lambda * (1 + lambda * alpha) ^ (-1 - 1 / alpha)))
+      (lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) -
+      (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha) -
+      logProbGe2(lambda, alpha))
     )
     
     yUnq <- unique(y)
     
     if (any(yUnq > 77)) {
-      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+      warning("Currently numerical deviance is unreliable for counts greater than 78.")
     }
     
     findL <- function(yNow) {
@@ -552,7 +587,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       a <- exp(xx$par[3])
       l <- exp(xx$par[2])
       
-      lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a))
+      lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-logProbGe2(l, a)
     }
     
     suppressWarnings(logLikIdeal <- sapply(yUnq, FUN = fff))
@@ -564,7 +599,7 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     diff <- logLikIdeal - logLikFit
     
     if (any(logLikFit > 0)) {
-      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      warning("Dispersion parameter values are on the boundary of parameter space. Deviance residuals will be assigned 0 on these observations.")
       diff[logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
@@ -578,9 +613,8 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   pointEst <- function (pw, eta, contr = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-    N <- pw * (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) / 
-    (1 - (1 + alpha * lambda) ^ (- 1 / alpha) - 
-    lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+    P1 <- nbP1(lambda, alpha)
+    N <- pw * (1 - P1) / probGe2(lambda, alpha)
     if(!contr) {
       N <- sum(N)
     }
@@ -590,23 +624,25 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   popVar <- function (pw, eta, cov, Xvlm, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+    P0 <- nbP0(lambda, alpha)
+    P1 <- nbP1(lambda, alpha)
+    prob_ge2 <- probGe2(lambda, alpha)
+    prob_ge2_scaled <- probGe2Scaled(lambda, alpha)
     
     bigTheta0 <- pw * 0 # w.r to PI
     bigTheta1 <- pw  *  alphaLink(eta[, 2], inverse = TRUE, deriv = 1) *
       ((lambda * alpha + 1) ^ (1 / alpha) * (lambda ^ 2 * alpha ^ 2 + 2 * lambda * alpha + 1) * 
       log(lambda * alpha + 1) + (lambda * alpha + 1) ^ (1 / alpha) * 
       (-lambda ^ 2 * alpha ^ 2 - lambda * alpha) - lambda ^ 2 * alpha ^ 2) / 
-      (alpha ^ 2 * ((lambda * alpha + 1) ^ (1 / alpha + 1) - lambda * alpha - lambda - 1) ^ 2)# w.r to alpha
+      (alpha ^ 2 * prob_ge2_scaled ^ 2)# w.r to alpha
     bigTheta2 <- -pw * lambdaLink(eta[, 1], inverse = TRUE, deriv = 1) * 
       ((alpha * lambda + 1) ^ (1 / alpha + 1) - 1) /
-      ((alpha * lambda + 1) ^ (1 / alpha + 1) + (-alpha - 1) * lambda - 1) ^ 2# w.r to lambda
+      prob_ge2_scaled ^ 2# w.r to lambda
     
     bigTheta <- t(c(bigTheta2, bigTheta1, bigTheta0) %*% Xvlm)
     
     f1 <-  t(bigTheta) %*% as.matrix(cov) %*% bigTheta
-    f2 <-  sum(pw * (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) * 
-    (1 + alpha * lambda) ^ (- 1 / alpha) / (1 - (1 + alpha * lambda) ^ (- 1 / alpha) - 
-    lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) ^ 2)
+    f2 <-  sum(pw * (1 - P1) * P0 / prob_ge2 ^ 2)
     
     f1 + f2
   }
@@ -616,13 +652,13 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-  piLink(eta[, 3], inverse = TRUE)
+    prob_ge2 <- probGe2(lambda, alpha)
     
     switch (type,
       "trunc" = {
-        as.numeric(x == 1) * PI + as.numeric(x > 0) * 
-        (1 - PI) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
-        (1 - (1 + alpha * lambda) ^ (-1 / alpha) - 
-        lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+	        as.numeric(x == 1) * PI + as.numeric(x > 0) *
+	        (1 - PI) * stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) /
+	        prob_ge2
       },
       "nontrunc" = {
         stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) / 
@@ -638,8 +674,8 @@ ztHurdlenegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <- alphaLink(eta[, 2], inverse = TRUE)
     PI     <- piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (- 1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
+    P0 <- nbP0(lambda, alpha)
+    P1 <- nbP1(lambda, alpha)
     CDF <- function(x) {
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 

@@ -66,6 +66,26 @@ singleRinternalloghalfLink <- function(x,
   res
 }
 
+# third log link for modified chao
+singleRinternallogthirdLink <- function(x,
+                                        inverse = FALSE,
+                                        deriv = 0) {
+  deriv <- deriv + 1
+  if (isFALSE(inverse)) {
+    res <- switch(
+      deriv,
+      log(x / 3),
+      1 / x,
+      -1 / (x ^ 2),
+      2 / (x ^ 3)
+    )
+  } else {
+    res <- 3 * exp(x)
+  }
+  
+  res
+}
+
 # cloglog
 singleRinternalcloglogLink <- function(x,
                                      inverse = FALSE,

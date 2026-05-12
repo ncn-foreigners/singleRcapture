@@ -458,6 +458,31 @@ expect_equivalent(
   tolerance = eps
 )
 
+pred_data <- data.frame(
+  y = c(1, 2, 3, 1, 2),
+  x = c(1, 2, 3, 4, 5)
+)
+
+expect_silent(
+  pred_mod <- estimatePopsize(
+    formula = y ~ x,
+    data = pred_data,
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+custom_cov <- diag(c(1.5, 2.5))
+custom_pred <- predict(pred_mod, type = "link", se.fit = TRUE, cov = custom_cov)
+custom_se_col <- paste0("se:", family(pred_mod)$etaNames)
+
+expect_equal(
+  as.numeric(custom_pred[, custom_se_col]),
+  sqrt(diag(model.matrix(pred_mod, type = "vlm") %*% custom_cov %*%
+              t(model.matrix(pred_mod, type = "vlm")))),
+  tolerance = eps
+)
+
 expect_silent(
   residuals(Model, type = "all")
 )
@@ -465,6 +490,25 @@ expect_silent(
 expect_equal(
   logLik(Model),
   logLik(Model6),
+  tolerance = eps
+)
+
+offset_data <- data.frame(y = c(1, 2, 3, 1, 2))
+offset_matrix <- matrix(log(c(1, 2, 1, 2, 1)), ncol = 1)
+
+expect_silent(
+  offset_mod <- estimatePopsize(
+    formula = y ~ 1,
+    data = offset_data,
+    model = "ztpoisson",
+    offset = offset_matrix,
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_equal(
+  -logLik(offset_mod, type = "function")(coef(offset_mod)),
+  as.numeric(logLik(offset_mod)),
   tolerance = eps
 )
 
@@ -516,6 +560,217 @@ expect_equivalent(
   tolerance = eps
 )
 
+weight_data <- data.frame(
+  y = c(1, 2, 3, 1, 2),
+  x = c(1, 2, NA, 4, 5)
+)
+
+expect_error(
+  estimatePopsize(
+    formula = y ~ x,
+    data = pred_data[-5, ],
+    weights = c(1, 2),
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_silent(
+  weight_mod <- estimatePopsize(
+    formula = y ~ x,
+    data = weight_data,
+    weights = c(1, 2, 3, 4, 5),
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_silent(
+  weight_mod_complete <- estimatePopsize(
+    formula = y ~ x,
+    data = na.omit(weight_data),
+    weights = c(1, 2, 4, 5),
+    model = "ztpoisson",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_equal(
+  weight_mod$priorWeights,
+  weight_mod_complete$priorWeights,
+  tolerance = eps
+)
+
+expect_equal(
+  weight_mod$sizeObserved,
+  nrow(model.frame(weight_mod)),
+  tolerance = eps
+)
+
+expect_equal(
+  weight_mod$sizeObserved,
+  weight_mod_complete$sizeObserved,
+  tolerance = eps
+)
+
+expect_equal(
+  weight_mod$populationSize$confidenceInterval,
+  weight_mod_complete$populationSize$confidenceInterval,
+  tolerance = eps
+)
+
+set.seed(321)
+oichao_y <- sample(c(1, 2, 3, 4), 20, replace = TRUE)
+oichao_X <- cbind(1, rnorm(20))
+oichao_beta <- c(-0.3, 0.2)
+oichao_family <- oichao()
+oichao_fn <- oichao_family$makeMinusLogLike(
+  y = oichao_y,
+  X = oichao_X,
+  weight = rep(1, 20),
+  deriv = 0
+)
+oichao_grad <- oichao_family$makeMinusLogLike(
+  y = oichao_y,
+  X = oichao_X,
+  weight = rep(1, 20),
+  deriv = 1
+)
+oichao_hess <- oichao_family$makeMinusLogLike(
+  y = oichao_y,
+  X = oichao_X,
+  weight = rep(1, 20),
+  deriv = 2
+)
+eps_fd <- 1e-6
+fd_grad <- sapply(1:2, function(j) {
+  beta_plus <- oichao_beta
+  beta_minus <- oichao_beta
+  beta_plus[j] <- beta_plus[j] + eps_fd
+  beta_minus[j] <- beta_minus[j] - eps_fd
+  (oichao_fn(beta_plus) - oichao_fn(beta_minus)) / (2 * eps_fd)
+})
+fd_hess <- matrix(0, 2, 2)
+for (i in 1:2) {
+  for (j in 1:2) {
+    ei <- rep(0, 2)
+    ej <- rep(0, 2)
+    ei[i] <- eps_fd
+    ej[j] <- eps_fd
+    fd_hess[i, j] <- (
+      oichao_fn(oichao_beta + ei + ej) -
+        oichao_fn(oichao_beta + ei - ej) -
+        oichao_fn(oichao_beta - ei + ej) +
+        oichao_fn(oichao_beta - ei - ej)
+    ) / (4 * eps_fd ^ 2)
+  }
+}
+
+expect_true(
+  max(abs(as.numeric(-oichao_grad(oichao_beta)) - fd_grad)) < 1e-5
+)
+
+expect_true(
+  max(abs(-oichao_hess(oichao_beta) - fd_hess)) < 1e-3
+)
+
+expect_silent(
+  oichao_fit <- estimatePopsize(
+    formula = y ~ 1,
+    data = data.frame(y = c(rep(2, 20), rep(3, 10))),
+    model = "oichao",
+    controlMethod = controlMethod(silent = TRUE)
+  )
+)
+
+expect_true(
+  all(as.matrix(simulate(oichao_fit, nsim = 4, seed = 1)) %in% 2:3)
+)
+
+# oichao family math sanity checks -------------------------------------------
+
+oichao_fam <- oichao()
+oichao_eta <- matrix(oichao_fam$links[[1]](1.7))
+
+expect_equal(
+  as.numeric(oichao_fam$mu.eta(oichao_eta, type = "trunc")),
+  1.7 / (3 + 1.7),
+  tolerance = 1e-10
+)
+
+expect_equal(
+  as.numeric(oichao_fam$mu.eta(oichao_eta, type = "nontrunc")),
+  1.7,
+  tolerance = 1e-10
+)
+
+expect_equal(
+  as.numeric(oichao_fam$variance(oichao_eta, type = "trunc")),
+  (1.7 / (3 + 1.7)) * (3 / (3 + 1.7)),
+  tolerance = 1e-10
+)
+
+# density: dFun returns truncated Poisson by default
+expect_equal(
+  as.numeric(oichao_fam$densityFunction(2, oichao_eta, type = "trunc")),
+  dpois(2, 1.7) / (1 - dpois(0, 1.7)),
+  tolerance = 1e-10
+)
+
+expect_equal(
+  as.numeric(oichao_fam$densityFunction(3, oichao_eta, type = "nontrunc")),
+  dpois(3, 1.7),
+  tolerance = 1e-10
+)
+
+# deviance residual: sign tracks y, value is small near the appropriate boundary
+oichao_dev_y3 <- as.numeric(oichao_fam$devResids(
+  y = 3, eta = matrix(oichao_fam$links[[1]](100)), wt = 1
+))
+oichao_dev_y2 <- as.numeric(oichao_fam$devResids(
+  y = 2, eta = matrix(oichao_fam$links[[1]](0.01)), wt = 1
+))
+expect_true(is.finite(oichao_dev_y3))
+expect_true(is.finite(oichao_dev_y2))
+expect_true(oichao_dev_y3 > 0)
+expect_true(oichao_dev_y2 < 0)
+# residual shrinks toward zero as lambda approaches the perfect-fit boundary
+expect_true(abs(oichao_dev_y3) < 1)
+expect_true(abs(oichao_dev_y2) < 1)
+# devResids is zero for y outside {2,3} (multiplied by indicator)
+expect_equal(
+  as.numeric(oichao_fam$devResids(y = 1, eta = oichao_eta, wt = 1)),
+  0,
+  tolerance = 1e-10
+)
+expect_equal(
+  as.numeric(oichao_fam$devResids(y = 4, eta = oichao_eta, wt = 1)),
+  0,
+  tolerance = 1e-10
+)
+
+# popVar is non-negative on the intercept-only example used elsewhere
+oichao_pop_fit <- estimatePopsize(
+  formula = y ~ 1,
+  data = data.frame(y = c(rep(2, 95), rep(3, 32))),
+  model = "oichao",
+  popVar = "analytic",
+  controlMethod = controlMethod(silent = TRUE)
+)
+expect_true(is.finite(oichao_pop_fit$populationSize$variance))
+expect_true(oichao_pop_fit$populationSize$variance > 0)
+expect_true(
+  oichao_pop_fit$populationSize$confidenceInterval[1, "lowerBound"] <=
+    oichao_pop_fit$populationSize$pointEstimate
+)
+expect_true(
+  oichao_pop_fit$populationSize$confidenceInterval[1, "upperBound"] >=
+    oichao_pop_fit$populationSize$pointEstimate
+)
+
+# unsupported link is rejected
+expect_error(oichao(lambdaLink = "log"), pattern = "logthird")
+
 
 # not working methods ---------------------------------------------------------
 
@@ -538,8 +793,6 @@ expect_error(
   anova(mod1),
   "The custom anova method for singleRStaticCountData class is not yet implemented. If the goal is to compare models we recommend using `lmtest::lrtest` instead."
 )
-
-
 
 
 

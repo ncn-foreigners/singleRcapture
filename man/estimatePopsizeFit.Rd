@@ -110,11 +110,9 @@ is a block matrix, made of diagonal matrixes
 \boldsymbol{X}_{vlm}^{T}\boldsymbol{W}\boldsymbol{Z}}
 \item Assign:
 \itemize{
-\item\code{converged <- }\mjseqn{
-\ell(\boldsymbol{\beta})-\ell_{-} < \varepsilon\cdot\ell_{-}}
+\item\code{converged <- }\mjteqn{\ell(\boldsymbol{\beta})-\ell_{-} < \varepsilon\cdot\ell_{-}}{\ell(\boldsymbol{\beta})-\ell_{-} \lt \varepsilon\cdot\ell_{-}}{\ell(\boldsymbol{\beta})-\ell_{-} < \varepsilon\cdot\ell_{-}}
 or
-\mjseqn{
-||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}
+\mjteqn{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} \lt \varepsilon}{||\boldsymbol{\beta}-\boldsymbol{\beta}_{-}||_{\infty} < \varepsilon}
 \item\code{iter <- iter + 1}
 }
 where \mjseqn{\varepsilon} is the relative tolerance level,

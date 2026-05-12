@@ -226,6 +226,8 @@ zelterman <- function(lambdaLink = "loghalf",
       family    = "zelterman",
       etaNames  = c("lambda"),
       simulate  = simulate,
+      simulateLower = 0,
+      simulateUpper = 2,
       getStart  = getStart
     ),
     class = c("singleRfamily", "family")

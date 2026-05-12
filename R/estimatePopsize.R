@@ -21,7 +21,8 @@ NULL
 #' data for the regression and population size estimation.
 #' @param formula a formula for the model to be fitted, only applied to the "main" 
 #' linear predictor. Only single response models are available.
-#' @param ratioReg Not yet implemented
+#' @param ratioReg deprecated placeholder for ratio regression. Use
+#'   [ratioReg()] instead.
 #' @param model a model for regression and population estimate full description in [singleRmodels()]. 
 #' @param weights an optional object of prior weights used in fitting the model. 
 #' Can be used to specify number of occurrences of rows in data see [controlModel()]
@@ -186,7 +187,7 @@ NULL
 #' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting point 
 #' \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, use them 
 #' to compute \mjseqn{\hat{N}_{new}}.
-#' 6. Repeat 2-5 unit there are at least \code{B} statistics are obtained.
+#' 6. Repeat 2-5 until there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType} 
 #' specified in [controlPopVar()].
 #' 
@@ -199,7 +200,7 @@ NULL
 #' it is necessary to assume that the have a correct estimate 
 #' \mjseqn{\hat{N}} in order to use this type of bootstrap.
 #' 
-#' Lastly there is \code{"paramteric"} bootstrap where we assume that the 
+#' Lastly there is \code{"parametric"} bootstrap where we assume that the 
 #' probabilistic model used to obtain \mjseqn{\hat{N}} is correct the 
 #' bootstrap procedure may then be described as:
 #' 
@@ -218,7 +219,7 @@ NULL
 #' 5. Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}} 
 #' and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}
 #' use them to compute \mjseqn{\hat{N}_{new}}.
-#' 6. Repeat 1-5 unit there are at least \code{B} statistics are obtained.
+#' 6. Repeat 1-5 until there are at least \code{B} statistics are obtained.
 #' 7. Compute confidence intervals based on \code{alpha} and \code{confType}
 #' specified in [controlPopVar()]
 #' 
@@ -336,7 +337,7 @@ NULL
 #' [controlModel()] -- For control parameters related to model specification.
 #' 
 #' [estimatePopsizeFit()] -- For more information on fitting procedure in
-#' \code{esitmate_popsize}.
+#' \code{estimate_popsize}.
 #' 
 #' [popSizeEst()] [redoPopEstimation()] -- For extracting population size 
 #' estimation results are applying post-hoc procedures.
@@ -436,8 +437,8 @@ estimatePopsize.default <- function(formula,
                                       "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin",
                                       "ztoinegbin", "oiztnegbin", "ztHurdlenegbin",
                                       "Hurdleztnegbin", "zotgeom", "ztoigeom",
-                                      "oiztgeom", "ztHurdlegeom", "ztHurdlegeom",
-                                      "zelterman", "chao"
+                                      "oiztgeom", "ztHurdlegeom", "Hurdleztgeom",
+                                      "zelterman", "chao", "oichao"
                                     ),
                                     weights  = NULL,
                                     subset   = NULL,
@@ -465,6 +466,7 @@ estimatePopsize.default <- function(formula,
   if (!is.data.frame(data)) {
     data <- data.frame(data)
   }
+  fullDataRows <- rownames(data)
   
   if (!is.logical(subset)) {subset <- eval(subset, data)}
   if (is.null(subset)) {subset <- TRUE}
@@ -542,7 +544,32 @@ estimatePopsize.default <- function(formula,
       stop("Single source capture-recapture models support only single dependent variable.")
   
     if (!is.null(weights)) {
-      priorWeights <- as.numeric(weights)
+      weights <- as.numeric(weights)
+      modelFrameRows <- rownames(modelFrame)
+      dataRows <- rownames(data)
+      
+      if (length(weights) == 1L) {
+        priorWeights <- rep(weights, nrow(modelFrame))
+      } else if (length(weights) == nrow(modelFrame)) {
+        priorWeights <- weights
+      } else if (length(weights) == nrow(data)) {
+        alignedRows <- match(modelFrameRows, dataRows)
+        if (anyNA(alignedRows)) {
+          stop("Unable to align argument weights with rows used in fitting.")
+        }
+        priorWeights <- weights[alignedRows]
+      } else if (length(weights) == length(fullDataRows)) {
+        alignedRows <- match(modelFrameRows, fullDataRows)
+        if (anyNA(alignedRows)) {
+          stop("Unable to align argument weights with rows used in fitting.")
+        }
+        priorWeights <- weights[alignedRows]
+      } else {
+        stop(
+          "Argument weights must have length 1, the number of rows used in fitting, ",
+          "the number of rows in data after subsetting, or the number of rows in the original data."
+        )
+      }
     } else {
       priorWeights <- rep(1, nrow(modelFrame))
     }
@@ -551,7 +578,7 @@ estimatePopsize.default <- function(formula,
     if (controlModel$weightsAsCounts) {
       sizeObserved <- sum(priorWeights)
     } else {
-      sizeObserved <- nrow(data)
+      sizeObserved <- nrow(modelFrame)
     }
     
     if (!all(observed > 0)) {
@@ -677,11 +704,13 @@ estimatePopsize.default <- function(formula,
     }
     
     nullDeviance <- as.numeric(NULL)
-    LOG          <- -logLike(coefficients)
+    LOG          <- suppressWarnings(-logLike(coefficients))
     resRes       <- priorWeights * (observed - fitt)
     
     if (family$family %in% c("zelterman", "chao")) {
       resRes <- resRes - priorWeights
+    } else if (family$family == "oichao") {
+      resRes <- resRes - 2 * priorWeights
     }
   
     deviance <- sum(family$devResids(y   = observed, 
@@ -749,6 +778,9 @@ estimatePopsize.default <- function(formula,
       class = c("singleRStaticCountData", "glm", "lm")
     )
   } else {
-    stop("Ratio regression is out of the scope of current versions, but will be implemented at some point.")
+    stop(
+      "Argument ratioReg is not supported in estimatePopsize(). ",
+      "Use ratioReg() as a standalone function instead."
+    )
   }
 }

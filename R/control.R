@@ -53,7 +53,7 @@
 #' \mjsdeqn{
 #' \boldsymbol{\beta}_{(a)} = \boldsymbol{\beta}_{(a-1)} + \text{stepsize} 
 #' \cdot (\text{step}_{(a)} + \text{momentum}\cdot\text{step}_{(a-1)})}
-#' @param momentumActivation the value of log-likelihood reduction bellow 
+#' @param momentumActivation the value of log-likelihood reduction below 
 #' which momentum will apply.
 #' @param criterion a criterion used to determine convergence in \code{IRLS}, 
 #' multiple values may be provided. By default \code{c("coef", "abstol")}.
@@ -236,7 +236,7 @@ controlPopVar <- function(alpha = .05,
                                        "semiparametric",
                                        "nonparametric"),
                           B = 500,
-                          confType = c("percentilic",
+                          confType = c("percentile",
                                        "normal",
                                        "basic"),
                           keepbootStat = TRUE,
@@ -250,7 +250,7 @@ controlPopVar <- function(alpha = .05,
   
   if (missing(fittingMethod)) fittingMethod <- "IRLS"
   if (missing(bootType)) bootType <- "parametric"
-  if (missing(confType)) confType <- "percentilic"
+  if (missing(confType)) confType <- "percentile"
   if (missing(covType))  covType <- "observedInform"
   if (missing(sd))       sd <- "sqrtVar"
   

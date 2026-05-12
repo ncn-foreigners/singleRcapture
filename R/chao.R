@@ -225,6 +225,8 @@ chao <- function(lambdaLink = "loghalf",
       family    = "chao",
       etaNames  = c("lambda"),
       simulate  = simulate,
+      simulateLower = 0,
+      simulateUpper = 2,
       getStart  = getStart
     ),
     class = c("singleRfamily", "family")

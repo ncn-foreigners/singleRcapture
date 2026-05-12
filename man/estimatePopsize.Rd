@@ -13,7 +13,7 @@ estimatePopsize(formula, ...)
   model = c("ztpoisson", "ztnegbin", "ztgeom", "zotpoisson", "ztoipoisson",
     "oiztpoisson", "ztHurdlepoisson", "Hurdleztpoisson", "zotnegbin", "ztoinegbin",
     "oiztnegbin", "ztHurdlenegbin", "Hurdleztnegbin", "zotgeom", "ztoigeom", "oiztgeom",
-    "ztHurdlegeom", "ztHurdlegeom", "zelterman", "chao"),
+    "ztHurdlegeom", "Hurdleztgeom", "zelterman", "chao", "oichao"),
   weights = NULL,
   subset = NULL,
   naAction = NULL,
@@ -79,7 +79,8 @@ dependent vector and model matrix as a part of output.}
 
 \item{contrasts}{not yet implemented.}
 
-\item{ratioReg}{Not yet implemented}
+\item{ratioReg}{deprecated placeholder for ratio regression. Use
+\code{\link[=ratioReg]{ratioReg()}} instead.}
 
 \item{offset}{a matrix of offset values with the number of columns matching the
 number of distribution parameters providing offset values to each of
@@ -265,7 +266,7 @@ was associated with unit for which was observed 2 times.
 and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}, with starting point
 \mjseqn{\hat{\boldsymbol{\beta}}} to make it slightly faster, use them
 to compute \mjseqn{\hat{N}_{new}}.
-\item Repeat 2-5 unit there are at least \code{B} statistics are obtained.
+\item Repeat 2-5 until there are at least \code{B} statistics are obtained.
 \item Compute confidence intervals based on \code{alpha} and \code{confType}
 specified in \code{\link[=controlPopVar]{controlPopVar()}}.
 }
@@ -279,7 +280,7 @@ This procedure is known in literature as \code{"semiparametric"} bootstrap
 it is necessary to assume that the have a correct estimate
 \mjseqn{\hat{N}} in order to use this type of bootstrap.
 
-Lastly there is \code{"paramteric"} bootstrap where we assume that the
+Lastly there is \code{"parametric"} bootstrap where we assume that the
 probabilistic model used to obtain \mjseqn{\hat{N}} is correct the
 bootstrap procedure may then be described as:
 \enumerate{
@@ -298,7 +299,7 @@ probability mass function associated with chosen model.
 \item Regress \mjseqn{\boldsymbol{y}_{new}} on \mjseqn{\boldsymbol{X}_{vlm new}}
 and obtain \mjseqn{\hat{\boldsymbol{\beta}}_{new}}
 use them to compute \mjseqn{\hat{N}_{new}}.
-\item Repeat 1-5 unit there are at least \code{B} statistics are obtained.
+\item Repeat 1-5 until there are at least \code{B} statistics are obtained.
 \item Compute confidence intervals based on \code{alpha} and \code{confType}
 specified in \code{\link[=controlPopVar]{controlPopVar()}}
 }
@@ -454,7 +455,7 @@ With an Implementation in R. New York, USA: Springer. ISBN 978-1-4939-2817-0.
 \code{\link[=controlModel]{controlModel()}} -- For control parameters related to model specification.
 
 \code{\link[=estimatePopsizeFit]{estimatePopsizeFit()}} -- For more information on fitting procedure in
-\code{esitmate_popsize}.
+\code{estimate_popsize}.
 
 \code{\link[=popSizeEst]{popSizeEst()}} \code{\link[=redoPopEstimation]{redoPopEstimation()}} -- For extracting population size
 estimation results are applying post-hoc procedures.

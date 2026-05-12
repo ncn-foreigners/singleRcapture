@@ -10,7 +10,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   if (missing(lambdaLink)) lambdaLink <- "log"
   if (missing(alphaLink))  alphaLink  <- "log"
   if (missing(piLink))     piLink     <- "logit"
-  
+
   links <- list()
   attr(links, "linkNames") <- c(lambdaLink, alphaLink, piLink)
   
@@ -32,21 +32,67 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
   
   links[1:3] <- c(lambdaLink, alphaLink, piLink)
   
+  nbLogP0 <- function(lambda, alpha) {
+    -(1 / alpha) * log1p(lambda * alpha)
+  }
+
+  nbLogP1 <- function(lambda, alpha) {
+    log(lambda) + (-1 / alpha - 1) * log1p(lambda * alpha)
+  }
+
+  nbP0 <- function(lambda, alpha) {
+    exp(nbLogP0(lambda, alpha))
+  }
+
+  nbP1 <- function(lambda, alpha) {
+    exp(nbLogP1(lambda, alpha))
+  }
+
+  probNotOne <- function(lambda, alpha) {
+    pmax(-expm1(pmin(nbLogP1(lambda, alpha), 0)), .Machine$double.xmin)
+  }
+
+  logProbNotOne <- function(lambda, alpha) {
+    log(probNotOne(lambda, alpha))
+  }
+
+  probGe2 <- function(lambda, alpha) {
+    logP0 <- nbLogP0(lambda, alpha)
+    logP1 <- nbLogP1(lambda, alpha)
+    logP01 <- pmax(logP0, logP1) + log1p(exp(-abs(logP0 - logP1)))
+    pmax(-expm1(pmin(logP01, 0)), .Machine$double.xmin)
+  }
+
+  logProbGe2 <- function(lambda, alpha) {
+    log(probGe2(lambda, alpha))
+  }
+
+  probTrunc <- function(lambda, alpha, PI) {
+    logP0 <- log1p(-PI) + nbLogP0(lambda, alpha)
+    logP1 <- nbLogP1(lambda, alpha)
+    logPdrop <- pmax(logP0, logP1) + log1p(exp(-abs(logP0 - logP1)))
+    pmax(-expm1(pmin(logPdrop, 0)), .Machine$double.xmin)
+  }
+
+  logProbTrunc <- function(lambda, alpha, PI) {
+    log(probTrunc(lambda, alpha, PI))
+  }
+
   
   mu.eta <- function(eta, type = "trunc", deriv = FALSE, ...) {
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
+    P1 <- nbP1(lambda, alpha)
+    prob_not_one <- probNotOne(lambda, alpha)
+    prob_trunc <- probTrunc(lambda, alpha, PI)
     
     if (!deriv) {
       switch (type,
         "nontrunc" = PI + (1 - PI) * 
-        (lambda - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) / 
-        (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)),
-        "trunc" = (PI - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1) + 
-        (1 - PI) * lambda) / (1 - (1 - PI) * (1 + alpha * lambda) ^ (-1 / alpha) - 
-        lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+        (lambda - P1) / prob_not_one,
+        "trunc" = (PI - P1 +
+        (1 - PI) * lambda) / prob_trunc
       )
     } else {
       switch (type,
@@ -101,14 +147,17 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    normTerm <- 1 - (1 - PI) * P0 - P1
+    P0 <- nbP0(lambda, alpha)
+    P1 <- nbP1(lambda, alpha)
+    prob_not_one <- probNotOne(lambda, alpha)
+    normTerm <- probTrunc(lambda, alpha, PI)
     
-    switch (type,
-      nontrunc = PI + (1 - PI) * (lambda * (1 + lambda + alpha * lambda) - P1) / (1 - P1),
+    res <- switch (type,
+      nontrunc = PI + (1 - PI) * (lambda * (1 + lambda + alpha * lambda) - P1) / prob_not_one,
       trunc    = (PI - P1 + (1 - PI) * lambda * (1 + lambda + alpha * lambda)) / normTerm
     ) - mu.eta(eta = eta, type = type) ^ 2
+
+    pmax(res, 0)
   }
   
   compdigamma <- function(y, alpha) {
@@ -127,8 +176,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-  piLink(eta[, 3], inverse = TRUE)
     
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
+    normTerm <- probTrunc(lambda, alpha, PI)
     
     res <- rep(0, NROW(eta))
     # 1 is the first possible y value for 0 truncated hurdle distribution
@@ -137,12 +185,12 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     finished <- rep(FALSE, NROW(eta))
     while ((k < nSim) & !all(finished)) {
       prob <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
-        (1 - PI) * stats::dnbinom(
-          x = x, 
-          size = 1 / alpha, 
-          mu = lambda
-        ) / (1 - (1 - PI) * P0 - P1)
-      })
+	        (1 - PI) * stats::dnbinom(
+	          x = x,
+	          size = 1 / alpha,
+	          mu = lambda
+	        ) / normTerm
+	      })
       trg <- apply(cbind(k:(k + eimStep)), MARGIN = 1, FUN = function(x) {
         comptrigamma(y = x, alpha = alpha)
       })
@@ -383,20 +431,19 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     deriv <- deriv + 1
     
     switch (deriv,
-            function(beta) {
-              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
-              lambda <- lambdaLink(eta[, 1], inverse = TRUE)
-              alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
-              PI     <-     piLink(eta[, 3], inverse = TRUE)
-              
-              -sum(weight * (
-              z * (log(PI) + log(1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))) +
-              (1 - z) * (log(1 - PI) + lgamma(y + 1 / alpha) - lgamma(y + 1) -
-              lgamma(1 / alpha) - log(1 + alpha * lambda) / alpha +
-              y * log(lambda) - y * log(lambda + 1 / alpha)) -
-              log(1 - (1 - PI) * (1 + alpha * lambda) ^ (- 1 / alpha) - 
-              lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))))
-            },
+	            function(beta) {
+	              eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
+	              lambda <- lambdaLink(eta[, 1], inverse = TRUE)
+	              alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
+	              PI     <-     piLink(eta[, 3], inverse = TRUE)
+
+	              -sum(weight * (
+	              z * (log(PI) + logProbNotOne(lambda, alpha)) +
+	              (1 - z) * (log(1 - PI) + lgamma(y + 1 / alpha) - lgamma(y + 1) -
+	              lgamma(1 / alpha) - log(1 + alpha * lambda) / alpha +
+	              y * log(lambda) - y * log(lambda + 1 / alpha)) -
+	              logProbTrunc(lambda, alpha, PI)))
+	            },
             function(beta) {
               eta    <- matrix(as.matrix(X) %*% beta, ncol = 3) + offset
               lambda <- lambdaLink(eta[, 1], inverse = TRUE)
@@ -673,17 +720,17 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     mu <- mu.eta(eta = eta)
     
     logLikFit <- (
-      (y==1) * (log(PI) + log(1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))) +
+      (y==1) * (log(PI) + logProbNotOne(lambda, alpha)) +
       (y!=1) * (log(1 - PI) + lgamma(y + 1 / alpha) - lgamma(y + 1) -
       lgamma(1 / alpha) - log(1 + alpha * lambda) / alpha +
       y * log(lambda) - y * log(lambda + 1 / alpha)) -
-      log(1 - (1 - PI) * (1 + alpha * lambda) ^ (- 1 / alpha) - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+      logProbTrunc(lambda, alpha, PI)
     )
     
     yUnq <- unique(y)
     
     if (any(yUnq > 77)) {
-      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+      warning("Currently numerical deviance is unreliable for counts greater than 78.")
     }
     
     
@@ -728,7 +775,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
       a <- exp(xx$par[3])
       l <- exp(xx$par[2])
       
-      lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-log(1-(1+l*a)^(-1/a)-l*(1+l*a)^(-1-1/a))
+      lgamma(yNow+1/a)-lgamma(1/a)-lgamma(yNow+1)-(yNow+1/a)*log(1+l*a)+yNow*log(l*a)-logProbGe2(l, a)
     }
     
     suppressWarnings(logLikIdeal <- sapply(yUnq, FUN = fff))
@@ -740,7 +787,7 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     diff <- logLikIdeal - logLikFit
     
     if (any(logLikFit > 0)) {
-      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      warning("Dispersion parameter values are on the boundary of parameter space. Deviance residuals will be assigned 0 on these observations.")
       diff[logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
@@ -756,10 +803,9 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
+    P1 <- nbP1(lambda, alpha)
     
-    N <- pw * (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)) /
-    (1 - (1 - PI) * (1 + alpha * lambda) ^ (- 1 / alpha) - 
-    lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+    N <- pw * (1 - P1) / probTrunc(lambda, alpha, PI)
     
     if(!contr) {
       N <- sum(N)
@@ -771,8 +817,8 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
-    pr <- (1 - PI) * (1 + alpha * lambda) ^ (- 1 / alpha)
-    pr <- 1 - pr / (1 - lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1))
+    pr <- (1 - PI) * nbP0(lambda, alpha)
+    pr <- 1 - pr / probNotOne(lambda, alpha)
     
     bigTheta0 <- -pw * piLink(eta[, 3], inverse = TRUE, deriv = 1) * 
       ((alpha * lambda + 1) * ((alpha * lambda + 1) ^ (1 / alpha + 1) - lambda)) /
@@ -800,14 +846,14 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     lambda <- lambdaLink(eta[, 1], inverse = TRUE)
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-  piLink(eta[, 3], inverse = TRUE)
-    P0 <- (1 + alpha * lambda) ^ (-1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    normTerm <- 1 - (1 - PI) * P0 - P1
+    P1 <- nbP1(lambda, alpha)
+    normTerm <- probTrunc(lambda, alpha, PI)
+    prob_not_one <- probNotOne(lambda, alpha)
     
     switch (type,
       "trunc" = {
         ifelse(x == 1, PI,
-        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) * (1 - PI) / (1 - P1))
+        stats::dnbinom(x = x, mu = lambda, size = 1 / alpha) * (1 - PI) / prob_not_one)
       },
       "nontrunc" = {
         ifelse(x == 1, PI * (1 - P1) / normTerm,
@@ -821,15 +867,15 @@ Hurdleztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     PI     <-     piLink(eta[, 3], inverse = TRUE)
     
-    P0 <- (1 + alpha * lambda) ^ (- 1 / alpha)
-    P1 <- lambda * (1 + alpha * lambda) ^ (- 1 / alpha - 1)
-    normTerm <- 1 - (1 - PI) * P0 - P1
+    P0 <- nbP0(lambda, alpha)
+    P1 <- nbP1(lambda, alpha)
+    prob_not_one <- probNotOne(lambda, alpha)
     
     CDF <- function(x) {
       ifelse(x == Inf, 1, 
       ifelse(x < 0, 0, 
-      ifelse(x < 1, (1 - PI) * P0 / (1 - P1),
-      PI + ((1 - PI) / (1 - P1)) *
+      ifelse(x < 1, (1 - PI) * P0 / prob_not_one,
+      PI + ((1 - PI) / prob_not_one) *
       (stats::pnbinom(x, mu = lambda, size = 1 / alpha) - P1)
       )))
     }

@@ -45,6 +45,8 @@ Currently, we have implemented most of the frequentist approaches used in litera
 - Zero-truncated one-inflated and one-inflated zero-truncated Poisson, geometric and negative binomial model.
 - Zero-one-truncated Poisson, geometric and negative binomial models.
 - Generalized Chao's and Zelterman's models based on logistic regression.
+- Modified Chao's one-inflation-robust `oichao()` model based on counts 2 and 3.
+- Standalone `ratioReg()` support for ratio regression with optional one-inflation model selection.
 - Three types of bootstrap parametric, semi-parametric and nonparametric.
 - And a wide range of additional functionalities associated with (vector) generalized linear models relevant to the topic.
 
@@ -62,16 +64,16 @@ remotes::install_github("ncn-foreigners/singleRcapture")
 or install the stable version from [CRAN](https://cran.r-project.org/package=singleRcapture) with:
 
 ```{r, eval=FALSE}
-install.packages(singleRcapture)
+install.packages("singleRcapture")
 ```
 
 ### Examples
 
-The main function of this package is `estimatePopsize` which fitts regression
+The main function of this package is `estimatePopsize` which fits regression
 on specified distribution and then uses fitted regression to estimate the
 population size. 
 
-Lets look at a model from 2003 publication (Van Der Heijden, P. G., Bustami, R., Cruyff, M. J., Engbersen, G., & Van Houwelingen, H. C. (2003). Point and interval estimation of the population size using the truncated Poisson regression model. Statistical Modelling, 3(4), 305-322.). The call to `estimatePopsize` will look very similar to anyone who used the 
+Let's look at a model from 2003 publication (Van Der Heijden, P. G., Bustami, R., Cruyff, M. J., Engbersen, G., & Van Houwelingen, H. C. (2003). Point and interval estimation of the population size using the truncated Poisson regression model. Statistical Modelling, 3(4), 305-322.). The call to `estimatePopsize` will look very similar to anyone who used the 
 `stats::glm` function:
 
 ```{r example}
@@ -84,7 +86,50 @@ model <- estimatePopsize(
   method = "IRLS", # fitting method one of three currently supported
   controlMethod = controlMethod(silent = TRUE) # ignore convergence at half step warning
 )
-summary(model) # a summary method for singleR class with standard glm-like output and population size estimation resutls
+summary(model) # a summary method for singleR class with standard glm-like output and population size estimation results
+```
+
+The package also includes `oichao()`, a modified Chao family that uses the
+counts `2` and `3` instead of `1` and `2`, which makes it more robust when
+one-inflation is a concern:
+
+```{r oichao-example}
+oichaoModel <- estimatePopsize(
+  formula = capture ~ gender + age,
+  data = netherlandsimmigrant,
+  model = "oichao",
+  method = "IRLS",
+  controlMethod = controlMethod(silent = TRUE)
+)
+popSizeEst(oichaoModel)
+```
+
+The package also includes a standalone `ratioReg()` function for the
+ratio-regression approach. It is separate from `singleRmodels()` because it
+works on neighbouring marginal-frequency ratios rather than on unit-level
+count likelihoods:
+
+```{r ratioReg-example}
+toyRatio <- data.frame(
+  observed = c(rep(1, 50), rep(2, 30), rep(3, 15), rep(4, 6), rep(5, 2))
+)
+
+ratioModel <- ratioReg(
+  observed ~ 1,
+  data = toyRatio,
+  model = "auto",
+  estimator = "SM",
+  confint = "none"
+)
+
+summary(ratioModel)
+```
+
+The default ratio-regression plot shows the observed log-ratios together with
+the fitted `M0` and `M1` curves:
+
+```{r ratioReg-plot, fig.show="hold", out.width="75%"}
+plot(ratioModel)
 ```
 
 We implemented a method for `plot` function to visualise the model fit and other
@@ -247,4 +292,21 @@ cat(" First model: AIC = ", AIC(modelInflated), " BIC = ", BIC(modelInflated),
 
 ## Funding
 
-Work on this package is supported by the the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941.   
+Work on this package is supported by the National Science Centre through OPUS 20 grant no. 2020/39/B/HS4/00941.   
+
+## Citation
+
+Chlebicki, P., & Beręsewicz, M. (2026). singleRcapture: An R Package for Single-Source Capture-Recapture Models. Journal of Statistical Software, 115(1), 1–30. https://doi.org/10.18637/jss.v115.i01
+
+```bibtex
+ @Article{,
+    title = {{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models},
+    author = {Piotr Chlebicki and Maciej Ber\c{e}sewicz},
+    journal = {Journal of Statistical Software},
+    year = {2025},
+    volume = {115},
+    number = {1},
+    pages = {1--30},
+    doi = {10.18637/jss.v115.i01},
+  }
+```

@@ -104,6 +104,12 @@ expect_silent(
       eta = cbind(etaLambda), 
       seed = 1
     ),
+    oichao = simulate(
+      oichao(),
+      eta = cbind(etaLambda),
+      truncated = TRUE,
+      seed = 1
+    ),
     zelterman = simulate(
       zelterman(), 
       eta = cbind(etaLambda), 
@@ -117,6 +123,10 @@ expect_true(
 )
 
 expect_true(
+  all(res$oichao %in% 2:3)
+)
+
+expect_true(
   all(res$zotpoisson == res$ztpoisson)
 )
 
@@ -127,4 +137,3 @@ expect_true(
 expect_true(
   all(res$zotnegbin == res$ztnegbin)
 )
-

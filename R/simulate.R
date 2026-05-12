@@ -84,6 +84,12 @@ simulate.singleRfamily <- function(object,
                                    truncated = FALSE, 
                                    ...) {
   if (missing(nsim)) nsim <- NROW(eta)
+  lower <- if (truncated) {
+    if (is.null(object$simulateLower)) 0 else object$simulateLower
+  } else {
+    -1
+  }
+  upper <- if (is.null(object$simulateUpper)) Inf else object$simulateUpper
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
     runif(1)
   if (is.null(seed))
@@ -94,5 +100,5 @@ simulate.singleRfamily <- function(object,
     RNGstate <- structure(seed, kind = as.list(RNGkind()))
     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
   }
-  object$simulate(nsim, eta, lower = ifelse(truncated, 0, -1))
+  object$simulate(nsim, eta, lower = lower, upper = upper)
 }

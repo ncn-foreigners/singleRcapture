@@ -337,16 +337,17 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     alpha  <-  alphaLink(eta[, 2], inverse = TRUE)
     mu <- mu.eta(eta = eta)
     
+    prob_ge1 <- pmax(1 - (1 + alpha * lambda) ^ (-1 / alpha), .Machine$double.xmin)
     logLikFit <- (
-      lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
+      lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) -
       (y + 1 / alpha) * log(1 + alpha * lambda) +
-      y * log(lambda * alpha) - log(1 - (1 + alpha * lambda) ^ (-1 / alpha))
+      y * log(lambda * alpha) - log(prob_ge1)
     )
     
     yUnq <- unique(y)
     
     if (any(yUnq > 77)) {
-      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+      warning("Currently numerical deviance is unreliable for counts greater than 78.")
     }
     
     findL <- function(t) {
@@ -391,7 +392,7 @@ ztnegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     diff <- logLikIdeal - logLikFit
     
     if (any(logLikFit > 0)) {
-      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      warning("Dispersion parameter values are on the boundary of parameter space. Deviance residuals will be assigned 0 on these observations.")
       diff[logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")

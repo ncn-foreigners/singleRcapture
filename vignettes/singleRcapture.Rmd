@@ -400,6 +400,28 @@ $$
 where $\pi$ denotes the unconditional probability of observing
 singletons.
 
+-   A modified Chao estimator robust to one-inflation (`oichao`), which
+    discards singletons and runs logistic regression on the indicator
+    $Z=1$ if $Y=3$ and $Z=0$ if $Y=2$ with
+    $\text{logit}(p_k)=\ln(\lambda_k/3)$, so that
+    $p_k=\lambda_k/(3+\lambda_k)$ matches
+    $\mathbb{P}[Y=3\mid Y\in\{2,3\}]$ for $Y\sim\mathrm{Poisson}(\lambda_k)$.
+    The associated population-size estimator is
+
+$$
+\hat{N}_{\text{oiChao}} = N_{obs}+
+\sum_{k=1}^{\boldsymbol{f}_{2}+\boldsymbol{f}_{3}}
+\left(\tfrac{9}{2}\exp\left(2\bx_{k}\hat{\bbeta}\right)+
+\tfrac{9}{2}\exp\left(3\bx_{k}\hat{\bbeta}\right)\right)^{-1},
+\tag{oiChao estimator}
+$$
+
+where $\boldsymbol{f}_{2}$ and $\boldsymbol{f}_{3}$ denote the number of
+units observed twice and three times. The inflation factor
+$(\lambda_k^{2}/2+\lambda_k^{3}/6)^{-1}$ equals
+$\mathbb{P}[Y=0]/\mathbb{P}[Y\in\{2,3\}]$ under $\mathrm{Poisson}(\lambda_k)$,
+so the estimator is unaffected by extra mass at $Y=1$.
+
 The approaches presented above differ in their assumptions,
 computational complexity, or in the way they treat heterogeneity of
 captures and singletons. For instance, the dispersion parameter $\alpha$

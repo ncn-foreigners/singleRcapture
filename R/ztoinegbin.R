@@ -346,10 +346,10 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
               omega  <-  omegaLink(eta[, 3], inverse = TRUE)
               
               -sum(weight * (z * log(omega + (1 - omega) *
-              lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1)) + 
-              (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - 
-              lgamma(1 / alpha) - lgamma(y + 1) - 
-              (y + 1 / alpha) * log(1 + lambda * alpha) + 
+              lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1)) +
+              (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) -
+              lgamma(1 / alpha) - lgamma(y + 1) -
+              (y + 1 / alpha) * log(1 + lambda * alpha) +
               y * log(lambda * alpha)) -
               log(1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha))))
             },
@@ -615,17 +615,18 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     z <- (y == 1)
     mu <- mu.eta(eta = eta)
     
+    prob_trunc <- pmax(1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha), .Machine$double.xmin)
     logLikFit <- (
-      z * log(omega + (1 - omega) * lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1)) + 
-      (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) - 
+      z * log(omega + (1 - omega) * lambda * (1 + alpha * lambda) ^ (-1 / alpha - 1)) +
+      (1 - z) * (log(1 - omega) + lgamma(y + 1 / alpha) - lgamma(1 / alpha) - lgamma(y + 1) -
       (y + 1 / alpha) * log(1 + lambda * alpha) + y * log(lambda * alpha)) -
-      log(1 - (1 - omega) * (1 + alpha * lambda) ^ (-1 / alpha))
+      log(prob_trunc)
     )
     
     yUnq <- unique(y)
     
     if (any(yUnq > 77)) {
-      warning("Curently numerical deviance is unreliable for counts greater than 78.")
+      warning("Currently numerical deviance is unreliable for counts greater than 78.")
     }
     
     findL <- function(t) {
@@ -670,7 +671,7 @@ ztoinegbin <- function(nSim = 1000, epsSim = 1e-8, eimStep = 6,
     diff <- logLikIdeal - logLikFit
     
     if (any(logLikFit > 0)) {
-      warning("Dispertion parameter values are on the boundary of parameter space. Deviance residuals will be asigned 0 on these observations.")
+      warning("Dispersion parameter values are on the boundary of parameter space. Deviance residuals will be assigned 0 on these observations.")
       diff[logLikFit > 0]   <- 0
     } else if (any(diff < 0)) {
       warning("Numerical deviance finder found worse saturated likelihood than fitted model. Expect NA's in deviance/deviance residuals.")
