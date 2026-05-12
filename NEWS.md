@@ -20,6 +20,9 @@
     residuals, analytic population variance) and for `ratioReg()`
     (validation paths, `maxCount`, `subset`, alternative estimators,
     `extractAIC`/`nobs`, custom `ratioFormula`, fixed-model bootstrap).
+-   Split family tests into dedicated `test_fam_*` files and added
+    focused family files for `chao()` and `oichao()` to make CI failures
+    identify the affected model directly.
 -   `Cyprian Jurkowski` contributed the first implementations of
     `oichao()` and `ratioReg()`.
 
