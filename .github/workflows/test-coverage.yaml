@@ -27,11 +27,16 @@ jobs:
         with:
           extra-packages: covr
 
-      - name: Test coverage
-        run: covr::codecov()
+      - name: Generate coverage
+        run: |
+          cov <- covr::package_coverage()
+          covr::to_cobertura(cov, filename = "coverage.xml")
         shell: Rscript {0}
         
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true
+          verbose: true
