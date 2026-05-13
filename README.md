@@ -147,26 +147,39 @@ summary(model) # a summary method for singleR class with standard glm-like outpu
 #> logNormal   9.534288   22.29793
 ```
 
-The package also includes `oichao()`, a modified Chao family that uses
-the counts `2` and `3` instead of `1` and `2`, which makes it more
-robust when one-inflation is a concern:
+We implemented a method for `plot` function to visualise the model fit
+and other useful diagnostic information. One of which is `rootogram`, a
+type of plot that compares fitted and observed marginal frequencies:
 
 ``` r
-oichaoModel <- estimatePopsize(
-  formula = capture ~ gender + age,
-  data = netherlandsimmigrant,
-  model = "oichao",
-  method = "IRLS",
-  controlMethod = controlMethod(silent = TRUE)
-)
-popSizeEst(oichaoModel)
-#> Point estimate: 5.299589e+15
-#> Variance: 1.164916e+39
-#> 95% confidence intervals:
-#>             lowerBound   upperBound
-#> normal    1.880000e+03 6.690058e+19
-#> logNormal 1.443035e+12 1.946291e+19
+plot(model, plotType = "rootogram")
 ```
+
+<img src="man/figures/README-plot-1.png" alt="" width="75%" />
+
+The possible values for `plotType` argument are:
+
+- `qq` - the normal quantile-quantile plot for pearson residuals
+  (default),
+- `marginal` - a `matplot` comparing fitted and observed marginal
+  frequencies,
+- `fitresid` - plot of linear predictor values contrasted with pearson
+  residuals,
+- `bootHist` - histogram of bootstrap sample,
+- `rootogram` - rootogram, example presented above,
+- `dfpopContr` - contrasting two deletion effects to identify presence
+  of influential observations,
+- `dfpopBox` - boxplot of results from `dfpopsize` function see its
+  documentation,
+- `scaleLoc` - scale-location plot,
+- `cooks` - plot of `cooks.values` for distributions for which it is
+  defined,
+- `hatplot` - plot of `hatvalues`,
+- `strata` - plot of confidence intervals for selected such populations.
+
+User can also pass arguments to specify additional information such as
+plot title, subtitle etc. similar to calling `plot` on some data. For
+more info check `plot.singleR` method documentation.
 
 The package also includes a standalone `ratioReg()` function for the
 ratio-regression approach. It is separate from `singleRmodels()` because
@@ -224,40 +237,6 @@ plot(ratioModel)
 ```
 
 <img src="man/figures/README-ratioReg-plot-1.png" alt="" width="75%" />
-
-We implemented a method for `plot` function to visualise the model fit
-and other useful diagnostic information. One of which is `rootogram`, a
-type of plot that compares fitted and observed marginal frequencies:
-
-``` r
-plot(model, plotType = "rootogram")
-```
-
-<img src="man/figures/README-plot-1.png" alt="" width="75%" />
-
-The possible values for `plotType` argument are:
-
-- `qq` - the normal quantile-quantile plot for pearson residuals
-  (default),
-- `marginal` - a `matplot` comparing fitted and observed marginal
-  frequencies,
-- `fitresid` - plot of linear predictor values contrasted with pearson
-  residuals,
-- `bootHist` - histogram of bootstrap sample,
-- `rootogram` - rootogram, example presented above,
-- `dfpopContr` - contrasting two deletion effects to identify presence
-  of influential observations,
-- `dfpopBox` - boxplot of results from `dfpopsize` function see its
-  documentation,
-- `scaleLoc` - scale-location plot,
-- `cooks` - plot of `cooks.values` for distributions for which it is
-  defined,
-- `hatplot` - plot of `hatvalues`,
-- `strata` - plot of confidence intervals for selected such populations.
-
-User can also pass arguments to specify additional information such as
-plot title, subtitle etc. similar to calling `plot` on some data. For
-more info check `plot.singleR` method documentation.
 
 As we have seen there are some significant differences between fitted
 and observed marginal frequencies. To check our intuition let’s perform
