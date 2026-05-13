@@ -142,22 +142,36 @@
 <span><span class="co">#&gt;           lowerBound upperBound</span></span>
 <span><span class="co">#&gt; normal     10.332933   26.16035</span></span>
 <span><span class="co">#&gt; logNormal   9.534288   22.29793</span></span></code></pre></div>
-<p>The package also includes <code><a href="reference/singleRmodels.html">oichao()</a></code>, a modified Chao family that uses the counts <code>2</code> and <code>3</code> instead of <code>1</code> and <code>2</code>, which makes it more robust when one-inflation is a concern:</p>
+<p>We implemented a method for <code>plot</code> function to visualise the model fit and other useful diagnostic information. One of which is <code>rootogram</code>, a type of plot that compares fitted and observed marginal frequencies:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">oichaoModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
-<span>  formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"oichao"</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"IRLS"</span>,</span>
-<span>  controlMethod <span class="op">=</span> <span class="fu"><a href="reference/controlMethod.html">controlMethod</a></span><span class="op">(</span>silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/popSizeEst.html">popSizeEst</a></span><span class="op">(</span><span class="va">oichaoModel</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Point estimate: 5.299589e+15</span></span>
-<span><span class="co">#&gt; Variance: 1.164916e+39</span></span>
-<span><span class="co">#&gt; 95% confidence intervals:</span></span>
-<span><span class="co">#&gt;             lowerBound   upperBound</span></span>
-<span><span class="co">#&gt; normal    1.880000e+03 6.690058e+19</span></span>
-<span><span class="co">#&gt; logNormal 1.443035e+12 1.946291e+19</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-plot-1.png" alt="" width="75%"></p>
+<p>The possible values for <code>plotType</code> argument are:</p>
+<ul>
+<li>
+<code>qq</code> - the normal quantile-quantile plot for pearson residuals (default),</li>
+<li>
+<code>marginal</code> - a <code>matplot</code> comparing fitted and observed marginal frequencies,</li>
+<li>
+<code>fitresid</code> - plot of linear predictor values contrasted with pearson residuals,</li>
+<li>
+<code>bootHist</code> - histogram of bootstrap sample,</li>
+<li>
+<code>rootogram</code> - rootogram, example presented above,</li>
+<li>
+<code>dfpopContr</code> - contrasting two deletion effects to identify presence of influential observations,</li>
+<li>
+<code>dfpopBox</code> - boxplot of results from <code>dfpopsize</code> function see its documentation,</li>
+<li>
+<code>scaleLoc</code> - scale-location plot,</li>
+<li>
+<code>cooks</code> - plot of <code>cooks.values</code> for distributions for which it is defined,</li>
+<li>
+<code>hatplot</code> - plot of <code>hatvalues</code>,</li>
+<li>
+<code>strata</code> - plot of confidence intervals for selected such populations.</li>
+</ul>
+<p>User can also pass arguments to specify additional information such as plot title, subtitle etc. similar to calling <code>plot</code> on some data. For more info check <code>plot.singleR</code> method documentation.</p>
 <p>The package also includes a standalone <code><a href="reference/ratioReg.html">ratioReg()</a></code> function for the ratio-regression approach. It is separate from <code><a href="reference/singleRmodels.html">singleRmodels()</a></code> because it works on neighbouring marginal-frequency ratios rather than on unit-level count likelihoods:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">toyRatio</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -204,39 +218,9 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ratioModel</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-ratioReg-plot-1.png" alt="" width="75%"></p>
-<p>We implemented a method for <code>plot</code> function to visualise the model fit and other useful diagnostic information. One of which is <code>rootogram</code>, a type of plot that compares fitted and observed marginal frequencies:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"rootogram"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot-1.png" alt="" width="75%"></p>
-<p>The possible values for <code>plotType</code> argument are:</p>
-<ul>
-<li>
-<code>qq</code> - the normal quantile-quantile plot for pearson residuals (default),</li>
-<li>
-<code>marginal</code> - a <code>matplot</code> comparing fitted and observed marginal frequencies,</li>
-<li>
-<code>fitresid</code> - plot of linear predictor values contrasted with pearson residuals,</li>
-<li>
-<code>bootHist</code> - histogram of bootstrap sample,</li>
-<li>
-<code>rootogram</code> - rootogram, example presented above,</li>
-<li>
-<code>dfpopContr</code> - contrasting two deletion effects to identify presence of influential observations,</li>
-<li>
-<code>dfpopBox</code> - boxplot of results from <code>dfpopsize</code> function see its documentation,</li>
-<li>
-<code>scaleLoc</code> - scale-location plot,</li>
-<li>
-<code>cooks</code> - plot of <code>cooks.values</code> for distributions for which it is defined,</li>
-<li>
-<code>hatplot</code> - plot of <code>hatvalues</code>,</li>
-<li>
-<code>strata</code> - plot of confidence intervals for selected such populations.</li>
-</ul>
-<p>User can also pass arguments to specify additional information such as plot title, subtitle etc. similar to calling <code>plot</code> on some data. For more info check <code>plot.singleR</code> method documentation.</p>
 <p>As we have seen there are some significant differences between fitted and observed marginal frequencies. To check our intuition let’s perform goodness of fit test between fitted and observed marginal frequencies.</p>
 <p>To do it we call a <code>summary</code> function of <code>marginalFreq</code> function which computes marginal frequencies for the fitted <code>singleR</code> class object:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="reference/marginalFreq.html">marginalFreq</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">2</span>, dropl5 <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Test for Goodness of fit of a regression model:</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -248,12 +232,12 @@
 <span><span class="co">#&gt; Cells with fitted frequencies of &lt; 5 have been grouped </span></span>
 <span><span class="co">#&gt; Names of cells used in calculating test(s) statistic: 1 2 3</span></span></code></pre></div>
 <p>Finally let us check if we have any influential observations. We will do this by comparing the deletion effect of every observation on population size estimate by removing it entirely from the model (from population size estimate and regression) and by only omitting it in pop size estimation (this is what is called the contribution of an observation). If observation is not influential these two actions should have the approximately the same effect:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model</span>, plotType <span class="op">=</span> <span class="st">"dfpopContr"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot-example-1.png" alt="" width="75%"></p>
 <p>it is easy to deduce from the plot above that we have influential observations in our dataset (one in particular).</p>
 <p>Lastly <code>singleRcapture</code> offers some post-hoc procedures for example a function <code>stratifyPopsize</code> that estimates sizes of user specified sub populations and returns them in a <code>data.frame</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.05</span><span class="op">)</span>, <span class="co"># different significance level for each sub population</span></span>
 <span>    strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Females from Surinam"</span> <span class="op">=</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="st">"female"</span> <span class="op">&amp;</span> <span class="va">netherlandsimmigrant</span><span class="op">$</span><span class="va">nation</span> <span class="op">==</span> <span class="st">"Surinam"</span>,</span>
@@ -277,7 +261,7 @@
 <span><span class="co">#&gt; 3      0.03</span></span>
 <span><span class="co">#&gt; 4      0.05</span></span></code></pre></div>
 <p><code>strata</code> argument may be specified in various ways for example:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/stratifyPopsize.html">stratifyPopsize</a></span><span class="op">(</span><span class="va">model</span>, strata <span class="op">=</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">/</span> <span class="va">age</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     name Observed Estimated ObservedPercentage  StdError</span></span>
 <span><span class="co">#&gt; 1         gender==female      398 3811.0911          10.443203 1153.9733</span></span>
@@ -301,7 +285,7 @@
 <span><span class="co">#&gt; 5      0.05</span></span>
 <span><span class="co">#&gt; 6      0.05</span></span></code></pre></div>
 <p>The package was designed with convenience in mind, for example it is possible to specify that weights provided on call are to be interpreted as number of occurrences of units in each row:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">netherlandsimmigrant</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,<span class="fl">5</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">df</span><span class="op">$</span><span class="va">ww</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="co">### this is dplyr::count without dependencies</span></span>
@@ -358,7 +342,7 @@
 <span><span class="co">#&gt; logNormal   9.534281   22.29793</span></span></code></pre></div>
 <p>Methods such as regression diagnostics will be adjusted (values of weights will be reduced instead of rows being removed etc.)</p>
 <p>We also included option to use common non standard argument such as significance levels different from usual 5%:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">modelInflated</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">age</span>,</span>
@@ -415,7 +399,7 @@
 <span><span class="co">#&gt; normal      23.08343   59.14416</span></span>
 <span><span class="co">#&gt; logNormal   20.66688   48.68564</span></span></code></pre></div>
 <p>and the option to estimate standard error of population size estimate by bootstrap, models with more than one distribution parameter being dependent on covariates and some non standard link functions for example:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">modelInflated2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePopsize.html">estimatePopsize</a></span><span class="op">(</span></span>
 <span>    formula <span class="op">=</span> <span class="va">capture</span> <span class="op">~</span> <span class="va">age</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">netherlandsimmigrant</span>,</span>
@@ -451,7 +435,7 @@
 <span><span class="co">#&gt; lowerBound upperBound </span></span>
 <span><span class="co">#&gt;   4002.763  10231.716</span></span></code></pre></div>
 <p>the results are significantly different (the warning issued concerns the second derivative test for existence of local minimum, here it was inconclusive but we manually checked that fitting process found the optimal regression coefficients it’s here to provide more information to the user):</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">modelInflated2</span>, </span>
 <span>     plotType <span class="op">=</span> <span class="st">"bootHist"</span>, </span>
 <span>     labels <span class="op">=</span> <span class="cn">TRUE</span>, </span>
@@ -459,8 +443,8 @@
 <span>     breaks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot-inflated-1.png" alt="" width="75%"></p>
 <p>and information criteria support the second model:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co">#&gt;  First model: AIC = 1736.854 BIC = 1759.01</span></span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co">#&gt; Second model: AIC = 1734.803 BIC = 1756.959</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co">#&gt;  First model: AIC = 1736.854 BIC = 1759.01</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; Second model: AIC = 1734.803 BIC = 1756.959</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -472,16 +456,16 @@
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>Chlebicki, P., &amp; Beręsewicz, M. (2026). singleRcapture: An R Package for Single-Source Capture-Recapture Models. Journal of Statistical Software, 115(1), 1–30. <a href="https://doi.org/10.18637/jss.v115.i01" class="external-link uri">https://doi.org/10.18637/jss.v115.i01</a></p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"> </span><span class="va">@Article</span>{,</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>    <span class="dt">title</span> = {{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models},</span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>    <span class="dt">author</span> = {Piotr Chlebicki and Maciej Ber<span class="ch">\c</span>{e}sewicz},</span>
-<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>    <span class="dt">journal</span> = {Journal of Statistical Software},</span>
-<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>    <span class="dt">year</span> = {2025},</span>
-<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>    <span class="dt">volume</span> = {115},</span>
-<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>    <span class="dt">number</span> = {1},</span>
-<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>    <span class="dt">pages</span> = {1--30},</span>
-<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>    <span class="dt">doi</span> = {10.18637/jss.v115.i01},</span>
-<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"> </span><span class="va">@Article</span>{,</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>    <span class="dt">title</span> = {{singleRcapture}: An {R} Package for Single-Source Capture-Recapture Models},</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>    <span class="dt">author</span> = {Piotr Chlebicki and Maciej Ber<span class="ch">\c</span>{e}sewicz},</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>    <span class="dt">journal</span> = {Journal of Statistical Software},</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>    <span class="dt">year</span> = {2025},</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    <span class="dt">volume</span> = {115},</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>    <span class="dt">number</span> = {1},</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>    <span class="dt">pages</span> = {1--30},</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>    <span class="dt">doi</span> = {10.18637/jss.v115.i01},</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>  }</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
