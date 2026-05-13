@@ -20,3 +20,4 @@
 ^.*\.tar\.gz$
 ^\.\.Rcheck$
 ^vignettes/singleRcapture_cache$
+^\.positai$
