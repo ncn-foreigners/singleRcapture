@@ -2,6 +2,8 @@
 
 ## singleRcapture 1.1.0
 
+CRAN release: 2026-05-13
+
 - Fixing CRAN errors.
 - Added standalone
   [`ratioReg()`](https://ncn-foreigners.github.io/singleRcapture/reference/ratioReg.md)
